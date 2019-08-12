@@ -1,0 +1,165 @@
+﻿using SQLite;
+using SQLiteNetExtensions.Attributes;
+using System;
+using System.Collections.Generic;
+
+namespace DBTest
+{
+	[Table( "Library" )]
+	public class Library
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		[OneToMany]
+		public List<Source> Sources { get; set; }
+
+		[OneToMany]
+		public List<Artist> Artists { get; set; }
+
+		[OneToMany]
+		public List<Album> Albums { get; set; }
+	}
+
+	[Table( "Source" )]
+	public class Source
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+		public string ScanSource { get; set; }
+		public string ScanType { get; set; }
+		public string AccessSource { get; set; }
+		public string AccessType { get; set; }
+
+		[ForeignKey( typeof( Library ) )]
+		public int LibraryId { get; set; }
+
+		[OneToMany]
+		public List<Song> Songs { get; set; }
+	}
+
+	[Table( "Song" )]
+	public class Song
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Title { get; set; }
+		public int Track { get; set; }
+		public string Path { get; set; }
+		public DateTime ModifiedTime { get; set; }
+		public int Length { get; set; }
+
+		[ForeignKey( typeof( Album ) )]
+		public int AlbumId { get; set; }
+
+		[ForeignKey( typeof( Source ) )]
+		public int SourceId { get; set; }
+
+		[ForeignKey( typeof( ArtistAlbum ) )]
+		public int ArtistAlbumId { get; set; }
+	}
+
+	[Table( "Artist" )]
+	public class Artist
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		[ForeignKey( typeof( Library ) )]
+		public int LibraryId { get; set; }
+
+		[OneToMany]
+		public List<ArtistAlbum> ArtistAlbums { get; set; }
+
+		/// <summary>
+		/// Once all the ArtistAlbums have been read this list is used to hold all the ArtistAlbum and Song entries
+		/// in a single list
+		/// </summary>
+		public List<object> Contents { get; } = new List<object>();
+
+		public void EnumerateContents()
+		{
+			foreach ( ArtistAlbum album in ArtistAlbums )
+			{
+				Contents.Add( album );
+				Contents.AddRange( album.Songs );
+			}
+		}
+	}
+
+	[Table( "Album" )]
+	public class Album
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		[ForeignKey( typeof( Library ) )]
+		public int LibraryId { get; set; }
+
+		[OneToMany]
+		public List<Song> Songs { get; set; }
+	}
+
+	[Table( "ArtistAlbum" ) ]
+	public class ArtistAlbum
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		[ForeignKey( typeof( Album ) )]
+		public int AlbumId { get; set; }
+
+		[OneToOne]
+		public Album Album { get; set; }
+
+		[ForeignKey( typeof( Artist ) )]
+		public int ArtistId { get; set; }
+
+		[OneToMany]
+		public List<Song> Songs { get; set; }
+	}
+
+	[Table( "PlayList" )]
+	public class PlayList
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		[ForeignKey( typeof( Library ) )]
+		public int LibraryId { get; set; }
+
+		[OneToMany]
+		public List<PlayListItem> PlayListItems { get; set; }
+	}
+
+	[Table( "PlayListItem" )]
+	public class PlayListItem
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public int Track { get; set; }
+
+		[ForeignKey( typeof( PlayList ) )]
+		public int PlayListId { get; set; }
+
+		[ForeignKey( typeof( Song ) )]
+		public int SongId { get; set; }
+
+		[OneToOne]
+		public Album Song { get; set; }
+	}
+}

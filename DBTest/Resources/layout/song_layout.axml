@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+	<CheckBox
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:focusable="false"
+		android:focusableInTouchMode="false"
+		android:id="@+id/checkBox"
+		android:layout_marginTop="-2dp"
+		android:layout_marginBottom="-5dp"
+		android:layout_marginLeft="-5dp"
+		android:layout_marginRight="-5dp" />
+	<TextView
+		android:id="@+id/Track"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_toRightOf="@+id/checkBox"
+		android:minEms="2"
+		android:text="1"
+		android:layout_marginLeft="15dp"
+		android:textColor="#ff000000" 
+	/>
+	<TextView
+		android:id="@+id/Title"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_toLeftOf="@+id/Duration"
+		android:layout_toRightOf="@+id/Track"
+		android:text="Song title"
+		android:textColor="#ff000000" 
+	/>
+	<TextView
+		android:id="@+id/Duration"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="Duration"
+		android:textColor="#ff9e9e9e"
+		android:layout_alignParentRight="true"
+		android:layout_marginRight="5dp"
+		android:gravity="right"
+		android:maxLines="1" 
+	/>
+</RelativeLayout>

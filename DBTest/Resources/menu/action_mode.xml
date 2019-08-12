@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_add_playlist"
+        android:title="Add to playlist" >
+    </item>
+    <item
+        android:id="@+id/action_playnow"
+        android:title="PLay now" >
+    </item>
+</menu>
+
