@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Android.Content;
-using Android.Util;
 using Android.Views;
 using Android.Widget;
 
@@ -84,45 +83,26 @@ namespace DBTest
 		/// <returns></returns>
 		public override View GetChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
-			Log.WriteLine( LogPriority.Debug, "DBTest:GetChildView", string.Format( "Group {0} Child {1} View {2}", groupPosition, childPosition,
-				( convertView == null ) ? "NULL" : convertView.Handle.ToString() ) );
-
-			// If no longer in ActionMode and this view previously has a click handler installed then use another view
-			// If a view that has an handler is reused then even if the click handler is removed the long click event is not caught
-			if ( ( ActionMode == false ) && ( hasClickHandler.Contains( convertView ) == true ) )
-			{
-				Log.WriteLine( LogPriority.Debug, "DBTest:GetChildView", string.Format( "Removing view from hasClickHandler" ) );
-
-				hasClickHandler.Remove( convertView );
-				convertView.Click -= DetailItemClick;
-
-				convertView = null;
-			}
-
 			// The child can be either a ArtistAlbum or a Song which use different layouts
 			object childObject = Artists[ groupPosition ].Contents[ childPosition ];
 			if ( ( childObject is ArtistAlbum ) == true )
 			{
-				// If the supplied view previously contained a Song then dispose of it
-				if ( convertView != null )
+				// If the supplied view previously contained a Song then don't use it
+				if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.AlbumName ) == null ) )
 				{
-					if ( convertView.FindViewById<TextView>( Resource.Id.AlbumName ) == null )
-					{
-						Log.WriteLine( LogPriority.Debug, "DBTest:GetChildView", string.Format( "View contained a song so cannot use" ) );
-
-						// Not an ArtistAlbum entry so make sure a new view is created
-						convertView = null;
-					}
+					convertView = null;
 				}
 
+				// If no view supplied, or unusable, then create a new one
 				if ( convertView == null )
 				{
 					convertView = inflator.Inflate( Resource.Layout.album_layout, null );
-
-					Log.WriteLine( LogPriority.Debug, "DBTest:GetChildView", string.Format( "Using view {0}", convertView.Handle ) );
 				}
 
-				// Set the album text
+				// Set the album text.
+				// Long click detection for the list view row only seems to work if the clicked item has never had its own click handler
+				// installed. So the layout now contains two album name fields, one to be displayed in Action Mode (when click handling is used)
+				// and the other displayed when Action Mode is not in effect and long click detection is required.
 				TextView albumName = convertView.FindViewById<TextView>( Resource.Id.AlbumName );
 				TextView actionAlbumName = convertView.FindViewById<TextView>( Resource.Id.ActionAlbumName );
 
@@ -131,50 +111,29 @@ namespace DBTest
 					albumName.Visibility = ViewStates.Gone;
 					actionAlbumName.Visibility = ViewStates.Visible;
 					actionAlbumName.Text = ( ( ArtistAlbum )childObject ).Name;
-					actionAlbumName.Click -= TempDetailItemClick;
-
-					actionAlbumName.Click += TempDetailItemClick;
+					actionAlbumName.Click -= TextViewClick;
+					actionAlbumName.Click += TextViewClick;
 				}
 				else
 				{
 					actionAlbumName.Visibility = ViewStates.Gone;
 					albumName.Visibility = ViewStates.Visible;
 					albumName.Text = ( ( ArtistAlbum )childObject ).Name;
-					actionAlbumName.Click -= TempDetailItemClick;
+					actionAlbumName.Click -= TextViewClick;
 				}
-				//				TextView albumName = convertView.FindViewById<TextView>( Resource.Id.AlbumName );
-				//				albumName.Text = ( ( ArtistAlbum )childObject ).Name;
-
-//				if ( ActionMode == true )
-//				{
-//					albumName.Click -= TempDetailItemClick;
-
-//					albumName.Click += TempDetailItemClick;
-//				}
-//				else
-//				{
-//					albumName.Click -= TempDetailItemClick;
-//				}
 			}
 			else
 			{
-				// If the supplied view previously contained an ArtistAlbum then dispose of it
-				if ( convertView != null )
+				// If the supplied view previously contained an ArtistAlbum then don't use it
+				if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.Title ) == null ) )
 				{
-					if ( convertView.FindViewById<TextView>( Resource.Id.Title ) == null )
-					{
-						Log.WriteLine( LogPriority.Debug, "DBTest:GetChildView", string.Format( "View contained an album so cannot use" ) );
-
-						// Not a Song entry so make sure a new view is created
-						convertView = null;
-					}
+					convertView = null;
 				}
 
+				// If no view supplied, or unuasable, then create a new one
 				if ( convertView == null )
 				{
 					convertView = inflator.Inflate( Resource.Layout.song_layout, null );
-
-					Log.WriteLine( LogPriority.Debug, "DBTest:GetChildView", string.Format( "Using view {0}", convertView.Handle ) );
 				}
 
 				Song songItem = ( Song )childObject;
@@ -182,6 +141,10 @@ namespace DBTest
 				// Display the Track number, Title and Duration
 				convertView.FindViewById<TextView>( Resource.Id.Track ).Text = songItem.Track.ToString();
 
+				// Set the song title.
+				// Long click detection for the list view row only seems to work if the clicked item has never had its own click handler
+				// installed. So the layout now contains two album name fields, one to be displayed in Action Mode (when click handling is used)
+				// and the other displayed when Action Mode is not in effect and long click detection is required.
 				TextView songName = convertView.FindViewById<TextView>( Resource.Id.Title );
 				TextView actionSongName = convertView.FindViewById<TextView>( Resource.Id.ActionTitle );
 
@@ -190,18 +153,16 @@ namespace DBTest
 					songName.Visibility = ViewStates.Gone;
 					actionSongName.Visibility = ViewStates.Visible;
 					actionSongName.Text = songItem.Title;
-					actionSongName.Click -= TempDetailItemClick;
-
-					actionSongName.Click += TempDetailItemClick;
+					actionSongName.Click -= TextViewClick;
+					actionSongName.Click += TextViewClick;
 				}
 				else
 				{
 					actionSongName.Visibility = ViewStates.Gone;
 					songName.Visibility = ViewStates.Visible;
 					songName.Text = songItem.Title;
-					actionSongName.Click -= TempDetailItemClick;
+					actionSongName.Click -= TextViewClick;
 				}
-
 
 				convertView.FindViewById<TextView>( Resource.Id.Duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
 			}
@@ -212,22 +173,40 @@ namespace DBTest
 			// Show or hide the common checkbox
 			RenderCheckbox( convertView, groupPosition, childPosition );
 
-			// If in ActionMode then trap any clicks on the item to treat as check box clicks
-			if ( ActionMode == true )
+			return convertView;
+		}
+
+		/// <summary>
+		/// Provide a view containing artist details at the specified position
+		/// Attempt to reuse the supplied view if it previously contained the same type of data.
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="isExpanded"></param>
+		/// <param name="convertView"></param>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		public override View GetGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
+		{
+			// If the supplied view previously contained other than an Artits then don't use it
+			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.ArtistName ) == null ) )
 			{
-//				Log.WriteLine( LogPriority.Debug, "DBTest:GetChildView", string.Format( "Adding click handler for view" ) );
-
-//				convertView.Click -= DetailItemClick;
-//				convertView.Click += DetailItemClick;
-
-				// Record that an handler has been set on this view
-//				if ( hasClickHandler.Contains( convertView ) == false )
-//				{
-//					Log.WriteLine( LogPriority.Debug, "DBTest:GetChildView", string.Format( "Recording that view has a click handler" ) );
-
-//					hasClickHandler.Add( convertView );
-//				}
+				convertView = null;
 			}
+
+			// If no view supplied, or unusable, then create a new one
+			if ( convertView == null )
+			{
+				convertView = inflator.Inflate( Resource.Layout.artist_layout, null );
+			}
+
+			// Display the artist's name
+			convertView.FindViewById<TextView>( Resource.Id.ArtistName ).Text = Artists[ groupPosition ].Name;
+
+			// Tag the view with the group and child position
+			convertView.Tag = ( groupPosition << 16 ) + UInt16.MaxValue;
+
+			// Show or hide the common checkbox
+			RenderCheckbox( convertView, groupPosition, UInt16.MaxValue );
 
 			return convertView;
 		}
@@ -250,61 +229,6 @@ namespace DBTest
 		public override long GetGroupId( int groupPosition )
 		{
 			return groupPosition;
-		}
-
-		/// <summary>
-		/// Provide a view containing artist details at the specified position
-		/// Attempt to reuse the supplied view if it previously contained the same type of data.
-		/// </summary>
-		/// <param name="groupPosition"></param>
-		/// <param name="isExpanded"></param>
-		/// <param name="convertView"></param>
-		/// <param name="parent"></param>
-		/// <returns></returns>
-		public override View GetGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
-		{
-			Log.WriteLine( LogPriority.Debug, "DBTest:GetGroupView", string.Format( "Group {0} View {1}", groupPosition, 
-				( convertView == null ) ? "NULL" : convertView.Handle.ToString() ) );
-
-			// If no longer in ActionMode and this view previously has a click handler installed then use another view
-			// If a view that has an handler is reused then even if the click handler is removed the long click event is not caught
-			if ( ( ActionMode == false ) && ( hasClickHandler.Contains( convertView ) == true ) )
-			{
-				Log.WriteLine( LogPriority.Debug, "DBTest:GetGroupView", string.Format( "Removing view from hasClickHandler" ) );
-
-				hasClickHandler.Remove( convertView );
-				convertView = null;
-			}
-
-			if ( convertView != null )
-			{
-				// Check if the existing view contained artist details
-				if ( convertView.FindViewById<TextView>( Resource.Id.ArtistName ) == null )
-				{
-					Log.WriteLine( LogPriority.Debug, "DBTest:GetGroupView", string.Format( "View did not contain an artist so cannot use" ) );
-
-					// Not an Artist entry so make sure a new view is created
-					convertView = null;
-				}
-			}
-
-			if ( convertView == null )
-			{
-				convertView = inflator.Inflate( Resource.Layout.artist_layout, null );
-
-				Log.WriteLine( LogPriority.Debug, "DBTest:GetGroupView", string.Format( "Using view {0}", convertView.Handle ) );
-			}
-
-			// Display the artist's name
-			convertView.FindViewById<TextView>( Resource.Id.ArtistName ).Text = Artists[ groupPosition ].Name;
-
-			// Tag the view with the group and child position
-			convertView.Tag = ( groupPosition << 16 ) + UInt16.MaxValue;
-
-			// Show or hide the common checkbox
-			RenderCheckbox( convertView, groupPosition, UInt16.MaxValue );
-
-			return convertView;
 		}
 
 		/// <summary>
@@ -452,66 +376,37 @@ namespace DBTest
 			// Retrieve the cheked state of the item and set the checkbox state accordingly
 			selectionBox.Checked = ( checkedObjects.Contains( ( int )selectionBox.Tag ) == true );
 
-			Log.WriteLine( LogPriority.Debug, "DBTest:RenderCheckbox", string.Format( "Checkbox for view {0} id {1} checked", convertView.Handle,
-				( selectionBox.Checked  == true ) ? "" : "NOT" ) );
-
 			// Trap checkbox clicks
 			selectionBox.Click += SelectionBoxClick;
 		}
 
 		/// <summary>
-		/// Called when a song or album item is clicked when in Action Mode
+		/// Called when a song title or album name is clicked when in Action Mode
 		/// Simulate a checkbox click
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void DetailItemClick( object sender, EventArgs e )
+		private void TextViewClick( object sender, EventArgs e )
 		{
-			int tag = ( int )( ( View )sender ).Tag;
-
-			// Only interested in album and song entries, i.e. when the child is not 0xffff
-			if ( ( tag & 0xFFFF ) != 0xFFFF )
+			// Make sure this is a TextView 
+			if ( ( sender is TextView ) == true )
 			{
-				// Treat this as a checkbox click
-				CheckBox selectionBox = ( ( View )sender ).FindViewById<CheckBox>( Resource.Id.checkBox );
+				// Get the tag and selection box from the TextView's parent
+				View layout = ( View )( ( TextView )sender ).Parent;
 
-				selectionBox.Checked = !selectionBox.Checked;
+				int tag = ( int )layout.Tag;
 
-				Log.WriteLine( LogPriority.Debug, "DBTest:DetailItemClick", string.Format( "Checkbox for view {0} id {1} checked",
-					( ( View )sender ).Handle, ( selectionBox.Checked == true ) ? "" : "NOT" ) );
+				// Only interested in album and song entries, i.e. when the child is not 0xffff
+				if ( ( tag & 0xFFFF ) != 0xFFFF )
+				{
+					// Treat this as a checkbox click
+					CheckBox selectionBox = layout.FindViewById<CheckBox>( Resource.Id.checkBox );
 
-				// Raise a click event to do the rest of the processing
-				SelectionBoxClick( selectionBox, new EventArgs() );
-			}
-		}
+					selectionBox.Checked = !selectionBox.Checked;
 
-		/// <summary>
-		/// Called when a song or album item is clicked when in Action Mode
-		/// Simulate a checkbox click
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void TempDetailItemClick( object sender, EventArgs e )
-		{
-			TextView text = ( TextView )sender;
-
-			View layout = ( View )text.Parent;
-
-			int tag = ( int )layout.Tag;
-
-			// Only interested in album and song entries, i.e. when the child is not 0xffff
-			if ( ( tag & 0xFFFF ) != 0xFFFF )
-			{
-				// Treat this as a checkbox click
-				CheckBox selectionBox = layout.FindViewById<CheckBox>( Resource.Id.checkBox );
-
-				selectionBox.Checked = !selectionBox.Checked;
-
-				Log.WriteLine( LogPriority.Debug, "DBTest:DetailItemClick", string.Format( "Checkbox for view {0} id {1} checked",
-					( ( View )sender ).Handle, ( selectionBox.Checked == true ) ? "" : "NOT" ) );
-
-				// Raise a click event to do the rest of the processing
-				SelectionBoxClick( selectionBox, new EventArgs() );
+					// Raise a click event to do the rest of the processing
+					SelectionBoxClick( selectionBox, new EventArgs() );
+				}
 			}
 		}
 
@@ -550,13 +445,6 @@ namespace DBTest
 		/// Keep track of items that have been selected
 		/// </summary>
 		private HashSet< int > checkedObjects = new HashSet< int >();
-
-		/// <summary>
-		/// Keep track of which views have had a click handler installed.
-		/// These views cannot be reused when Action Mode has finished because once an handler is installed it stops the 
-		/// ListView long click detection from working (even if the handler is removed) Strange but true.
-		/// </summary>
-		private HashSet< View > hasClickHandler = new HashSet<View>();
 
 		/// <summary>
 		/// Keep track of whether or not action mode is in effect
