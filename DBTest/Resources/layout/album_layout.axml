@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="fill_parent"
+	android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 	<CheckBox
 		android:layout_width="wrap_content"
@@ -20,6 +20,15 @@
 		android:text="Album"
 		android:layout_toRightOf="@+id/checkBox"
 		android:layout_marginLeft="20dp"
-		android:textColor="#ff1a237e" 
+		android:textColor="#ff1a237e"
+	/>
+	<TextView
+		android:id="@+id/ActionAlbumName"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="Album"
+		android:layout_toRightOf="@+id/AlbumName"
+		android:layout_marginLeft="20dp"
+		android:textColor="#ff1a237e"
 	/>
 </RelativeLayout>

@@ -13,7 +13,7 @@ using SQLiteNetExtensions.Extensions;
 namespace DBTest
 {
 	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
-    public class MainActivity : AppCompatActivity, ActionMode.ICallback
+    public class MainActivity : AppCompatActivity, ActionMode.ICallback, ArtistAlbumListViewAdapter.IArtistContentsProvider
     {
 
 		protected override void OnCreate( Bundle savedInstanceState )
@@ -26,14 +26,10 @@ namespace DBTest
 			SetSupportActionBar( toolbar );
 
 			listView = FindViewById<ExpandableListView>( Resource.Id.mainLayout );
-			adapter = new ArtistAlbumListViewAdapter( this, listView );
+			adapter = new ArtistAlbumListViewAdapter( this, listView, this );
 
 			listView.SetAdapter( adapter );
-			GroupListener listener = new GroupListener();
-			listener.Adapter = adapter;
-			listView.SetOnGroupClickListener( listener );
 
-			listView.SetOnLongClickListener( new ItemLongClickListener() );
 			adapter.ActionModeRequested += Adapter_ActionModeRequested;
 
 			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
@@ -137,31 +133,7 @@ namespace DBTest
 			}
 			else if ( id == Resource.Id.action_collapse )
 			{
-				// Close either the last group opened or all groups
-				if ( lastGroupOpened != -1 )
-				{
-					listView.CollapseGroup( lastGroupOpened );
-					listView.SetSelection( lastGroupOpened );
-					expandedGroups.Remove( lastGroupOpened );
-					lastGroupOpened = -1;
-
-					if ( expandedGroups.Count == 0 )
-					{
-						collapseItem.SetVisible( false );
-					}
-				}
-				else
-				{
-					// Close all open groups
-					foreach ( int groupId in expandedGroups )
-					{
-						listView.CollapseGroup( groupId );
-					}
-
-					expandedGroups.Clear();
-
-					collapseItem.SetVisible( false );
-				}
+				adapter.OnCollapseRequest();
 			}
 			else if ( id == Resource.Id.action_playlist )
 			{
@@ -237,82 +209,36 @@ namespace DBTest
 			return false;
 		}
 
+		public void ProvideArtistContents( Artist theArtist )
+		{
+			db.GetChildren<Artist>( theArtist );
+
+			// Sort the albums alphabetically
+			theArtist.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
+
+			foreach ( ArtistAlbum artistAlbum in theArtist.ArtistAlbums )
+			{
+				db.GetChildren<ArtistAlbum>( artistAlbum );
+
+				// Sort the songs by track number
+				artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+			}
+
+			// Now all the ArtistAlbum and Song entries have been read form a single list from them
+			theArtist.EnumerateContents();
+		}
+
+		public void ExpandedGroupCountChanged( int count )
+		{
+			collapseItem.SetVisible( count > 0 );
+		}
+
 		static SQLiteConnection db = null;
 		static SQLiteAsyncConnection dbAsynch = null;
 
 		static ArtistAlbumListViewAdapter adapter = null;
 
-
-		private class GroupListener: Java.Lang.Object, ExpandableListView.IOnGroupClickListener
-		{
-			public bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
-			{
-				if ( parent.IsGroupExpanded( groupPosition ) == false )
-				{
-					// This group is expanding. If not previously displayed, get its contents now
-					Artist artistClicked = Adapter.artists[ groupPosition ];
-					if ( artistClicked.ArtistAlbums == null )
-					{
-						db.GetChildren<Artist>( artistClicked );
-
-						// Sort the albums alphabetically
-						artistClicked.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
-
-						foreach ( ArtistAlbum artistAlbum in artistClicked.ArtistAlbums )
-						{
-							db.GetChildren<ArtistAlbum>( artistAlbum );
-
-							// Sort the songs by track number
-							artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
-						}
-
-						// Now all the ArtistAlbum and Song entries have been read form a single list from them
-						artistClicked.EnumerateContents();
-					}
-
-					// Add this to the record of which groups are expanded
-					expandedGroups.Add( groupPosition );
-
-					// Make sure the collapse button is visible
-					collapseItem.SetVisible( true );
-
-					lastGroupOpened = groupPosition;
-				}
-				else
-				{
-					expandedGroups.Remove( groupPosition );
-
-					if ( expandedGroups.Count == 0 )
-					{
-						collapseItem.SetVisible( false );
-					}
-
-					lastGroupOpened = -1;
-				}
-
-
-				return false;
-			}
-
-			public ArtistAlbumListViewAdapter Adapter { get; set; }
-		}
-
-		private class ItemLongClickListener: Java.Lang.Object, ExpandableListView.IOnLongClickListener
-		{
-			public bool OnLongClick( View v )
-			{
-				return false;
-			}
-		}
-
-		/// <summary>
-		/// Keep track of the id's of the groups that have been expanded
-		/// </summary>
-		private static HashSet< int > expandedGroups = new HashSet<int>();
-
 		private static IMenuItem collapseItem = null;
-
-		private static int lastGroupOpened = -1;
 
 		private static ExpandableListView listView = null;
 	}
