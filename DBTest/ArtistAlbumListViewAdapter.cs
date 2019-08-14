@@ -181,7 +181,28 @@ namespace DBTest
 
 				// Display the Track number, Title and Duration
 				convertView.FindViewById<TextView>( Resource.Id.Track ).Text = songItem.Track.ToString();
-				convertView.FindViewById<TextView>( Resource.Id.Title ).Text = songItem.Title;
+
+				TextView songName = convertView.FindViewById<TextView>( Resource.Id.Title );
+				TextView actionSongName = convertView.FindViewById<TextView>( Resource.Id.ActionTitle );
+
+				if ( ActionMode == true )
+				{
+					songName.Visibility = ViewStates.Gone;
+					actionSongName.Visibility = ViewStates.Visible;
+					actionSongName.Text = songItem.Title;
+					actionSongName.Click -= TempDetailItemClick;
+
+					actionSongName.Click += TempDetailItemClick;
+				}
+				else
+				{
+					actionSongName.Visibility = ViewStates.Gone;
+					songName.Visibility = ViewStates.Visible;
+					songName.Text = songItem.Title;
+					actionSongName.Click -= TempDetailItemClick;
+				}
+
+
 				convertView.FindViewById<TextView>( Resource.Id.Duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
 			}
 

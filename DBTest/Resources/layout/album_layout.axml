@@ -27,7 +27,7 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:text="Album"
-		android:layout_toRightOf="@+id/AlbumName"
+		android:layout_toRightOf="@+id/checkBox"
 		android:layout_marginLeft="20dp"
 		android:textColor="#ff1a237e"
 	/>

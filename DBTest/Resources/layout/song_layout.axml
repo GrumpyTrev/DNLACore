@@ -33,6 +33,15 @@
 		android:textColor="#ff000000" 
 	/>
 	<TextView
+		android:id="@+id/ActionTitle"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_toLeftOf="@+id/Duration"
+		android:layout_toRightOf="@+id/Track"
+		android:text="Song title"
+		android:textColor="#ff000000" 
+	/>
+	<TextView
 		android:id="@+id/Duration"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
