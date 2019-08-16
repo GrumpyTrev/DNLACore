@@ -57,6 +57,9 @@
   <ItemGroup>
     <Compile Include="ArtistAlbumListViewAdapter.cs" />
     <Compile Include="FTPScanner.cs" />
+    <Compile Include="PlaylistsAdapter.cs" />
+    <Compile Include="PlaylistsFragment.cs" />
+    <Compile Include="LibraryFragment.cs" />
     <Compile Include="LibraryScanner.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="MediaLibrary.cs" />
@@ -66,6 +69,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScannedAlbum.cs" />
     <Compile Include="ScannedSong.cs" />
+    <Compile Include="TabsFragmentPagerAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -141,6 +145,27 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
     </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\library_fragment.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\playlists_fragment.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\playing_fragment.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\select.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_playlists.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

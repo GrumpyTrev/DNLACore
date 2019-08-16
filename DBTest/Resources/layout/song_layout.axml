@@ -17,23 +17,14 @@
 		android:id="@+id/Track"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_toRightOf="@+id/checkBox"
 		android:minEms="2"
 		android:text="1"
 		android:layout_marginLeft="15dp"
+		android:layout_toRightOf="@+id/checkBox"
 		android:textColor="#ff000000" 
 	/>
 	<TextView
 		android:id="@+id/Title"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:layout_toLeftOf="@+id/Duration"
-		android:layout_toRightOf="@+id/Track"
-		android:text="Song title"
-		android:textColor="#ff000000" 
-	/>
-	<TextView
-		android:id="@+id/ActionTitle"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:layout_toLeftOf="@+id/Duration"

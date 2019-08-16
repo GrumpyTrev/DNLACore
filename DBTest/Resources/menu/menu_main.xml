@@ -13,9 +13,9 @@
 		app:showAsAction="always"
 		android:title="To playlist"/>
 	<item
-		android:id="@+id/action_collapse"
-		android:icon="@drawable/collapse"
+		android:id="@+id/action_select"
+		android:icon="@drawable/select"
 		android:orderInCategory="2"
 		app:showAsAction="always"
-		android:title="Collapse"/>
+		android:title="Select"/>
 </menu>

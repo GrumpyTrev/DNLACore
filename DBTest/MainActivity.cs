@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Android.App;
 using Android.Content;
 using Android.OS;
+using Android.Runtime;
+using Android.Support.Design.Widget;
+using Android.Support.V4.View;
 using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
@@ -13,9 +17,8 @@ using SQLiteNetExtensions.Extensions;
 namespace DBTest
 {
 	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
-    public class MainActivity : AppCompatActivity, ActionMode.ICallback, ArtistAlbumListViewAdapter.IArtistContentsProvider
+    public class MainActivity : AppCompatActivity
     {
-
 		protected override void OnCreate( Bundle savedInstanceState )
 		{
 			base.OnCreate( savedInstanceState );
@@ -25,25 +28,20 @@ namespace DBTest
 			Android.Support.V7.Widget.Toolbar toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.toolbar );
 			SetSupportActionBar( toolbar );
 
-			listView = FindViewById<ExpandableListView>( Resource.Id.mainLayout );
-			adapter = new ArtistAlbumListViewAdapter( this, listView, this );
-
-			listView.SetAdapter( adapter );
-
-			adapter.ActionModeRequested += Adapter_ActionModeRequested;
+			tabLayout = FindViewById<TabLayout>( Resource.Id.sliding_tabs );
 
 			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
 
-//			if ( File.Exists( databasePath ) == true )
-//			{
-//				File.Delete( databasePath );
-//			}
+			//			if ( File.Exists( databasePath ) == true )
+			//			{
+			//				File.Delete( databasePath );
+			//			}
+
+			Library songLibrary = null;
 
 			try
 			{
-				dbAsynch = new SQLiteAsyncConnection( databasePath );
-
-				db = new SQLiteConnection( databasePath );
+				SQLiteConnection db = new SQLiteConnection( databasePath );
 
 				// Create a library entry and associated sources
 				db.CreateTable<Library>();
@@ -54,13 +52,9 @@ namespace DBTest
 				db.CreateTable<ArtistAlbum>();
 
 				// Check for an existing library
-				Library songLibrary = db.GetAllWithChildren<Library>().SingleOrDefault();
+				songLibrary = db.GetAllWithChildren<Library>().SingleOrDefault();
 
-				if ( songLibrary != null )
-				{
-					GetArtistDetails( songLibrary );
-				}
-				else
+				if ( songLibrary == null )
 				{
 					// For debugging - setup a single library
 					Library lib1 = new Library() { Name = "Remote" };
@@ -99,27 +93,13 @@ namespace DBTest
 			catch ( SQLite.SQLiteException queryException )
 			{
 			}
-		}
 
-		/// <summary>
-		/// A request to enter action mode has been requested
-		/// Display the Contextual Action Bar and move the Library list into action mode
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void Adapter_ActionModeRequested( object sender, System.EventArgs e )
-		{
-			StartActionMode( this );
-
-			( ( ArtistAlbumListViewAdapter )sender ).ActionMode = true;
+			InitialiseFragments( databasePath, songLibrary );
 		}
 
 		public override bool OnCreateOptionsMenu(IMenu menu)
         {
             MenuInflater.Inflate(Resource.Menu.menu_main, menu);
-
-			collapseItem = menu.FindItem( Resource.Id.action_collapse );
-			collapseItem.SetVisible( false );
 
 			return true;
         }
@@ -133,114 +113,73 @@ namespace DBTest
 			}
 			else if ( id == Resource.Id.action_collapse )
 			{
-				adapter.OnCollapseRequest();
+//				adapter.OnCollapseRequest();
 			}
 			else if ( id == Resource.Id.action_playlist )
 			{
-				StartActivity( new Intent( this, typeof( PlayListActivity ) ) ); 
+				StartActivity( new Intent( this, typeof( PlayListActivity ) ) );
+			}
+			else if ( id == Resource.Id.action_select )
+			{
+				libraryFragment.OnSelection();
 			}
 
-            return base.OnOptionsItemSelected(item);
+			return base.OnOptionsItemSelected(item);
         }
 
-		private async void GetArtistDetails( Library songLibrary )
+		private void InitialiseFragments( string databasePath, Library songLibrary )
 		{
-			// Get all of the artist details from the database
-			for ( int artistIndex = 0; artistIndex < songLibrary.Artists.Count; ++artistIndex )
+			libraryFragment = new LibraryFragment( databasePath, songLibrary );
+			playlistsFragment = new PlaylistsFragment( databasePath, songLibrary );
+
+			Android.Support.V4.App.Fragment[] fragments = new Android.Support.V4.App.Fragment[]
 			{
-				songLibrary.Artists[ artistIndex ] = await dbAsynch.GetAsync<Artist>( songLibrary.Artists[ artistIndex ].Id );
+				libraryFragment, playlistsFragment
+			};
+
+			//Tab title array
+			Java.Lang.ICharSequence[] titles = CharSequence.ArrayFromStringArray( new[] { "Library", "Playlists" } );
+
+			ViewPager viewPager = FindViewById<ViewPager>( Resource.Id.viewpager );
+
+			//viewpager holding fragment array and tab title text
+			viewPager.Adapter = new TabsFragmentPagerAdapter( SupportFragmentManager, fragments, titles );
+
+			// Give the TabLayout the ViewPager 
+			tabLayout.SetupWithViewPager( viewPager );
+
+			// Detect page changes
+			viewPager.AddOnPageChangeListener( new PageChangeListener() );
+		}
+
+		private class PageChangeListener: Java.Lang.Object, ViewPager.IOnPageChangeListener
+		{
+			public void OnPageScrolled( int position, float positionOffset, int positionOffsetPixels )
+			{
 			}
 
-			// Sort the list of artists by name
-			songLibrary.Artists.Sort( ( a, b ) =>
+			public void OnPageScrollStateChanged( int state )
 			{
-				// Do a normal comparison, except remove a leading 'The ' before comparing
-				string artistA = a.Name;
-				if ( a.Name.ToUpper().StartsWith( "THE " ) == true )
-				{
-					artistA = a.Name.Substring( 4 );
-				}
-
-				string artistB = b.Name;
-				if ( b.Name.ToUpper().StartsWith( "THE " ) == true )
-				{
-					artistB = b.Name.Substring( 4 );
-				}
-
-				return artistA.CompareTo( artistB );
-			} );
-
-			// Work out the section indexes for the sorted data
-			Dictionary< string, int >  alphaIndex = new Dictionary< string, int >();
-			int index = 0;
-			foreach ( Artist artist in songLibrary.Artists )
-			{
-				string key = artist.Name[ 0 ].ToString();
-				if ( alphaIndex.ContainsKey( key ) == false )
-				{
-					alphaIndex[ key ] = index;
-				}
-				index++;
 			}
 
-			// Now load the adapter with this data
-			adapter.SetData( songLibrary.Artists, alphaIndex );
-		}
-
-		public bool OnActionItemClicked( ActionMode mode, IMenuItem item )
-		{
-			return false;
-		}
-
-		public bool OnCreateActionMode( ActionMode mode, IMenu menu )
-		{
-			MenuInflater inflater = mode.MenuInflater;
-			inflater.Inflate( Resource.Menu.action_mode, menu );
-			return true;
-		}
-
-		public void OnDestroyActionMode( ActionMode mode )
-		{
-			adapter.ActionMode = false;
-		}
-
-		public bool OnPrepareActionMode( ActionMode mode, IMenu menu )
-		{
-			return false;
-		}
-
-		public void ProvideArtistContents( Artist theArtist )
-		{
-			db.GetChildren<Artist>( theArtist );
-
-			// Sort the albums alphabetically
-			theArtist.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
-
-			foreach ( ArtistAlbum artistAlbum in theArtist.ArtistAlbums )
+			public void OnPageSelected( int position )
 			{
-				db.GetChildren<ArtistAlbum>( artistAlbum );
-
-				// Sort the songs by track number
-				artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+				// Position 0 = LibraryFragment
+				if ( position == 0 )
+				{
+					libraryFragment.PageVisible( true );
+				}
+				else
+				{
+					libraryFragment.PageVisible( false );
+				}
 			}
-
-			// Now all the ArtistAlbum and Song entries have been read form a single list from them
-			theArtist.EnumerateContents();
 		}
 
-		public void ExpandedGroupCountChanged( int count )
-		{
-			collapseItem.SetVisible( count > 0 );
-		}
+		private TabLayout tabLayout = null;
 
-		static SQLiteConnection db = null;
-		static SQLiteAsyncConnection dbAsynch = null;
-
-		static ArtistAlbumListViewAdapter adapter = null;
-
-		private static IMenuItem collapseItem = null;
-
-		private static ExpandableListView listView = null;
+		private static LibraryFragment libraryFragment = null;
+		private static PlaylistsFragment playlistsFragment = null;
 	}
 }
 
