@@ -46,7 +46,7 @@ namespace DBTest
 			inflater.Inflate( Resource.Menu.menu_playlists, menu );
 
 			collapseItem = menu.FindItem( Resource.Id.action_collapse );
-			collapseItem.SetVisible( false );
+			collapseItem.SetVisible( expandedGroupCount > 0 );
 		}
 
 		public override bool OnOptionsItemSelected( IMenuItem item )
@@ -82,7 +82,8 @@ namespace DBTest
 
 		public void ExpandedGroupCountChanged( int count )
 		{
-			collapseItem.SetVisible( count > 0 );
+			expandedGroupCount = count;
+			collapseItem.SetVisible( expandedGroupCount > 0 );
 		}
 
 		private async void GetArtistDetails( Library songLibrary )
@@ -141,5 +142,7 @@ namespace DBTest
 
 		private SQLiteConnection db = null;
 		private SQLiteAsyncConnection dbAsynch = null;
+
+		private int expandedGroupCount = 0;
 	}
 }
