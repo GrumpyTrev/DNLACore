@@ -2348,8 +2348,8 @@ namespace DBTest
 			// aapt resource value: 0x7f080033
 			public const int CTRL = 2131230771;
 			
-			// aapt resource value: 0x7f0800b7
-			public const int Duration = 2131230903;
+			// aapt resource value: 0x7f0800b8
+			public const int Duration = 2131230904;
 			
 			// aapt resource value: 0x7f080034
 			public const int FUNCTION = 2131230772;
@@ -2363,17 +2363,17 @@ namespace DBTest
 			// aapt resource value: 0x7f080037
 			public const int SYM = 2131230775;
 			
-			// aapt resource value: 0x7f0800b6
-			public const int Title = 2131230902;
+			// aapt resource value: 0x7f0800b7
+			public const int Title = 2131230903;
 			
-			// aapt resource value: 0x7f0800b5
-			public const int Track = 2131230901;
+			// aapt resource value: 0x7f0800b6
+			public const int Track = 2131230902;
 			
 			// aapt resource value: 0x7f0800a3
 			public const int action0 = 2131230883;
 			
-			// aapt resource value: 0x7f0800bc
-			public const int action_add_playlist = 2131230908;
+			// aapt resource value: 0x7f0800bd
+			public const int action_add_playlist = 2131230909;
 			
 			// aapt resource value: 0x7f08007c
 			public const int action_bar = 2131230844;
@@ -2396,8 +2396,8 @@ namespace DBTest
 			// aapt resource value: 0x7f08005a
 			public const int action_bar_title = 2131230810;
 			
-			// aapt resource value: 0x7f0800c1
-			public const int action_collapse = 2131230913;
+			// aapt resource value: 0x7f0800bf
+			public const int action_collapse = 2131230911;
 			
 			// aapt resource value: 0x7f0800a0
 			public const int action_container = 2131230880;
@@ -2426,17 +2426,11 @@ namespace DBTest
 			// aapt resource value: 0x7f08005c
 			public const int action_mode_close_button = 2131230812;
 			
-			// aapt resource value: 0x7f0800bf
-			public const int action_playlist = 2131230911;
-			
-			// aapt resource value: 0x7f0800bd
-			public const int action_playnow = 2131230909;
+			// aapt resource value: 0x7f0800be
+			public const int action_playnow = 2131230910;
 			
 			// aapt resource value: 0x7f0800c0
-			public const int action_select = 2131230912;
-			
-			// aapt resource value: 0x7f0800be
-			public const int action_settings = 2131230910;
+			public const int action_settings = 2131230912;
 			
 			// aapt resource value: 0x7f0800a2
 			public const int action_text = 2131230882;
@@ -2473,6 +2467,9 @@ namespace DBTest
 			
 			// aapt resource value: 0x7f08003d
 			public const int bottom = 2131230781;
+			
+			// aapt resource value: 0x7f0800b5
+			public const int bottomToolbar = 2131230901;
 			
 			// aapt resource value: 0x7f080063
 			public const int buttonPanel = 2131230819;
@@ -2636,14 +2633,14 @@ namespace DBTest
 			// aapt resource value: 0x7f080061
 			public const int list_item = 2131230817;
 			
-			// aapt resource value: 0x7f0800bb
-			public const int masked = 2131230907;
+			// aapt resource value: 0x7f0800bc
+			public const int masked = 2131230908;
 			
 			// aapt resource value: 0x7f0800a6
 			public const int media_actions = 2131230886;
 			
-			// aapt resource value: 0x7f0800b9
-			public const int message = 2131230905;
+			// aapt resource value: 0x7f0800ba
+			public const int message = 2131230906;
 			
 			// aapt resource value: 0x7f080031
 			public const int middle = 2131230769;
@@ -2867,8 +2864,8 @@ namespace DBTest
 			// aapt resource value: 0x7f08006f
 			public const int title_template = 2131230831;
 			
-			// aapt resource value: 0x7f0800b8
-			public const int toolbar = 2131230904;
+			// aapt resource value: 0x7f0800b9
+			public const int toolbar = 2131230905;
 			
 			// aapt resource value: 0x7f08003e
 			public const int top = 2131230782;
@@ -2909,8 +2906,8 @@ namespace DBTest
 			// aapt resource value: 0x7f08008c
 			public const int viewpager = 2131230860;
 			
-			// aapt resource value: 0x7f0800ba
-			public const int visible = 2131230906;
+			// aapt resource value: 0x7f0800bb
+			public const int visible = 2131230907;
 			
 			// aapt resource value: 0x7f08003c
 			public const int withText = 2131230780;
@@ -3198,10 +3195,13 @@ namespace DBTest
 			public const int action_mode = 2131623936;
 			
 			// aapt resource value: 0x7f0e0001
-			public const int menu_main = 2131623937;
+			public const int menu_library = 2131623937;
 			
 			// aapt resource value: 0x7f0e0002
-			public const int menu_playlists = 2131623938;
+			public const int menu_main = 2131623938;
+			
+			// aapt resource value: 0x7f0e0003
+			public const int menu_playlists = 2131623939;
 			
 			static Menu()
 			{

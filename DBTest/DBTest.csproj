@@ -55,21 +55,32 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArtistAlbumListViewAdapter.cs" />
+    <Compile Include="LibraryAdapter.cs" />
+    <Compile Include="ConnectionDetailsModel.cs" />
+    <Compile Include="ExpandableListAdapter.cs" />
+    <Compile Include="ExpandableListAdapterModel.cs" />
     <Compile Include="FTPScanner.cs" />
+    <Compile Include="GroupExpansionModel.cs" />
+    <Compile Include="IPageVisible.cs" />
     <Compile Include="PlaylistsAdapter.cs" />
+    <Compile Include="LibraryAdapterModel.cs" />
+    <Compile Include="PlaylistsAdapterModel.cs" />
     <Compile Include="PlaylistsFragment.cs" />
     <Compile Include="LibraryFragment.cs" />
     <Compile Include="LibraryScanner.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="MediaLibrary.cs" />
     <Compile Include="MP3TagExtractor.cs" />
-    <Compile Include="PlayListActivity.cs" />
+    <Compile Include="LibraryModel.cs" />
+    <Compile Include="PlaylistsModel.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScannedAlbum.cs" />
     <Compile Include="ScannedSong.cs" />
     <Compile Include="TabsFragmentPagerAdapter.cs" />
+    <Compile Include="ViewModel.cs" />
+    <Compile Include="ViewModelProvider.cs" />
+    <Compile Include="ViewModelStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -166,6 +177,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\menu\menu_playlists.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_library.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

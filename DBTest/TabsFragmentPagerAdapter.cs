@@ -1,5 +1,4 @@
-﻿using System;
-using Android.Support.V4.App;
+﻿using Android.Support.V4.App;
 using Java.Lang;
 
 namespace DBTest
@@ -12,7 +11,17 @@ namespace DBTest
 
 		public TabsFragmentPagerAdapter( FragmentManager fm, Fragment[] fragments, ICharSequence[] titles ) : base( fm )
 		{
-			this.fragments = fragments;
+			// If the FragmentManger is already populated then use its Fragments instead
+			if ( fm.Fragments.Count > 0 )
+			{
+				this.fragments = new Fragment[ fm.Fragments.Count ];
+				fm.Fragments.CopyTo( this.fragments, 0 );
+			}
+			else
+			{
+				this.fragments = fragments;
+			}
+
 			this.titles = titles;
 		}
 

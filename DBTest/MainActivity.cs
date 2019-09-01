@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Android.App;
-using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Support.Design.Widget;
 using Android.Support.V4.View;
 using Android.Support.V7.App;
+using Android.Util;
 using Android.Views;
-using Android.Widget;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
 
@@ -30,71 +28,81 @@ namespace DBTest
 
 			tabLayout = FindViewById<TabLayout>( Resource.Id.sliding_tabs );
 
-			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
+			// Get the ConnectionDetailsModel and initialise it if required
+			ConnectionDetailsModel model = ViewModelProvider.Get( typeof( ConnectionDetailsModel ) ) as ConnectionDetailsModel;
+
+			if ( model.IsNew == true )
+			{
+				// Save the database path and get the current library
+				model.DatabasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
+
+				try
+				{
+					SQLiteConnection db = new SQLiteConnection( model.DatabasePath );
+
+					// Create a library entry and associated sources
+					db.CreateTable<Library>();
+					db.CreateTable<Source>();
+					db.CreateTable<Artist>();
+					db.CreateTable<Album>();
+					db.CreateTable<Song>();
+					db.CreateTable<ArtistAlbum>();
+
+					// Check for an existing library
+					Library currentLibrary = db.GetAllWithChildren<Library>().SingleOrDefault();
+
+					if ( currentLibrary == null )
+					{
+						// For debugging - setup a single library
+						Library lib1 = new Library() { Name = "Remote" };
+
+						Source source1 = new Source() {
+							Name = "Laptop", ScanSource = "192.168.1.5", ScanType = "FTP",
+							AccessSource = "http://192.168.1.5:80/RemoteMusic/", AccessType = "HTTP"
+						};
+						source1.Songs = new List<Song>();
+
+						Source source2 = new Source() {
+							Name = "Phone", ScanSource = "/storage/emulated/0/Music/", ScanType = "Local",
+							AccessSource = "/storage/emulated/0/Music/", AccessType = "Local"
+						};
+						source2.Songs = new List<Song>();
+
+						db.Insert( lib1 );
+						db.Insert( source1 );
+						db.Insert( source2 );
+
+						lib1.Sources = new List<Source> { source1, source2 };
+						lib1.Artists = new List<Artist>();
+						lib1.Albums = new List<Album>();
+
+						db.UpdateWithChildren( lib1 );
+
+						// Read the library definitions and process
+						TableQuery<Library> libraries = db.Table<Library>();
+						foreach ( Library lib in libraries )
+						{
+							LibraryScanner scanner = new LibraryScanner( lib, db );
+							scanner.ScanLibrary();
+						}
+
+						currentLibrary = db.GetAllWithChildren<Library>().SingleOrDefault();
+					}
+
+					model.LibraryId = currentLibrary.Id;
+				}
+				catch ( SQLite.SQLiteException queryException )
+				{
+				}
+
+			}
 
 			//			if ( File.Exists( databasePath ) == true )
 			//			{
 			//				File.Delete( databasePath );
 			//			}
 
-			Library songLibrary = null;
-
-			try
-			{
-				SQLiteConnection db = new SQLiteConnection( databasePath );
-
-				// Create a library entry and associated sources
-				db.CreateTable<Library>();
-				db.CreateTable<Source>();
-				db.CreateTable<Artist>();
-				db.CreateTable<Album>();
-				db.CreateTable<Song>();
-				db.CreateTable<ArtistAlbum>();
-
-				// Check for an existing library
-				songLibrary = db.GetAllWithChildren<Library>().SingleOrDefault();
-
-				if ( songLibrary == null )
-				{
-					// For debugging - setup a single library
-					Library lib1 = new Library() { Name = "Remote" };
-
-					Source source1 = new Source() {
-						Name = "Laptop", ScanSource = "192.168.1.5", ScanType = "FTP",
-						AccessSource = "http://192.168.1.5:80/RemoteMusic/", AccessType = "HTTP"
-					};
-					source1.Songs = new List<Song>();
-
-					Source source2 = new Source() {
-						Name = "Phone", ScanSource = "/storage/emulated/0/Music/", ScanType = "Local",
-						AccessSource = "/storage/emulated/0/Music/", AccessType = "Local"
-					};
-					source2.Songs = new List<Song>();
-
-					db.Insert( lib1 );
-					db.Insert( source1 );
-					db.Insert( source2 );
-
-					lib1.Sources = new List<Source> { source1, source2 };
-					lib1.Artists = new List<Artist>();
-					lib1.Albums = new List<Album>();
-
-					db.UpdateWithChildren( lib1 );
-
-					// Read the library definitions and process
-					TableQuery<Library> libraries = db.Table<Library>();
-					foreach ( Library lib in libraries )
-					{
-						LibraryScanner scanner = new LibraryScanner( lib, db );
-						scanner.ScanLibrary();
-					}
-				}
-			}
-			catch ( SQLite.SQLiteException queryException )
-			{
-			}
-
-			InitialiseFragments( databasePath, songLibrary );
+			InitialiseFragments( savedInstanceState );
 		}
 
 		public override bool OnCreateOptionsMenu(IMenu menu)
@@ -111,31 +119,28 @@ namespace DBTest
 			{
 				return true;
 			}
-			else if ( id == Resource.Id.action_collapse )
-			{
-//				adapter.OnCollapseRequest();
-			}
-			else if ( id == Resource.Id.action_playlist )
-			{
-				StartActivity( new Intent( this, typeof( PlayListActivity ) ) );
-			}
-			else if ( id == Resource.Id.action_select )
-			{
-				libraryFragment.OnSelection();
-			}
 
 			return base.OnOptionsItemSelected(item);
         }
 
-		private void InitialiseFragments( string databasePath, Library songLibrary )
+		private void InitialiseFragments( Bundle savedInstanceState )
 		{
-			libraryFragment = new LibraryFragment( databasePath, songLibrary );
-			playlistsFragment = new PlaylistsFragment( databasePath, songLibrary );
+			Log.WriteLine( LogPriority.Debug, "DBTest:InitialiseFragments", string.Format( "Confiiguration change = {0}", 
+				( savedInstanceState != null ) ? "True" : "False" ) );
 
-			Android.Support.V4.App.Fragment[] fragments = new Android.Support.V4.App.Fragment[]
+			Android.Support.V4.App.Fragment[] fragments = null;
+
+			if ( savedInstanceState == null )
 			{
-				libraryFragment, playlistsFragment
-			};
+				fragments = new Android.Support.V4.App.Fragment[]
+				{
+					new LibraryFragment(), new PlaylistsFragment()
+				};
+			}
+			else
+			{
+				fragments = new Android.Support.V4.App.Fragment[ 3 ];
+			}
 
 			//Tab title array
 			Java.Lang.ICharSequence[] titles = CharSequence.ArrayFromStringArray( new[] { "Library", "Playlists" } );
@@ -143,17 +148,23 @@ namespace DBTest
 			ViewPager viewPager = FindViewById<ViewPager>( Resource.Id.viewpager );
 
 			//viewpager holding fragment array and tab title text
-			viewPager.Adapter = new TabsFragmentPagerAdapter( SupportFragmentManager, fragments, titles );
+			TabsFragmentPagerAdapter pageAdapter = new TabsFragmentPagerAdapter( SupportFragmentManager, fragments, titles );
+			viewPager.Adapter = pageAdapter;
 
 			// Give the TabLayout the ViewPager 
 			tabLayout.SetupWithViewPager( viewPager );
 
 			// Detect page changes
-			viewPager.AddOnPageChangeListener( new PageChangeListener() );
+			viewPager.AddOnPageChangeListener( new PageChangeListener( pageAdapter ) );
 		}
 
 		private class PageChangeListener: Java.Lang.Object, ViewPager.IOnPageChangeListener
 		{
+			public PageChangeListener( TabsFragmentPagerAdapter pageAdapter )
+			{
+				adapter = pageAdapter;
+			}
+
 			public void OnPageScrolled( int position, float positionOffset, int positionOffsetPixels )
 			{
 			}
@@ -164,22 +175,24 @@ namespace DBTest
 
 			public void OnPageSelected( int position )
 			{
-				// Position 0 = LibraryFragment
-				if ( position == 0 )
+				if ( visibleFragment != position )
 				{
-					libraryFragment.PageVisible( true );
-				}
-				else
-				{
-					libraryFragment.PageVisible( false );
+					if ( visibleFragment != -1 )
+					{
+						( ( IPageVisible )adapter.GetItem( visibleFragment ) ).PageVisible( false );
+					}
+
+					( ( IPageVisible )adapter.GetItem( position ) ).PageVisible( true );
+					visibleFragment = position;
 				}
 			}
+
+			private int visibleFragment = -1;
+			private TabsFragmentPagerAdapter adapter = null;
 		}
 
 		private TabLayout tabLayout = null;
 
-		private static LibraryFragment libraryFragment = null;
-		private static PlaylistsFragment playlistsFragment = null;
 	}
 }
 

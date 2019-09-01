@@ -7,16 +7,16 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class PlaylistsAdapter: ExpandableListAdapter< Artist >, ISectionIndexer
+	class LibraryAdapter : ExpandableListAdapter<Artist>, ISectionIndexer
 	{
 		/// <summary>
-		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
+		/// ArtistAlbumListViewAdapter constructor.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< Artist > provider ) :
-			base( context, parentView, provider, ViewModelProvider.Get( typeof( PlaylistsAdapterModel ) ) as PlaylistsAdapterModel )
+		public LibraryAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Artist> provider ) :
+			base( context, parentView, provider, ViewModelProvider.Get( typeof( LibraryAdapterModel ) ) as LibraryAdapterModel )
 		{
 		}
 
@@ -80,7 +80,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="newData"></param>
 		/// <param name="alphaIndex"></param>
-		public void SetData( List< Artist > newData, Dictionary<string, int> alphaIndex )
+		public void SetData( List<Artist> newData, Dictionary<string, int> alphaIndex )
 		{
 			alphaIndexer = alphaIndex;
 			sections = alphaIndexer.Keys.ToArray();

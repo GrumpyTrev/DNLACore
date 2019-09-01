@@ -6,16 +6,4 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
-	<item
-		android:id="@+id/action_playlist"
-		android:icon="@drawable/playlist"
-		android:orderInCategory="1"
-		app:showAsAction="always"
-		android:title="To playlist"/>
-	<item
-		android:id="@+id/action_select"
-		android:icon="@drawable/select"
-		android:orderInCategory="2"
-		app:showAsAction="always"
-		android:title="Select"/>
 </menu>
