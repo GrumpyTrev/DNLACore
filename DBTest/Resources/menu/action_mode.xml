@@ -1,12 +1,28 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
+	<item
         android:id="@+id/action_add_playlist"
-        android:title="Add to playlist" >
-    </item>
-    <item
+		android:icon ="@drawable/playlist_add"
+        android:title="Add to playlist"
+		app:showAsAction="ifRoom|withText"
+		android:showAsAction="ifRoom|withText" >
+		<menu
+	        android:title="Available playlists"	>
+		</menu>
+	</item>
+	<item
+        android:id="@+id/action_add_queue"
+		android:icon ="@drawable/add_to_queue"
+        android:title="Add to queue"
+		app:showAsAction="ifRoom|withText"
+		android:showAsAction="ifRoom|withText" >
+	</item>
+	<item
         android:id="@+id/action_playnow"
-        android:title="PLay now" >
-    </item>
+		android:icon ="@drawable/play_now"
+        android:title="Play now"
+		app:showAsAction="ifRoom|withText"
+		android:showAsAction="ifRoom|withText" >
+	</item>
 </menu>
 

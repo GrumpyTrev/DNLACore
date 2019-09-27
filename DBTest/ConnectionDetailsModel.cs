@@ -1,6 +1,6 @@
 ﻿namespace DBTest
 {
-	class ConnectionDetailsModel : ViewModel
+	public class ConnectionDetailsModel : StateModel
 	{
 		public string DatabasePath { get; set; }
 		public int LibraryId { get; set; }

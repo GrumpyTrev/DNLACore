@@ -6,29 +6,30 @@ using Android.Widget;
 
 namespace DBTest
 {
-	abstract class ExpandableListAdapter< T > : BaseExpandableListAdapter
+	abstract class ExpandableListAdapter< T > : BaseExpandableListAdapter, AdapterView.IOnItemLongClickListener, 
+		ExpandableListView.IOnChildClickListener, ExpandableListView.IOnGroupClickListener
 	{
 		/// <summary>
 		/// ExpandableListAdapter constructor. Set up a long click listener and the group expander helper class
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="parentView"></param>
+		/// <param name="view"></param>
 		/// <param name="provider"></param>
-		public ExpandableListAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< T > provider, 
+		public ExpandableListAdapter( Context context, ExpandableListView view, IGroupContentsProvider< T > provider, 
 			ExpandableListAdapterModel model )
 		{
-			// Save the model
+			// Save the parameters
 			adapterModel = model;
+			contentsProvider = provider;
+			parentView = view;
 
 			// Save the inflator to use when creating the item views
 			inflator = ( LayoutInflater )context.GetSystemService( Context.LayoutInflaterService );
 
 			// Set up listeners for group and child selection and item long click
-			groupListener = new GroupClickListener() { Adapter = this, Provider = provider, Parent = parentView, Model = adapterModel.ExpansionModel };
-
-			parentView.SetOnGroupClickListener( groupListener );
-			parentView.SetOnChildClickListener( new ChildClickListener() { Adapter = this } );
-			parentView.OnItemLongClickListener = new LongClickListener() { Adapter = this };
+			parentView.SetOnGroupClickListener( this );
+			parentView.SetOnChildClickListener( this );
+			parentView.OnItemLongClickListener = this;
 		}
 
 		/// <summary>
@@ -91,10 +92,10 @@ namespace DBTest
 			convertView = GetSpecialisedChildView( groupPosition, childPosition, isLastChild, convertView, parent );
 
 			// Tag the view with the group and child position
-			convertView.Tag = ( groupPosition << 16 ) + childPosition;
+			convertView.Tag = FormChildTag( groupPosition, childPosition );
 
 			// Display the checkbox
-			RenderCheckbox( convertView, groupPosition, childPosition );
+			RenderCheckbox( convertView, ( int )convertView.Tag );
 
 			return convertView;
 		}
@@ -133,10 +134,10 @@ namespace DBTest
 			convertView = GetSpecialisedGroupView( groupPosition, isExpanded, convertView, parent );
 
 			// Tag the view with the group and child position
-			convertView.Tag = ( groupPosition << 16 ) + 0x0FFFF;
+			convertView.Tag = FormGroupTag( groupPosition );
 
 			// Display the checkbox
-			RenderCheckbox( convertView, groupPosition, 0x0FFFF );
+			RenderCheckbox( convertView, ( int )convertView.Tag );
 
 			return convertView;
 		}
@@ -165,7 +166,13 @@ namespace DBTest
 				Groups = newData;
 
 				// Expand any groups that were previously expanded
-				groupListener.RestoreExpansions();
+				foreach ( int groupId in adapterModel.ExpandedGroups )
+				{
+					parentView.ExpandGroup( groupId );
+				}
+
+				// Report the new expanded count
+				contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
 
 				// Report if ActionMode is in effect
 				if ( adapterModel.ActionMode == true )
@@ -215,11 +222,141 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Collapse any expanded groups
+		/// Called when a group collapse has been requested
+		/// Either collapse the last group or all the groups
 		/// </summary>
 		public void OnCollapseRequest()
 		{
-			groupListener.OnCollapseRequest();
+			// Close either the last group opened or all groups
+			if ( adapterModel.LastGroupOpened != -1 )
+			{
+				parentView.CollapseGroup( adapterModel.LastGroupOpened );
+				parentView.SetSelection( adapterModel.LastGroupOpened );
+				adapterModel.ExpandedGroups.Remove( adapterModel.LastGroupOpened );
+				adapterModel.LastGroupOpened = -1;
+			}
+			else
+			{
+				// Close all open groups
+				foreach ( int groupId in adapterModel.ExpandedGroups )
+				{
+					parentView.CollapseGroup( groupId );
+				}
+
+				adapterModel.LastGroupOpened = -1;
+				adapterModel.ExpandedGroups.Clear();
+			}
+
+			// Report the new expanded count
+			contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
+		}
+
+		/// <summary>
+		/// Form a list of all the currently selected items sorted by their tags
+		/// </summary>
+		/// <returns></returns>
+		public List<object> GetSelectedItems()
+		{
+			List<object> selectedItems = new List<object>();
+
+			// Copy the selected tags from the hashset
+			int[] tags = new int[ adapterModel.CheckedObjects.Count ];
+			adapterModel.CheckedObjects.CopyTo( tags );
+
+			// Sort by numeric tag order
+			Array.Sort( tags );
+
+			foreach ( int tag in tags )
+			{
+				object taggedObject = FilteredSelection( tag );
+				if ( taggedObject != null )
+				{
+					selectedItems.Add( taggedObject );
+				}
+			}
+
+			return selectedItems;
+		}
+
+		public bool OnItemLongClick( AdapterView parent, View view, int position, long id )
+		{
+			int tag = ( int )view.Tag;
+
+			// If action mode is not in efect then request it.
+			// Otherwise ignore long presses
+			if ( ActionMode == false )
+			{
+				ActionMode = true;
+			}
+
+			Toast.MakeText( parent.Context, string.Format( "Long click Group {0}, Child {1}", GetGroupFromTag( tag ), GetChildFromTag( tag ) ),
+				ToastLength.Short ).Show();
+			return true;
+		}
+
+		public bool OnChildClick( ExpandableListView parent, View clickedView, int groupPosition, int childPosition, long id )
+		{
+			// Only process this if Action Mode is in effect
+			if ( ActionMode == true )
+			{
+				CheckBox selectionBox = clickedView.FindViewById<CheckBox>( Resource.Id.checkBox );
+
+				selectionBox.Checked = !selectionBox.Checked;
+
+				// Raise a click event to do the rest of the processing
+				SelectionBoxClick( selectionBox, new EventArgs() );
+			}
+
+			Toast.MakeText( parent.Context, string.Format( "Group {0}, Child {1}", groupPosition, childPosition ), ToastLength.Short ).Show();
+			return false;
+		}
+
+		/// <summary>
+		/// Called when a group item has been clicked
+		/// If a group/artist is being expanded then get its contents if not previously displayed
+		/// Keep track of which groups have been expanded and the last group expanded
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="clickedView"></param>
+		/// <param name="groupPosition"></param>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
+		{
+			if ( parent.IsGroupExpanded( groupPosition ) == false )
+			{
+				// This group is expanding. Get its contents
+				// If any content is supplied and the group is selected then select the new items
+				int childCount = GetChildrenCount( groupPosition );
+
+				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
+
+				// Have any items been supplied
+				if ( GetChildrenCount( groupPosition ) != childCount )
+				{
+					// If the group is selected then select the new items
+					if ( IsItemSelected( FormGroupTag( groupPosition ) ) == true )
+					{
+						SelectGroupContents( groupPosition, true );
+					}
+				}
+
+				// Add this to the record of which groups are expanded
+				adapterModel.ExpandedGroups.Add( groupPosition );
+
+				adapterModel.LastGroupOpened = groupPosition;
+			}
+			else
+			{
+				adapterModel.ExpandedGroups.Remove( groupPosition );
+
+				adapterModel.LastGroupOpened = -1;
+			}
+
+			// Report the new expanded count
+			contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
+
+			return false;
 		}
 
 		/// <summary>
@@ -244,6 +381,127 @@ namespace DBTest
 		protected abstract View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent );
 
 		/// <summary>
+		/// The base implementation selects or deselects the containing group according to the state of its children
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <param name="selected"></param>
+		protected virtual bool UpdateGroupSelectionState( int groupPosition, int childPosition, bool selected )
+		{
+			// Keep track of whether the group selection state has changed
+			bool selectionChanged = false;
+
+			// If a child is deselected then deselect the group item
+			if ( selected == false )
+			{
+				selectionChanged = RecordItemSelection( FormGroupTag( groupPosition ), false );
+			}
+			else
+			{
+				// If all of the child items are now selected then select the group as well
+				int childIndex = 0;
+				bool allSelected = true;
+				while ( ( allSelected == true ) && ( childIndex < GetChildrenCount( groupPosition ) ) )
+				{
+					if ( IsItemSelected( FormChildTag( groupPosition, childIndex ) ) == false )
+					{
+						allSelected = false;
+					}
+
+					childIndex++;
+				}
+
+				if ( allSelected == true )
+				{
+					selectionChanged = RecordItemSelection( FormGroupTag( groupPosition ), true );
+				}
+			}
+
+			return selectionChanged;
+		}
+
+		/// <summary>
+		/// Is the specified item selected
+		/// </summary>
+		/// <param name="tag"></param>
+		/// <returns></returns>
+		protected bool IsItemSelected( int tag )
+		{
+			return adapterModel.CheckedObjects.Contains( tag );
+		}
+
+		/// <summary>
+		/// Record the selection state of the specified item
+		/// </summary>
+		/// <param name="tag"></param>
+		/// <param name="select"></param>
+		protected bool RecordItemSelection( int tag, bool select )
+		{
+			return ( select == true ) ? adapterModel.CheckedObjects.Add( tag ) : adapterModel.CheckedObjects.Remove( tag );
+		}
+
+		/// <summary>
+		/// Can the specified object be included in operations on the selected items 
+		/// </summary>
+		/// <param name="selectedObject"></param>
+		/// <returns></returns>
+		protected virtual object FilteredSelection( int tag )
+		{
+			return null;
+		}
+
+		/// <summary>
+		/// Form a tag for a group item
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <returns></returns>
+		protected static int FormGroupTag( int groupPosition )
+		{
+			return ( groupPosition << 16 ) + 0xFFFF;
+		}
+
+		/// <summary>
+		/// Form a tag for a child item
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <returns></returns>
+		protected static int FormChildTag( int groupPosition, int childPosition )
+		{
+			return ( groupPosition << 16 ) + childPosition;
+		}
+
+		/// <summary>
+		/// Return the child number from a tag
+		/// </summary>
+		/// <param name="tag"></param>
+		/// <returns></returns>
+		protected static int GetChildFromTag( int tag )
+		{
+			return ( tag & 0xFFFF );
+		}
+
+		/// <summary>
+		/// Does the tag represent a group
+		/// </summary>
+		/// <param name="tag"></param>
+		/// <returns></returns>
+		protected static bool IsGroupTag( int tag )
+		{
+			return ( tag & 0xFFFF ) == 0xFFFF;
+		}
+
+		/// <summary>
+		/// Return the group number from a tag
+		/// </summary>
+		/// <param name="tag"></param>
+		/// <returns></returns>
+		protected static int GetGroupFromTag( int tag )
+		{
+			return tag >> 16;
+		}
+
+		/// <summary>
 		/// Called when an item's checkbox has been selected
 		/// Update the stored state for the item contained in the tag
 		/// </summary>
@@ -253,39 +511,75 @@ namespace DBTest
 		{
 			CheckBox selectionBox = sender as CheckBox;
 			int tag = ( int )( ( CheckBox )sender ).Tag;
+			int groupPosition = GetGroupFromTag( tag );
 
-			if ( adapterModel.CheckedObjects.Contains( tag ) == true )
+			// Toggle the selection
+			RecordItemSelection( tag, !IsItemSelected( tag ) );
+
+			// Keep track of whether or not any other items are selected as this will require the NotifyDataSetChanged method to be called
+			bool selectionChanged = false;
+
+			// If this is a group item then select or deselect all of its children
+			if ( IsGroupTag( tag ) == true )
 			{
-				adapterModel.CheckedObjects.Remove( tag );
+				selectionChanged = SelectGroupContents( groupPosition, IsItemSelected( tag ) );
 			}
 			else
 			{
-				adapterModel.CheckedObjects.Add( tag );
+				// Determine how the selection or deselection of a child alters the selection state of the containing group
+				selectionChanged = UpdateGroupSelectionState( groupPosition, GetChildFromTag( tag ), IsItemSelected( tag ) );
 			}
+
+			if ( selectionChanged == true )
+			{
+				NotifyDataSetChanged();
+			}
+
+			SelectedItemsChanged?.Invoke( this, new SelectedItemsArgs() { SelectedItemsCount = adapterModel.CheckedObjects.Count } );
+		}
+
+		/// <summary>
+		/// Select or deselect all the child items associated with the specified group
+		/// Keep track of whether or not any items have changed - they should have but carry out hte check anyway
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="selected"></param>
+		private bool SelectGroupContents( int groupPosition, bool selected )
+		{
+			bool selectionChanged = false;
+
+			for ( int childIndex = 0; childIndex < GetChildrenCount( groupPosition ) ; childIndex++ )
+			{
+				selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, childIndex ), selected );
+			}
+
+			return selectionChanged;
 		}
 
 		/// <summary>
 		/// Show or hide the check box and sets its state from that held for the item
 		/// </summary>
 		/// <param name="convertView"></param>
-		/// <param name="group"></param>
-		/// <param name="child"></param>
-		private void RenderCheckbox( View convertView, int group, int child )
+		/// <param name="tag"></param>
+		private void RenderCheckbox( View convertView, int tag )
 		{
 			CheckBox selectionBox = convertView.FindViewById<CheckBox>( Resource.Id.checkBox );
 
-			// Save the item identifier in the check box for the click event
-			selectionBox.Tag = ( group << 16 ) + child;
+			if ( selectionBox != null )
+			{
+				// Save the item identifier in the check box for the click event
+				selectionBox.Tag = tag;
 
-			// Show or hide the checkbox
-			selectionBox.Visibility = ( ActionMode == true ) ? ViewStates.Visible : ViewStates.Gone;
+				// Show or hide the checkbox
+				selectionBox.Visibility = ( ActionMode == true ) ? ViewStates.Visible : ViewStates.Gone;
 
-			// Retrieve the cheked state of the item and set the checkbox state accordingly
-			selectionBox.Checked = ( adapterModel.CheckedObjects.Contains( ( int )selectionBox.Tag ) == true );
+				// Retrieve the cheked state of the item and set the checkbox state accordingly
+				selectionBox.Checked = IsItemSelected( tag );
 
-			// Trap checkbox clicks
-			selectionBox.Click -= SelectionBoxClick;
-			selectionBox.Click += SelectionBoxClick;
+				// Trap checkbox clicks
+				selectionBox.Click -= SelectionBoxClick;
+				selectionBox.Click += SelectionBoxClick;
+			}
 		}
 
 		/// <summary>
@@ -317,174 +611,39 @@ namespace DBTest
 		public event EventHandler EnteredActionMode;
 
 		/// <summary>
+		/// The event used to publish changes to the number of items selected
+		/// </summary>
+		public event EventHandler< SelectedItemsArgs > SelectedItemsChanged;
+
+		/// <summary>
+		/// Arguments for the selected items event
+		/// </summary>
+		public class SelectedItemsArgs: EventArgs
+		{
+			/// <summary>
+			/// The number of items selected
+			/// </summary>
+			public int SelectedItemsCount { get; set; }
+		}
+
+		/// <summary>
 		/// Inflator used to create the item view 
 		/// </summary>
 		protected readonly LayoutInflater inflator = null;
 
 		/// <summary>
-		/// GroupClickListener instance used to handle the expansion and collapsing of artist entries 
-		/// </summary>
-		private readonly GroupClickListener groupListener = null;
-
-		/// <summary>
 		/// ExpandableListAdapterModel instance holding details of the UI state
 		/// </summary>
-		private readonly ExpandableListAdapterModel adapterModel = null;
+		protected readonly ExpandableListAdapterModel adapterModel = null;
 
 		/// <summary>
-		/// Class used to listen out for clicks on group items
+		/// Interface used to obtain Artist details
 		/// </summary>
-		private class GroupClickListener: Java.Lang.Object, ExpandableListView.IOnGroupClickListener
-		{
-			/// <summary>
-			/// Called when a group item has been clicked
-			/// If a group/artist is being expanded then get its contents if not previously displayed
-			/// Keep track of which groups have been expanded and the last group expanded
-			/// </summary>
-			/// <param name="parent"></param>
-			/// <param name="clickedView"></param>
-			/// <param name="groupPosition"></param>
-			/// <param name="id"></param>
-			/// <returns></returns>
-			public bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
-			{
-				if ( parent.IsGroupExpanded( groupPosition ) == false )
-				{
-					// This group is expanding. Get its contents
-					Provider.ProvideGroupContents( Adapter.Groups[ groupPosition ] );
-
-					// Add this to the record of which groups are expanded
-					Model.ExpandedGroups.Add( groupPosition );
-
-					Model.LastGroupOpened = groupPosition;
-				}
-				else
-				{
-					Model.ExpandedGroups.Remove( groupPosition );
-
-					Model.LastGroupOpened = -1;
-				}
-
-				// Report the new expanded count
-				Provider.ExpandedGroupCountChanged( Model.ExpandedGroups.Count );
-
-				return false;
-			}
-
-			/// <summary>
-			/// Called when a group collapse has been requested
-			/// Either collapse the last group or all the groups
-			/// </summary>
-			public void OnCollapseRequest()
-			{
-				// Close either the last group opened or all groups
-				if ( Model.LastGroupOpened != -1 )
-				{
-					Parent.CollapseGroup( Model.LastGroupOpened );
-					Parent.SetSelection( Model.LastGroupOpened );
-					Model.ExpandedGroups.Remove( Model.LastGroupOpened );
-					Model.LastGroupOpened = -1;
-				}
-				else
-				{
-					// Close all open groups
-					foreach ( int groupId in Model.ExpandedGroups )
-					{
-						Parent.CollapseGroup( groupId );
-					}
-
-					Model.ExpandedGroups.Clear();
-				}
-
-				// Report the new expanded count
-				Provider.ExpandedGroupCountChanged( Model.ExpandedGroups.Count );
-			}
-
-			/// <summary>
-			/// Expand all the groups that were previously expanded
-			/// </summary>
-			public void RestoreExpansions()
-			{
-				// Close all open groups
-				foreach ( int groupId in Model.ExpandedGroups )
-				{
-					Parent.ExpandGroup( groupId );
-				}
-
-				// Report the new expanded count
-				Provider.ExpandedGroupCountChanged( Model.ExpandedGroups.Count );
-			}
-
-			/// <summary>
-			/// The Adapter used to get the group's contents
-			/// </summary>
-			public ExpandableListAdapter< T > Adapter { get; set; }
-
-			/// <summary>
-			/// Interface used to obtain Artist details
-			/// </summary>
-			public IGroupContentsProvider< T > Provider { get; set; }
-
-			/// <summary>
-			/// The parent ExpandableListView
-			/// </summary>
-			public ExpandableListView Parent { get; set; }
-
-			/// <summary>
-			/// GroupExpansionModel used to maintain details of which groups have been expanded
-			/// </summary>
-			public GroupExpansionModel Model { get; set; }
-		}
+		private readonly IGroupContentsProvider<T> contentsProvider = null;
 
 		/// <summary>
-		/// Class used to listen out for clicks on group items
+		/// The parent ExpandableListView
 		/// </summary>
-		private class ChildClickListener: Java.Lang.Object, ExpandableListView.IOnChildClickListener
-		{
-			public bool OnChildClick( ExpandableListView parent, View clickedView, int groupPosition, int childPosition, long id )
-			{
-				// Only process this if Action Mode is in effect
-				if ( Adapter.ActionMode == true )
-				{
-					CheckBox selectionBox = clickedView.FindViewById<CheckBox>( Resource.Id.checkBox );
-
-					selectionBox.Checked = !selectionBox.Checked;
-
-					// Raise a click event to do the rest of the processing
-					Adapter.SelectionBoxClick( selectionBox, new EventArgs() );
-				}
-
-				Toast.MakeText( parent.Context, string.Format( "Group {0}, Child {1}", groupPosition, childPosition ), ToastLength.Short ).Show();
-				return false;
-			}
-
-			/// <summary>
-			/// The Adapter used to get the group's contents
-			/// </summary>
-			public ExpandableListAdapter< T > Adapter { get; set; }
-		}
-
-		/// <summary>
-		/// Class used to listen for long clicks on the ListView items
-		/// </summary>
-		private class LongClickListener: Java.Lang.Object, AdapterView.IOnItemLongClickListener
-		{
-			public bool OnItemLongClick( AdapterView parent, View view, int position, long id )
-			{
-				int tag = ( int )view.Tag;
-
-				// If action mode is not in efect then request it.
-				// Otherwise ignore long presses
-				if ( Adapter.ActionMode == false )
-				{
-					Adapter.ActionMode = true;
-				}
-
-				Toast.MakeText( parent.Context, string.Format( "Long click Group {0}, Child {1}", tag >> 16, tag & 0x0ffff ), ToastLength.Short ).Show();
-				return true;
-			}
-
-			public ExpandableListAdapter< T > Adapter { get; set; }
-		}
+		private readonly ExpandableListView parentView = null;
 	}
 }

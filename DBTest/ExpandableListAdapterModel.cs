@@ -2,7 +2,7 @@
 
 namespace DBTest
 {
-	class ExpandableListAdapterModel : ViewModel
+	class ExpandableListAdapterModel : StateModel
 	{
 		/// <summary>
 		/// Keep track of items that have been selected
@@ -12,12 +12,21 @@ namespace DBTest
 		/// <summary>
 		/// Keep track of whether or not action mode is in effect
 		/// </summary>
-		public bool ActionMode { get; set; } = false;
+		public bool ActionMode
+		{
+			get;
+			set;
+		} = false;
 
 		/// <summary>
-		/// The GroupExpansionModel used by the included GroupClickListener
+		/// Keep track of the id's of the groups that have been expanded
 		/// </summary>
-		public GroupExpansionModel ExpansionModel { get; } = new GroupExpansionModel();
+		public HashSet<int> ExpandedGroups { get; set; } = new HashSet<int>();
+
+		/// <summary>
+		/// The last group expanded
+		/// </summary>
+		public int LastGroupOpened { get; set; } = -1;
 
 		/// <summary>
 		/// Clear the states held by this model
@@ -26,7 +35,8 @@ namespace DBTest
 		{
 			base.OnClear();
 
-			ExpansionModel.OnClear();
+			LastGroupOpened = -1;
+			ExpandedGroups.Clear();
 			ActionMode = false;
 			CheckedObjects.Clear();
 		}

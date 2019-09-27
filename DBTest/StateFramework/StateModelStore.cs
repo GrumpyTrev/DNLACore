@@ -2,9 +2,9 @@
 
 namespace DBTest
 {
-	public class ViewModelStore
+	public class StateModelStore
 	{
-		public void Put( string key, ViewModel model )
+		public void Put( string key, StateModel model )
 		{
 			if ( store.ContainsKey( key ) == true )
 			{
@@ -14,9 +14,9 @@ namespace DBTest
 			store[ key ] = model;
 		}
 
-		public ViewModel Get( string key )
+		public StateModel Get( string key )
 		{
-			ViewModel model = null;
+			StateModel model = null;
 
 			if ( store.ContainsKey( key ) == true )
 			{
@@ -28,12 +28,12 @@ namespace DBTest
 
 		public void Clear()
 		{
-			foreach ( ViewModel model in store.Values )
+			foreach ( StateModel model in store.Values )
 			{
 				model.OnClear();
 			}
 		}
 
-		private readonly Dictionary< string, ViewModel > store = new Dictionary<string, ViewModel>();
+		private readonly Dictionary< string, StateModel > store = new Dictionary<string, StateModel>();
 	}
 }

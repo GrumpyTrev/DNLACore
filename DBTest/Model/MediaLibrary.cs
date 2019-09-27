@@ -21,6 +21,9 @@ namespace DBTest
 
 		[OneToMany]
 		public List<Album> Albums { get; set; }
+
+		[OneToMany]
+		public List<Playlist> PlayLists { get; set; }
 	}
 
 	[Table( "Source" )]
@@ -131,7 +134,7 @@ namespace DBTest
 	}
 
 	[Table( "PlayList" )]
-	public class PlayList
+	public class Playlist
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
@@ -142,24 +145,24 @@ namespace DBTest
 		public int LibraryId { get; set; }
 
 		[OneToMany]
-		public List<PlayListItem> PlayListItems { get; set; }
+		public List<PlaylistItem> PlaylistItems { get; set; }
 	}
 
 	[Table( "PlayListItem" )]
-	public class PlayListItem
+	public class PlaylistItem
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
 
 		public int Track { get; set; }
 
-		[ForeignKey( typeof( PlayList ) )]
-		public int PlayListId { get; set; }
+		[ForeignKey( typeof( Playlist ) )]
+		public int PlaylistId { get; set; }
 
 		[ForeignKey( typeof( Song ) )]
 		public int SongId { get; set; }
 
 		[OneToOne]
-		public Album Song { get; set; }
+		public Song Song { get; set; }
 	}
 }

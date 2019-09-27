@@ -16,7 +16,7 @@ namespace DBTest
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
 		public LibraryAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Artist> provider ) :
-			base( context, parentView, provider, ViewModelProvider.Get( typeof( LibraryAdapterModel ) ) as LibraryAdapterModel )
+			base( context, parentView, provider, StateModelProvider.Get( typeof( LibraryAdapterModel ) ) as LibraryAdapterModel )
 		{
 		}
 
@@ -87,7 +87,6 @@ namespace DBTest
 
 			SetData( newData );
 		}
-
 
 		/// <summary>
 		/// Provide a view containing either album or song details at the specified position
@@ -171,6 +170,142 @@ namespace DBTest
 			convertView.FindViewById<TextView>( Resource.Id.ArtistName ).Text = Groups[ groupPosition ].Name;
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// Can the specified object be included in operations on the selected items
+		/// Only Song items can be included
+		/// </summary>
+		/// <param name="selectedObject"></param>
+		/// <returns></returns>
+		protected override object FilteredSelection( int tag )
+		{
+			object filteredObject = null;
+
+			if ( IsGroupTag( tag ) == false )
+			{
+				filteredObject = Groups[ GetGroupFromTag( tag ) ].Contents[ GetChildFromTag( tag ) ];
+				if ( ( filteredObject is Song ) == false )
+				{
+					filteredObject = null;
+				}
+			}
+
+			return filteredObject;
+		}
+
+
+		/// <summary>
+		/// The base implementation selects or deselects the containing group according to the state of its children
+		/// For the library things aren't so simple.
+		/// The children are made up of one or more ArtistAlbum items and their associated Song items
+		/// If the changed item is an ArtstAlbum then all of its child Song entries must be updated to reflect its state. If the ArtistAlbum is
+		/// being deselected then the Artist group may also need to be deselected. If the ArtistAlbum is being selected then all of the Artist's
+		/// child items need to be checked in case the Artist needs to be selected.
+		/// If the changed item is a Song and it is being deselected then its AlbumArtist may need to be deselected and the Artist may need to be 
+		/// deselected. If the Song is being selected then all the AlbumArtist's Songs need to be checked in case the AlbumArtist needs
+		/// to be selected, this also applies to the Artist group.
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <param name="selected"></param>
+		protected override bool UpdateGroupSelectionState( int groupPosition, int childPosition, bool selected )
+		{
+			// Keep track of whether the group selection state has changed
+			bool selectionChanged = false;
+
+			// Need to determine the position of the ArtistAlbum associated with the selected items and the number of Songs associated with it
+			int artistAlbumPosition = -1;
+
+			if ( ( Groups[ groupPosition ].Contents[ childPosition ] is ArtistAlbum ) == true )
+			{
+				artistAlbumPosition = childPosition;
+			}
+			else
+			{
+				// Go back up the children until an ArtistAlbum is found
+				int childIndex = childPosition - 1;
+				while ( ( childIndex >= 0 ) && ( artistAlbumPosition == -1 ) )
+				{
+					if ( ( Groups[ groupPosition ].Contents[ childIndex ] is ArtistAlbum ) == true )
+					{
+						artistAlbumPosition = childIndex;
+					}
+					else
+					{
+						childIndex--;
+					}
+				}
+			}
+
+			// Has the ArtistAlbum been found
+			if ( artistAlbumPosition != -1 )
+			{
+				// Now find out how many Songs there are associated with this AlbumArtist. 
+				// This could be 0
+				bool nextArstistAlbumFound = false;
+				int childIndex = artistAlbumPosition + 1;
+				int songCount = 0;
+				while ( ( childIndex < Groups[ groupPosition ].Contents.Count ) && ( nextArstistAlbumFound == false ) )
+				{
+					if ( ( Groups[ groupPosition ].Contents[ childIndex ] is ArtistAlbum ) == true )
+					{
+						nextArstistAlbumFound = true;
+					}
+					else
+					{
+						songCount++;
+						childIndex++;
+					}
+				}
+
+				// Was the selected item an ArtistAlbum
+				if ( artistAlbumPosition == childPosition )
+				{
+					// Select or deselect all of its children Songs
+					for ( childIndex = 1; childIndex <= songCount; childIndex++ )
+					{
+						selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, artistAlbumPosition + childIndex ), selected );
+					}
+
+					// Reflect these changes in the Artist's state
+					selectionChanged |= base.UpdateGroupSelectionState( groupPosition, 0xFFFF, selected );
+				}
+				else
+				{
+					// If a Song is deselected then deselect the ArtistAlbum and Artist items
+					if ( selected == false )
+					{
+						selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, artistAlbumPosition ), false );
+						selectionChanged |= RecordItemSelection( FormGroupTag( groupPosition ), false );
+					}
+					else
+					{
+						// If all of the Songs items are now selected then select the ArtistAlbum as well
+						childIndex = 1;
+						bool allSelected = true;
+						while ( ( allSelected == true ) && ( childIndex <= songCount ) )
+						{
+							if ( IsItemSelected( FormChildTag( groupPosition, artistAlbumPosition + childIndex ) ) == false )
+							{
+								allSelected = false;
+							}
+
+							childIndex++;
+						}
+
+						if ( allSelected == true )
+						{
+							selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, artistAlbumPosition ), true );
+
+							// Reflect this change in the Artist's state
+							selectionChanged |= base.UpdateGroupSelectionState( groupPosition, 0xFFFF, true );
+						}
+					}
+				}
+			}
+
+			return selectionChanged;
 		}
 
 		/// <summary>

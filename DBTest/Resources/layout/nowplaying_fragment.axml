@@ -6,7 +6,7 @@
 	<ListView
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:id="@+id/playingLayout"
-		android:fastScrollEnabled="true" >
+		android:listSelector="#11FFFF"
+		android:id="@+id/nowplayingList" >
 	</ListView>
 </LinearLayout>

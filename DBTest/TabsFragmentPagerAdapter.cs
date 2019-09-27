@@ -11,15 +11,12 @@ namespace DBTest
 
 		public TabsFragmentPagerAdapter( FragmentManager fm, Fragment[] fragments, ICharSequence[] titles ) : base( fm )
 		{
-			// If the FragmentManger is already populated then use its Fragments instead
+			// Use the provided Fragments initially but replace with any already in the manager
+			this.fragments = fragments;
+
 			if ( fm.Fragments.Count > 0 )
 			{
-				this.fragments = new Fragment[ fm.Fragments.Count ];
 				fm.Fragments.CopyTo( this.fragments, 0 );
-			}
-			else
-			{
-				this.fragments = fragments;
 			}
 
 			this.titles = titles;
