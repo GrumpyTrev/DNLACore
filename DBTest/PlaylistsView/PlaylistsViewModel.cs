@@ -16,5 +16,10 @@ namespace DBTest
 		/// The names of the playlists associated with the current library
 		/// </summary>
 		public static List<string> PlaylistNames { get; set; } = null;
+
+		/// <summary>
+		/// The id of the library for which a list of artists have been obtained
+		/// </summary>
+		public static int LibraryId { get; set; } = -1;
 	}
 }

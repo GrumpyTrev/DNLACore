@@ -8,6 +8,7 @@ using Android.Support.Design.Widget;
 using Android.Support.V4.View;
 using Android.Support.V7.App;
 using Android.Views;
+using Android.Widget;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
 
@@ -20,20 +21,26 @@ namespace DBTest
 		{
 			base.OnCreate( savedInstanceState );
 
-			SetContentView( Resource.Layout.activity_main );
+			View view = LayoutInflater.Inflate( Resource.Layout.activity_main, null );
+			SetContentView( view );
 
 			SetSupportActionBar( FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.toolbar ) );
 
 			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
 
-			// Get the ConnectionDetailsModel and initialise it if required
-			ConnectionDetailsModel model = StateModelProvider.Get( typeof( ConnectionDetailsModel ) ) as ConnectionDetailsModel;
+			// Check if the database connections are still tehre
+			if ( ConnectionDetailsModel.SynchConnection == null )
+			{
+				ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
+				ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath );
+			}
 
-			if ( model.IsNew == true )
+			// Initialise the rest of the ConnectionDetailsModel if required
+			if ( ConnectionDetailsModel.DatabasePath.Length == 0 )
 			{
 				// Save the database path and get the current library
-				model.DatabasePath = databasePath;
-				model.LibraryId = InitialiseDatabase( databasePath );
+				ConnectionDetailsModel.DatabasePath = databasePath;
+				ConnectionDetailsModel.LibraryId = InitialiseDatabase();
 			}
 
 			//			if ( File.Exists( databasePath ) == true )
@@ -41,12 +48,34 @@ namespace DBTest
 			//				File.Delete( databasePath );
 			//			}
 
-			// Initialise the view controllers
-			ArtistsController.DatabasePath = databasePath;
-			PlaylistsController.DatabasePath = databasePath;
-			NowPlayingController.DatabasePath = databasePath;
+			// Request the Now Playing list from the library - via a Post so that any response comes back after the UI has been created
+			view.Post( () => {
+				// Initialise the PlaybackRouter
+				playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
+				playbackRouter.StartRouter();
+
+				// Initialise the PlaybackSelectionManager
+				playbackSelector = new PlaybackSelectionManager( this );
+				playbackSelector.StartSelection();
+			} );
+
+
 
 			InitialiseFragments( savedInstanceState );
+		}
+
+		protected override void OnStart()
+		{
+			base.OnStart();
+
+			// Initialise the PlaybackRouter
+//			playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
+//			playbackRouter.StartRouter();
+
+			// Initialise the PlaybackSelectionManager
+//			playbackSelector = new PlaybackSelectionManager( this );
+//			playbackSelector.StartSelection();
+
 		}
 
 		public override bool OnCreateOptionsMenu( IMenu menu )
@@ -61,6 +90,7 @@ namespace DBTest
 			int id = item.ItemId;
 			if ( id == Resource.Id.action_settings )
 			{
+				playbackSelector.ShowSelection();
 				return true;
 			}
 
@@ -71,100 +101,133 @@ namespace DBTest
 		{
 			Mediator.RemoveTemporaryRegistrations();
 
+			playbackRouter.StopRouter( ( IsFinishing == true ) );
+
+			if ( IsFinishing == true )
+			{
+				ConnectionDetailsModel.SynchConnection.Dispose();
+				ConnectionDetailsModel.SynchConnection = null;
+
+				SQLite.SQLiteAsyncConnection.ResetPool();
+				ConnectionDetailsModel.AsynchConnection = null;
+			}
+
 			base.OnDestroy();
 		}
 
 		/// <summary>
 		/// Make sure that the database exists and extract the current library
 		/// </summary>
-		private int InitialiseDatabase( string databasePath )
+		private int InitialiseDatabase()
 		{
 			int currentLibraryId = -1;
 
 			try
 			{
-				SQLiteConnection db = new SQLiteConnection( databasePath );
-
 				// Create the tables if they don't already exist
-				db.CreateTable<Library>();
-				db.CreateTable<Source>();
-				db.CreateTable<Artist>();
-				db.CreateTable<Album>();
-				db.CreateTable<Song>();
-				db.CreateTable<ArtistAlbum>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<Artist>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
 
-				db.DropTable<Playlist>();
+				//				db.DropTable<Playlist>();
 
-				db.CreateTable<Playlist>();
-				db.CreateTable<PlaylistItem>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<Playlist>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<PlaylistItem>();
 
-				// Check for an existing library
-				Library currentLibrary = db.Table<Library>().FirstOrDefault();
+				//				ConnectionDetailsModel.SynchConnection.DropTable<Playback>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
 
-				if ( currentLibrary == null )
+				// Check for a Playback record which will tell us the currently selected library
+				Playback playbackRecord = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault();
+
+				if ( ( playbackRecord == null ) || ( playbackRecord.LibraryId == -1 ) )
 				{
-					// For debugging - setup a single library
-					Library lib1 = new Library() { Name = "Remote" };
+					// Current library is not specified so find one now
+					// Check for an existing library
+					Library currentLibrary = ConnectionDetailsModel.SynchConnection.Table<Library>().FirstOrDefault();
 
-					Source source1 = new Source() {
-						Name = "Laptop", ScanSource = "192.168.1.5", ScanType = "FTP",
-						AccessSource = "http://192.168.1.5:80/RemoteMusic/", AccessType = "HTTP"
-					};
-					source1.Songs = new List<Song>();
-
-					Source source2 = new Source() {
-						Name = "Phone", ScanSource = "/storage/emulated/0/Music/", ScanType = "Local",
-						AccessSource = "/storage/emulated/0/Music/", AccessType = "Local"
-					};
-					source2.Songs = new List<Song>();
-
-					db.Insert( lib1 );
-					db.Insert( source1 );
-					db.Insert( source2 );
-
-					lib1.Sources = new List<Source> { source1, source2 };
-					lib1.Artists = new List<Artist>();
-					lib1.Albums = new List<Album>();
-
-					db.UpdateWithChildren( lib1 );
-
-					// Read the library definitions and process
-					TableQuery<Library> libraries = db.Table<Library>();
-					foreach ( Library lib in libraries )
+					if ( currentLibrary == null )
 					{
-						LibraryScanner scanner = new LibraryScanner( lib, db );
-						scanner.ScanLibrary();
+						// For debugging - setup a single library
+						Library lib1 = new Library() { Name = "Remote" };
+
+						Source source1 = new Source() {
+							Name = "Laptop", ScanSource = "192.168.1.5", ScanType = "FTP",
+							AccessSource = "http://192.168.1.5:80/RemoteMusic/", AccessType = "HTTP"
+						};
+						source1.Songs = new List<Song>();
+
+						Source source2 = new Source() {
+							Name = "Phone", ScanSource = "/storage/emulated/0/Music/", ScanType = "Local",
+							AccessSource = "/storage/emulated/0/Music/", AccessType = "Local"
+						};
+						source2.Songs = new List<Song>();
+
+						ConnectionDetailsModel.SynchConnection.Insert( lib1 );
+						ConnectionDetailsModel.SynchConnection.Insert( source1 );
+						ConnectionDetailsModel.SynchConnection.Insert( source2 );
+
+						lib1.Sources = new List<Source> { source1, source2 };
+						lib1.Artists = new List<Artist>();
+						lib1.Albums = new List<Album>();
+
+						ConnectionDetailsModel.SynchConnection.UpdateWithChildren( lib1 );
+
+						// Read the library definitions and process
+						TableQuery<Library> libraries = ConnectionDetailsModel.SynchConnection.Table<Library>();
+						foreach ( Library lib in libraries )
+						{
+							LibraryScanner scanner = new LibraryScanner( lib, ConnectionDetailsModel.SynchConnection );
+							scanner.ScanLibrary();
+						}
+
+						currentLibrary = ConnectionDetailsModel.SynchConnection.GetAllWithChildren<Library>().SingleOrDefault();
+
+						// Check for any playlists associated with the current library
+						List<Playlist> playlists = ConnectionDetailsModel.SynchConnection.Table<Playlist>().
+							Where( d => ( d.LibraryId == currentLibrary.Id ) ).ToList();
+
+						if ( playlists.Count == 0 )
+						{
+							// Add some playlists to the current library
+							// First fully load the library so that it can be updated
+							ConnectionDetailsModel.SynchConnection.GetChildren<Library>( currentLibrary );
+
+							// Add PlayLists to the databse and the library
+							Playlist list = new Playlist() { Name = "Playlist 1" };
+							ConnectionDetailsModel.SynchConnection.Insert( list );
+							currentLibrary.PlayLists.Add( list );
+
+							list = new Playlist() { Name = "Playlist 2" };
+							ConnectionDetailsModel.SynchConnection.Insert( list );
+							currentLibrary.PlayLists.Add( list );
+
+							list = new Playlist() { Name = NowPlayingController.NowPlayingPlaylistName };
+							ConnectionDetailsModel.SynchConnection.Insert( list );
+							currentLibrary.PlayLists.Add( list );
+
+							ConnectionDetailsModel.SynchConnection.UpdateWithChildren( currentLibrary );
+						}
 					}
 
-					currentLibrary = db.GetAllWithChildren<Library>().SingleOrDefault();
+					// We now have a current library. If we don't have a Playback record then create one now
+					if ( playbackRecord == null )
+					{
+						playbackRecord = new Playback();
+						playbackRecord.SongIndex = -1;
+						ConnectionDetailsModel.SynchConnection.Insert( playbackRecord );
+					}
+
+					playbackRecord.LibraryId = currentLibrary.Id;
+					playbackRecord.PlaybackDeviceName = "Local playback";
+
+					ConnectionDetailsModel.SynchConnection.Update( playbackRecord );
 				}
 
-				// Check for any playlists associated with the current library
-				List<Playlist> playlists = db.Table<Playlist>().Where( d => ( d.LibraryId == currentLibrary.Id ) ).ToList();
-
-				if ( playlists.Count == 0 )
-				{
-					// Add some playlists to the current library
-					// First fully load the library so that it can be updated
-					db.GetChildren<Library>( currentLibrary );
-
-					// Add PlayLists to the databse and the library
-					Playlist list = new Playlist() { Name = "Playlist 1" };
-					db.Insert( list );
-					currentLibrary.PlayLists.Add( list );
-
-					list = new Playlist() { Name = "Playlist 2" };
-					db.Insert( list );
-					currentLibrary.PlayLists.Add( list );
-
-					list = new Playlist() { Name = NowPlayingController.NowPlayingPlaylistName };
-					db.Insert( list );
-					currentLibrary.PlayLists.Add( list );
-
-					db.UpdateWithChildren( currentLibrary );
-				}
-
-				currentLibraryId = currentLibrary.Id;
+				currentLibraryId = playbackRecord.LibraryId;
 			}
 			catch ( SQLite.SQLiteException queryException )
 			{
@@ -178,7 +241,7 @@ namespace DBTest
 			Android.Support.V4.App.Fragment[] fragments = 
 				new Android.Support.V4.App.Fragment[]
 				{
-					new LibraryFragment(), new PlaylistsFragment(), new NowPlayingFragment()
+					new ArtistsFragment(), new PlaylistsFragment(), new NowPlayingFragment()
 				};
 
 			// Tab title array
@@ -203,6 +266,10 @@ namespace DBTest
 			// Only seems to work if performed after this method has finished, hence the post
 			viewPager.Post( new PagerRunnable() { Pager = viewPager, Listener = pageListener } );
 		}
+
+		private PlaybackRouter playbackRouter = null;
+
+		private PlaybackSelectionManager playbackSelector = null;
 
 		/// <summary>
 		/// The PagerRunnable class is used to restore a currently selected tab (after rotation)

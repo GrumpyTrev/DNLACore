@@ -16,5 +16,10 @@ namespace DBTest
 		/// Index into the list of Artists
 		/// </summary>
 		public static Dictionary<string, int> AlphaIndex { get; set; } = null;
+
+		/// <summary>
+		/// The id of the library for which a list of artists have been obtained
+		/// </summary>
+		public static int LibraryId { get; set; } = -1;
 	}
 }

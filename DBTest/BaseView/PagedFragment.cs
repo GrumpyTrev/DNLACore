@@ -4,14 +4,11 @@ using Android.Support.V4.App;
 
 namespace DBTest
 {
-	public class PagedFragment: Fragment, ActionMode.ICallback, IPageVisible
+	public abstract class PagedFragment<T> : Fragment, ActionMode.ICallback, IPageVisible, IAdapterActionHandler
 	{
 		public override void OnCreate( Bundle savedInstanceState )
 		{
 			base.OnCreate( savedInstanceState );
-
-			// Get the ConnectionDetailsModel to provide the database path and library identity
-			connectionModel = StateModelProvider.Get( typeof( ConnectionDetailsModel ) ) as ConnectionDetailsModel;
 
 			// Allow this fragment to add menu items to the activity toolbar
 			HasOptionsMenu = true;
@@ -19,8 +16,6 @@ namespace DBTest
 
 		public sealed override View OnCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
 		{
-			RegisterMessages();
-
 			View createdView = OnSpecialisedCreateView( inflater, container, savedInstanceState );
 
 			if ( createdView != null )
@@ -38,7 +33,7 @@ namespace DBTest
 
 		public sealed override void OnDestroyView()
 		{
-			DeregisterMessages();
+			ReleaseResources();
 			base.OnDestroyView();
 		}
 
@@ -189,9 +184,7 @@ namespace DBTest
 		/// A request to enter action mode has been requested
 		/// Display the Contextual Action Bar
 		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		protected void EnteredActionMode( object sender, System.EventArgs e )
+		public void EnteredActionMode()
 		{
 			// If this fragment is not being displayed then record that the Contextual Action Bar should be displayed when the fragment 
 			// is visible
@@ -205,11 +198,14 @@ namespace DBTest
 			}
 		}
 
+		public abstract void SelectedItemsChanged( int selectedItemsCount );
+
 		/// <summary>
 		/// Overridden in specialised classes to tell the adapter to turn off action mode
 		/// </summary>
 		protected virtual void AdapterActionModeOff()
 		{
+			Adapter.ActionMode = false;
 		}
 
 		/// <summary>
@@ -217,6 +213,7 @@ namespace DBTest
 		/// </summary>
 		protected virtual void AdapterCollapseRequest()
 		{
+			Adapter.OnCollapseRequest();
 		}
 
 		protected virtual View OnSpecialisedCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
@@ -228,15 +225,11 @@ namespace DBTest
 		{
 		}
 
-		protected virtual void RegisterMessages()
+		protected virtual void ReleaseResources()
 		{
 		}
 
-		protected virtual void DeregisterMessages()
-		{
-		}
-
-		protected ConnectionDetailsModel connectionModel = null;
+		protected ExpandableListAdapter<T> Adapter { get; set; }
 
 		private ActionMode actionModeInstance = null;
 

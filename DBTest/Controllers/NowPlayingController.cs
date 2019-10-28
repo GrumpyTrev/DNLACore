@@ -11,7 +11,9 @@
 		/// </summary>
 		static NowPlayingController()
 		{
+			// Don't register for the NowPlayingClearedMessage as the list is always refreshed when new songs are added
 			Mediator.RegisterPermanent( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
+			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 		}
 
 		/// <summary>
@@ -23,19 +25,31 @@
 		public static async void GetNowPlayingListAsync( int libraryId )
 		{
 			// Check if the Playlists details for the library have already been obtained
-			if ( ( NowPlayingViewModel.NowPlayingPlaylist == null ) || ( LibraryId != libraryId ) )
+			if ( ( NowPlayingViewModel.NowPlayingPlaylist == null ) || ( NowPlayingViewModel.LibraryId != libraryId ) )
 			{
-				LibraryId = libraryId;
-				NowPlayingViewModel.NowPlayingPlaylist = await PlaylistAccess.GetNowPlayingListAsync( DatabasePath, LibraryId );
+				NowPlayingViewModel.LibraryId = libraryId;
+				NowPlayingViewModel.NowPlayingPlaylist = await PlaylistAccess.GetNowPlayingListAsync( NowPlayingViewModel.LibraryId );
 
 				// Sort the PlaylistItems by Track
 				NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+
+				// Get the selected song
+				NowPlayingViewModel.SelectedSong = PlaybackAccess.GetSelectedSong();
 			}
 
 			// Publish this data
-			new NowPlayingDataAvailableMessage().Send();
+			Reporter?.NowPlayingDataAvailable();
 		}
 
+		/// <summary>
+		/// Set the selected song in the database and raise the SongSelectedMessage
+		/// Don't update the model at this stage. Update it when the SongSelectedMessage is received
+		/// </summary>
+		public static void SetSelectedSong( int songIndex )
+		{
+			PlaybackAccess.SetSelectedSong( songIndex );
+			new SongSelectedMessage() { ItemNo = songIndex }.Send();
+		}
 
 		/// <summary>
 		/// Called when the NowPlayingSongsAddedMessage is received
@@ -46,21 +60,43 @@
 		{
 			if ( NowPlayingViewModel.NowPlayingPlaylist != null )
 			{
+				// Force a total refresh  by clearing the previous results
+				// Hence no need to register for the playlist cleared message (this assumes that the 'added' always follows a 'cleared'????
 				NowPlayingViewModel.NowPlayingPlaylist = null;
-				GetNowPlayingListAsync( LibraryId );
+				GetNowPlayingListAsync( NowPlayingViewModel.LibraryId );
 			}
 		}
 
 		/// <summary>
-		/// The database file path
+		/// Called when the SongSelectedMessage is received
+		/// Update the local model and inform the reporter 
 		/// </summary>
-		public static string DatabasePath { private get; set; }
+		/// <param name="message"></param>
+		private static void SongSelected( object message )
+		{
+			// Only process this if the playlist has been read at least once
+			if ( NowPlayingViewModel.NowPlayingPlaylist != null )
+			{
+				NowPlayingViewModel.SelectedSong = ( ( SongSelectedMessage )message ).ItemNo;
+				Reporter?.SongSelected();
+			}
+		}
 
 		/// <summary>
-		/// The id of the library for which a list of artists have been obtained
+		/// The name given to the Now Playing playlist
 		/// </summary>
-		private static int LibraryId { get; set; } = -1;
-
 		public const string NowPlayingPlaylistName = "Now Playing";
+
+		// The interface instance used to report back controller results
+		public static IReporter Reporter { private get; set; } = null;
+
+		/// <summary>
+		/// The interface used to report back controller results
+		/// </summary>
+		public interface IReporter
+		{
+			void NowPlayingDataAvailable();
+			void SongSelected();
+		}
 	}
 }

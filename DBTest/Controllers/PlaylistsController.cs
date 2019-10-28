@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace DBTest
 {
@@ -11,6 +9,14 @@ namespace DBTest
 	static class PlaylistsController
 	{
 		/// <summary>
+		/// Public constructor providing the Database path and the interface instance used to report results
+		/// </summary>
+		static PlaylistsController()
+		{
+			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
+		}
+
+		/// <summary>
 		/// Get the Playlist data associated with the specified library
 		/// If the data has already been obtained then notify view immediately.
 		/// Otherwise get the data from the database asynchronously
@@ -19,62 +25,17 @@ namespace DBTest
 		public static async void GetPlaylistsAsync( int libraryId )
 		{
 			// Check if the Playlists details for the library have already been obtained
-			if ( ( PlaylistsViewModel.Playlists == null ) || ( LibraryId != libraryId ) )
+			if ( ( PlaylistsViewModel.Playlists == null ) || ( PlaylistsViewModel.LibraryId != libraryId ) )
 			{
-				LibraryId = libraryId;
-				PlaylistsViewModel.Playlists = await PlaylistAccess.GetPlaylistDetailsAsync( DatabasePath, LibraryId );
+				PlaylistsViewModel.LibraryId = libraryId;
+				PlaylistsViewModel.Playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
 
 				// Extract just the names as well
 				PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
 			}
 
 			// Let the Views know that Playlists data is available
-			new PlaylistsDataAvailableMessage().Send();
-		}
-
-		/// <summary>
-		/// Add a list of Songs to the Now Playing list
-		/// </summary>
-		/// <param name="songsToAdd"></param>
-		/// <param name="clearFirst"></param>
-		public static void AddSongsToNowPlayingList( List<Song> songsToAdd, bool clearFirst )
-		{
-			if ( clearFirst == true )
-			{
-				PlaylistAccess.ClearNowPlayingList( DatabasePath, LibraryId );
-
-				// Publish this event
-				new NowPlayingClearedMessage().Send();
-			}
-
-			// Carry out the common processing to add songs to a playlist
-			PlaylistAccess.AddSongsToNowPlayingList( songsToAdd, DatabasePath, LibraryId );
-
-			// Raise the NowPlayingSongsAddedMessage
-			new NowPlayingSongsAddedMessage() { Songs = songsToAdd }.Send();
-		}
-
-		/// <summary>
-		/// Add a list of Songs to a specified playlist
-		/// </summary>
-		/// <param name="songsToAdd"></param>
-		/// <param name="clearFirst"></param>
-		public static void AddSongsToPlaylist( List<Song> songsToAdd, string playlistName )
-		{
-			// Find the Playlist object associated with the playlist name in the PlaylistsViewModel
-			Playlist selectedPlaylist = PlaylistsViewModel.Playlists.Where( d => d.Name == playlistName ).SingleOrDefault();
-
-			if ( selectedPlaylist != null )
-			{
-				// Carry out the common processing to add songs to a playlist
-				PlaylistAccess.AddSongsToPlaylist( songsToAdd, selectedPlaylist, DatabasePath );
-
-				// Make sure that all of the playlist details are loaded
-				GetPlaylistContents( selectedPlaylist );
-
-				// Publish this event
-				new PlaylistSongsAddedMessage() { Playlist = selectedPlaylist, Songs = songsToAdd }.Send();
-			}
+			Reporter?.PlaylistsDataAvailable();
 		}
 
 		/// <summary>
@@ -83,20 +44,48 @@ namespace DBTest
 		/// <param name="thePlaylist"></param>
 		public static void GetPlaylistContents( Playlist thePlaylist )
 		{
-			PlaylistAccess.GetPlaylistContents( thePlaylist, DatabasePath );
+			PlaylistAccess.GetPlaylistContents( thePlaylist );
 
 			// Sort the PlaylistItems by Track
 			thePlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 		}
 
 		/// <summary>
-		/// The database file path
+		/// Called when the PlaylistSongsAddedMessage is received
+		/// If the playlists have already been obtained then make sure that the specified playlist contents are refreshed
+		/// and let the view know
 		/// </summary>
-		public static string DatabasePath { private get; set; }
+		/// <param name="message"></param>
+		private static void SongsAdded( object message )
+		{
+			if ( PlaylistsViewModel.Playlists != null )
+			{
+				PlaylistSongsAddedMessage songsAddedMessage = message as PlaylistSongsAddedMessage;
+
+				// Get the playlist from the model (not the database) and refresh its contents.
+				// If it can't be found then do nothing - report an error?
+				Playlist addedToPlaylist = PlaylistsViewModel.Playlists.FirstOrDefault( d => ( d.Name == songsAddedMessage.PlaylistName ) );
+
+				if ( addedToPlaylist != null )
+				{
+					GetPlaylistContents( addedToPlaylist );
+					Reporter?.SongsAdded( songsAddedMessage.PlaylistName );
+				}
+			}
+		}
 
 		/// <summary>
-		/// The id of the library for which a list of artists have been obtained
+		/// The interface instance used to report back controller results
 		/// </summary>
-		private static int LibraryId { get; set; } = -1;
+		public static IReporter Reporter { private get; set; } = null;
+
+		/// <summary>
+		/// The interface used to report back controller results
+		/// </summary>
+		public interface IReporter
+		{
+			void PlaylistsDataAvailable();
+			void SongsAdded( string playlistName );
+		}
 	}
 }

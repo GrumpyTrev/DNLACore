@@ -1,6 +1,6 @@
 ﻿namespace DBTest
 {
-	static class PlaylistsAdapterModel
+	static class ArtistsAdapterModel
 	{
 		public static ExpandableListAdapterModel BaseModel { get; } = new ExpandableListAdapterModel();
 

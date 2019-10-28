@@ -6,7 +6,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	abstract class ExpandableListAdapter< T > : BaseExpandableListAdapter, AdapterView.IOnItemLongClickListener, 
+	public abstract class ExpandableListAdapter< T > : BaseExpandableListAdapter, AdapterView.IOnItemLongClickListener, 
 		ExpandableListView.IOnChildClickListener, ExpandableListView.IOnGroupClickListener
 	{
 		/// <summary>
@@ -16,12 +16,13 @@ namespace DBTest
 		/// <param name="view"></param>
 		/// <param name="provider"></param>
 		public ExpandableListAdapter( Context context, ExpandableListView view, IGroupContentsProvider< T > provider, 
-			ExpandableListAdapterModel model )
+			ExpandableListAdapterModel model, IAdapterActionHandler stateChange )
 		{
 			// Save the parameters
 			adapterModel = model;
 			contentsProvider = provider;
 			parentView = view;
+			stateChangeReporter = stateChange;
 
 			// Save the inflator to use when creating the item views
 			inflator = ( LayoutInflater )context.GetSystemService( Context.LayoutInflaterService );
@@ -177,7 +178,7 @@ namespace DBTest
 				// Report if ActionMode is in effect
 				if ( adapterModel.ActionMode == true )
 				{
-					EnteredActionMode?.Invoke( this, new EventArgs() );
+					stateChangeReporter.EnteredActionMode();
 				}
 			}
 			else
@@ -208,7 +209,7 @@ namespace DBTest
 
 					if ( adapterModel.ActionMode == true )
 					{
-						EnteredActionMode?.Invoke( this, new EventArgs() );
+						stateChangeReporter.EnteredActionMode();
 					}
 					else
 					{
@@ -321,7 +322,7 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
+		public virtual bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
 		{
 			if ( parent.IsGroupExpanded( groupPosition ) == false )
 			{
@@ -535,7 +536,7 @@ namespace DBTest
 				NotifyDataSetChanged();
 			}
 
-			SelectedItemsChanged?.Invoke( this, new SelectedItemsArgs() { SelectedItemsCount = adapterModel.CheckedObjects.Count } );
+			stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects.Count );
 		}
 
 		/// <summary>
@@ -606,27 +607,6 @@ namespace DBTest
 		public List< T > Groups { get; set; } = new List< T >();
 
 		/// <summary>
-		/// The event used to indicate that Acion Mode has been entered
-		/// </summary>
-		public event EventHandler EnteredActionMode;
-
-		/// <summary>
-		/// The event used to publish changes to the number of items selected
-		/// </summary>
-		public event EventHandler< SelectedItemsArgs > SelectedItemsChanged;
-
-		/// <summary>
-		/// Arguments for the selected items event
-		/// </summary>
-		public class SelectedItemsArgs: EventArgs
-		{
-			/// <summary>
-			/// The number of items selected
-			/// </summary>
-			public int SelectedItemsCount { get; set; }
-		}
-
-		/// <summary>
 		/// Inflator used to create the item view 
 		/// </summary>
 		protected readonly LayoutInflater inflator = null;
@@ -645,5 +625,10 @@ namespace DBTest
 		/// The parent ExpandableListView
 		/// </summary>
 		private readonly ExpandableListView parentView = null;
+
+		/// <summary>
+		/// Interface used to report adapter state changes
+		/// </summary>
+		private readonly IAdapterActionHandler stateChangeReporter = null;
 	}
 }

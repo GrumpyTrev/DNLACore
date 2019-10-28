@@ -8,8 +8,8 @@ namespace DBTest
 	class NowPlayingSongsAddedMessage: BaseMessage
 	{
 		/// <summary>
-		/// The songs that have been added to the playlist
+		/// Indicate whether or not the playlist has been added to or replaced
 		/// </summary>
-		public List<Song> Songs { get; set; } = null;
+		public bool SongsReplaced { get; set; } = false;
 	}
 }

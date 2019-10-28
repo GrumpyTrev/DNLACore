@@ -6,12 +6,12 @@ using System.Linq;
 
 namespace DBTest
 {
-	public class LibraryFragment: PagedFragment, ExpandableListAdapter<Artist>.IGroupContentsProvider<Artist>
+	public class ArtistsFragment: PagedFragment<Artist>, ExpandableListAdapter<Artist>.IGroupContentsProvider<Artist>, ArtistsController.IReporter
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
-		public LibraryFragment()
+		public ArtistsFragment()
 		{
 		}
 
@@ -27,20 +27,21 @@ namespace DBTest
 			// Create the view
 			View view = inflater.Inflate( Resource.Layout.library_fragment, container, false );
 
-			// Get the ExpandableListView and link to a LibraryAdapter
+			// Get the ExpandableListView and link to an ArtistsAdapter
 			ExpandableListView listView = view.FindViewById<ExpandableListView>( Resource.Id.libraryLayout );
 
-			adapter = new LibraryAdapter( Context, listView, this );
+			adapter = new ArtistsAdapter( Context, listView, this, this );
+			base.Adapter = adapter;
+
 			listView.SetAdapter( adapter );
 
-			// Detect when the adapter has entered Action Mode
-			adapter.EnteredActionMode += EnteredActionMode;
+			// Initialise the ArtistsController
+			ArtistsController.Reporter = this;
 
-			// Detect when the number of selected items has changed
-			adapter.SelectedItemsChanged += SelectedItemsChanged;
-
-			// Request the Artists data from the library
-			ArtistsController.GetArtistsAsync( connectionModel.LibraryId );
+			// Request the Artists data from the library - via a Post so that any response comes back after the UI has been created
+			view.Post( () => {
+				ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
+			} );
 
 			return view;
 		}
@@ -52,7 +53,7 @@ namespace DBTest
 		/// <param name="inflater"></param>
 		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
 		{
-			inflater.Inflate( Resource.Menu.menu_playlists, menu );
+			inflater.Inflate( Resource.Menu.menu_library, menu );
 
 			base.OnCreateOptionsMenu( menu, inflater );
 		}
@@ -81,27 +82,37 @@ namespace DBTest
 
 			// Form a list of Songs from the selected objects
 			List<Song> selectedSongs = adapter.GetSelectedItems().Cast<Song>().ToList();
+//			LeaveActionMode();
 
 			if ( id == Resource.Id.action_add_queue )
 			{
 				// Get the sorted list of selected songs from the adapter and add them to the Now Playing playlist
-				PlaylistsController.AddSongsToNowPlayingList( selectedSongs, false );
+				ArtistsController.AddSongsToNowPlayingList( selectedSongs, false );
 				LeaveActionMode();
 			}
 			else if ( id == Resource.Id.action_playnow )
 			{
 				// Get the sorted list of selected songs from the adapter and replace the Now Playing playlist with them
-				PlaylistsController.AddSongsToNowPlayingList( selectedSongs, true );
+				ArtistsController.AddSongsToNowPlayingList( selectedSongs, true );
 				LeaveActionMode();
 			}
 			else if ( item.GroupId == PlaylistGroupId )
 			{
 				// Determine which Playlist has been selected and add the selected songs to the playlist
-				PlaylistsController.AddSongsToPlaylist( selectedSongs, item.TitleFormatted.ToString() );
+				ArtistsController.AddSongsToPlaylist( selectedSongs, item.TitleFormatted.ToString() );
 				LeaveActionMode();
 			}
 
 			return false;
+		}
+
+		/// <summary>
+		/// Called when the Controller has obtained the Artist data
+		/// Pass it on to the adapter
+		/// </summary>
+		public void ArtistsDataAvailable()
+		{
+			adapter.SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
 		}
 
 		/// <summary>
@@ -118,55 +129,31 @@ namespace DBTest
 
 			ISubMenu subMenu = playListItem.SubMenu;
 
+			// TO DO This is a bit iffy as the PlaylistsViewModel.PlaylistNames may not have been populated yet
+			// and this 'view' should not be accessing someone else's model data
 			foreach ( string name in PlaylistsViewModel.PlaylistNames )
 			{
 				subMenu.Add( PlaylistGroupId, Menu.None, 0, name );
 			}
 		}
 
-		protected override void RegisterMessages()
+		public override void SelectedItemsChanged( int selectedItemsCount )
 		{
-			// Register interest in Artist data available message
-			Mediator.Register( ArtistsDataAvailable, typeof( ArtistsDataAvailableMessage ) );
 		}
 
-		protected override void DeregisterMessages()
+		protected override void ReleaseResources()
 		{
-			Mediator.Deregister( ArtistsDataAvailable, typeof( ArtistsDataAvailableMessage ) );
-		}
-
-		/// <summary>
-		/// Called when the ArtistsDataAvailableMessage is received
-		/// Display the data held in the Artists view model
-		/// </summary>
-		/// <param name="message"></param>
-		private void ArtistsDataAvailable( object message )
-		{
-			adapter.SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
-		}
-
-		private void SelectedItemsChanged( object sender, ExpandableListAdapter<Artist>.SelectedItemsArgs e )
-		{
+			ArtistsController.Reporter = null;
 		}
 
 		/// <summary>
-		/// Overridden in specialised classes to tell the adapter to turn off action mode
+		/// The ArtistsAdapter used to hold the Artist data and display it in the ExpandableListView
 		/// </summary>
-		protected override void AdapterActionModeOff()
-		{
-			adapter.ActionMode = false;
-		}
+		private ArtistsAdapter adapter = null;
 
 		/// <summary>
-		/// Overridden in specialised classes to tell the adapter to turn off action mode
+		/// Group id for related context menu items
 		/// </summary>
-		protected override void AdapterCollapseRequest()
-		{
-			adapter.OnCollapseRequest();
-		}
-
-		private LibraryAdapter adapter = null;
-
 		private const int PlaylistGroupId = 5555;
 	}
 }

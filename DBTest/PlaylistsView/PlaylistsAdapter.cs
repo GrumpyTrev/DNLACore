@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Android.Content;
 using Android.Views;
 using Android.Widget;
@@ -14,8 +13,8 @@ namespace DBTest
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< Playlist > provider ) :
-			base( context, parentView, provider, StateModelProvider.Get( typeof( PlaylistsAdapterModel ) ) as PlaylistsAdapterModel )
+		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< Playlist > provider, IAdapterActionHandler actionHandler ) :
+			base( context, parentView, provider,  PlaylistsAdapterModel.BaseModel, actionHandler )
 		{
 		}
 
@@ -43,10 +42,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="list"></param>
 		/// <param name="songs"></param>
-		public void SongsAdded( Playlist list, List<Song> songs )
+		public void SongsAdded( string playlistName )
 		{
 			// Find the group holding the playlist
-			int groupPosition = Groups.IndexOf( list );
+			int groupPosition = Groups.FindIndex( p => p.Name == playlistName );
 
 			if ( groupPosition != -1 )
 			{

@@ -4,7 +4,8 @@ using Android.Widget;
 
 namespace DBTest
 {
-	public class PlaylistsFragment: PagedFragment, ExpandableListAdapter< Playlist >.IGroupContentsProvider< Playlist >
+	public class PlaylistsFragment: PagedFragment<Playlist>, ExpandableListAdapter< Playlist >.IGroupContentsProvider< Playlist >, 
+		PlaylistsController.IReporter
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -28,14 +29,18 @@ namespace DBTest
 			// Get the ExpandableListView and link to a PlaylistsAdapter
 			ExpandableListView listView = view.FindViewById<ExpandableListView>( Resource.Id.playlistsLayout );
 
-			adapter = new PlaylistsAdapter( Context, listView, this );
+			adapter = new PlaylistsAdapter( Context, listView, this, this );
+			base.Adapter = adapter;
+
 			listView.SetAdapter( adapter );
 
-			// Detect when the adapter has entered Action Mode
-			adapter.EnteredActionMode += EnteredActionMode;
+			// Initialise the PlaylistsController
+			PlaylistsController.Reporter = this;
 
-			// Request the PlayLists from the library
-			PlaylistsController.GetPlaylistsAsync( connectionModel.LibraryId );
+			// Request the PlayLists from the library - via a Post so that any response comes back after the UI has been created
+			view.Post( () => {
+				PlaylistsController.GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
+			} );
 
 			return view;
 		}
@@ -64,12 +69,16 @@ namespace DBTest
 			}
 		}
 
+		public override void SelectedItemsChanged( int selectedItemsCount )
+		{
+		}
+
 		/// <summary>
 		/// Called when the PlaylistsDataAvailableMessage is received
 		/// Display the data held in the Playlists view model
 		/// </summary>
 		/// <param name="message"></param>
-		private void PlaylistsDataAvailable( object message )
+		public void PlaylistsDataAvailable()
 		{
 			adapter.SetData( PlaylistsViewModel.Playlists );
 		}
@@ -79,41 +88,15 @@ namespace DBTest
 		/// Pass on the changes to the adpater
 		/// </summary>
 		/// <param name="message"></param>
-		private void SongsAdded( object message )
+		public void SongsAdded( string playlistName )
 		{
-			PlaylistSongsAddedMessage songsAddedMessage = message as PlaylistSongsAddedMessage;
-			adapter.SongsAdded( songsAddedMessage.Playlist, songsAddedMessage.Songs );
+			adapter.SongsAdded( playlistName );
 		}
 
-		/// <summary>
-		/// Overridden in specialised classes to tell the adapter to turn off action mode
-		/// </summary>
-		protected override void AdapterActionModeOff()
+		protected override void ReleaseResources()
 		{
-			adapter.ActionMode = false;
+			PlaylistsController.Reporter = null;
 		}
-
-		/// <summary>
-		/// Overridden in specialised classes to tell the adapter to turn off action mode
-		/// </summary>
-		protected override void AdapterCollapseRequest()
-		{
-			adapter.OnCollapseRequest();
-		}
-
-		protected override void RegisterMessages()
-		{
-			// Register interest in Playlist messages
-			Mediator.Register( PlaylistsDataAvailable, typeof( PlaylistsDataAvailableMessage ) );
-			Mediator.Register( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
-		}
-
-		protected override void DeregisterMessages()
-		{
-			Mediator.Deregister( PlaylistsDataAvailable, typeof( PlaylistsDataAvailableMessage ) );
-			Mediator.Deregister( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
-		}
-
 
 		private PlaylistsAdapter adapter = null;
 	}

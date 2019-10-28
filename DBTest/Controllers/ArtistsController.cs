@@ -17,11 +17,11 @@ namespace DBTest
 		public static async void GetArtistsAsync( int libraryId )
 		{
 			// Check if the Artist details for the library have already been obtained
-			if ( ( ArtistsViewModel.Artists == null ) || ( LibraryId != libraryId ) )
+			if ( ( ArtistsViewModel.Artists == null ) || ( ArtistsViewModel.LibraryId != libraryId ) )
 			{
 				// New data is required
-				LibraryId = libraryId;
-				ArtistsViewModel.Artists = await ArtistAccess.GetArtistDetailsAsync( DatabasePath, LibraryId );
+				ArtistsViewModel.LibraryId = libraryId;
+				ArtistsViewModel.Artists = await ArtistAccess.GetArtistDetailsAsync( ArtistsViewModel.LibraryId );
 
 				// Sort the list of artists by name
 				ArtistsViewModel.Artists.Sort( ( a, b ) => {
@@ -47,7 +47,7 @@ namespace DBTest
 			}
 
 			// Publish the data
-			new ArtistsDataAvailableMessage().Send();
+			Reporter?.ArtistsDataAvailable();
 		}
 
 		/// <summary>
@@ -56,7 +56,7 @@ namespace DBTest
 		/// <param name="theArtist"></param>
 		public static void GetArtistContents( Artist theArtist )
 		{
-			ArtistAccess.GetArtistContents( theArtist, DatabasePath );
+			ArtistAccess.GetArtistContents( theArtist );
 
 			// Sort the albums alphabetically
 			theArtist.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
@@ -72,13 +72,54 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// The database file path
+		/// Add a list of Songs to the Now Playing list
 		/// </summary>
-		public static string DatabasePath { private get; set; }
+		/// <param name="songsToAdd"></param>
+		/// <param name="clearFirst"></param>
+		public static void AddSongsToNowPlayingList( List<Song> songsToAdd, bool clearFirst )
+		{
+			// Should the Now Playing playlist be cleared first
+			if ( clearFirst == true )
+			{
+				// Before clearing it reset the selected song index
+				PlaybackAccess.SetSelectedSong( -1 );
+				new SongSelectedMessage() { ItemNo = -1 }.Send();
+
+				// Now clear it
+				PlaylistAccess.ClearNowPlayingList( ArtistsViewModel.LibraryId );
+				new NowPlayingClearedMessage().Send();
+			}
+
+			// Carry out the common processing to add songs to a playlist
+			PlaylistAccess.AddSongsToNowPlayingList( songsToAdd, ArtistsViewModel.LibraryId );
+			new NowPlayingSongsAddedMessage() { SongsReplaced = clearFirst }.Send();
+		}
 
 		/// <summary>
-		/// The id of the library for which a list of artists have been obtained
+		/// Add a list of Songs to a specified playlist
 		/// </summary>
-		private static int LibraryId { get; set; } = -1;
+		/// <param name="songsToAdd"></param>
+		/// <param name="clearFirst"></param>
+		public static void AddSongsToPlaylist( List<Song> songsToAdd, string playlistName )
+		{
+			// Carry out the common processing to add songs to a playlist
+			PlaylistAccess.AddSongsToPlaylist( songsToAdd, playlistName, ArtistsViewModel.LibraryId );
+
+			// Publish this event
+			new PlaylistSongsAddedMessage() { PlaylistName = playlistName }.Send();
+		}
+
+		/// <summary>
+		/// The interface instance used to report back controller results
+		/// </summary>
+		public static IReporter Reporter { get; set; } = null;
+
+		/// <summary>
+		/// The interface used to report back controller results
+		/// </summary>
+		public interface IReporter
+		{
+			void ArtistsDataAvailable();
+		}
 	}
 }

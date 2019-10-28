@@ -7,16 +7,16 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class LibraryAdapter : ExpandableListAdapter<Artist>, ISectionIndexer
+	class ArtistsAdapter : ExpandableListAdapter<Artist>, ISectionIndexer
 	{
 		/// <summary>
-		/// ArtistAlbumListViewAdapter constructor.
+		/// ArtistsAdapter constructor.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public LibraryAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Artist> provider ) :
-			base( context, parentView, provider, StateModelProvider.Get( typeof( LibraryAdapterModel ) ) as LibraryAdapterModel )
+		public ArtistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Artist> provider, IAdapterActionHandler actionHandler ) :
+			base( context, parentView, provider, ArtistsAdapterModel.BaseModel, actionHandler )
 		{
 		}
 

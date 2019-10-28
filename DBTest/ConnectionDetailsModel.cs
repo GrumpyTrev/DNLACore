@@ -1,8 +1,12 @@
-﻿namespace DBTest
+﻿using SQLite;
+
+namespace DBTest
 {
-	public class ConnectionDetailsModel : StateModel
+	static public class ConnectionDetailsModel
 	{
-		public string DatabasePath { get; set; }
-		public int LibraryId { get; set; }
+		public static string DatabasePath { get; set; } = "";
+		public static int LibraryId { get; set; } = -1;
+		public static SQLiteConnection SynchConnection { get; set; } = null;
+		public static SQLiteAsyncConnection AsynchConnection { get; set; } = null;
 	}
 }

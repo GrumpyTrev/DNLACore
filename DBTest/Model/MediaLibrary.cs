@@ -5,6 +5,26 @@ using System.Collections.Generic;
 
 namespace DBTest
 {
+	[Table( "Playback" )]
+	public class Playback
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		[ForeignKey( typeof( Library ) )]
+		public int LibraryId { get; set; }
+
+		/// <summary>
+		/// The index of the song curently selected in the Now Playing Playlist
+		/// </summary>
+		public int SongIndex { get; set; }
+
+		/// <summary>
+		/// The name of the currently selected playback device
+		/// </summary>
+		public string PlaybackDeviceName { get; set; }
+	}
+
 	[Table( "Library" )]
 	public class Library
 	{

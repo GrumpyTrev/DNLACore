@@ -4,7 +4,8 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class NowPlayingFragment : PagedFragment
+	public class NowPlayingFragment: PagedFragment< PlaylistItem >, ExpandableListAdapter<PlaylistItem>.IGroupContentsProvider<PlaylistItem>, 
+		NowPlayingController.IReporter, NowPlayingAdapter.IActionHandler
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -25,19 +26,21 @@ namespace DBTest
 			// Create the view
 			View view = inflater.Inflate( Resource.Layout.nowplaying_fragment, container, false );
 
-			// Get the ListView and link to a NowPlayingAdapter
-			ListView listView = view.FindViewById<ListView>( Resource.Id.nowplayingList );
+			// Get the ExpandableListView and link to a PlaylistsAdapter
+			ExpandableListView listView = view.FindViewById<ExpandableListView>( Resource.Id.nowplayingList );
 
-			adapter = new NowPlayingAdapter( Context, listView );
-			listView.Adapter = adapter;
+			adapter = new NowPlayingAdapter( Context, listView, this, this );
+			base.Adapter = adapter;
 
-			// Detect when the adapter has entered Action Mode
-			adapter.EnteredActionMode += EnteredActionMode;
+			listView.SetAdapter( adapter );
 
-			adapter.PlaySongRequested += PlaySongRequested;
+			// Initialise the NowPlayingController
+			NowPlayingController.Reporter = this;
 
-			// Request the Now Playing playlist from the library
-			NowPlayingController.GetNowPlayingListAsync( connectionModel.LibraryId );
+			// Request the Now Playing list from the library - via a Post so that any response comes back after the UI has been created
+			view.Post( () => {
+				NowPlayingController.GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
+			} );
 
 			return view;
 		}
@@ -55,18 +58,41 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the NowPlayingDataAvailableMessage is received
-		/// Display the data held in the Playlists view model
+		/// Get all the PlaylistItem entries associated with a specified Playlist.
 		/// </summary>
-		/// <param name="message"></param>
-		private void NowPlayingDataAvailable( object message )
+		/// <param name="thePlayList"></param>
+		public void ProvideGroupContents( PlaylistItem theItem)
 		{
-			adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems );
+		}
+
+		public override void SelectedItemsChanged( int selectedItemsCount )
+		{
 		}
 
 		/// <summary>
-		/// Called when the NowPlayingSongsAddedMessage is received
-		/// Pass on the changes to the adpater
+		/// Called when the Now Playing playlist has been read or updated
+		/// Display the data held in the Now Playing view model
+		/// </summary>
+		/// <param name="message"></param>
+		public void NowPlayingDataAvailable()
+		{
+			adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems );
+			adapter.SongBeingPlayed( NowPlayingViewModel.SelectedSong );
+		}
+
+		/// <summary>
+		/// Called when a song has been selected by the adapter
+		/// Pass this change to the controller
+		/// </summary>
+		/// <param name="itemNo"></param>
+		public void SongSelected( int itemNo )
+		{
+			NowPlayingController.SetSelectedSong( itemNo );
+		}
+
+		/// <summary>
+		/// Called when song addition has been reported by the controller
+		/// Pass on the changes to the adapter
 		/// </summary>
 		/// <param name="message"></param>
 		private void SongsAdded( object message )
@@ -75,51 +101,19 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a request has been received to play a particular song in the Now Playing list
-		/// Raise the PlaySongMessage.
-		/// For TESTING purposes tell the adapter that a song is being played
+		/// Called when song selection has been reported by the controller
+		/// Pass on the changes to the adapter
 		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void PlaySongRequested( object sender, NowPlayingAdapter.PlaySongArgs e )
+		public void SongSelected()
 		{
-			new PlaySongMessage() { TrackId = e.TrackNo, SongToPlay = e.SelectedSong }.Send();
-			adapter.SongBeingPlayed( e.TrackNo, e.SelectedSong );
+			adapter.SongBeingPlayed( NowPlayingViewModel.SelectedSong );
 		}
 
-		/// <summary>
-		/// Overridden in specialised classes to tell the adapter to turn off action mode
-		/// </summary>
-		protected override void AdapterActionModeOff()
+		protected override void ReleaseResources()
 		{
-			adapter.ActionMode = false;
+			NowPlayingController.Reporter = null;
 		}
-
-		/// <summary>
-		/// Overridden in specialised classes to tell the adapter to turn off action mode
-		/// </summary>
-		protected override void AdapterCollapseRequest()
-		{
-//			adapter.OnCollapseRequest();
-		}
-
-
-		protected override void RegisterMessages()
-		{
-			// Register interest in Now Playing messages
-			// Register interest in Playlist messages
-			Mediator.Register( NowPlayingDataAvailable, typeof( NowPlayingDataAvailableMessage ) );
-			Mediator.Register( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
-		}
-
-		protected override void DeregisterMessages()
-		{
-			Mediator.Deregister( NowPlayingDataAvailable, typeof( NowPlayingDataAvailableMessage ) );
-			Mediator.Deregister( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
-		}
-
 
 		private NowPlayingAdapter adapter = null;
-
 	}
 }
