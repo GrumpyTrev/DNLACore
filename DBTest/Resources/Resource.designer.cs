@@ -2444,9 +2444,6 @@ namespace DBTest
 			// aapt resource value: 0x7f0800c0
 			public const int action_playnow = 2131230912;
 			
-			// aapt resource value: 0x7f0800c2
-			public const int action_settings = 2131230914;
-			
 			// aapt resource value: 0x7f0800a2
 			public const int action_text = 2131230882;
 			
@@ -2786,6 +2783,9 @@ namespace DBTest
 			// aapt resource value: 0x7f08008a
 			public const int select_dialog_listview = 2131230858;
 			
+			// aapt resource value: 0x7f0800c2
+			public const int select_playback_device = 2131230914;
+			
 			// aapt resource value: 0x7f080074
 			public const int shortcut = 2131230836;
 			
@@ -2797,6 +2797,9 @@ namespace DBTest
 			
 			// aapt resource value: 0x7f080025
 			public const int showTitle = 2131230757;
+			
+			// aapt resource value: 0x7f0800c3
+			public const int show_media_controls = 2131230915;
 			
 			// aapt resource value: 0x7f08008c
 			public const int sliding_tabs = 2131230860;

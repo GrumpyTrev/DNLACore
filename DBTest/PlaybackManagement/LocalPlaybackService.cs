@@ -3,7 +3,6 @@ using Android.Content;
 using Android.Media;
 using Android.OS;
 using Android.Runtime;
-using Android.Util;
 using System;
 using System.IO;
 using System.Linq;
@@ -16,19 +15,6 @@ namespace DBTest
 	[Service]
 	public class LocalPlaybackService: BasePlaybackService, MediaPlayer.IOnPreparedListener, MediaPlayer.IOnErrorListener, MediaPlayer.IOnCompletionListener
 	{
-		public override bool OnUnbind( Intent intent )
-		{
-			if ( localPlayer != null )
-			{
-				localPlayer.Stop();
-				localPlayer.Release();
-
-				IsPlaying = false;
-			}
-
-			return false;
-		}
-
 		/// <summary>
 		/// Called whewn the service is first created
 		/// Initialise the Android MediaPlayer instance user to actually play the songs
@@ -86,35 +72,46 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when the application is just about to exit
+		/// </summary>
+		public override void Shutdown()
+		{
+			if ( localPlayer != null )
+			{
+				localPlayer.Stop();
+				localPlayer.Release();
+
+				IsPlaying = false;
+			}
+
+			StopSelf();
+		}
+
+		/// <summary>
 		/// Play the currently selected song
 		/// </summary>
 		public override void Play()
 		{
-			if ( ( Playlist != null ) && ( CurrentSongIndex < Playlist.PlaylistItems.Count ) && ( isPreparing == false ) )
+			// Prevent this from being called again until it has been processed
+			if ( isPreparing == false )
 			{
-				localPlayer.Reset();
-
-				Song songToPlay = Playlist.PlaylistItems[ CurrentSongIndex ].Song;
-
-				// Find the Source associated with this song
-				Source songSource = Sources.FirstOrDefault( d => ( d.Id == songToPlay.SourceId ) );
-
-				if ( songSource != null )
+				// Get the source path for the current song
+				string filename = GetSongResource();
+				if ( filename.Length > 0 )
 				{
-					string filename = Path.Combine( songSource.AccessSource, songToPlay.Path.Substring( 1 ).Replace( " ", "%20" ) );
-
 					// Set uri
 					Android.Net.Uri trackUri = Android.Net.Uri.Parse( filename );
 
 					try
 					{
+						localPlayer.Reset();
 						localPlayer.SetDataSource( trackUri.ToString() );
 						isPreparing = true;
 						localPlayer.PrepareAsync();
 					}
-					catch ( Exception e )
+					catch ( Exception error )
 					{
-						Log.WriteLine( LogPriority.Debug, "MobileApp", string.Format( "Error setting data source for : {0} : {1}", filename, e.Message ) );
+						Logger.Error( string.Format( "Error setting data source for : {0} : {1}", filename, error.Message ) );
 					}
 				}
 			}
@@ -177,7 +174,13 @@ namespace DBTest
 		{
 			get
 			{
-				return localPlayer.CurrentPosition;
+				int position = 0;
+				if ( localPlayer.IsPlaying == true )
+				{
+					position = localPlayer.CurrentPosition;
+				}
+
+				return position;
 			}
 		}
 
@@ -188,7 +191,13 @@ namespace DBTest
 		{
 			get
 			{
-				return localPlayer.Duration;
+				int duration = 0;
+				if ( localPlayer.IsPlaying == true )
+				{
+					duration = localPlayer.Duration;
+				}
+
+				return duration;
 			}
 		}
 
@@ -199,7 +208,7 @@ namespace DBTest
 		{
 			localPlayer = new MediaPlayer();
 			localPlayer.SetWakeMode( ApplicationContext, WakeLockFlags.Partial );
-			localPlayer.SetAudioStreamType( Android.Media.Stream.Music );
+			localPlayer.SetAudioAttributes( new AudioAttributes.Builder().SetContentType( AudioContentType.Music ).Build() ); 
 			localPlayer.SetOnPreparedListener( this );
 			localPlayer.SetOnErrorListener( this );
 			localPlayer.SetOnCompletionListener( this );

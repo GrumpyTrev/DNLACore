@@ -1,4 +1,5 @@
 ﻿using Android.Content;
+using Android.Views;
 using Android.Widget;
 
 namespace DBTest
@@ -17,6 +18,28 @@ namespace DBTest
 		/// </summary>
 		public override void Hide()
 		{
+		}
+
+		public override bool DispatchKeyEvent( KeyEvent @event )
+		{
+			bool handled = false;
+
+			if ( Visibility == ViewStates.Visible )
+			{
+				if ( @event.KeyCode == Keycode.Back )
+				{
+					base.Hide();
+					Visibility = ViewStates.Gone;
+					handled = true;
+				}
+			}
+
+			if ( handled == false )
+			{
+				handled = base.DispatchKeyEvent( @event );
+			}
+
+			return handled;
 		}
 	}
 }

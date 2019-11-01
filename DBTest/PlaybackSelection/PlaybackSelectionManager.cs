@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-//using System.Linq;
 using Android.App;
 using Android.Content;
 
@@ -68,6 +67,6 @@ namespace DBTest
 		/// <summary>
 		/// Context to use for building the selection dialogue
 		/// </summary>
-		private Context contextForAlert = null;
+		private readonly Context contextForAlert = null;
 	}
 }

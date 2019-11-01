@@ -1,6 +1,5 @@
 ﻿using System;
 using Android.App;
-using Android.Content;
 using Android.Views;
 using static Android.Widget.MediaController;
 
@@ -69,8 +68,14 @@ namespace DBTest
 			localConnection.MediaControlDataAvailable();
 			remoteConnection.MediaControlDataAvailable();
 
+			// If a playback device has already been selected in the model but not in this instance then select it now
+			if ( ( PlaybackManagerModel.AvailableDevice != null ) && ( selectedConnection == null ) )
+			{
+				SelectPlaybackDevice( null );
+			}
+
 			// If songs have been replaced then tell the selected connection to start playing the current song
-			if ( ( songsReplaced == true ) && ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
+				if ( ( songsReplaced == true ) && ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
 			{
 				selectedConnection?.Play();
 			}
@@ -119,11 +124,11 @@ namespace DBTest
 		/// <param name="oldSelectedDevice"></param>
 		public void SelectPlaybackDevice( Device oldSelectedDevice )
 		{
-			if ( mediaController != null )
-			{
-				mediaController.Dispose();
-				mediaController = null;
-			}
+//			if ( mediaController != null )
+//			{
+//				mediaController.Dispose();
+//				mediaController = null;
+//			}
 
 			if ( oldSelectedDevice != null )
 			{
@@ -142,9 +147,24 @@ namespace DBTest
 
 			selectedConnection.SelectController();
 
-			SetController();
+			if ( mediaController == null )
+			{
+				SetController();
+			}
 
 			mediaController.Show();
+		}
+
+		/// <summary>
+		/// Called when the Selected connection's service has connected
+		/// </summary>
+		/// <param name="connection"></param>
+		public void ServiceConnected( PlaybackConnection connection )
+		{
+			if ( connection == selectedConnection )
+			{
+				mediaController.Show();
+			}
 		}
 
 		/// <summary>
@@ -188,6 +208,36 @@ namespace DBTest
 		public void SongIndexChanged( int songIndex )
 		{
 			contextForBinding.RunOnUiThread( () => { PlaybackManagementController.SetSelectedSong( songIndex ); } );
+		}
+
+		/// <summary>
+		/// Are the playback controls currently visible
+		/// </summary>
+		public bool PlaybackControlsVisible
+		{
+			get
+			{
+				bool visible = false;
+
+				if ( ( mediaController != null ) && ( mediaController.Visibility == ViewStates.Visible ) )
+				{
+					visible = true;
+				}
+
+				return visible;
+			}
+
+			set
+			{
+				if ( PlaybackControlsVisible != value )
+				{
+					if ( mediaController != null )
+					{
+						mediaController.Visibility = ViewStates.Visible;
+						mediaController.Show( 0 );
+					}
+				}
+			}
 		}
 
 		/// <summary>

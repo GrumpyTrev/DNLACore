@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Android.OS;
+using System.Collections.Generic;
 
 namespace DBTest
 {
@@ -21,5 +22,7 @@ namespace DBTest
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
 		public static int LibraryId { get; set; } = -1;
+
+		public static IParcelable ListViewState { get; set; } = null;
 	}
 }

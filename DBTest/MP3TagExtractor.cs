@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Android.Util;
 
 namespace DBTest
 {
@@ -171,29 +170,28 @@ namespace DBTest
 
 									if ( mp3HeaderFound == false )
 									{
-										Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags", 
-											string.Format( "MP3 frame not found between {0} and {1}", searchStart, reader.BaseStream.Position ) );
+										Logger.Log(	string.Format( "MP3 frame not found between {0} and {1}", searchStart, reader.BaseStream.Position ) );
 									}
 								}
 								else
 								{
-									Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags", string.Format( "ID3 frame is truncated" ) );
+									Logger.Log( string.Format( "ID3 frame is truncated" ) );
 								}
 							}
 						}
 						else
 						{
-							Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags", string.Format( "Header is not ID3" ) );
+							Logger.Log( string.Format( "Header is not ID3" ) );
 						}
 					}
 					else
 					{
-						Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags", string.Format( "Could not read header" ) );
+						Logger.Log( string.Format( "Could not read header" ) );
 					}
 				}
 				catch ( Exception tagsException )
 				{
-					Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags", string.Format( "Problem reading file: {0}", tagsException.Message ) );
+					Logger.Log( string.Format( "Problem reading file: {0}", tagsException.Message ) );
 				}
 			}
 
@@ -240,8 +238,7 @@ namespace DBTest
 			}
 			else
 			{
-				Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags",
-					string.Format( "Invalid sample rate for Version {0} and raw sample rate {1}", rawVersion, rawSampleRate ) );
+				Logger.Log(	string.Format( "Invalid sample rate for Version {0} and raw sample rate {1}", rawVersion, rawSampleRate ) );
 			}
 
 			string bitRateEncoding = "None";
@@ -286,7 +283,7 @@ namespace DBTest
 				}
 				else
 				{
-					Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags", string.Format( "MP3 frame is truncated" ) );
+					Logger.Log( string.Format( "MP3 frame is truncated" ) );
 				}
 
 				if ( noFrames == 0 )
@@ -299,8 +296,7 @@ namespace DBTest
 					}
 					else
 					{
-						Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags",
-							string.Format( "Invalid bit rate for Version {0} Layer {1} and raw bitrate {2}", rawVersion, rawLayer, rawRate ) );
+						Logger.Log( string.Format( "Invalid bit rate for Version {0} Layer {1} and raw bitrate {2}", rawVersion, rawLayer, rawRate ) );
 					}
 
 					bitRateEncoding = "CBR";
@@ -317,10 +313,9 @@ namespace DBTest
 
 			TimeSpan durationInSeconds = TimeSpan.FromSeconds( Math.Ceiling( duration ) );
 
-			Log.WriteLine( LogPriority.Debug, "MobileApp:GetFileTags",
-				string.Format( "Version {0}, Level {1}, Rate {2}, Sample {3}, Padding {4}, Length {5}. BR encoding {6}, Duration {7}",
-					rawVersion, Layer( rawLayer ), BitRate( rawVersion, rawLayer, rawRate ), SampleRate( rawVersion, rawSampleRate ), padding, dataLength,
-					bitRateEncoding, durationInSeconds.ToString( @"hh\:mm\:ss" ) ) );
+			Logger.Log( string.Format( "Version {0}, Level {1}, Rate {2}, Sample {3}, Padding {4}, Length {5}. BR encoding {6}, Duration {7}",
+				rawVersion, Layer( rawLayer ), BitRate( rawVersion, rawLayer, rawRate ), SampleRate( rawVersion, rawSampleRate ), padding, dataLength,
+				bitRateEncoding, durationInSeconds.ToString( @"hh\:mm\:ss" ) ) );
 
 			return durationInSeconds;
 		}

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The NowPlayingViewModel holds the song data obtained from the NowPlayingController

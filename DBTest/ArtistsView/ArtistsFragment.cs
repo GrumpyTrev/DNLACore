@@ -28,7 +28,7 @@ namespace DBTest
 			View view = inflater.Inflate( Resource.Layout.library_fragment, container, false );
 
 			// Get the ExpandableListView and link to an ArtistsAdapter
-			ExpandableListView listView = view.FindViewById<ExpandableListView>( Resource.Id.libraryLayout );
+			listView = view.FindViewById<ExpandableListView>( Resource.Id.libraryLayout );
 
 			adapter = new ArtistsAdapter( Context, listView, this, this );
 			base.Adapter = adapter;
@@ -113,6 +113,12 @@ namespace DBTest
 		public void ArtistsDataAvailable()
 		{
 			adapter.SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
+
+			if ( ArtistsViewModel.ListViewState != null )
+			{
+				listView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
+				ArtistsViewModel.ListViewState = null;
+			}
 		}
 
 		/// <summary>
@@ -144,12 +150,15 @@ namespace DBTest
 		protected override void ReleaseResources()
 		{
 			ArtistsController.Reporter = null;
+			ArtistsViewModel.ListViewState = listView.OnSaveInstanceState();
 		}
 
 		/// <summary>
 		/// The ArtistsAdapter used to hold the Artist data and display it in the ExpandableListView
 		/// </summary>
 		private ArtistsAdapter adapter = null;
+
+		private ExpandableListView listView = null;
 
 		/// <summary>
 		/// Group id for related context menu items

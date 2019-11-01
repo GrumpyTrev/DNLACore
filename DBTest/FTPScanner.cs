@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Android.Util;
 
 namespace DBTest
 {
@@ -177,7 +176,7 @@ namespace DBTest
 		{
 			ScannedSong song = new ScannedSong();
 
-			Log.WriteLine( LogPriority.Debug, "MobileApp", string.Format( "Processing song no {1} : {0}", fileItem.AbsolutePath, ++songCount ) );
+			Logger.Log( string.Format( "Processing song no {1} : {0}", fileItem.AbsolutePath, ++songCount ) );
 
 			try
 			{
@@ -223,8 +222,7 @@ namespace DBTest
 			}
 			catch ( Exception songProblem )
 			{
-				Log.WriteLine( LogPriority.Debug, "MobileApp", string.Format( "FTP exception reading song: {0} : {1}",
-					fileItem.AbsolutePath, songProblem.Message ) );
+				Logger.Error( string.Format( "FTP exception reading song: {0} : {1}", fileItem.AbsolutePath, songProblem.Message ) );
 			}
 
 			return song;

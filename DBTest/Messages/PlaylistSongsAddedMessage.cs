@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The PlaylistSongsAddedMessage class is used to notify that songs have been added to a playlist

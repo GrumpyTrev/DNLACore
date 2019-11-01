@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
-
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Android.App;
 using Android.Content;
 using Android.OS;
+using Android.Runtime;
 
 namespace DBTest
 {
@@ -30,6 +33,12 @@ namespace DBTest
 			base.OnCreate();
 
 			serviceBinder = new PlaybackBinder( this );
+		}
+
+		[return: GeneratedEnum]
+		public override StartCommandResult OnStartCommand( Intent intent, [GeneratedEnum] StartCommandFlags flags, int startId )
+		{
+			return base.OnStartCommand( intent, flags, startId );
 		}
 
 		/// <summary>
@@ -98,6 +107,12 @@ namespace DBTest
 		public abstract void Seek( int position );
 
 		/// <summary>
+		/// Called when the associated application is shutting down.
+		/// Carry out any final actions
+		/// </summary>
+		public abstract void Shutdown();
+
+		/// <summary>
 		/// Get the current position of the playing song
 		/// </summary>
 		public abstract int Position { get; }
@@ -127,6 +142,45 @@ namespace DBTest
 			}
 		}
 
+		/// <summary>
+		/// Get the source path for the currently playing song
+		/// </summary>
+		/// <returns></returns>
+		protected string GetSongResource()
+		{
+			string resource = "";
+
+			if ( ( Playlist != null ) && ( CurrentSongIndex < Playlist.PlaylistItems.Count ) )
+			{
+				Song songToPlay = Playlist.PlaylistItems[ CurrentSongIndex ].Song;
+
+				// Find the Source associated with this song
+				Source songSource = Sources.FirstOrDefault( d => ( d.Id == songToPlay.SourceId ) );
+
+				if ( songSource != null )
+				{
+					resource = FormSourceName( songSource, songToPlay.Path );
+				}
+			}
+
+			return resource;
+		}
+
+		protected string FormSourceName( Source songSource, string songPath )
+		{
+			string sourceName = songPath;
+
+			if ( songSource.AccessType == "HTTP" )
+			{
+				// Trim combiners from both the source and path
+				string accessSource = songSource.AccessSource.TrimEnd( '/' );
+				songPath.TrimStart( '/' );
+
+				sourceName = Path.Combine( songSource.AccessSource, Uri.EscapeDataString( songPath ) );
+			}
+
+			return sourceName;
+		}
 		/// <summary>
 		/// The playlist of songs to play
 		/// </summary>

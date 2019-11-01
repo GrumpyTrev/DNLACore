@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Android.Util;
 using SQLite;
 using SQLiteNetExtensions.Extensions;
 
@@ -112,7 +111,7 @@ namespace DBTest
 
 		private void StoreAlbum( ScannedAlbum album )
 		{
-			Log.WriteLine( LogPriority.Debug, "MobileApp:StoreAlbum", string.Format( "Album: {0} Single artist: {1}", album.Name, album.SingleArtist ) );
+			Logger.Log( string.Format( "Album: {0} Single artist: {1}", album.Name, album.SingleArtist ) );
 
 			// Get an existing or new Album entry for the songs
 			Album songAlbum = GetAlbumToHoldSongs( album );
@@ -152,8 +151,8 @@ namespace DBTest
 				connection.Insert( songToAdd );
 
 				MP3Tags tags = songScanned.Tags;
-				Log.WriteLine( LogPriority.Debug, "MobileApp:StoreAlbum", string.Format( "Artist: {0} Title: {1} Track: {2} Modified: {3} Length {4}", tags.Artist, tags.Title,
-					tags.Track, songScanned.Modified, songScanned.Length ) );
+				Logger.Log( string.Format( "Artist: {0} Title: {1} Track: {2} Modified: {3} Length {4}", tags.Artist, tags.Title, tags.Track, 
+					songScanned.Modified, songScanned.Length ) );
 
 				// Add to the Album
 				songAlbum.Songs.Add( songToAdd );
@@ -200,8 +199,7 @@ namespace DBTest
 				}
 			}
 
-			Log.WriteLine( LogPriority.Debug, "MobileApp:StoreAlbum", string.Format( "Album: {0} {1} for artist {2}", album.Name,
-				( songAlbum != null ) ? "found" : "not found", artistName ) );
+			Logger.Log( string.Format( "Album: {0} {1} for artist {2}", album.Name, ( songAlbum != null ) ? "found" : "not found", artistName ) );
 
 			// If no existing album create a new one
 			if ( songAlbum == null )
@@ -230,8 +228,7 @@ namespace DBTest
 			songArtist = connection.GetAllWithChildren<Artist>( p => ( p.Name.ToUpper() == artistName.ToUpper() ) && 
 				( p.LibraryId == scanLibrary.Id ) ).FirstOrDefault();
 
-			Log.WriteLine( LogPriority.Debug, "MobileApp:StoreAlbum", string.Format( "Artist: {0} {1}", artistName,
-				( songArtist != null ) ? "found" : "not found creating in db" ) );
+			Logger.Log( string.Format( "Artist: {0} {1}", artistName, ( songArtist != null ) ? "found" : "not found creating in db" ) );
 
 			if ( songArtist == null )
 			{
@@ -261,8 +258,7 @@ namespace DBTest
 			// Find an exisiting or create a new ArtistAlbum entry
 			songArtistAlbum = songArtist.ArtistAlbums.SingleOrDefault( p => ( p.Name.ToUpper() == songAlbum.Name.ToUpper() ) );
 
-			Log.WriteLine( LogPriority.Debug, "MobileApp:StoreAlbum", string.Format( "ArtistAlbum: {0} {1}", songAlbum.Name,
-				( songArtistAlbum != null ) ? "found" : "not found creating in db" ) );
+			Logger.Log( string.Format( "ArtistAlbum: {0} {1}", songAlbum.Name, ( songArtistAlbum != null ) ? "found" : "not found creating in db" ) );
 
 			if ( songArtistAlbum == null )
 			{

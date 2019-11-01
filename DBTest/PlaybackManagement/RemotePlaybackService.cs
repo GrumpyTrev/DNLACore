@@ -1,8 +1,8 @@
 ﻿using Android.App;
-using Android.Util;
+using Android.Content;
+using Android.OS;
 using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
@@ -25,6 +25,10 @@ namespace DBTest
 			positionTimer = new Timer();
 			positionTimer.Elapsed += PositionTimerElapsed;
 			positionTimer.Interval = 1000;
+
+			// Get an instance of the PowerManager to aquire a wake lock
+			PowerManager pm = ( PowerManager )GetSystemService( Context.PowerService );
+			wakeLock = pm.NewWakeLock( WakeLockFlags.Partial, "DBTest" );
 		}
 
 		/// <summary>
@@ -32,30 +36,28 @@ namespace DBTest
 		/// </summary>
 		public async override void Play()
 		{
-			if ( ( Playlist != null ) && ( CurrentSongIndex < Playlist.PlaylistItems.Count ) && ( isPreparing == false ) )
+			// Prevent this from being called again until it has been processed
+			if ( isPreparing == false )
 			{
-				isPreparing = true;
-
-				Song songToPlay = Playlist.PlaylistItems[ CurrentSongIndex ].Song;
-
-				// Find the Source associated with this song
-				Source songSource = Sources.FirstOrDefault( d => ( d.Id == songToPlay.SourceId ) );
-
-				if ( songSource != null )
+				// Get the source path for the current song
+				string filename = GetSongResource();
+				if ( filename.Length > 0 )
 				{
-					string filename = Path.Combine( songSource.AccessSource, songToPlay.Path.Substring( 1 ).Replace( " ", "%20" ) );
+					isPreparing = true;
 
+					// Prepare and start playing the song
 					if ( await PrepareSong( filename ) == true )
 					{
 						if ( await PlaySong() == true )
 						{
 							IsPlaying = true;
-							positionTimer.Start();
+							StartTimer();
+							AquireLock();
 						}
 					}
-				}
 
-				isPreparing = false;
+					isPreparing = false;
+				}
 			}
 		}
 
@@ -74,10 +76,27 @@ namespace DBTest
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 			{
 				IsPlaying = false;
-				positionTimer.Stop();
+				StopTimer();
+				ReleaseLock();
 			}
 		}
 
+		/// <summary>
+		/// Called when the application is just about to exit
+		/// </summary>
+		public override void Shutdown()
+		{
+			if ( IsPlaying != true )
+			{
+				Stop();
+			}
+
+			StopSelf();
+		}
+
+		/// <summary>
+		/// Report the position obtained from the remote device
+		/// </summary>
 		public override int Position
 		{
 			get
@@ -86,6 +105,9 @@ namespace DBTest
 			}
 		}
 
+		/// <summary>
+		/// Report the duration obtained from the remote device
+		/// </summary>
 		public override int Duration
 		{
 			get
@@ -109,7 +131,8 @@ namespace DBTest
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 			{
 				IsPlaying = false;
-				positionTimer.Stop();
+				StopTimer();
+				ReleaseLock();
 			}
 		}
 
@@ -129,7 +152,8 @@ namespace DBTest
 			if ( await PlaySong() == true )
 			{
 				IsPlaying = true;
-				positionTimer.Start();
+				StartTimer();
+				AquireLock();
 			}
 		}
 
@@ -175,7 +199,7 @@ namespace DBTest
 		/// <param name="e"></param>
 		private async void PositionTimerElapsed( object sender, ElapsedEventArgs e )
 		{
-			positionTimer.Stop();
+			StopTimer();
 
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo", "" );
 
@@ -192,27 +216,16 @@ namespace DBTest
 				string relTime = response.TrimStart( "<RelTime>" ).TrimAfter( "</RelTime>" );
 				positionMilliseconds = TimeStringToMilliseconds( relTime );
 
-				Log.WriteLine( LogPriority.Debug, "DBTest", string.Format( "Position: {0}, Duration {1}", positionMilliseconds, durationMilliseconds ) );
-
-				// Work out if the next song should be played
-				bool playNext = false;
+				Logger.Log( string.Format( "Position: {0}, Duration {1}", positionMilliseconds, durationMilliseconds ) );
 
 				// If the duration is 0 this could be due to missing the end of a song, or it can also happen at the 
-				// very start of a track. So keep track of this and if it happens a few time switch to the next track
-				if ( ( durationMilliseconds == 0 ) && ( ++noPlayCount > 3 ) )
-				{
-					Log.WriteLine( LogPriority.Debug, "DBTest", string.Format( "Play next due to noPlayCount" ) );
-					playNext = true;
-				}
+				// very start of a track. So keep track of this and if it happens a few times switch to the next track
 				// If the position is within 1 second of the duration when assume this track has finished and move on to the next track
-				else if ( ( durationMilliseconds != 0 ) && ( Math.Abs( durationMilliseconds - positionMilliseconds ) < 1050 ) )
+				if ( ( ( durationMilliseconds == 0 ) && ( ++noPlayCount > 3 ) ) ||
+						( ( durationMilliseconds != 0 ) && ( Math.Abs( durationMilliseconds - positionMilliseconds ) < 1050 ) ) )
 				{
-					Log.WriteLine( LogPriority.Debug, "DBTest", string.Format( "Next song please" ) );
-					playNext = true;
-				}
+					Logger.Log( string.Format( "Next song please" ) );
 
-				if ( playNext == true )
-				{
 					noPlayCount = 0;
 
 					// Play the next song if there is one
@@ -227,13 +240,18 @@ namespace DBTest
 					else
 					{
 						IsPlaying = false;
+						ReleaseLock();
 					}
 				}
-			}
+				else
+				{
+					if ( durationMilliseconds != 0 )
+					{
+						noPlayCount = 0;
+					}
 
-			if ( IsPlaying == true )
-			{
-				positionTimer.Start();
+					StartTimer();
+				}
 			}
 		}
 
@@ -248,6 +266,38 @@ namespace DBTest
 			return ( int )ts.TotalMilliseconds;
 		}
 
+		private void StartTimer()
+		{
+			positionTimer.Start();
+		}
+
+		private void StopTimer()
+		{
+			positionTimer.Stop();
+		}
+
+		/// <summary>
+		/// Aquire the wakelock if not already held
+		/// </summary>
+		private void AquireLock()
+		{
+			if ( wakeLock.IsHeld == false )
+			{
+				wakeLock.Acquire();
+			}
+		}
+
+		/// <summary>
+		/// Release the wakelock if hels
+		/// </summary>
+		private void ReleaseLock()
+		{
+			if ( wakeLock.IsHeld == true )
+			{
+				wakeLock.Release();
+			}
+		}
+
 		private int durationMilliseconds = 0;
 
 		private int positionMilliseconds = 0;
@@ -257,5 +307,7 @@ namespace DBTest
 		private int noPlayCount = 0;
 
 		private Timer positionTimer = null;
+
+		private PowerManager.WakeLock wakeLock = null;
 	}
 }

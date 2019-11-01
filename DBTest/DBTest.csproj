@@ -69,6 +69,8 @@
     <Compile Include="BaseView\IAdapterActionHandler.cs" />
     <Compile Include="BaseView\IPageVisible.cs" />
     <Compile Include="Helpers\DlnaRequestHelper.cs" />
+    <Compile Include="Helpers\Logging.cs" />
+    <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
     <Compile Include="Model\LibraryAccess.cs" />
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />

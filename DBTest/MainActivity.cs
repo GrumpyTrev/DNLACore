@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using Android.App;
+using Android.Content;
+using Android.Net;
 using Android.OS;
 using Android.Runtime;
 using Android.Support.Design.Widget;
@@ -15,7 +17,7 @@ using SQLiteNetExtensions.Extensions;
 namespace DBTest
 {
 	[Activity( Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true )]
-	public class MainActivity: AppCompatActivity
+	public class MainActivity: AppCompatActivity, Logger.ILogger
 	{
 		protected override void OnCreate( Bundle savedInstanceState )
 		{
@@ -26,9 +28,12 @@ namespace DBTest
 
 			SetSupportActionBar( FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.toolbar ) );
 
+			// Set up logging
+			Logger.Reporter = this;
+
 			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
 
-			// Check if the database connections are still tehre
+			// Check if the database connections are still there
 			if ( ConnectionDetailsModel.SynchConnection == null )
 			{
 				ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
@@ -48,34 +53,27 @@ namespace DBTest
 			//				File.Delete( databasePath );
 			//			}
 
-			// Request the Now Playing list from the library - via a Post so that any response comes back after the UI has been created
-			view.Post( () => {
-				// Initialise the PlaybackRouter
-				playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
-				playbackRouter.StartRouter();
+			// Initialise the PlaybackRouter
+			playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
 
-				// Initialise the PlaybackSelectionManager
-				playbackSelector = new PlaybackSelectionManager( this );
+			// Initialise the PlaybackSelectionManager
+			playbackSelector = new PlaybackSelectionManager( this );
+
+			// Start the router and selector - via a Post so that any response comes back after the UI has been created
+			// This didn't work when placed in OnStart()
+			view.Post( () => {
+				playbackRouter.StartRouter();
 				playbackSelector.StartSelection();
 			} );
 
-
+			// Make sure that this application is not subject to battery optimisations
+			if ( ( ( PowerManager )GetSystemService( Context.PowerService ) ).IsIgnoringBatteryOptimizations( PackageName ) == false )
+			{
+				StartActivity( new Intent().SetAction( Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations )
+					.SetData( Uri.Parse( "package:" + PackageName ) ) );
+			}
 
 			InitialiseFragments( savedInstanceState );
-		}
-
-		protected override void OnStart()
-		{
-			base.OnStart();
-
-			// Initialise the PlaybackRouter
-//			playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
-//			playbackRouter.StartRouter();
-
-			// Initialise the PlaybackSelectionManager
-//			playbackSelector = new PlaybackSelectionManager( this );
-//			playbackSelector.StartSelection();
-
 		}
 
 		public override bool OnCreateOptionsMenu( IMenu menu )
@@ -85,16 +83,42 @@ namespace DBTest
 			return true;
 		}
 
+		/// <summary>
+		/// Called just before the options menu is shown
+		/// </summary>
+		/// <param name="menu"></param>
+		/// <returns></returns>
+		public override bool OnPrepareOptionsMenu( IMenu menu )
+		{
+			// Enable or disable the playback visible item according to the current media controller visibility
+			IMenuItem item = menu.FindItem( Resource.Id.show_media_controls );
+			item.SetEnabled( playbackRouter.PlaybackControlsVisible == false );
+
+			return base.OnPrepareOptionsMenu( menu );
+		}
+
 		public override bool OnOptionsItemSelected( IMenuItem item )
 		{
+			bool handled = false;
+
 			int id = item.ItemId;
-			if ( id == Resource.Id.action_settings )
+			if ( id == Resource.Id.select_playback_device )
 			{
 				playbackSelector.ShowSelection();
-				return true;
+				handled = true;
+			}
+			else if ( id == Resource.Id.show_media_controls )
+			{
+				playbackRouter.PlaybackControlsVisible = true;
+				handled = true;
 			}
 
-			return base.OnOptionsItemSelected( item );
+			if ( handled == false )
+			{
+				handled = base.OnOptionsItemSelected( item );
+			}
+
+			return handled;
 		}
 
 		protected override void OnDestroy()
@@ -113,6 +137,33 @@ namespace DBTest
 			}
 
 			base.OnDestroy();
+		}
+
+		/// <summary>
+		/// Log a message
+		/// </summary>
+		/// <param name="message"></param>
+		public void Log( string message )
+		{
+			Android.Util.Log.WriteLine( Android.Util.LogPriority.Debug, "DBTest", message );
+		}
+
+		/// <summary>
+		/// Report an event 
+		/// </summary>
+		/// <param name="message"></param>
+		public void Event( string message )
+		{
+			Toast.MakeText( this, message, ToastLength.Short ).Show();
+		}
+
+		/// <summary>
+		/// Report an error
+		/// </summary>
+		/// <param name="message"></param>
+		public void Error( string message )
+		{
+			Toast.MakeText( this, message, ToastLength.Long ).Show();
 		}
 
 		/// <summary>

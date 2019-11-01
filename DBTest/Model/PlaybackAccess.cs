@@ -1,6 +1,4 @@
-﻿using SQLite;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The PlaybackAccess class is used to access and change Playback data via the database

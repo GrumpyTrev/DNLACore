@@ -29,66 +29,70 @@ namespace DBTest
 		/// </summary>
 		public static async void DiscoverDevices()
 		{
-			// Before discovering remote devices get the last selected device from the database and if it was the
-			// local device then report that device as available for playback
-			ReportLocalSelectedDevice();
-
-			// Send the discovery a few times in case its is missed
-			for ( int loopCount = 1; loopCount < AttemptLimit; loopCount++ )
+			// Only start discovering device if no remote devices have already been discovered (remember the collection always include the local device)
+			if ( PlaybackSelectionModel.RemoteDevices.DeviceCollection.Count == 1 )
 			{
-				using ( UdpClient client = new UdpClient() )
+				// Before discovering remote devices get the last selected device from the database and if it was the
+				// local device then report that device as available for playback
+				ReportLocalSelectedDevice();
+
+				// Send the discovery a few times in case its is missed
+				for ( int loopCount = 1; loopCount < AttemptLimit; loopCount++ )
 				{
-					// Send a discovery request
-					Byte[] sendBytes = Encoding.UTF8.GetBytes( string.Format( SearchRequest, MulticastIP, MulticastPort, 3 ) );
-					await client.SendAsync( sendBytes, sendBytes.Length, new IPEndPoint( IPAddress.Parse( MulticastIP ), MulticastPort ) );
-
-					// Loop receiving replies until the reply times out
-					bool timedOut = false;
-					while ( timedOut == false )
+					using ( UdpClient client = new UdpClient() )
 					{
-						// Need a token to cancel the timer if a reply is received
-						CancellationTokenSource token = new CancellationTokenSource();
+						// Send a discovery request
+						Byte[] sendBytes = Encoding.UTF8.GetBytes( string.Format( SearchRequest, MulticastIP, MulticastPort, 3 ) );
+						await client.SendAsync( sendBytes, sendBytes.Length, new IPEndPoint( IPAddress.Parse( MulticastIP ), MulticastPort ) );
 
-						// Use delay and receive tasks
-						Task waitTask = Task.Delay( 2000, token.Token );
-						Task<UdpReceiveResult> receiveTask = client.ReceiveAsync();
-
-						// Wait for one of the tasks to finish
-						Task finishedTask = await Task.WhenAny( receiveTask, waitTask );
-
-						// If data has been received then process the data
-						if ( finishedTask == receiveTask )
+						// Loop receiving replies until the reply times out
+						bool timedOut = false;
+						while ( timedOut == false )
 						{
-							UdpReceiveResult result = await receiveTask;
-							string message = Encoding.UTF8.GetString( result.Buffer, 0, result.Buffer.Length );
+							// Need a token to cancel the timer if a reply is received
+							CancellationTokenSource token = new CancellationTokenSource();
 
-							// Extract the location of the server by extracting the IP address and port 
-							Match locationMatch = Regex.Match( message, @"LOCATION: http:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\/(\S+)" );
-							if ( locationMatch.Success == true )
+							// Use delay and receive tasks
+							Task waitTask = Task.Delay( 2000, token.Token );
+							Task<UdpReceiveResult> receiveTask = client.ReceiveAsync();
+
+							// Wait for one of the tasks to finish
+							Task finishedTask = await Task.WhenAny( receiveTask, waitTask );
+
+							// If data has been received then process the data
+							if ( finishedTask == receiveTask )
 							{
-								Device newDevice = new Device() {
-									IPAddress = locationMatch.Groups[ 1 ].Value, DescriptionURL = locationMatch.Groups[ 3 ].Value,
-									Port = Int32.Parse( locationMatch.Groups[ 2 ].Value )
-								};
+								UdpReceiveResult result = await receiveTask;
+								string message = Encoding.UTF8.GetString( result.Buffer, 0, result.Buffer.Length );
 
-								// Add this device to the candidate devices
-								if ( CandidateDevices.AddDevice( newDevice ) == true )
+								// Extract the location of the server by extracting the IP address and port 
+								Match locationMatch = Regex.Match( message, @"LOCATION: http:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\/(\S+)" );
+								if ( locationMatch.Success == true )
 								{
-									Log.WriteLine( LogPriority.Debug, "DBTest", string.Format( "Discovered IP {0}:{1} Url {2}", newDevice.IPAddress,
-										newDevice.Port, newDevice.DescriptionURL ) );
+									Device newDevice = new Device() {
+										IPAddress = locationMatch.Groups[ 1 ].Value, DescriptionURL = locationMatch.Groups[ 3 ].Value,
+										Port = Int32.Parse( locationMatch.Groups[ 2 ].Value )
+									};
 
-									GetTransportService( newDevice );
+									// Add this device to the candidate devices
+									if ( CandidateDevices.AddDevice( newDevice ) == true )
+									{
+										Logger.Log( string.Format( "Discovered IP {0}:{1} Url {2}", newDevice.IPAddress, newDevice.Port,
+											newDevice.DescriptionURL ) );
+
+										GetTransportService( newDevice );
+									}
 								}
-							}
 
-							// Cancel the timer
-							token.Cancel();
-						}
-						else
-						{
-							// Get out of the loop and close the socket
-							timedOut = true;
-							client.Close();
+								// Cancel the timer
+								token.Cancel();
+							}
+							else
+							{
+								// Get out of the loop and close the socket
+								timedOut = true;
+								client.Close();
+							}
 						}
 					}
 				}
@@ -164,8 +168,8 @@ namespace DBTest
 			string request = DlnaRequestHelper.MakeRequest( "GET", targetDevice.DescriptionURL, "", targetDevice.IPAddress, targetDevice.Port, "" );
 			string response = await DlnaRequestHelper.SendRequest( targetDevice, request );
 
-			Log.WriteLine( LogPriority.Debug, "MobileApp", request );
-			Log.WriteLine( LogPriority.Debug, "MobileApp", response );
+			Logger.Log( request );
+			Logger.Log( response );
 
 			// Get the response code from the response string
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
@@ -183,8 +187,8 @@ namespace DBTest
 						targetDevice.PlayUrl = targetDevice.PlayUrl.Substring( 1 );
 					}
 
-					Log.WriteLine( LogPriority.Debug, "MobileApp", string.Format( "Can Play Media IP {0}:{1} Url {2}", targetDevice.IPAddress,
-						targetDevice.Port, targetDevice.DescriptionURL ) );
+					Logger.Log( string.Format( "Can Play Media IP {0}:{1} Url {2}", targetDevice.IPAddress, targetDevice.Port, 
+						targetDevice.DescriptionURL ) );
 
 					// Get the device's friendly name for display purposes
 					Match friendlyMatch = Regex.Match( response, @"<friendlyName>(.*)</friendlyName>" );

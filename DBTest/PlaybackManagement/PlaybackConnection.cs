@@ -1,8 +1,6 @@
 ﻿using System;
-using Android.App;
 using Android.Content;
 using Android.OS;
-using Android.Views;
 
 namespace DBTest
 {
@@ -27,7 +25,10 @@ namespace DBTest
 		public void StartConnection()
 		{
 			// Start the service
-			contextForBinding.BindService( new Intent( contextForBinding, typeForService ), this, Bind.AutoCreate );
+			contextForBinding.StartService( new Intent( contextForBinding, typeForService ) );
+
+			// Bind to the service
+			contextForBinding.BindService( new Intent( contextForBinding, typeForService ), this, Bind.None );
 		}
 
 		/// <summary>
@@ -44,7 +45,7 @@ namespace DBTest
 
 				if ( permanentStop == true )
 				{
-					contextForBinding.UnbindService( this );
+					playerService.Shutdown();
 					playerService = null;
 				}
 			}
@@ -92,6 +93,12 @@ namespace DBTest
 			{
 				MediaControlDataAvailable();
 			}
+
+			// If the service has connected after the connection has been selected then must inform the router 
+			if ( Selected == true )
+			{
+				reporter?.ServiceConnected( this );
+			}
 		}
 
 		/// <summary>
@@ -115,6 +122,7 @@ namespace DBTest
 				playerService.Playlist = PlaybackManagerModel.NowPlayingPlaylist;
 				playerService.Sources = PlaybackManagerModel.Sources;
 				playerService.CurrentSongIndex = PlaybackManagerModel.CurrentSongIndex;
+				playerService.PlaybackDevice = PlaybackManagerModel.AvailableDevice;
 			}
 		}
 
@@ -270,6 +278,7 @@ namespace DBTest
 		{
 			void PlayStateChanged();
 			void SongIndexChanged( int songIndex );
+			void ServiceConnected( PlaybackConnection connection );
 		}
 	}
 }
