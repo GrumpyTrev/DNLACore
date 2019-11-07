@@ -20,6 +20,12 @@ namespace DBTest
 		public HashSet<int> CheckedObjects { get; } = new HashSet<int>();
 
 		/// <summary>
+		/// The number of selected items. This is not the same as the number of checked objects as
+		/// some checked objects are groups
+		/// </summary>
+		public int SelectedItemsCount { get; set; } = 0;
+
+		/// <summary>
 		/// Keep track of whether or not action mode is in effect
 		/// </summary>
 		public bool ActionMode { get; set; } = false;
@@ -33,6 +39,7 @@ namespace DBTest
 			CheckedObjects.Clear();
 			LastGroupOpened = -1;
 			ExpandedGroups.Clear();
+			SelectedItemsCount = 0;
 		}
 	}
 }

@@ -69,10 +69,6 @@ namespace DBTest
 			}
 		}
 
-		public override void SelectedItemsChanged( int selectedItemsCount )
-		{
-		}
-
 		/// <summary>
 		/// Called when the PlaylistsDataAvailableMessage is received
 		/// Display the data held in the Playlists view model

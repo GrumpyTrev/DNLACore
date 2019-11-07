@@ -19,21 +19,28 @@ namespace DBTest
 	[Activity( Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true )]
 	public class MainActivity: AppCompatActivity, Logger.ILogger
 	{
+		/// <summary>
+		/// Called to create the UI components of the activity
+		/// </summary>
+		/// <param name="savedInstanceState"></param>
 		protected override void OnCreate( Bundle savedInstanceState )
 		{
 			base.OnCreate( savedInstanceState );
 
+			// Create the view hierarchy
 			View view = LayoutInflater.Inflate( Resource.Layout.activity_main, null );
 			SetContentView( view );
 
+			// Set the main top toolbar
 			SetSupportActionBar( FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.toolbar ) );
 
 			// Set up logging
 			Logger.Reporter = this;
 
+			// Path to the locally stored database
 			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
 
-			// Check if the database connections are still there
+			// Check if the database connections are still there. They will be on an activity restart (configuration change)
 			if ( ConnectionDetailsModel.SynchConnection == null )
 			{
 				ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
@@ -73,9 +80,15 @@ namespace DBTest
 					.SetData( Uri.Parse( "package:" + PackageName ) ) );
 			}
 
-			InitialiseFragments( savedInstanceState );
+			// Initialise the fragments showing the selected library
+			InitialiseFragments();
 		}
 
+		/// <summary>
+		/// Called to create the main toolbar menu
+		/// </summary>
+		/// <param name="menu"></param>
+		/// <returns></returns>
 		public override bool OnCreateOptionsMenu( IMenu menu )
 		{
 			MenuInflater.Inflate( Resource.Menu.menu_main, menu );
@@ -97,22 +110,31 @@ namespace DBTest
 			return base.OnPrepareOptionsMenu( menu );
 		}
 
+		/// <summary>
+		/// Called when one of the main toolbar menu items has been selected
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
 		public override bool OnOptionsItemSelected( IMenuItem item )
 		{
 			bool handled = false;
 
 			int id = item.ItemId;
+
+			// Check for the device selection option
 			if ( id == Resource.Id.select_playback_device )
 			{
 				playbackSelector.ShowSelection();
 				handled = true;
 			}
+			// Check for the show media UI option
 			else if ( id == Resource.Id.show_media_controls )
 			{
 				playbackRouter.PlaybackControlsVisible = true;
 				handled = true;
 			}
 
+			// If the selection has not been handled pass it on to the base class
 			if ( handled == false )
 			{
 				handled = base.OnOptionsItemSelected( item );
@@ -121,12 +143,20 @@ namespace DBTest
 			return handled;
 		}
 
+		/// <summary>
+		/// Called when the activity is being closed down.
+		/// This can either be temporary to respond to a configuration change (rotation),
+		/// or permanent if the user or system is shutting down the application
+		/// </summary>
 		protected override void OnDestroy()
 		{
+			// Remove any registrations made by components that are just about to be destroyed
 			Mediator.RemoveTemporaryRegistrations();
 
+			// Stop any media playback
 			playbackRouter.StopRouter( ( IsFinishing == true ) );
 
+			// If the activity is being permanently destroyed get rid of the synchronous and asynchronous connections
 			if ( IsFinishing == true )
 			{
 				ConnectionDetailsModel.SynchConnection.Dispose();
@@ -287,8 +317,12 @@ namespace DBTest
 			return currentLibraryId;
 		}
 
-		private void InitialiseFragments( Bundle savedInstanceState )
+		/// <summary>
+		/// Initialise the fragments showing the library contents
+		/// </summary>
+		private void InitialiseFragments()
 		{
+			// Create the fragments and give them titles
 			Android.Support.V4.App.Fragment[] fragments = 
 				new Android.Support.V4.App.Fragment[]
 				{
@@ -298,77 +332,25 @@ namespace DBTest
 			// Tab title array
 			Java.Lang.ICharSequence[] titles = CharSequence.ArrayFromStringArray( new[] { "Library", "Playlists", "Now Playing" } );
 
+			// Get the ViewPager and link it to a TabsFragmentPagerAdapter
 			ViewPager viewPager = FindViewById<ViewPager>( Resource.Id.viewpager );
 
-			// Viewpager holding fragment array and tab title text
-			TabsFragmentPagerAdapter pageAdapter = new TabsFragmentPagerAdapter( SupportFragmentManager, fragments, titles );
-
-			// Detect page changes
-			PageChangeListener pageListener = new PageChangeListener( pageAdapter );
-			viewPager.AddOnPageChangeListener( pageListener );
-
 			// Set the adapter for the pager
-			viewPager.Adapter = pageAdapter;
+			viewPager.Adapter = new TabsFragmentPagerAdapter( SupportFragmentManager, fragments, titles );
 
 			// Give the TabLayout the ViewPager 
 			FindViewById<TabLayout>( Resource.Id.sliding_tabs ).SetupWithViewPager( viewPager );
-
-			// Attempt to restore the currently selected tab.
-			// Only seems to work if performed after this method has finished, hence the post
-			viewPager.Post( new PagerRunnable() { Pager = viewPager, Listener = pageListener } );
 		}
-
-		private PlaybackRouter playbackRouter = null;
-
-		private PlaybackSelectionManager playbackSelector = null;
 
 		/// <summary>
-		/// The PagerRunnable class is used to restore a currently selected tab (after rotation)
-		/// Need to be performed via a Run 
+		/// The PlaybackRouter used to route playback commands to the selected device
 		/// </summary>
-		private class PagerRunnable: Java.Lang.Object, Java.Lang.IRunnable
-		{
-			public void Run()
-			{
-				Listener.OnPageSelected( Pager.CurrentItem );
-			}
+		private PlaybackRouter playbackRouter = null;
 
-			public ViewPager Pager { get; set; } = null;
-			public PageChangeListener Listener { get; set; } = null;
-		}
-
-		private class PageChangeListener: Java.Lang.Object, ViewPager.IOnPageChangeListener
-		{
-			public PageChangeListener( TabsFragmentPagerAdapter pageAdapter )
-			{
-				adapter = pageAdapter;
-			}
-
-			public void OnPageScrolled( int position, float positionOffset, int positionOffsetPixels )
-			{
-			}
-
-			public void OnPageScrollStateChanged( int state )
-			{
-			}
-
-			public void OnPageSelected( int position )
-			{
-				if ( visibleFragment != position )
-				{
-					if ( visibleFragment != -1 )
-					{
-						( ( IPageVisible )adapter.GetItem( visibleFragment ) ).PageVisible( false );
-					}
-
-					( ( IPageVisible )adapter.GetItem( position ) ).PageVisible( true );
-					visibleFragment = position;
-				}
-			}
-
-			private int visibleFragment = -1;
-			private TabsFragmentPagerAdapter adapter = null;
-		}
+		/// <summary>
+		/// The PlaybackSelectionManager used to allow the user to select a playback device
+		/// </summary>
+		private PlaybackSelectionManager playbackSelector = null;
 	}
 }
 

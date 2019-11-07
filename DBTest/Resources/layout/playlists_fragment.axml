@@ -15,7 +15,7 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-		android:layout_alignParentBottom="true">
+		android:layout_below ="@id/playlistsLayout">
 		<android.support.v7.widget.Toolbar
 			android:id="@+id/bottomToolbar"
 			android:layout_width="match_parent"

@@ -1,11 +1,20 @@
 ﻿using Android.OS;
 using Android.Views;
 using Android.Support.V4.App;
+using Android.Support.V7.Widget;
 
 namespace DBTest
 {
-	public abstract class PagedFragment<T> : Fragment, ActionMode.ICallback, IPageVisible, IAdapterActionHandler
+	/// <summary>
+	/// Base class for all the fragments showing the database contents
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public abstract class PagedFragment<T> : Fragment, ActionMode.ICallback, IAdapterActionHandler
 	{
+		/// <summary>
+		/// Called when the fragment is first created
+		/// </summary>
+		/// <param name="savedInstanceState"></param>
 		public override void OnCreate( Bundle savedInstanceState )
 		{
 			base.OnCreate( savedInstanceState );
@@ -14,25 +23,51 @@ namespace DBTest
 			HasOptionsMenu = true;
 		}
 
+		/// <summary>
+		/// Called to initialise the UI elements for this fragment
+		/// </summary>
+		/// <param name="inflater"></param>
+		/// <param name="container"></param>
+		/// <param name="savedInstanceState"></param>
+		/// <returns></returns>
 		public sealed override View OnCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
 		{
-			View createdView = OnSpecialisedCreateView( inflater, container, savedInstanceState );
+			// Let the concrete fragment initiialise the view
+			createdView = OnSpecialisedCreateView( inflater, container, savedInstanceState );
 
 			if ( createdView != null )
 			{
+				// Save a reference to the fragments's bottom toolbar if there is one
 				bottomBar = createdView.FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.bottomToolbar );
 
 				if ( bottomBar != null )
 				{
-					bottomBar.Visibility = ( expandedGroupCount > 0 ) ? ViewStates.Visible : ViewStates.Gone;
+					// Hide the bottom toolbar until either action mode is restored or entered
+					bottomBar.Visibility = ViewStates.Gone;
+
+					// Let the fragment initialise the bottom toolbar
+					InitialiseBottomToolbar( bottomBar );
+				}
+
+				// Sometimes the fragment is made visible before its views have been created.
+				// Any attempt to re-start action mode is delayed until now.
+				if ( delayedActionMode == true )
+				{
+					Activity.StartActionMode( this );
+					delayedActionMode = false;
 				}
 			}
 
 			return createdView;
 		}
 
+		/// <summary>
+		/// Called when the fragment is destroyed
+		/// Release any resources help by the fragment
+		/// </summary>
 		public sealed override void OnDestroyView()
 		{
+			createdView = null;
 			ReleaseResources();
 			base.OnDestroyView();
 		}
@@ -65,7 +100,7 @@ namespace DBTest
 			// Pass on a collapse request to the adapter
 			if ( id == Resource.Id.action_collapse )
 			{
-				AdapterCollapseRequest();
+				Adapter.OnCollapseRequest();
 			}
 
 			return base.OnOptionsItemSelected( item );
@@ -93,9 +128,18 @@ namespace DBTest
 		{
 			// Keep a record of the ActionMode instance so that it can be destroyed when this fragment is hidden
 			actionModeInstance = mode;
-			actionModeInstance.MenuInflater.Inflate( Resource.Menu.action_mode, menu );
 
-			OnSpecialisedCreateActionMode( menu );
+			// Set the common text title
+			actionModeInstance.Title = itemsSelectedText;
+
+			// Let the derived classed create any menus they require
+			OnSpecialisedCreateActionMode( mode, menu );
+
+			if ( bottomBar != null )
+			{
+				// Only show the bottom toolbar if items are selected
+				bottomBar.Visibility = ( itemsSelected > 0 ) ? ViewStates.Visible : ViewStates.Gone;
+			}
 
 			return true;
 		}
@@ -109,8 +153,15 @@ namespace DBTest
 			// If the Contextual Action Bar is being destroyed by the user then inform the adapter
 			if ( retainAdapterActionMode == false )
 			{
-				AdapterActionModeOff();
+				Adapter.ActionMode = false;
 			}
+
+			// Hide the bottom toolbar as well
+			if ( bottomBar != null )
+			{
+				bottomBar.Visibility = ViewStates.Gone;
+			}
+
 			actionModeInstance = null;
 		}
 
@@ -126,31 +177,57 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when this fragment is shown or hidden
+		/// Override the UserVisibleHint to trap when the fragment's visibility changes
 		/// </summary>
-		/// <param name="visible"></param>
-		public void PageVisible( bool visible )
+		public override bool UserVisibleHint
 		{
-			if ( visible == true )
+			get
 			{
-				// If the Contextual Action Bar was being displyed before the fragment was hidden then show it again
-				if ( retainAdapterActionMode == true )
-				{
-					Activity.StartActionMode( this );
-					retainAdapterActionMode = false;
-				}
+				return base.UserVisibleHint;
 			}
-			else
+
+			set
 			{
-				// Record that the Contextual Action Bar was being shown and then destroy it
-				if ( actionModeInstance != null )
+				// Only process a change of visibility
+				if ( base.UserVisibleHint != value )
 				{
-					retainAdapterActionMode = true;
-					actionModeInstance.Finish();
+					base.UserVisibleHint = value;
+
+					// Is the fragment visible
+					if ( UserVisibleHint == true )
+					{
+						// If the Contextual Action Bar was being displayed before the fragment was hidden then show it again
+						if ( retainAdapterActionMode == true )
+						{
+							// If the view has not been created yet delay showing the Action Bar until later
+							if ( createdView != null )
+							{
+								Activity.StartActionMode( this );
+							}
+							else
+							{
+								delayedActionMode = true;
+							}
+
+							retainAdapterActionMode = false;
+						}
+					}
+					else
+					{
+						// Record that the Contextual Action Bar was being shown and then destroy it
+						if ( actionModeInstance != null )
+						{
+							retainAdapterActionMode = true;
+							actionModeInstance.Finish();
+						}
+					}
 				}
 			}
 		}
 
+		/// <summary>
+		/// Called when the user has exited action mode
+		/// </summary>
 		public void LeaveActionMode()
 		{
 			if ( actionModeInstance != null )
@@ -161,7 +238,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the count of expanded artist groups has changed
+		/// Called when the count of expanded groups has changed
 		/// Show or hide associated UI elements
 		/// </summary>
 		/// <param name="count"></param>
@@ -173,11 +250,6 @@ namespace DBTest
 			{
 				collapseItem.SetVisible( expandedGroupCount > 0 );
 			}
-
-			if ( bottomBar != null )
-			{
-				bottomBar.Visibility = ( expandedGroupCount > 0 ) ? ViewStates.Visible : ViewStates.Gone;
-			}
 		}
 
 		/// <summary>
@@ -188,9 +260,13 @@ namespace DBTest
 		{
 			// If this fragment is not being displayed then record that the Contextual Action Bar should be displayed when the fragment 
 			// is visible
-			if ( IsVisible == true )
+			if ( ( IsVisible == true ) && ( UserVisibleHint == true ) )
 			{
-				Activity.StartActionMode( this );
+				// Make sure action mode has not already been started due to this fragment being visible
+				if ( actionModeInstance == null )
+				{
+					Activity.StartActionMode( this );
+				}
 			}
 			else
 			{
@@ -198,48 +274,119 @@ namespace DBTest
 			}
 		}
 
-		public abstract void SelectedItemsChanged( int selectedItemsCount );
-
 		/// <summary>
-		/// Overridden in specialised classes to tell the adapter to turn off action mode
+		/// Called when the number of selected items (songs) has changed.
+		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		protected virtual void AdapterActionModeOff()
+		/// <param name="selectedItemsCount"></param>
+		public virtual void SelectedItemsChanged( int selectedItemsCount )
 		{
-			Adapter.ActionMode = false;
+			itemsSelected = selectedItemsCount;
+			itemsSelectedText = ( itemsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelected );
+
+			// If the Action Mode bar is being displayed then update its title
+			if ( actionModeInstance != null )
+			{
+				actionModeInstance.Title = itemsSelectedText;
+
+				if ( bottomBar != null )
+				{
+					// Only show the bottom toolbar is items are selected
+					bottomBar.Visibility = ( itemsSelected > 0 ) ? ViewStates.Visible : ViewStates.Gone;
+				}
+			}
 		}
 
 		/// <summary>
-		/// Overridden in specialised classes to tell the adapter to turn off action mode
+		/// Allow derived classed to create their own views
 		/// </summary>
-		protected virtual void AdapterCollapseRequest()
-		{
-			Adapter.OnCollapseRequest();
-		}
-
+		/// <param name="inflater"></param>
+		/// <param name="container"></param>
+		/// <param name="savedInstanceState"></param>
+		/// <returns></returns>
 		protected virtual View OnSpecialisedCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
 		{
 			return null;
 		}
 
-		protected virtual void OnSpecialisedCreateActionMode( IMenu menu )
+		/// <summary>
+		/// Allow derived classes to add their own menu items
+		/// </summary>
+		/// <param name="mode"></param>
+		/// <param name="menu"></param>
+		protected virtual void OnSpecialisedCreateActionMode( ActionMode mode, IMenu menu )
 		{
 		}
 
+		/// <summary>
+		/// Allow derived classes to release thier own resources
+		/// </summary>
 		protected virtual void ReleaseResources()
 		{
 		}
 
+		/// <summary>
+		/// Called to allow the specialised fragment to initialise the bottom toolbar
+		/// </summary>
+		/// <param name="bottomToolbar"></param>
+		protected virtual void InitialiseBottomToolbar( Toolbar bottomToolbar )
+		{
+		}
+
+		/// <summary>
+		/// The ExpandableListAdapter used to display the data for this fragment
+		/// </summary>
 		protected ExpandableListAdapter<T> Adapter { get; set; }
 
+		/// <summary>
+		/// The Action Mode instance
+		/// </summary>
 		private ActionMode actionModeInstance = null;
 
+		/// <summary>
+		/// Used to record that Action Mode should be re-started when the fragment is made visible again
+		/// </summary>
 		private bool retainAdapterActionMode = false;
 
+		/// <summary>
+		/// Th enumber of expanded groups held by the Adapter
+		/// </summary>
 		private int expandedGroupCount = 0;
 
-		private Android.Support.V7.Widget.Toolbar bottomBar = null;
+		/// <summary>
+		/// The bottom toolbar
+		/// </summary>
+		private Toolbar bottomBar = null;
 
+		/// <summary>
+		/// The collapse menu item
+		/// </summary>
 		private IMenuItem collapseItem = null;
 
+		/// <summary>
+		/// The main view of rthe fragment used to indicate whether or not the UI has been created
+		/// </summary>
+		private View createdView = null;
+
+		/// <summary>
+		/// Has the start of Action Mode been delayed until the view has been created
+		/// </summary>
+		private bool delayedActionMode = false;
+
+		/// <summary>
+		/// Keep track of the number of selected items so that the Action Bar can be updated
+		/// </summary>
+		private int itemsSelected = 0;
+
+		/// <summary>
+		/// The text to be displayed on the Action Mode bar
+		/// </summary>
+		private string itemsSelectedText = NoItemsSelectedText;
+
+		/// <summary>
+		/// Constant strings for the Action Mode bar text
+		/// </summary>
+		private const string NoItemsSelectedText = "Select songs";
+		private const string ItemsSelectedText = "{0} selected";
 	}
 }

@@ -75,7 +75,7 @@ namespace DBTest
 			}
 
 			// If songs have been replaced then tell the selected connection to start playing the current song
-				if ( ( songsReplaced == true ) && ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
+			if ( ( songsReplaced == true ) && ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
 			{
 				selectedConnection?.Play();
 			}
@@ -124,12 +124,6 @@ namespace DBTest
 		/// <param name="oldSelectedDevice"></param>
 		public void SelectPlaybackDevice( Device oldSelectedDevice )
 		{
-//			if ( mediaController != null )
-//			{
-//				mediaController.Dispose();
-//				mediaController = null;
-//			}
-
 			if ( oldSelectedDevice != null )
 			{
 				// Deselect the old connection
@@ -152,7 +146,15 @@ namespace DBTest
 				SetController();
 			}
 
-			mediaController.Show();
+			// Only show the Media Controller if it has not been previously hidden
+			if ( PlaybackManagerModel.MediaControllerVisible == true )
+			{
+				mediaController.Show();
+			}
+			else
+			{
+				mediaController.Visibility = ViewStates.Gone;
+			}
 		}
 
 		/// <summary>
@@ -163,7 +165,10 @@ namespace DBTest
 		{
 			if ( connection == selectedConnection )
 			{
-				mediaController.Show();
+				if ( PlaybackManagerModel.MediaControllerVisible == true )
+				{
+					mediaController.Show();
+				}
 			}
 		}
 
@@ -229,12 +234,17 @@ namespace DBTest
 
 			set
 			{
+				// If this is a change and the controls are being shown then make the controller visible and record this in the model
 				if ( PlaybackControlsVisible != value )
 				{
-					if ( mediaController != null )
+					if ( value == true )
 					{
-						mediaController.Visibility = ViewStates.Visible;
-						mediaController.Show( 0 );
+						if ( mediaController != null )
+						{
+							mediaController.Visibility = ViewStates.Visible;
+							mediaController.Show( 0 );
+							PlaybackManagerModel.MediaControllerVisible = true;
+						}
 					}
 				}
 			}

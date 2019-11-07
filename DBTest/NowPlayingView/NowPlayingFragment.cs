@@ -65,10 +65,6 @@ namespace DBTest
 		{
 		}
 
-		public override void SelectedItemsChanged( int selectedItemsCount )
-		{
-		}
-
 		/// <summary>
 		/// Called when the Now Playing playlist has been read or updated
 		/// Display the data held in the Now Playing view model

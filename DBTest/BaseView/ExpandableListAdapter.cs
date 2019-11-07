@@ -175,6 +175,9 @@ namespace DBTest
 				// Report the new expanded count
 				contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
 
+				// Report the selection count
+				stateChangeReporter.SelectedItemsChanged( GetSelectedItems().Count );
+
 				// Report if ActionMode is in effect
 				if ( adapterModel.ActionMode == true )
 				{
@@ -209,12 +212,18 @@ namespace DBTest
 
 					if ( adapterModel.ActionMode == true )
 					{
+						// Report to the fragment that the adapter has entered action mode
 						stateChangeReporter.EnteredActionMode();
 					}
 					else
 					{
+						Logger.Log( string.Format( "Adapter {0} leaving Action Mode", this.ToString() ) );
+
 						// Clear all selections when leaving Action Mode
 						adapterModel.CheckedObjects.Clear();
+
+						// Report that nothing is selected
+						stateChangeReporter.SelectedItemsChanged( 0 );
 					}
 
 					NotifyDataSetChanged();
@@ -279,6 +288,15 @@ namespace DBTest
 			return selectedItems;
 		}
 
+		/// <summary>
+		/// Called when an item has been long clicked
+		/// This is used to enter Action Mode.
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="view"></param>
+		/// <param name="position"></param>
+		/// <param name="id"></param>
+		/// <returns></returns>
 		public bool OnItemLongClick( AdapterView parent, View view, int position, long id )
 		{
 			int tag = ( int )view.Tag;
@@ -290,11 +308,19 @@ namespace DBTest
 				ActionMode = true;
 			}
 
-			Toast.MakeText( parent.Context, string.Format( "Long click Group {0}, Child {1}", GetGroupFromTag( tag ), GetChildFromTag( tag ) ),
-				ToastLength.Short ).Show();
 			return true;
 		}
 
+		/// <summary>
+		/// Called when a child item has been clicked.
+		/// Toggle the selection state for the item
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="clickedView"></param>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <param name="id"></param>
+		/// <returns></returns>
 		public bool OnChildClick( ExpandableListView parent, View clickedView, int groupPosition, int childPosition, long id )
 		{
 			// Only process this if Action Mode is in effect
@@ -308,7 +334,6 @@ namespace DBTest
 				SelectionBoxClick( selectionBox, new EventArgs() );
 			}
 
-			Toast.MakeText( parent.Context, string.Format( "Group {0}, Child {1}", groupPosition, childPosition ), ToastLength.Short ).Show();
 			return false;
 		}
 
@@ -536,7 +561,7 @@ namespace DBTest
 				NotifyDataSetChanged();
 			}
 
-			stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects.Count );
+			stateChangeReporter.SelectedItemsChanged( GetSelectedItems().Count );
 		}
 
 		/// <summary>
@@ -548,6 +573,12 @@ namespace DBTest
 		private bool SelectGroupContents( int groupPosition, bool selected )
 		{
 			bool selectionChanged = false;
+
+			// If there are no child items associated with this group call the provider to get the children
+			if ( GetChildrenCount( groupPosition ) == 0 )
+			{
+				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
+			}
 
 			for ( int childIndex = 0; childIndex < GetChildrenCount( groupPosition ) ; childIndex++ )
 			{

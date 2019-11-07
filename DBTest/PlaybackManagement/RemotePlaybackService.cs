@@ -86,7 +86,7 @@ namespace DBTest
 		/// </summary>
 		public override void Shutdown()
 		{
-			if ( IsPlaying != true )
+			if ( IsPlaying == true )
 			{
 				Stop();
 			}

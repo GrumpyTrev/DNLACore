@@ -43,6 +43,8 @@ namespace DBTest
 			{
 				playerService.Reporter = null;
 
+				contextForBinding.UnbindService( this );
+
 				if ( permanentStop == true )
 				{
 					playerService.Shutdown();

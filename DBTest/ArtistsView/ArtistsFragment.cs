@@ -3,6 +3,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using System.Linq;
+using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 namespace DBTest
 {
@@ -25,7 +26,7 @@ namespace DBTest
 		protected override View OnSpecialisedCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
 		{
 			// Create the view
-			View view = inflater.Inflate( Resource.Layout.library_fragment, container, false );
+			View view = inflater.Inflate( Resource.Layout.artists_fragment, container, false );
 
 			// Get the ExpandableListView and link to an ArtistsAdapter
 			listView = view.FindViewById<ExpandableListView>( Resource.Id.libraryLayout );
@@ -53,7 +54,7 @@ namespace DBTest
 		/// <param name="inflater"></param>
 		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
 		{
-			inflater.Inflate( Resource.Menu.menu_library, menu );
+			inflater.Inflate( Resource.Menu.menu_artists, menu );
 
 			base.OnCreateOptionsMenu( menu, inflater );
 		}
@@ -78,31 +79,6 @@ namespace DBTest
 		/// <returns></returns>
 		public override bool OnActionItemClicked( ActionMode mode, IMenuItem item )
 		{
-			int id = item.ItemId;
-
-			// Form a list of Songs from the selected objects
-			List<Song> selectedSongs = adapter.GetSelectedItems().Cast<Song>().ToList();
-//			LeaveActionMode();
-
-			if ( id == Resource.Id.action_add_queue )
-			{
-				// Get the sorted list of selected songs from the adapter and add them to the Now Playing playlist
-				ArtistsController.AddSongsToNowPlayingList( selectedSongs, false );
-				LeaveActionMode();
-			}
-			else if ( id == Resource.Id.action_playnow )
-			{
-				// Get the sorted list of selected songs from the adapter and replace the Now Playing playlist with them
-				ArtistsController.AddSongsToNowPlayingList( selectedSongs, true );
-				LeaveActionMode();
-			}
-			else if ( item.GroupId == PlaylistGroupId )
-			{
-				// Determine which Playlist has been selected and add the selected songs to the playlist
-				ArtistsController.AddSongsToPlaylist( selectedSongs, item.TitleFormatted.ToString() );
-				LeaveActionMode();
-			}
-
 			return false;
 		}
 
@@ -122,35 +98,78 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the Contextual Action Bar is created.
-		/// Add any configured menu items
+		/// Called when a bottom toolbar button has been clicked
 		/// </summary>
-		/// <param name="mode"></param>
-		/// <param name="menu"></param>
-		/// <returns></returns>
-		protected override void OnSpecialisedCreateActionMode( IMenu menu )
+		/// <param name="button"></param>
+		public void ToolbarButtonClicked( ImageButton button )
 		{
-			// Add the list of playlists to the 'add to playlist' option
-			IMenuItem playListItem = menu.FindItem( Resource.Id.action_add_playlist );
-
-			ISubMenu subMenu = playListItem.SubMenu;
-
-			// TO DO This is a bit iffy as the PlaylistsViewModel.PlaylistNames may not have been populated yet
-			// and this 'view' should not be accessing someone else's model data
-			foreach ( string name in PlaylistsViewModel.PlaylistNames )
+			if ( button.Id == Resource.Id.add_songs_to_playlist )
 			{
-				subMenu.Add( PlaylistGroupId, Menu.None, 0, name );
+				// Create a Popup menu containing the play list names and show it
+				PopupMenu playlistsMenu = new PopupMenu( Context, button );
+
+				// TO DO This is a bit iffy as the PlaylistsViewModel.PlaylistNames may not have been populated yet
+				// and this 'view' should not be accessing someone else's model data
+				foreach ( string name in PlaylistsViewModel.PlaylistNames )
+				{
+					playlistsMenu.Menu.Add( 0, Menu.None, 0, name );
+				}
+
+				// When a menu item is clicked get the songs from the adapter and the playlist name from the selected item
+				// and pass them both to the ArtistsController
+				playlistsMenu.MenuItemClick += ( sender1, args1 ) => {
+
+					List<Song> selectedSongs = adapter.GetSelectedItems().Cast<Song>().ToList();
+
+					// Determine which Playlist has been selected and add the selected songs to the playlist
+					ArtistsController.AddSongsToPlaylist( selectedSongs, args1.Item.TitleFormatted.ToString() );
+
+					LeaveActionMode();
+				};
+
+				playlistsMenu.Show();
+			}
+			else
+			{
+				// Form a list of Songs from the selected objects
+				List<Song> selectedSongs = adapter.GetSelectedItems().Cast<Song>().ToList();
+
+				if ( button.Id == Resource.Id.action_add_queue )
+				{
+					// Get the sorted list of selected songs from the adapter and add them to the Now Playing playlist
+					ArtistsController.AddSongsToNowPlayingList( selectedSongs, false );
+					LeaveActionMode();
+				}
+				else if ( button.Id == Resource.Id.action_playnow )
+				{
+					// Get the sorted list of selected songs from the adapter and replace the Now Playing playlist with them
+					ArtistsController.AddSongsToNowPlayingList( selectedSongs, true );
+					LeaveActionMode();
+				}
 			}
 		}
 
-		public override void SelectedItemsChanged( int selectedItemsCount )
-		{
-		}
-
+		/// <summary>
+		/// Called to release any resources held by the fragment
+		/// </summary>
 		protected override void ReleaseResources()
 		{
+			// Remove this object from the controller
 			ArtistsController.Reporter = null;
+
+			// Save the scroll position 
 			ArtistsViewModel.ListViewState = listView.OnSaveInstanceState();
+		}
+
+		/// <summary>
+		/// Called to allow the specialised fragment to initialise the bottom toolbar
+		/// </summary>
+		/// <param name="bottomToolbar"></param>
+		protected override void InitialiseBottomToolbar( Toolbar bottomToolbar )
+		{
+			new DefinedSourceImageButton( bottomToolbar, Resource.Id.add_songs_to_playlist, Resource.Drawable.add_to_playlist, ToolbarButtonClicked );
+			new DefinedSourceImageButton( bottomToolbar, Resource.Id.action_add_queue, Resource.Drawable.add_to_queue, ToolbarButtonClicked );
+			new DefinedSourceImageButton( bottomToolbar, Resource.Id.action_playnow, Resource.Drawable.play_now, ToolbarButtonClicked );
 		}
 
 		/// <summary>
@@ -158,11 +177,9 @@ namespace DBTest
 		/// </summary>
 		private ArtistsAdapter adapter = null;
 
-		private ExpandableListView listView = null;
-
 		/// <summary>
-		/// Group id for related context menu items
+		/// The actual list view used to display the data
 		/// </summary>
-		private const int PlaylistGroupId = 5555;
+		private ExpandableListView listView = null;
 	}
 }
