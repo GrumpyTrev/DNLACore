@@ -176,7 +176,7 @@ namespace DBTest
 				contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
 
 				// Report the selection count
-				stateChangeReporter.SelectedItemsChanged( GetSelectedItems().Count );
+				stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
 
 				// Report if ActionMode is in effect
 				if ( adapterModel.ActionMode == true )
@@ -217,13 +217,11 @@ namespace DBTest
 					}
 					else
 					{
-						Logger.Log( string.Format( "Adapter {0} leaving Action Mode", this.ToString() ) );
-
 						// Clear all selections when leaving Action Mode
 						adapterModel.CheckedObjects.Clear();
 
 						// Report that nothing is selected
-						stateChangeReporter.SelectedItemsChanged( 0 );
+						stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
 					}
 
 					NotifyDataSetChanged();
@@ -262,31 +260,10 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Form a list of all the currently selected items sorted by their tags
+		/// Return the collection of selected items
 		/// </summary>
 		/// <returns></returns>
-		public List<object> GetSelectedItems()
-		{
-			List<object> selectedItems = new List<object>();
-
-			// Copy the selected tags from the hashset
-			int[] tags = new int[ adapterModel.CheckedObjects.Count ];
-			adapterModel.CheckedObjects.CopyTo( tags );
-
-			// Sort by numeric tag order
-			Array.Sort( tags );
-
-			foreach ( int tag in tags )
-			{
-				object taggedObject = FilteredSelection( tag );
-				if ( taggedObject != null )
-				{
-					selectedItems.Add( taggedObject );
-				}
-			}
-
-			return selectedItems;
-		}
+		public SortedDictionary<int, object> SelectedItems => adapterModel.CheckedObjects;
 
 		/// <summary>
 		/// Called when an item has been long clicked
@@ -306,6 +283,12 @@ namespace DBTest
 			if ( ActionMode == false )
 			{
 				ActionMode = true;
+
+				// Let derived classes know that an
+				if ( SelectLongClickedItem( tag ) == true )
+				{
+					OnChildClick( parentView, view, GetGroupFromTag( tag ), GetChildFromTag( tag ), 0 );
+				}
 			}
 
 			return true;
@@ -407,6 +390,14 @@ namespace DBTest
 		protected abstract View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent );
 
 		/// <summary>
+		/// Get the data item at the specified position. If the childPosition is -1 then the group item is required
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <returns></returns>
+		protected abstract object GetItemAt( int groupPosition, int childPosition );
+
+		/// <summary>
 		/// The base implementation selects or deselects the containing group according to the state of its children
 		/// </summary>
 		/// <param name="groupPosition"></param>
@@ -453,7 +444,7 @@ namespace DBTest
 		/// <returns></returns>
 		protected bool IsItemSelected( int tag )
 		{
-			return adapterModel.CheckedObjects.Contains( tag );
+			return adapterModel.CheckedObjects.ContainsKey( tag );
 		}
 
 		/// <summary>
@@ -463,17 +454,38 @@ namespace DBTest
 		/// <param name="select"></param>
 		protected bool RecordItemSelection( int tag, bool select )
 		{
-			return ( select == true ) ? adapterModel.CheckedObjects.Add( tag ) : adapterModel.CheckedObjects.Remove( tag );
+			bool selectionChanged = false;
+
+			// Find the object associated with the tag
+			object item = GetItemAt( GetGroupFromTag( tag ), GetChildFromTag( tag ) );
+
+			if ( select == true )
+			{
+				if ( adapterModel.CheckedObjects.ContainsKey( tag ) == false )
+				{
+					adapterModel.CheckedObjects.Add( tag, item );
+					selectionChanged = true;
+				}
+			}
+			else
+			{
+				if ( adapterModel.CheckedObjects.ContainsKey( tag ) == true )
+				{
+					adapterModel.CheckedObjects.Remove( tag );
+					selectionChanged = true;
+				}
+			}
+
+			return selectionChanged;
 		}
 
 		/// <summary>
-		/// Can the specified object be included in operations on the selected items 
+		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
 		/// </summary>
-		/// <param name="selectedObject"></param>
-		/// <returns></returns>
-		protected virtual object FilteredSelection( int tag )
+		/// <param name="tag"></param>
+		protected virtual bool SelectLongClickedItem( int tag )
 		{
-			return null;
+			return false;
 		}
 
 		/// <summary>
@@ -561,7 +573,7 @@ namespace DBTest
 				NotifyDataSetChanged();
 			}
 
-			stateChangeReporter.SelectedItemsChanged( GetSelectedItems().Count );
+			stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
 		}
 
 		/// <summary>

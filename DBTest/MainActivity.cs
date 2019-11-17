@@ -330,7 +330,7 @@ namespace DBTest
 				};
 
 			// Tab title array
-			Java.Lang.ICharSequence[] titles = CharSequence.ArrayFromStringArray( new[] { "Library", "Playlists", "Now Playing" } );
+			Java.Lang.ICharSequence[] titles = CharSequence.ArrayFromStringArray( new[] { "Artists", "Playlists", "Now Playing" } );
 
 			// Get the ViewPager and link it to a TabsFragmentPagerAdapter
 			ViewPager viewPager = FindViewById<ViewPager>( Resource.Id.viewpager );

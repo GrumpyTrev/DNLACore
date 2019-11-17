@@ -1,9 +1,11 @@
-﻿namespace DBTest
+﻿using System.Collections.Generic;
+
+namespace DBTest
 {
 	public interface IAdapterActionHandler
 	{
 		void EnteredActionMode();
 
-		void SelectedItemsChanged( int selectedItemsCount );
+		void SelectedItemsChanged( SortedDictionary<int, object> selectedItems );
 	}
 }

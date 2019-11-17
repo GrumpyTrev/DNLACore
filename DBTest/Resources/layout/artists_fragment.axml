@@ -7,7 +7,7 @@
 	<ExpandableListView
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:id="@+id/libraryLayout"
+		android:id="@+id/artistsList"
 		android:fastScrollEnabled="true"
 		android:layout_weight="1">
 	</ExpandableListView>
@@ -20,13 +20,13 @@
 		app:theme="@style/AppTheme"
 		app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-		<include android:id="@+id/add_songs_to_playlist"
+		<include android:id="@+id/add_to_playlist"
 			layout="@layout/bottom_button"/>
 		
-		<include android:id="@+id/action_add_queue"
+		<include android:id="@+id/add_to_queue"
 			layout="@layout/bottom_button"/>
 		
-		<include android:id="@+id/action_playnow"
+		<include android:id="@+id/play_now"
 			layout="@layout/bottom_button"/>
 		
 	</android.support.v7.widget.Toolbar>

@@ -173,27 +173,15 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Can the specified object be included in operations on the selected items
-		/// Only Song items can be included
+		/// Get the data item at teh specified position. If the childPosition is -1 then the group item is required
 		/// </summary>
-		/// <param name="selectedObject"></param>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object FilteredSelection( int tag )
+		protected override object GetItemAt( int groupPosition, int childPosition )
 		{
-			object filteredObject = null;
-
-			if ( IsGroupTag( tag ) == false )
-			{
-				filteredObject = Groups[ GetGroupFromTag( tag ) ].Contents[ GetChildFromTag( tag ) ];
-				if ( ( filteredObject is Song ) == false )
-				{
-					filteredObject = null;
-				}
-			}
-
-			return filteredObject;
+			return ( childPosition == 0xFFFF ) ? Groups[ groupPosition ] : Groups[ groupPosition ].Contents[ childPosition ];
 		}
-
 
 		/// <summary>
 		/// The base implementation selects or deselects the containing group according to the state of its children
@@ -306,6 +294,16 @@ namespace DBTest
 			}
 
 			return selectionChanged;
+		}
+
+		/// <summary>
+		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
+		/// </summary>
+		/// <param name="tag"></param>
+		protected override bool SelectLongClickedItem( int tag )
+		{
+			// If the item selected when going into Action Mode is not an Artist item then select it
+			return ( IsGroupTag( tag ) == false );
 		}
 
 		/// <summary>

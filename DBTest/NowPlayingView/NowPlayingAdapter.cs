@@ -55,8 +55,17 @@ namespace DBTest
 		/// <returns></returns>
 		public override bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
 		{
-			// Pass the index back to the handler
-			adapterHandler.SongSelected( groupPosition );
+			// If the adapter is in Action Mode then select this item.
+			// Otherwise pass the selection back to the handler
+			if ( ActionMode == true )
+			{
+				OnChildClick( parent, clickedView, groupPosition, 0, 0 );
+			}
+			else
+			{
+				// Pass the index back to the handler
+				adapterHandler.SongSelected( groupPosition );
+			}
 
 			return false;
 		}
@@ -113,6 +122,27 @@ namespace DBTest
 			}
 
 			return view;
+		}
+
+		/// <summary>
+		/// Get the data item at teh specified position. If the childPosition is -1 then the group item is required
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <returns></returns>
+		protected override object GetItemAt( int groupPosition, int childPosition )
+		{
+			return ( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : null;
+		}
+
+		/// <summary>
+		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
+		/// </summary>
+		/// <param name="tag"></param>
+		protected override bool SelectLongClickedItem( int tag )
+		{
+			// Always select the clicked item
+			return true;
 		}
 
 		/// <summary>

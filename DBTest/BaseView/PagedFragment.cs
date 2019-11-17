@@ -1,7 +1,8 @@
 ﻿using Android.OS;
 using Android.Views;
 using Android.Support.V4.App;
-using Android.Support.V7.Widget;
+using Android.Widget;
+using System.Collections.Generic;
 
 namespace DBTest
 {
@@ -32,33 +33,31 @@ namespace DBTest
 		/// <returns></returns>
 		public sealed override View OnCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
 		{
-			// Let the concrete fragment initiialise the view
-			createdView = OnSpecialisedCreateView( inflater, container, savedInstanceState );
+			// Create the view
+			FragmentView = inflater.Inflate( Layout, container, false );
 
-			if ( createdView != null )
+			// Get the ExpandableListView used by this fragment
+			ListView = FragmentView.FindViewById<ExpandableListView>( ListViewLayout );
+
+			// Create the adapter for the list view and link to it
+			CreateAdapter( ListView );
+			ListView.SetAdapter( Adapter );
+
+			// Create an CommandBar to encapsulate the bottom toolbar and its command buttons
+			CommandBar = new CommandBar( FragmentView, Resource.Id.bottomToolbar, BindCommands, HandleCommand );
+
+			// Sometimes the fragment is made visible before its views have been created.
+			// Any attempt to re-start action mode is delayed until now.
+			if ( delayedActionMode == true )
 			{
-				// Save a reference to the fragments's bottom toolbar if there is one
-				bottomBar = createdView.FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.bottomToolbar );
-
-				if ( bottomBar != null )
-				{
-					// Hide the bottom toolbar until either action mode is restored or entered
-					bottomBar.Visibility = ViewStates.Gone;
-
-					// Let the fragment initialise the bottom toolbar
-					InitialiseBottomToolbar( bottomBar );
-				}
-
-				// Sometimes the fragment is made visible before its views have been created.
-				// Any attempt to re-start action mode is delayed until now.
-				if ( delayedActionMode == true )
-				{
-					Activity.StartActionMode( this );
-					delayedActionMode = false;
-				}
+				Activity.StartActionMode( this );
+				delayedActionMode = false;
 			}
 
-			return createdView;
+			// Carry out post view creation action via a Post so that any response comes back after the UI has been created
+			FragmentView.Post( () => { PostViewCreateAction(); } );
+
+			return FragmentView;
 		}
 
 		/// <summary>
@@ -67,7 +66,7 @@ namespace DBTest
 		/// </summary>
 		public sealed override void OnDestroyView()
 		{
-			createdView = null;
+			FragmentView = null;
 			ReleaseResources();
 			base.OnDestroyView();
 		}
@@ -95,15 +94,23 @@ namespace DBTest
 		/// <returns></returns>
 		public override bool OnOptionsItemSelected( IMenuItem item )
 		{
+			bool handled = false;
+
 			int id = item.ItemId;
 
 			// Pass on a collapse request to the adapter
 			if ( id == Resource.Id.action_collapse )
 			{
 				Adapter.OnCollapseRequest();
+				handled = true;
 			}
 
-			return base.OnOptionsItemSelected( item );
+			if ( handled == false )
+			{
+				handled = base.OnOptionsItemSelected( item );
+			}
+
+			return handled;
 		}
 
 		/// <summary>
@@ -112,10 +119,7 @@ namespace DBTest
 		/// <param name="mode"></param>
 		/// <param name="item"></param>
 		/// <returns></returns>
-		public virtual bool OnActionItemClicked( ActionMode mode, IMenuItem item )
-		{
-			return false;
-		}
+		public virtual bool OnActionItemClicked( ActionMode mode, IMenuItem item ) => false;
 
 		/// <summary>
 		/// Called when the Contextual Action Bar is created.
@@ -130,16 +134,13 @@ namespace DBTest
 			actionModeInstance = mode;
 
 			// Set the common text title
-			actionModeInstance.Title = itemsSelectedText;
+			actionModeInstance.Title = actionModeTitle;
 
 			// Let the derived classed create any menus they require
 			OnSpecialisedCreateActionMode( mode, menu );
 
-			if ( bottomBar != null )
-			{
-				// Only show the bottom toolbar if items are selected
-				bottomBar.Visibility = ( itemsSelected > 0 ) ? ViewStates.Visible : ViewStates.Gone;
-			}
+			// Only show the command bar if the derived classes allow
+			CommandBar.Visibility = ShowCommandBar();
 
 			return true;
 		}
@@ -157,10 +158,7 @@ namespace DBTest
 			}
 
 			// Hide the bottom toolbar as well
-			if ( bottomBar != null )
-			{
-				bottomBar.Visibility = ViewStates.Gone;
-			}
+			CommandBar.Visibility = false;
 
 			actionModeInstance = null;
 		}
@@ -171,20 +169,14 @@ namespace DBTest
 		/// <param name="mode"></param>
 		/// <param name="menu"></param>
 		/// <returns></returns>
-		public bool OnPrepareActionMode( ActionMode mode, IMenu menu )
-		{
-			return false;
-		}
+		public bool OnPrepareActionMode( ActionMode mode, IMenu menu ) => false;
 
 		/// <summary>
 		/// Override the UserVisibleHint to trap when the fragment's visibility changes
 		/// </summary>
 		public override bool UserVisibleHint
 		{
-			get
-			{
-				return base.UserVisibleHint;
-			}
+			get => base.UserVisibleHint;
 
 			set
 			{
@@ -194,13 +186,13 @@ namespace DBTest
 					base.UserVisibleHint = value;
 
 					// Is the fragment visible
-					if ( UserVisibleHint == true )
+					if ( base.UserVisibleHint == true )
 					{
 						// If the Contextual Action Bar was being displayed before the fragment was hidden then show it again
 						if ( retainAdapterActionMode == true )
 						{
 							// If the view has not been created yet delay showing the Action Bar until later
-							if ( createdView != null )
+							if ( FragmentView != null )
 							{
 								Activity.StartActionMode( this );
 							}
@@ -215,7 +207,7 @@ namespace DBTest
 					else
 					{
 						// Record that the Contextual Action Bar was being shown and then destroy it
-						if ( actionModeInstance != null )
+						if ( ActionModeActive == true )
 						{
 							retainAdapterActionMode = true;
 							actionModeInstance.Finish();
@@ -230,7 +222,7 @@ namespace DBTest
 		/// </summary>
 		public void LeaveActionMode()
 		{
-			if ( actionModeInstance != null )
+			if ( ActionModeActive == true )
 			{
 				retainAdapterActionMode = false;
 				actionModeInstance.Finish();
@@ -263,7 +255,7 @@ namespace DBTest
 			if ( ( IsVisible == true ) && ( UserVisibleHint == true ) )
 			{
 				// Make sure action mode has not already been started due to this fragment being visible
-				if ( actionModeInstance == null )
+				if ( ActionModeActive == false )
 				{
 					Activity.StartActionMode( this );
 				}
@@ -275,39 +267,30 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the number of selected items (songs) has changed.
-		/// Update the text to be shown in the Action Mode title
+		/// Called when the selected items have changed
 		/// </summary>
-		/// <param name="selectedItemsCount"></param>
-		public virtual void SelectedItemsChanged( int selectedItemsCount )
-		{
-			itemsSelected = selectedItemsCount;
-			itemsSelectedText = ( itemsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelected );
-
-			// If the Action Mode bar is being displayed then update its title
-			if ( actionModeInstance != null )
-			{
-				actionModeInstance.Title = itemsSelectedText;
-
-				if ( bottomBar != null )
-				{
-					// Only show the bottom toolbar is items are selected
-					bottomBar.Visibility = ( itemsSelected > 0 ) ? ViewStates.Visible : ViewStates.Gone;
-				}
-			}
-		}
+		/// <param name="selectedItems"></param>
+		public abstract void SelectedItemsChanged( SortedDictionary<int, object> selectedItems );
 
 		/// <summary>
-		/// Allow derived classed to create their own views
+		/// The Layout resource used to create the main view for this fragment
 		/// </summary>
-		/// <param name="inflater"></param>
-		/// <param name="container"></param>
-		/// <param name="savedInstanceState"></param>
-		/// <returns></returns>
-		protected virtual View OnSpecialisedCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
-		{
-			return null;
-		}
+		protected abstract int Layout { get; }
+
+		/// <summary>
+		/// The resource used to create the ExpandedListView for this fragment
+		/// </summary>
+		protected abstract int ListViewLayout { get; }
+
+		/// <summary>
+		/// Create the Data Adapter required by this fragment
+		/// </summary>
+		protected abstract void CreateAdapter( ExpandableListView listView );
+
+		/// <summary>
+		/// Action to be performed after the main view has been created
+		/// </summary>
+		protected abstract void PostViewCreateAction();
 
 		/// <summary>
 		/// Allow derived classes to add their own menu items
@@ -326,17 +309,70 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called to allow the specialised fragment to initialise the bottom toolbar
+		/// Called to allow derived classes to bind to the command bar commands
 		/// </summary>
-		/// <param name="bottomToolbar"></param>
-		protected virtual void InitialiseBottomToolbar( Toolbar bottomToolbar )
+		protected abstract void BindCommands( CommandBar commandBar );
+
+		/// <summary>
+		/// Call when a command bar command has been invoked
+		/// </summary>
+		/// <param name="button"></param>
+		/// <returns></returns>
+		protected virtual void HandleCommand( int commandId)
 		{
+		}
+
+		/// <summary>
+		/// Let derived classes determine whether or not the bottom toolbar should be shown
+		/// </summary>
+		/// <returns></returns>
+		protected virtual bool ShowCommandBar()
+		{
+			return false;
 		}
 
 		/// <summary>
 		/// The ExpandableListAdapter used to display the data for this fragment
 		/// </summary>
 		protected ExpandableListAdapter<T> Adapter { get; set; }
+
+		/// <summary>
+		/// Is Action Mode in effect
+		/// </summary>
+		protected bool ActionModeActive => ( actionModeInstance != null );
+
+		/// <summary>
+		/// The bottom toolbar
+		/// </summary>
+		protected CommandBar CommandBar { get; private set; } = null;
+
+		/// <summary>
+		/// The main view of the fragment used to indicate whether or not the UI has been created
+		/// </summary>
+		protected View FragmentView { get; set; } = null;
+
+		/// <summary>
+		/// The main ExpandableListView used by thie fragment
+		/// </summary>
+		protected ExpandableListView ListView { get; set; } = null;
+
+		/// <summary>
+		/// The title to be shown on the action bar
+		/// </summary>
+		protected string ActionModeTitle
+		{
+			get => actionModeTitle;
+
+			set
+			{
+				actionModeTitle = value;
+
+				if ( ActionModeActive == true )
+				{
+					actionModeInstance.Title = actionModeTitle;
+				}
+			}
+		}
 
 		/// <summary>
 		/// The Action Mode instance
@@ -354,19 +390,9 @@ namespace DBTest
 		private int expandedGroupCount = 0;
 
 		/// <summary>
-		/// The bottom toolbar
-		/// </summary>
-		private Toolbar bottomBar = null;
-
-		/// <summary>
 		/// The collapse menu item
 		/// </summary>
 		private IMenuItem collapseItem = null;
-
-		/// <summary>
-		/// The main view of rthe fragment used to indicate whether or not the UI has been created
-		/// </summary>
-		private View createdView = null;
 
 		/// <summary>
 		/// Has the start of Action Mode been delayed until the view has been created
@@ -374,19 +400,8 @@ namespace DBTest
 		private bool delayedActionMode = false;
 
 		/// <summary>
-		/// Keep track of the number of selected items so that the Action Bar can be updated
+		/// The title to display in the action mode
 		/// </summary>
-		private int itemsSelected = 0;
-
-		/// <summary>
-		/// The text to be displayed on the Action Mode bar
-		/// </summary>
-		private string itemsSelectedText = NoItemsSelectedText;
-
-		/// <summary>
-		/// Constant strings for the Action Mode bar text
-		/// </summary>
-		private const string NoItemsSelectedText = "Select songs";
-		private const string ItemsSelectedText = "{0} selected";
+		private string actionModeTitle = "";
 	}
 }

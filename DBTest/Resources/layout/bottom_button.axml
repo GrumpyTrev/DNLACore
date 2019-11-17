@@ -8,5 +8,7 @@
 	android:paddingTop="10dp"
 	android:paddingBottom="2dp"
 	android:layout_gravity="center"
+	android:paddingLeft="-8dp"
+	android:paddingRight="-8dp" 
 />
 

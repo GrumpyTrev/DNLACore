@@ -56,8 +56,9 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonUI\DefinedSourceImageButton.cs" />
+    <Compile Include="CommonUI\CommandToolbar.cs" />
     <Compile Include="Controllers\ArtistsController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\PlaybackManagementController.cs" />
     <Compile Include="Controllers\NowPlayingController.cs" />
     <Compile Include="Controllers\PlaylistsController.cs" />
@@ -72,6 +73,8 @@
     <Compile Include="Helpers\DlnaRequestHelper.cs" />
     <Compile Include="Helpers\Logging.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="Messages\PlaylistAddedMessage.cs" />
+    <Compile Include="Messages\PlaylistDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
     <Compile Include="Model\LibraryAccess.cs" />
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />
@@ -228,22 +231,25 @@
     <AndroidResource Include="Resources\drawable\add_to_playlist.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\menu\menu_artists_bottom.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\menu\add_to_playlist_context.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\bottom_button.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\rename.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\move_down.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\move_up.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\new_playlist.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

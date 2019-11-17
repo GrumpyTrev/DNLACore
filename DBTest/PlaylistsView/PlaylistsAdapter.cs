@@ -36,13 +36,13 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when songs have been added to a playlist
+		/// Called when songs have been added to or deleted from a playlist
 		/// Only process this if the playlist is being displayed.
 		/// If the playlist contents are being shown then notify the base class 
 		/// </summary>
 		/// <param name="list"></param>
 		/// <param name="songs"></param>
-		public void SongsAdded( string playlistName )
+		public void PlaylistUpdated( string playlistName )
 		{
 			// Find the group holding the playlist
 			int groupPosition = Groups.FindIndex( p => p.Name == playlistName );
@@ -69,7 +69,7 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
-			// If the supplied view previously contained an ArtistAlbum then don't use it
+			// If the supplied view previously contained a Playlist heading then don't use it
 			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.Title ) == null ) )
 			{
 				convertView = null;
@@ -100,7 +100,7 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
-			// If the supplied view previously contained other than an Artits then don't use it
+			// If the supplied view previously contained other than a PLaylist then don't use it
 			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.PlayListName ) == null ) )
 			{
 				convertView = null;
@@ -116,6 +116,27 @@ namespace DBTest
 			convertView.FindViewById<TextView>( Resource.Id.PlayListName ).Text = Groups[ groupPosition ].Name;
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// Get the data item at teh specified position. If the childPosition is -1 then the group item is required
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <returns></returns>
+		protected override object GetItemAt( int groupPosition, int childPosition )
+		{
+			return ( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : ( object )Groups[ groupPosition ].PlaylistItems[ childPosition ];
+		}
+
+		/// <summary>
+		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
+		/// </summary>
+		/// <param name="tag"></param>
+		protected override bool SelectLongClickedItem( int tag )
+		{
+			// All items should be selected
+			return true;
 		}
 	}
 }

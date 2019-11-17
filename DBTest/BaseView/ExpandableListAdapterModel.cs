@@ -17,13 +17,7 @@ namespace DBTest
 		/// <summary>
 		/// Keep track of items that have been selected
 		/// </summary>
-		public HashSet<int> CheckedObjects { get; } = new HashSet<int>();
-
-		/// <summary>
-		/// The number of selected items. This is not the same as the number of checked objects as
-		/// some checked objects are groups
-		/// </summary>
-		public int SelectedItemsCount { get; set; } = 0;
+		public SortedDictionary< int, object > CheckedObjects { get; } = new SortedDictionary<int, object>();
 
 		/// <summary>
 		/// Keep track of whether or not action mode is in effect
@@ -39,7 +33,6 @@ namespace DBTest
 			CheckedObjects.Clear();
 			LastGroupOpened = -1;
 			ExpandedGroups.Clear();
-			SelectedItemsCount = 0;
 		}
 	}
 }

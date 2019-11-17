@@ -23,6 +23,14 @@ namespace DBTest
 		/// </summary>
 		public static int LibraryId { get; set; } = -1;
 
+		/// <summary>
+		/// The names of the playlists associated with the current library
+		/// </summary>
+		public static List<string> PlaylistNames { get; set; } = null;
+
+		/// <summary>
+		/// The scroll state of the list view
+		/// </summary>
 		public static IParcelable ListViewState { get; set; } = null;
 	}
 }

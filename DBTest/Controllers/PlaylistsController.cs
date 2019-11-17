@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -28,14 +30,14 @@ namespace DBTest
 			if ( ( PlaylistsViewModel.Playlists == null ) || ( PlaylistsViewModel.LibraryId != libraryId ) )
 			{
 				PlaylistsViewModel.LibraryId = libraryId;
-				PlaylistsViewModel.Playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
 
-				// Extract just the names as well
-				PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
+				await RefreshModelData();
 			}
-
-			// Let the Views know that Playlists data is available
-			Reporter?.PlaylistsDataAvailable();
+			else
+			{
+				// Let the Views know that Playlists data is available
+				Reporter?.PlaylistsDataAvailable();
+			}
 		}
 
 		/// <summary>
@@ -48,6 +50,50 @@ namespace DBTest
 
 			// Sort the PlaylistItems by Track
 			thePlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+		}
+
+		/// <summary>
+		/// Delete the specified playlist and its contents
+		/// </summary>
+		/// <param name="thePlaylist"></param>
+		public static async void DeletePlaylistAsync( Playlist thePlaylist )
+		{
+			// Delete the playlist and then refresh the data held by the model
+			await PlaylistAccess.DeletePlaylistAsync( thePlaylist );
+
+			// Refresh the playlists held by the model and report the change
+			await RefreshModelData();
+
+			// Let other controllers know
+			new PlaylistDeletedMessage().Send();
+		}
+
+		/// <summary>
+		/// Delete the specified PlaylistItem items from its parent playlist
+		/// </summary>
+		/// <param name="thePlaylist"></param>
+		/// <param name="items"></param>
+		public static async void DeletePlaylistItemsAsync( Playlist thePlaylist, List< PlaylistItem > items )
+		{
+			// Delete the PlaylistItem items and then report that the playlist has changed
+			await PlaylistAccess.DeletePlaylistItemsAsync( thePlaylist, items );
+
+			Reporter?.PlaylistUpdated( thePlaylist.Name );
+		}
+
+		/// <summary>
+		/// Add a new playlist with the specified name to the current library
+		/// </summary>
+		/// <param name="playlistName"></param>
+		public static async void AddPlaylistAsync( string playlistName )
+		{
+			await PlaylistAccess.AddPlaylistAsync( playlistName, PlaylistsViewModel.LibraryId );
+
+			// Refresh the playlists held by the model and report the change
+			await RefreshModelData();
+
+			// Let other controllers know
+			new PlaylistAddedMessage().Send();
 		}
 
 		/// <summary>
@@ -69,9 +115,21 @@ namespace DBTest
 				if ( addedToPlaylist != null )
 				{
 					GetPlaylistContents( addedToPlaylist );
-					Reporter?.SongsAdded( songsAddedMessage.PlaylistName );
+					Reporter?.PlaylistUpdated( songsAddedMessage.PlaylistName );
 				}
 			}
+		}
+
+		/// <summary>
+		/// Refresh the model data held by the model
+		/// </summary>
+		private static async Task RefreshModelData()
+		{
+			PlaylistsViewModel.Playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
+			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
+
+			// Let the views know that Playlists data is available
+			Reporter?.PlaylistsDataAvailable();
 		}
 
 		/// <summary>
@@ -85,7 +143,7 @@ namespace DBTest
 		public interface IReporter
 		{
 			void PlaylistsDataAvailable();
-			void SongsAdded( string playlistName );
+			void PlaylistUpdated( string playlistName );
 		}
 	}
 }

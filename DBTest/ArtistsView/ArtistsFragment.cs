@@ -14,37 +14,7 @@ namespace DBTest
 		/// </summary>
 		public ArtistsFragment()
 		{
-		}
-
-		/// <summary>
-		/// Called to create the UI components to display playlists
-		/// </summary>
-		/// <param name="inflater"></param>
-		/// <param name="container"></param>
-		/// <param name="savedInstanceState"></param>
-		/// <returns></returns>
-		protected override View OnSpecialisedCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
-		{
-			// Create the view
-			View view = inflater.Inflate( Resource.Layout.artists_fragment, container, false );
-
-			// Get the ExpandableListView and link to an ArtistsAdapter
-			listView = view.FindViewById<ExpandableListView>( Resource.Id.libraryLayout );
-
-			adapter = new ArtistsAdapter( Context, listView, this, this );
-			base.Adapter = adapter;
-
-			listView.SetAdapter( adapter );
-
-			// Initialise the ArtistsController
-			ArtistsController.Reporter = this;
-
-			// Request the Artists data from the library - via a Post so that any response comes back after the UI has been created
-			view.Post( () => {
-				ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
-			} );
-
-			return view;
+			ActionModeTitle = NoItemsSelectedText;
 		}
 
 		/// <summary>
@@ -88,29 +58,66 @@ namespace DBTest
 		/// </summary>
 		public void ArtistsDataAvailable()
 		{
-			adapter.SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
+			( ( ArtistsAdapter) Adapter ).SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
 
 			if ( ArtistsViewModel.ListViewState != null )
 			{
-				listView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
+				ListView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
 				ArtistsViewModel.ListViewState = null;
 			}
 		}
 
 		/// <summary>
-		/// Called when a bottom toolbar button has been clicked
+		/// Called when the number of selected items (songs) has changed.
+		/// Update the text to be shown in the Action Mode title
+		/// </summary>
+		public override void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
+		{
+			// Determine the number of songs in the selected items
+			itemsSelected = selectedItems.Values.OfType< Song >().Count();
+
+			// Update the Action Mode bar title
+			ActionModeTitle = ( itemsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelected );
+
+			// Show the command bar if more than one item is selected
+			CommandBar.Visibility = ShowCommandBar();
+		}
+
+		/// <summary>
+		/// Action to be performed after the main view has been created
+		/// </summary>
+		protected override void PostViewCreateAction()
+		{
+			// Initialise the ArtistsController
+			ArtistsController.Reporter = this;
+
+			// Get the data
+			ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
+		}
+
+		/// <summary>
+		/// Create the Data Adapter required by this fragment
+		/// </summary>
+		protected override void CreateAdapter( ExpandableListView listView ) => Adapter = new ArtistsAdapter( Context, listView, this, this );
+
+		/// <summary>
+		/// Called when a command bar command has been invoked
 		/// </summary>
 		/// <param name="button"></param>
-		public void ToolbarButtonClicked( ImageButton button )
+		protected override void HandleCommand( int commandId )
 		{
-			if ( button.Id == Resource.Id.add_songs_to_playlist )
+			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
+			{
+				BaseController.AddSongsToNowPlayingList( Adapter.SelectedItems.Values.OfType<Song>().ToList(),
+					( commandId == Resource.Id.play_now ), ArtistsViewModel.LibraryId );
+				LeaveActionMode();
+			}
+			else if ( commandId == Resource.Id.add_to_playlist )
 			{
 				// Create a Popup menu containing the play list names and show it
-				PopupMenu playlistsMenu = new PopupMenu( Context, button );
+				PopupMenu playlistsMenu = new PopupMenu( Context, addToPlaylistCommand.BoundButton );
 
-				// TO DO This is a bit iffy as the PlaylistsViewModel.PlaylistNames may not have been populated yet
-				// and this 'view' should not be accessing someone else's model data
-				foreach ( string name in PlaylistsViewModel.PlaylistNames )
+				foreach ( string name in ArtistsViewModel.PlaylistNames )
 				{
 					playlistsMenu.Menu.Add( 0, Menu.None, 0, name );
 				}
@@ -119,7 +126,7 @@ namespace DBTest
 				// and pass them both to the ArtistsController
 				playlistsMenu.MenuItemClick += ( sender1, args1 ) => {
 
-					List<Song> selectedSongs = adapter.GetSelectedItems().Cast<Song>().ToList();
+					List<Song> selectedSongs = Adapter.SelectedItems.Values.OfType<Song>().ToList();
 
 					// Determine which Playlist has been selected and add the selected songs to the playlist
 					ArtistsController.AddSongsToPlaylist( selectedSongs, args1.Item.TitleFormatted.ToString() );
@@ -128,24 +135,6 @@ namespace DBTest
 				};
 
 				playlistsMenu.Show();
-			}
-			else
-			{
-				// Form a list of Songs from the selected objects
-				List<Song> selectedSongs = adapter.GetSelectedItems().Cast<Song>().ToList();
-
-				if ( button.Id == Resource.Id.action_add_queue )
-				{
-					// Get the sorted list of selected songs from the adapter and add them to the Now Playing playlist
-					ArtistsController.AddSongsToNowPlayingList( selectedSongs, false );
-					LeaveActionMode();
-				}
-				else if ( button.Id == Resource.Id.action_playnow )
-				{
-					// Get the sorted list of selected songs from the adapter and replace the Now Playing playlist with them
-					ArtistsController.AddSongsToNowPlayingList( selectedSongs, true );
-					LeaveActionMode();
-				}
 			}
 		}
 
@@ -158,28 +147,48 @@ namespace DBTest
 			ArtistsController.Reporter = null;
 
 			// Save the scroll position 
-			ArtistsViewModel.ListViewState = listView.OnSaveInstanceState();
+			ArtistsViewModel.ListViewState = ListView.OnSaveInstanceState();
 		}
 
 		/// <summary>
-		/// Called to allow the specialised fragment to initialise the bottom toolbar
+		/// Called to allow derived classes to bind to the command bar commands
 		/// </summary>
-		/// <param name="bottomToolbar"></param>
-		protected override void InitialiseBottomToolbar( Toolbar bottomToolbar )
+		protected override void BindCommands( CommandBar commandBar )
 		{
-			new DefinedSourceImageButton( bottomToolbar, Resource.Id.add_songs_to_playlist, Resource.Drawable.add_to_playlist, ToolbarButtonClicked );
-			new DefinedSourceImageButton( bottomToolbar, Resource.Id.action_add_queue, Resource.Drawable.add_to_queue, ToolbarButtonClicked );
-			new DefinedSourceImageButton( bottomToolbar, Resource.Id.action_playnow, Resource.Drawable.play_now, ToolbarButtonClicked );
+			// Need to bind to the add_to_playlist command in order to anchor the playlist context menu
+			addToPlaylistCommand = commandBar.BindCommand( Resource.Id.add_to_playlist );
 		}
 
 		/// <summary>
-		/// The ArtistsAdapter used to hold the Artist data and display it in the ExpandableListView
+		/// Let derived classes determine whether or not the command bar should be shown
 		/// </summary>
-		private ArtistsAdapter adapter = null;
+		/// <returns></returns>
+		protected override bool ShowCommandBar() => ( itemsSelected > 0 );
 
 		/// <summary>
-		/// The actual list view used to display the data
+		/// The Layout resource used to create the main view for this fragment
 		/// </summary>
-		private ExpandableListView listView = null;
+		protected override int Layout { get; } = Resource.Layout.artists_fragment;
+
+		/// <summary>
+		/// The resource used to create the ExpandedListView for this fragment
+		/// </summary>
+		protected override int ListViewLayout { get; } = Resource.Id.artistsList;
+
+		/// <summary>
+		/// Keep track of the number of items reported as selected
+		/// </summary>
+		private int itemsSelected = 0;
+
+		/// <summary>
+		/// Binder to the add_to_playlist command to allow the actual button to be accessed
+		/// </summary>
+		private CommandBinder addToPlaylistCommand = null;
+
+		/// <summary>
+		/// Constant strings for the Action Mode bar text
+		/// </summary>
+		private const string NoItemsSelectedText = "Select songs";
+		private const string ItemsSelectedText = "{0} selected";
 	}
 }

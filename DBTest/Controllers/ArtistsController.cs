@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace DBTest
 {
@@ -8,6 +9,15 @@ namespace DBTest
 	/// </summary>
 	static class ArtistsController
 	{
+		/// <summary>
+		/// Public constructor to allow permanent message registrations
+		/// </summary>
+		static ArtistsController()
+		{
+			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistDeletedMessage ) );
+			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistAddedMessage ) );
+		}
+
 		/// <summary>
 		/// Get the Artist data associated with the specified library
 		/// If the data has already been obtained then notify view immediately.
@@ -44,6 +54,12 @@ namespace DBTest
 					}
 					index++;
 				}
+
+				// Get the list of current playlists
+				List< Playlist > playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
+
+				// Extract just the names as well
+				ArtistsViewModel.PlaylistNames = playlists.Select( i => i.Name ).ToList();
 			}
 
 			// Publish the data
@@ -72,30 +88,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Add a list of Songs to the Now Playing list
-		/// </summary>
-		/// <param name="songsToAdd"></param>
-		/// <param name="clearFirst"></param>
-		public static void AddSongsToNowPlayingList( List<Song> songsToAdd, bool clearFirst )
-		{
-			// Should the Now Playing playlist be cleared first
-			if ( clearFirst == true )
-			{
-				// Before clearing it reset the selected song index
-				PlaybackAccess.SetSelectedSong( -1 );
-				new SongSelectedMessage() { ItemNo = -1 }.Send();
-
-				// Now clear it
-				PlaylistAccess.ClearNowPlayingList( ArtistsViewModel.LibraryId );
-				new NowPlayingClearedMessage().Send();
-			}
-
-			// Carry out the common processing to add songs to a playlist
-			PlaylistAccess.AddSongsToNowPlayingList( songsToAdd, ArtistsViewModel.LibraryId );
-			new NowPlayingSongsAddedMessage() { SongsReplaced = clearFirst }.Send();
-		}
-
-		/// <summary>
 		/// Add a list of Songs to a specified playlist
 		/// </summary>
 		/// <param name="songsToAdd"></param>
@@ -107,6 +99,19 @@ namespace DBTest
 
 			// Publish this event
 			new PlaylistSongsAddedMessage() { PlaylistName = playlistName }.Send();
+		}
+
+		/// <summary>
+		/// Called when a PlaylistDeletedMessage or PlaylistAddedMessage message has been received
+		/// Update the list of playlists held by the model
+		/// </summary>
+		/// <param name="message"></param>
+		private static async void PlaylistAddedOrDeleted( object message )
+		{
+			// Get the list of current playlists
+			List<Playlist> playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
+
+			ArtistsViewModel.PlaylistNames = playlists.Select( i => i.Name ).ToList();
 		}
 
 		/// <summary>

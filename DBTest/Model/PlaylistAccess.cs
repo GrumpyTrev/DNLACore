@@ -67,7 +67,6 @@ namespace DBTest
 			}
 		}
 
-
 		/// <summary>
 		/// Add a list of Songs to a specified playlist
 		/// </summary>
@@ -101,7 +100,6 @@ namespace DBTest
 		/// <summary>
 		/// Clear the Now Playing list
 		/// </summary>
-		/// <param name="databasePath"></param>
 		/// <param name="libraryId"></param>
 		public static void ClearNowPlayingList( int libraryId )
 		{
@@ -129,6 +127,43 @@ namespace DBTest
 		public static void AddSongsToNowPlayingList( List<Song> songsToAdd, int libraryId )
 		{
 			AddSongsToPlaylist( songsToAdd, NowPlayingController.NowPlayingPlaylistName, libraryId );
+		}
+
+		/// <summary>
+		/// Delete the specified playlist from the database
+		/// </summary>
+		/// <param name="thePlaylist"></param>
+		/// <returns></returns>
+		public static async Task DeletePlaylistAsync( Playlist thePlaylist )
+		{
+			// Delete the PlaylistItem entries from the database
+			foreach ( PlaylistItem item in thePlaylist.PlaylistItems )
+			{
+				await ConnectionDetailsModel.AsynchConnection.DeleteAsync( item );
+			}
+
+			// Now delete the playlist itself
+			await ConnectionDetailsModel.AsynchConnection.DeleteAsync( thePlaylist );
+		}
+
+		/// <summary>
+		/// Delete the specified PlaylistItem items from its parent playlist
+		/// </summary>
+		/// <param name="thePlaylist"></param>
+		/// <param name="items"></param>
+		public static async Task DeletePlaylistItemsAsync( Playlist thePlaylist, List<PlaylistItem> items )
+		{
+			// Delete the PlaylistItem entries from the database and from the memory based playlist
+			foreach ( PlaylistItem item in items )
+			{
+				await ConnectionDetailsModel.AsynchConnection.DeleteAsync( item );
+				thePlaylist.PlaylistItems.Remove( item );
+			}
+		}
+
+		public static async Task AddPlaylistAsync( string playlistName, int libraryId )
+		{
+			await ConnectionDetailsModel.AsynchConnection.InsertAsync( new Playlist() { Name = playlistName, LibraryId = libraryId } );
 		}
 	}
 }
