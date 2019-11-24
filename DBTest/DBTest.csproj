@@ -61,6 +61,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\PlaybackManagementController.cs" />
     <Compile Include="Controllers\NowPlayingController.cs" />
+    <Compile Include="Controllers\LibraryScanningController.cs" />
     <Compile Include="Controllers\PlaylistsController.cs" />
     <Compile Include="ArtistsView\ArtistsAdapter.cs" />
     <Compile Include="ConnectionDetailsModel.cs" />
@@ -73,6 +74,10 @@
     <Compile Include="Helpers\DlnaRequestHelper.cs" />
     <Compile Include="Helpers\Logging.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
+    <Compile Include="LibraryScanning\LibraryRescanManager.cs" />
+    <Compile Include="LibraryScanning\LibraryScanningModel.cs" />
+    <Compile Include="LibraryScanning\RescanSongStorage.cs" />
+    <Compile Include="LibraryScanning\SongStorage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
     <Compile Include="Messages\PlaylistDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
@@ -251,6 +256,7 @@
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\new_playlist.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
     Other similar extension points exist, see Microsoft.Common.targets.

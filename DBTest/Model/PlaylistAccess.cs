@@ -161,9 +161,13 @@ namespace DBTest
 			}
 		}
 
-		public static async Task AddPlaylistAsync( string playlistName, int libraryId )
-		{
+		/// <summary>
+		/// Add an empty playlist with the specified name to the specified library
+		/// </summary>
+		/// <param name="playlistName"></param>
+		/// <param name="libraryId"></param>
+		/// <returns></returns>
+		public static async Task AddPlaylistAsync( string playlistName, int libraryId ) => 
 			await ConnectionDetailsModel.AsynchConnection.InsertAsync( new Playlist() { Name = playlistName, LibraryId = libraryId } );
-		}
 	}
 }

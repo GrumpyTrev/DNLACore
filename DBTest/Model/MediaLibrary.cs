@@ -73,9 +73,14 @@ namespace DBTest
 
 		public string Title { get; set; }
 		public int Track { get; set; }
+
 		public string Path { get; set; }
+
 		public DateTime ModifiedTime { get; set; }
 		public int Length { get; set; }
+
+		[Ignore]
+		public ScanActionType ScanAction { get; set; }
 
 		[ForeignKey( typeof( Album ) )]
 		public int AlbumId { get; set; }
@@ -85,6 +90,8 @@ namespace DBTest
 
 		[ForeignKey( typeof( ArtistAlbum ) )]
 		public int ArtistAlbumId { get; set; }
+
+		public enum ScanActionType { NotMatched, Matched, Differ, New };
 	}
 
 	[Table( "Artist" )]

@@ -2693,8 +2693,8 @@ namespace DBTest
 			// aapt resource value: 0x7f08003b
 			public const int never = 2131230779;
 			
-			// aapt resource value: 0x7f0800c8
-			public const int new_playlist = 2131230920;
+			// aapt resource value: 0x7f0800c9
+			public const int new_playlist = 2131230921;
 			
 			// aapt resource value: 0x7f080022
 			public const int none = 2131230754;
@@ -2743,6 +2743,9 @@ namespace DBTest
 			
 			// aapt resource value: 0x7f0800bf
 			public const int rename = 2131230911;
+			
+			// aapt resource value: 0x7f0800c8
+			public const int rescan_library = 2131230920;
 			
 			// aapt resource value: 0x7f08004a
 			public const int right = 2131230794;

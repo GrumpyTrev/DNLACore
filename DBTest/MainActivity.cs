@@ -66,6 +66,9 @@ namespace DBTest
 			// Initialise the PlaybackSelectionManager
 			playbackSelector = new PlaybackSelectionManager( this );
 
+			// Initialise the LibraryRescanManager
+			librarySelector = new LibraryRescanManager( this );
+
 			// Start the router and selector - via a Post so that any response comes back after the UI has been created
 			// This didn't work when placed in OnStart()
 			view.Post( () => {
@@ -104,8 +107,7 @@ namespace DBTest
 		public override bool OnPrepareOptionsMenu( IMenu menu )
 		{
 			// Enable or disable the playback visible item according to the current media controller visibility
-			IMenuItem item = menu.FindItem( Resource.Id.show_media_controls );
-			item.SetEnabled( playbackRouter.PlaybackControlsVisible == false );
+			menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( playbackRouter.PlaybackControlsVisible == false );
 
 			return base.OnPrepareOptionsMenu( menu );
 		}
@@ -131,6 +133,11 @@ namespace DBTest
 			else if ( id == Resource.Id.show_media_controls )
 			{
 				playbackRouter.PlaybackControlsVisible = true;
+				handled = true;
+			}
+			else if ( id == Resource.Id.rescan_library )
+			{
+				librarySelector.RescanSelection();;
 				handled = true;
 			}
 
@@ -165,6 +172,9 @@ namespace DBTest
 				SQLite.SQLiteAsyncConnection.ResetPool();
 				ConnectionDetailsModel.AsynchConnection = null;
 			}
+
+			// Some of the managers need to remove themselves from the scene
+			librarySelector.ReleaseResources();
 
 			base.OnDestroy();
 		}
@@ -261,7 +271,7 @@ namespace DBTest
 						TableQuery<Library> libraries = ConnectionDetailsModel.SynchConnection.Table<Library>();
 						foreach ( Library lib in libraries )
 						{
-							LibraryScanner scanner = new LibraryScanner( lib, ConnectionDetailsModel.SynchConnection );
+							LibraryScanner scanner = new LibraryScanner( lib );
 							scanner.ScanLibrary();
 						}
 
@@ -310,7 +320,7 @@ namespace DBTest
 
 				currentLibraryId = playbackRecord.LibraryId;
 			}
-			catch ( SQLite.SQLiteException queryException )
+			catch ( SQLite.SQLiteException )
 			{
 			}
 
@@ -351,6 +361,11 @@ namespace DBTest
 		/// The PlaybackSelectionManager used to allow the user to select a playback device
 		/// </summary>
 		private PlaybackSelectionManager playbackSelector = null;
+
+		/// <summary>
+		/// The LibraryRescanManager class controls the selection of a library
+		/// </summary>
+		private LibraryRescanManager librarySelector = null;
 	}
 }
 

@@ -10,5 +10,6 @@ namespace DBTest
 		public string ArtistName { get; set; }
 		public int Track { get; set; } = 0;
 		public int Length { get; set; } = 0;
+		public bool Matched { get; set; } = false;
 	}
 }
