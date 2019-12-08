@@ -16,6 +16,7 @@ namespace DBTest
 		static PlaylistsController()
 		{
 			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
+			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 		}
 
 		/// <summary>
@@ -46,7 +47,7 @@ namespace DBTest
 		/// <param name="thePlaylist"></param>
 		public static void GetPlaylistContents( Playlist thePlaylist )
 		{
-			PlaylistAccess.GetPlaylistContents( thePlaylist );
+			PlaylistAccess.GetPlaylistContentsWithArtists( thePlaylist );
 
 			// Sort the PlaylistItems by Track
 			thePlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
@@ -130,6 +131,26 @@ namespace DBTest
 
 			// Let the views know that Playlists data is available
 			Reporter?.PlaylistsDataAvailable();
+		}
+
+		/// <summary>
+		/// Called when a SelectedLibraryChangedMessage has been received
+		/// Clear the current data and the filter and then reload
+		/// </summary>
+		/// <param name="message"></param>
+		private static void SelectedLibraryChanged( object message )
+		{
+			// Set the new library
+			PlaylistsViewModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
+
+			// Clear the displayed data
+			PlaylistsViewModel.Playlists = null;
+
+			// Publish the data
+			Reporter?.PlaylistsDataAvailable();
+
+			// Reread the data
+			RefreshModelData();
 		}
 
 		/// <summary>

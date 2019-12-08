@@ -105,7 +105,7 @@ namespace DBTest
 			if ( ( childObject is ArtistAlbum ) == true )
 			{
 				// If the supplied view previously contained a Song then don't use it
-				if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.AlbumName ) == null ) )
+				if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.albumName ) == null ) )
 				{
 					convertView = null;
 				}
@@ -113,16 +113,16 @@ namespace DBTest
 				// If no view supplied, or unusable, then create a new one
 				if ( convertView == null )
 				{
-					convertView = inflator.Inflate( Resource.Layout.album_layout, null );
+					convertView = inflator.Inflate( Resource.Layout.artists_album_layout, null );
 				}
 
 				// Set the album text.
-				convertView.FindViewById<TextView>( Resource.Id.AlbumName ).Text = ( ( ArtistAlbum )childObject ).Name;
+				convertView.FindViewById<TextView>( Resource.Id.albumName ).Text = ( ( ArtistAlbum )childObject ).Name;
 			}
 			else
 			{
 				// If the supplied view previously contained an ArtistAlbum then don't use it
-				if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.Title ) == null ) )
+				if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.title ) == null ) )
 				{
 					convertView = null;
 				}
@@ -130,15 +130,15 @@ namespace DBTest
 				// If no view supplied, or unuasable, then create a new one
 				if ( convertView == null )
 				{
-					convertView = inflator.Inflate( Resource.Layout.song_layout, null );
+					convertView = inflator.Inflate( Resource.Layout.artists_song_layout, null );
 				}
 
 				Song songItem = ( Song )childObject;
 
 				// Display the Track number, Title and Duration
-				convertView.FindViewById<TextView>( Resource.Id.Track ).Text = songItem.Track.ToString();
-				convertView.FindViewById<TextView>( Resource.Id.Title ).Text = songItem.Title;
-				convertView.FindViewById<TextView>( Resource.Id.Duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
+				convertView.FindViewById<TextView>( Resource.Id.track ).Text = songItem.Track.ToString();
+				convertView.FindViewById<TextView>( Resource.Id.title ).Text = songItem.Title;
+				convertView.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
 			}
 
 			return convertView;
@@ -155,7 +155,7 @@ namespace DBTest
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
 			// If the supplied view previously contained other than an Artits then don't use it
-			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.ArtistName ) == null ) )
+			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.artistName ) == null ) )
 			{
 				convertView = null;
 			}
@@ -163,11 +163,11 @@ namespace DBTest
 			// If no view supplied, or unusable, then create a new one
 			if ( convertView == null )
 			{
-				convertView = inflator.Inflate( Resource.Layout.artist_layout, null );
+				convertView = inflator.Inflate( Resource.Layout.artists_artist_layout, null );
 			}
 
 			// Display the artist's name
-			convertView.FindViewById<TextView>( Resource.Id.ArtistName ).Text = Groups[ groupPosition ].Name;
+			convertView.FindViewById<TextView>( Resource.Id.artistName ).Text = Groups[ groupPosition ].Name;
 
 			return convertView;
 		}

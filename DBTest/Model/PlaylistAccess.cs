@@ -13,28 +13,35 @@ namespace DBTest
 	class PlaylistAccess
 	{
 		/// <summary>
-		/// Get all the playlists associated with the library 
+		/// Get all the playlists except the Now Playing list
 		/// </summary>
-		public static async Task< List< Playlist > > GetPlaylistDetailsAsync( int libraryId )
-		{
-			// Get all the playlist except the Now Playing list
-			AsyncTableQuery<Playlist> query = ConnectionDetailsModel.AsynchConnection.Table<Playlist>().
-				Where( d => ( ( d.LibraryId == libraryId ) ) && ( d.Name != NowPlayingController.NowPlayingPlaylistName ) );
-
-			return await query.ToListAsync();
-		}
+		public static async Task<List<Playlist>> GetPlaylistDetailsAsync( int libraryId ) =>
+			await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().
+				Where( d => ( ( d.LibraryId == libraryId ) ) && ( d.Name != NowPlayingController.NowPlayingPlaylistName ) ).ToListAsync();
 
 		/// <summary>
 		/// Get the songs in the Now Playing playlist associated with the library 
 		/// </summary>
-		public static async Task< Playlist > GetNowPlayingListAsync( int libraryId )
+		public static async Task< Playlist > GetNowPlayingListAsync( int libraryId, bool withArtists = false )
 		{
 			// Get the Now Playing list
 			Playlist thePlaylist = await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().
 				Where( d => ( ( d.LibraryId == libraryId ) ) && ( d.Name == NowPlayingController.NowPlayingPlaylistName ) ).FirstAsync();
 
-			// Get the contents
-			await GetPlaylistContentsAsync( thePlaylist );
+			// Get the children PlaylistItems and then the Song entries for each of them
+			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( thePlaylist );
+
+			foreach ( PlaylistItem playList in thePlaylist.PlaylistItems )
+			{
+				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( playList );
+
+				if ( withArtists == true )
+				{
+					// Now the Song entries are available get the Artist via the ArtistAlbum 
+					ArtistAlbum artistAlbum =await ConnectionDetailsModel.AsynchConnection.GetAsync<ArtistAlbum>( playList.Song.ArtistAlbumId );
+					playList.Artist = await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( artistAlbum.ArtistId );
+				}
+			}
 
 			return thePlaylist;
 		}
@@ -42,21 +49,7 @@ namespace DBTest
 		/// <summary>
 		/// Get the songs in the Now Playing playlist associated with the library 
 		/// </summary>
-		public static async Task GetPlaylistContentsAsync( Playlist thePlaylist )
-		{
-			// Get the children PlaylistItems and then the Song entries for each of them
-			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync<Playlist>( thePlaylist );
-
-			foreach ( PlaylistItem playList in thePlaylist.PlaylistItems )
-			{
-				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync<PlaylistItem>( playList );
-			}
-		}
-
-		/// <summary>
-		/// Get the songs in the Now Playing playlist associated with the library 
-		/// </summary>
-		public static void GetPlaylistContents( Playlist thePlaylist )
+		public static void GetPlaylistContentsWithArtists( Playlist thePlaylist )
 		{
 			// Get the children PlaylistItems and then the Song entries for each of them
 			ConnectionDetailsModel.SynchConnection.GetChildren( thePlaylist );
@@ -64,6 +57,10 @@ namespace DBTest
 			foreach ( PlaylistItem playList in thePlaylist.PlaylistItems )
 			{
 				ConnectionDetailsModel.SynchConnection.GetChildren( playList );
+
+				// Now the Song entries are available get the Artist via the ArtistAlbum 
+				ArtistAlbum artistAlbum = ConnectionDetailsModel.SynchConnection.Get<ArtistAlbum>( playList.Song.ArtistAlbumId );
+				playList.Artist = ConnectionDetailsModel.SynchConnection.Get<Artist>( artistAlbum.ArtistId );
 			}
 		}
 

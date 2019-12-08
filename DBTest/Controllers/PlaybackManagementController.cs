@@ -15,6 +15,7 @@
 			Mediator.RegisterPermanent( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( DeviceAvailable, typeof( PlaybackDeviceAvailableMessage ) );
+			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 		}
 
 		/// <summary>
@@ -123,6 +124,28 @@
 				PlaybackManagerModel.AvailableDevice = newDevice;
 				Reporter?.SelectPlaybackDevice( oldDevice );
 			}
+		}
+
+		/// <summary>
+		/// Called when a SelectedLibraryChangedMessage has been received
+		/// Clear the current data and the filter and then reload
+		/// </summary>
+		/// <param name="message"></param>
+		private static void SelectedLibraryChanged( object message )
+		{
+			// Set the new library
+			PlaybackManagerModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
+
+			// Clear the now playing data and reset the selected song
+			PlaybackManagerModel.NowPlayingPlaylist = null;
+			SetSelectedSong( -1 );
+
+			// Publish the data
+			Reporter?.SongsCleared();
+			Reporter?.MediaControlDataAvailable( false );
+
+			// Reread the data
+			GetMediaControlDataAsync( PlaybackManagerModel.LibraryId );
 		}
 
 		/// <summary>

@@ -30,6 +30,12 @@ namespace DBTest
 			// Carry out the common processing to add songs to a playlist
 			PlaylistAccess.AddSongsToNowPlayingList( songsToAdd, libraryId );
 			new NowPlayingSongsAddedMessage() { SongsReplaced = clearFirst }.Send();
+
+			// If the list was cleared and there are now some items in the list select the first entry
+			if ( ( clearFirst == true ) & ( songsToAdd.Count > 0 ) )
+			{
+				PlaybackAccess.SetSelectedSong( 0 );
+			}
 		}
 	}
 }

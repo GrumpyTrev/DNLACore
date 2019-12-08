@@ -3,7 +3,7 @@
 namespace DBTest
 {
 	/// <summary>
-	/// The PlaylistsViewModel holds the Playlist data obtained from the PlaylistsController
+	/// The LibraryScanningModel holds the Library data obtained from the LibraryScanningController
 	/// </summary>
 	static class LibraryScanningModel
 	{

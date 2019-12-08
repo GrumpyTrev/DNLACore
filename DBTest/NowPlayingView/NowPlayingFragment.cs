@@ -43,7 +43,16 @@ namespace DBTest
 		/// <param name="message"></param>
 		public void NowPlayingDataAvailable()
 		{
-			Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems );
+			// If this data has been cleared then pass on an empty list rather than null
+			if ( NowPlayingViewModel.NowPlayingPlaylist == null )
+			{
+				Adapter.SetData( new List<PlaylistItem>() );
+			}
+			else
+			{
+				Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems );
+			}
+
 			( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.SelectedSong );
 		}
 

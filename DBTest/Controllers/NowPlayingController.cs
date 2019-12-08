@@ -14,6 +14,7 @@
 			// Don't register for the NowPlayingClearedMessage as the list is always refreshed when new songs are added
 			Mediator.RegisterPermanent( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
+			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 		}
 
 		/// <summary>
@@ -28,7 +29,9 @@
 			if ( ( NowPlayingViewModel.NowPlayingPlaylist == null ) || ( NowPlayingViewModel.LibraryId != libraryId ) )
 			{
 				NowPlayingViewModel.LibraryId = libraryId;
-				NowPlayingViewModel.NowPlayingPlaylist = await PlaylistAccess.GetNowPlayingListAsync( NowPlayingViewModel.LibraryId );
+
+				// Get the list witrh artists
+				NowPlayingViewModel.NowPlayingPlaylist = await PlaylistAccess.GetNowPlayingListAsync( NowPlayingViewModel.LibraryId, true );
 
 				// Sort the PlaylistItems by Track
 				NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
@@ -80,6 +83,27 @@
 				NowPlayingViewModel.SelectedSong = ( ( SongSelectedMessage )message ).ItemNo;
 				Reporter?.SongSelected();
 			}
+		}
+
+		/// <summary>
+		/// Called when a SelectedLibraryChangedMessage has been received
+		/// Clear the current data and the filter and then reload
+		/// </summary>
+		/// <param name="message"></param>
+		private static void SelectedLibraryChanged( object message )
+		{
+			// Set the new library
+			NowPlayingViewModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
+
+			// Clear the displayed data and filter
+			NowPlayingViewModel.NowPlayingPlaylist = null;
+			NowPlayingViewModel.SelectedSong = -1;
+
+			// Publish the data
+			Reporter?.NowPlayingDataAvailable();
+
+			// Reread the data
+			GetNowPlayingListAsync( NowPlayingViewModel.LibraryId );
 		}
 
 		/// <summary>

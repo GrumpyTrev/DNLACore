@@ -109,9 +109,10 @@ namespace DBTest
 			{
 				if ( view != null )
 				{
-					// Display the Title and Duration
-					view.FindViewById<TextView>( Resource.Id.Title ).Text = songItem.Title;
-					view.FindViewById<TextView>( Resource.Id.Duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
+					// Display the Title, Duration and Artist
+					view.FindViewById<TextView>( Resource.Id.title ).Text = songItem.Title;
+					view.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
+					view.FindViewById<TextView>( Resource.Id.artist ).Text = Groups[ groupPosition ].Artist.Name;
 
 					// If this song is currently being played then show with a different background
 					view.SetBackgroundColor( ( NowPlayingAdapterModel.SongPlayingIndex == groupPosition ) ? Color.AliceBlue : Color.Transparent );

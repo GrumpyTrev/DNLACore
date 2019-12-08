@@ -10,19 +10,28 @@
 		android:focusable="false"
 		android:focusableInTouchMode="false"
 		android:id="@+id/checkBox"
-		android:layout_marginLeft="25dp"
+		android:layout_marginLeft="15dp"
 		android:layout_marginBottom="-5dp"
-		android:layout_marginRight="-30dp"
 		android:layout_marginTop="-2dp" />
-
+	<android.support.v7.widget.AppCompatImageView
+		android:id="@+id/indeterminateCheck"
+		android:layout_width="34dp"
+		android:layout_height="25dp"
+		android:background="@null"
+		android:scaleType="fitCenter"
+		android:layout_gravity="center"
+		android:src="@drawable/indeterminate"
+		android:layout_marginLeft="14dp"
+		android:layout_marginTop="1dp" />
+	/>
 	<TextView
-		android:id="@+id/ArtistName"
+		android:id="@+id/TagName"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="Artist"
+		android:text="Tag"
 		android:textStyle="bold"
-		android:layout_marginLeft="30dp"
 		android:layout_toRightOf="@+id/checkBox"
 		android:textSize="20dp" 
 	/>
 </RelativeLayout>
+

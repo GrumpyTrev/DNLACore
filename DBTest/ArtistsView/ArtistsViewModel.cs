@@ -32,5 +32,15 @@ namespace DBTest
 		/// The scroll state of the list view
 		/// </summary>
 		public static IParcelable ListViewState { get; set; } = null;
+
+		/// <summary>
+		/// The current tag being used to filter the artists displayed
+		/// </summary>
+		public static Tag CurrentFilter { get; set; } = null;
+
+		/// <summary>
+		/// The list of filters obtained from the database
+		/// </summary>
+		public static List<Tag> Tags { get; set; } = null;
 	}
 }

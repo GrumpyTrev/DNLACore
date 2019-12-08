@@ -56,9 +56,17 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlbumsView\AlbumsAdapterModel.cs" />
+    <Compile Include="AlbumsView\AlbumsAdapter.cs" />
+    <Compile Include="AlbumsView\AlbumsViewModel.cs" />
+    <Compile Include="AlbumsView\AlbumsFragment.cs" />
+    <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="CommonUI\CommandToolbar.cs" />
+    <Compile Include="Controllers\AlbumsController.cs" />
     <Compile Include="Controllers\ArtistsController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\FilterManagementController.cs" />
+    <Compile Include="Controllers\LibrarySelectionController.cs" />
     <Compile Include="Controllers\PlaybackManagementController.cs" />
     <Compile Include="Controllers\NowPlayingController.cs" />
     <Compile Include="Controllers\LibraryScanningController.cs" />
@@ -68,19 +76,29 @@
     <Compile Include="BaseView\ExpandableListAdapter.cs" />
     <Compile Include="BaseView\ExpandableListAdapterModel.cs" />
     <Compile Include="Controllers\PlaybackSelectionController.cs" />
+    <Compile Include="FilterManagement\FilterManagementModel.cs" />
+    <Compile Include="FilterManagement\TagSelection.cs" />
+    <Compile Include="FilterManagement\FilterSelection.cs" />
+    <Compile Include="FilterManagement\TagDataAdapter.cs" />
     <Compile Include="FTPScanner.cs" />
     <Compile Include="BaseView\IAdapterActionHandler.cs" />
     <Compile Include="BaseView\IPageVisible.cs" />
     <Compile Include="Helpers\DlnaRequestHelper.cs" />
     <Compile Include="Helpers\Logging.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
-    <Compile Include="LibraryScanning\LibraryRescanManager.cs" />
-    <Compile Include="LibraryScanning\LibraryScanningModel.cs" />
-    <Compile Include="LibraryScanning\RescanSongStorage.cs" />
-    <Compile Include="LibraryScanning\SongStorage.cs" />
+    <Compile Include="LibraryManagement\LibrarySelectionModel.cs" />
+    <Compile Include="LibraryManagement\LibrarySelection.cs" />
+    <Compile Include="LibraryManagement\LibraryRescanManager.cs" />
+    <Compile Include="LibraryManagement\LibraryScanningModel.cs" />
+    <Compile Include="LibraryManagement\RescanSongStorage.cs" />
+    <Compile Include="LibraryManagement\SongStorage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
     <Compile Include="Messages\PlaylistDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
+    <Compile Include="Messages\SelectedLibraryChangedMessage.cs" />
+    <Compile Include="Messages\TagMembershipChangedMessage.cs" />
+    <Compile Include="Model\AlbumAccess.cs" />
+    <Compile Include="Model\FilterAccess.cs" />
     <Compile Include="Model\LibraryAccess.cs" />
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />
     <Compile Include="PlaybackManagement\LocalPlaybackService.cs" />
@@ -166,17 +184,17 @@
     <AndroidResource Include="Resources\layout\toolbar.axml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\artist_layout.axml">
+    <AndroidResource Include="Resources\layout\artists_artist_layout.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\album_layout.axml">
+    <AndroidResource Include="Resources\layout\artists_album_layout.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\song_layout.axml">
+    <AndroidResource Include="Resources\layout\artists_song_layout.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
@@ -256,7 +274,52 @@
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\new_playlist.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\filter_off.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\filter_on.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\tag.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\tag_item_layout.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\tag_dialogue_layout.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\indeterminate.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\albums_fragment.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\albums_album_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\albums_song_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_albums.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
     Other similar extension points exist, see Microsoft.Common.targets.

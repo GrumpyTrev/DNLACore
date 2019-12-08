@@ -5,7 +5,6 @@ using Android.App;
 using Android.Content;
 using Android.Net;
 using Android.OS;
-using Android.Runtime;
 using Android.Support.Design.Widget;
 using Android.Support.V4.View;
 using Android.Support.V7.App;
@@ -67,7 +66,13 @@ namespace DBTest
 			playbackSelector = new PlaybackSelectionManager( this );
 
 			// Initialise the LibraryRescanManager
-			librarySelector = new LibraryRescanManager( this );
+			libraryRescanner = new LibraryRescanManager( this );
+
+			// Initialise the LibrarySelection
+			libararySelector = new LibrarySelection( this );
+
+			// Make sure someone reads the available filters before they are needed
+			FilterManagementController.GetTagsAsync();
 
 			// Start the router and selector - via a Post so that any response comes back after the UI has been created
 			// This didn't work when placed in OnStart()
@@ -82,6 +87,12 @@ namespace DBTest
 				StartActivity( new Intent().SetAction( Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations )
 					.SetData( Uri.Parse( "package:" + PackageName ) ) );
 			}
+
+			// Get the current library name for the app title.
+			// TO DO make this part of a more well designed library choice functionality
+			currentLibrary = ConnectionDetailsModel.SynchConnection.Get<Library>( ConnectionDetailsModel.LibraryId );
+
+			SupportActionBar.Title = currentLibrary.Name;
 
 			// Initialise the fragments showing the selected library
 			InitialiseFragments();
@@ -137,7 +148,17 @@ namespace DBTest
 			}
 			else if ( id == Resource.Id.rescan_library )
 			{
-				librarySelector.RescanSelection();;
+				libraryRescanner.RescanSelection();
+				handled = true;
+			}
+			else if ( id == Resource.Id.rescan_remote_devices )
+			{
+				playbackSelector.RescanForDevices();
+				handled = true;
+			}
+			else if ( id == Resource.Id.select_library )
+			{
+				libararySelector.SelectLibrary();
 				handled = true;
 			}
 
@@ -174,7 +195,8 @@ namespace DBTest
 			}
 
 			// Some of the managers need to remove themselves from the scene
-			librarySelector.ReleaseResources();
+			libraryRescanner.ReleaseResources();
+			FragmentTitles.ParentActivity = null;
 
 			base.OnDestroy();
 		}
@@ -222,14 +244,11 @@ namespace DBTest
 				ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
 				ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
 				ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
-
-				//				db.DropTable<Playlist>();
-
 				ConnectionDetailsModel.SynchConnection.CreateTable<Playlist>();
 				ConnectionDetailsModel.SynchConnection.CreateTable<PlaylistItem>();
-
-				//				ConnectionDetailsModel.SynchConnection.DropTable<Playback>();
 				ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
+				ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
 
 				// Check for a Playback record which will tell us the currently selected library
 				Playback playbackRecord = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault();
@@ -318,6 +337,14 @@ namespace DBTest
 					ConnectionDetailsModel.SynchConnection.Update( playbackRecord );
 				}
 
+				// Any Tags defined
+				if ( ConnectionDetailsModel.SynchConnection.Table<Tag>().FirstOrDefault() == null )
+				{
+					// Create a couple of standard Tags
+					ConnectionDetailsModel.SynchConnection.Insert( new Tag() { Name = "Latest" } );
+					ConnectionDetailsModel.SynchConnection.Insert( new Tag() { Name = "Play next" } );
+				}
+
 				currentLibraryId = playbackRecord.LibraryId;
 			}
 			catch ( SQLite.SQLiteException )
@@ -336,20 +363,23 @@ namespace DBTest
 			Android.Support.V4.App.Fragment[] fragments = 
 				new Android.Support.V4.App.Fragment[]
 				{
-					new ArtistsFragment(), new PlaylistsFragment(), new NowPlayingFragment()
+					new ArtistsFragment(), new AlbumsFragment(), new PlaylistsFragment(), new NowPlayingFragment()
 				};
 
-			// Tab title array
-			Java.Lang.ICharSequence[] titles = CharSequence.ArrayFromStringArray( new[] { "Artists", "Playlists", "Now Playing" } );
+			// Initialise the Fragment titles class
+			FragmentTitles.SetInitialTitles( new[] { "Artists", "Albums", "Playlists", "Now Playing" }, fragments );
 
 			// Get the ViewPager and link it to a TabsFragmentPagerAdapter
-			ViewPager viewPager = FindViewById<ViewPager>( Resource.Id.viewpager );
+			ViewPager viewPager = FindViewById<ViewPager>( Resource.Id.viewPager );
 
 			// Set the adapter for the pager
-			viewPager.Adapter = new TabsFragmentPagerAdapter( SupportFragmentManager, fragments, titles );
+			viewPager.Adapter = new TabsFragmentPagerAdapter( SupportFragmentManager, fragments, FragmentTitles.GetTitles() );
 
 			// Give the TabLayout the ViewPager 
 			FindViewById<TabLayout>( Resource.Id.sliding_tabs ).SetupWithViewPager( viewPager );
+
+			// Now that everything's been linked together let the FragmentTitles do some of it own initialisation
+			FragmentTitles.ParentActivity = this;
 		}
 
 		/// <summary>
@@ -363,9 +393,19 @@ namespace DBTest
 		private PlaybackSelectionManager playbackSelector = null;
 
 		/// <summary>
-		/// The LibraryRescanManager class controls the selection of a library
+		/// The LibraryRescanManager class controls the rescanning of a library
 		/// </summary>
-		private LibraryRescanManager librarySelector = null;
+		private LibraryRescanManager libraryRescanner = null;
+
+		/// <summary>
+		/// The LibrarySelection class controls the selection of a library to be displayed
+		/// </summary>
+		private LibrarySelection libararySelector = null;
+
+		/// <summary>
+		/// The library currently being displayed
+		/// </summary>
+		private Library currentLibrary = null;
 	}
 }
 

@@ -1,5 +1,4 @@
-﻿using Android.Util;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -20,7 +19,7 @@ namespace DBTest
 		/// </summary>
 		static PlaybackSelectionController()
 		{
-			PlaybackSelectionModel.RemoteDevices.AddDevice( new Device() { CanPlayMedia = true, IsLocal = true, FriendlyName = "Local playback" } );
+			InitialiseDiscoveredDevices();
 		}
 
 		/// <summary>
@@ -99,6 +98,15 @@ namespace DBTest
 			}
 
 			Reporter?.DiscoveryFinished();
+		}
+
+		/// <summary>
+		/// Clear the device list and scan again
+		/// </summary>
+		public static void ReDiscoverDevices()
+		{
+			InitialiseDiscoveredDevices();
+			DiscoverDevices();
 		}
 
 		/// <summary>
@@ -213,6 +221,16 @@ namespace DBTest
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// Clear the Remote devices list and add the always present internal device
+		/// </summary>
+		private static void InitialiseDiscoveredDevices()
+		{
+			CandidateDevices.DeviceCollection.Clear();
+			PlaybackSelectionModel.RemoteDevices.DeviceCollection.Clear();
+			PlaybackSelectionModel.RemoteDevices.AddDevice( new Device() { CanPlayMedia = true, IsLocal = true, FriendlyName = "Local playback" } );
 		}
 
 		/// <summary>

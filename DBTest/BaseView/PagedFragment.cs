@@ -10,7 +10,7 @@ namespace DBTest
 	/// Base class for all the fragments showing the database contents
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class PagedFragment<T> : Fragment, ActionMode.ICallback, IAdapterActionHandler
+	public abstract class PagedFragment<T>: Fragment, ActionMode.ICallback, IAdapterActionHandler
 	{
 		/// <summary>
 		/// Called when the fragment is first created
@@ -80,10 +80,17 @@ namespace DBTest
 		{
 			// Show or hide the collapse icon
 			collapseItem = menu.FindItem( Resource.Id.action_collapse );
+			collapseItem?.SetVisible( expandedGroupCount > 0 );
 
-			if ( collapseItem != null )
+			// If there is a filter item then create a FilterSelection instance to handle it
+			filterItem = menu.FindItem( Resource.Id.filter );
+			if ( filterItem != null )
 			{
-				collapseItem.SetVisible( expandedGroupCount > 0 );
+				// Create the FilterSelection. When a new filter has been selected pass it on to the derived class
+				filterSelector = new FilterSelection( Context, ( Tag newFilter ) => { ApplyFilter( newFilter); } );
+
+				// Set the menu icon according to whether or not any filtering is in effect
+				SetFilterIcon();
 			}
 		}
 
@@ -103,6 +110,10 @@ namespace DBTest
 			{
 				Adapter.OnCollapseRequest();
 				handled = true;
+			}
+			else if ( id == Resource.Id.filter )
+			{
+				filterSelector.SelectFilter( CurrentFilter );
 			}
 
 			if ( handled == false )
@@ -238,10 +249,7 @@ namespace DBTest
 		{
 			expandedGroupCount = count;
 
-			if ( collapseItem != null )
-			{
-				collapseItem.SetVisible( expandedGroupCount > 0 );
-			}
+			collapseItem?.SetVisible( expandedGroupCount > 0 );
 		}
 
 		/// <summary>
@@ -297,16 +305,12 @@ namespace DBTest
 		/// </summary>
 		/// <param name="mode"></param>
 		/// <param name="menu"></param>
-		protected virtual void OnSpecialisedCreateActionMode( ActionMode mode, IMenu menu )
-		{
-		}
+		protected virtual void OnSpecialisedCreateActionMode( ActionMode mode, IMenu menu ) { }
 
 		/// <summary>
 		/// Allow derived classes to release thier own resources
 		/// </summary>
-		protected virtual void ReleaseResources()
-		{
-		}
+		protected virtual void ReleaseResources() { }
 
 		/// <summary>
 		/// Called to allow derived classes to bind to the command bar commands
@@ -318,18 +322,31 @@ namespace DBTest
 		/// </summary>
 		/// <param name="button"></param>
 		/// <returns></returns>
-		protected virtual void HandleCommand( int commandId)
-		{
-		}
+		protected virtual void HandleCommand( int commandId ) { }
+
+		/// <summary>
+		/// Apply a new filter to the fragment's data
+		/// Does nothing in the base class
+		/// </summary>
+		/// <param name="newFilter"></param>
+		protected virtual void ApplyFilter( Tag newFilter ) { }
 
 		/// <summary>
 		/// Let derived classes determine whether or not the bottom toolbar should be shown
 		/// </summary>
 		/// <returns></returns>
-		protected virtual bool ShowCommandBar()
-		{
-			return false;
-		}
+		protected virtual bool ShowCommandBar() => false;
+
+		/// <summary>
+		/// Append the specified string to the tab title fot thid frasgment
+		/// </summary>
+		/// <param name="append"></param>
+		protected void AppendToTabTitle( string append ) => FragmentTitles.AppendToTabTitle( append, this );
+
+		/// <summary>
+		/// Set the filter icon according to whether or not filtering is in effect
+		/// </summary>
+		protected void SetFilterIcon() => filterItem?.SetIcon( ( CurrentFilter == null ) ? Resource.Drawable.filter_off : Resource.Drawable.filter_on );
 
 		/// <summary>
 		/// The ExpandableListAdapter used to display the data for this fragment
@@ -355,6 +372,12 @@ namespace DBTest
 		/// The main ExpandableListView used by thie fragment
 		/// </summary>
 		protected ExpandableListView ListView { get; set; } = null;
+
+		/// <summary>
+		/// The base class does nothing special with the CurrentFilter property.
+		/// Derived classes use it to filter what is being displayed
+		/// </summary>
+		protected virtual Tag CurrentFilter { get; } = null;
 
 		/// <summary>
 		/// The title to be shown on the action bar
@@ -395,6 +418,11 @@ namespace DBTest
 		private IMenuItem collapseItem = null;
 
 		/// <summary>
+		/// The filter menu item that will be used to show whether filtering is on or off
+		/// </summary>
+		private IMenuItem filterItem = null;
+
+		/// <summary>
 		/// Has the start of Action Mode been delayed until the view has been created
 		/// </summary>
 		private bool delayedActionMode = false;
@@ -403,5 +431,10 @@ namespace DBTest
 		/// The title to display in the action mode
 		/// </summary>
 		private string actionModeTitle = "";
+
+		/// <summary>
+		/// A FilterSelection instance to handle the selection a filter to be applied to the contents displayed by the fragment
+		/// </summary>
+		private FilterSelection filterSelector = null;
 	}
 }

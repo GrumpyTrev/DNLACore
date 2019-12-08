@@ -7,13 +7,6 @@
 	static class LibraryScanningController
 	{
 		/// <summary>
-		/// Public constructor allowing messages t0 be registered
-		/// </summary>
-		static LibraryScanningController()
-		{
-		}
-
-		/// <summary>
 		/// Get the Library data associated with the database
 		/// If the data has already been obtained then notify view immediately.
 		/// Otherwise get the data from the database asynchronously

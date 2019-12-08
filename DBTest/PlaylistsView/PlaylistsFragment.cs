@@ -126,7 +126,15 @@ namespace DBTest
 		/// <param name="message"></param>
 		public void PlaylistsDataAvailable()
 		{
-			Adapter.SetData( PlaylistsViewModel.Playlists );
+			// If the data has been set to null, pass on an empty list
+			if ( PlaylistsViewModel.Playlists == null )
+			{
+				Adapter.SetData( new List<Playlist>() );
+			}
+			else
+			{
+				Adapter.SetData( PlaylistsViewModel.Playlists );
+			}
 		}
 
 		/// <summary>

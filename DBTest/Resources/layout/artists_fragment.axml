@@ -20,6 +20,9 @@
 		app:theme="@style/AppTheme"
 		app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
+		<include android:id="@+id/tag"
+			layout="@layout/bottom_button"/>
+
 		<include android:id="@+id/add_to_playlist"
 			layout="@layout/bottom_button"/>
 		

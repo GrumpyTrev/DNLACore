@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using Android.OS;
 using Android.Views;
 using Android.Widget;
 using System.Linq;
-using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 namespace DBTest
 {
@@ -47,10 +45,7 @@ namespace DBTest
 		/// <param name="mode"></param>
 		/// <param name="item"></param>
 		/// <returns></returns>
-		public override bool OnActionItemClicked( ActionMode mode, IMenuItem item )
-		{
-			return false;
-		}
+		public override bool OnActionItemClicked( ActionMode mode, IMenuItem item ) => false;
 
 		/// <summary>
 		/// Called when the Controller has obtained the Artist data
@@ -58,13 +53,28 @@ namespace DBTest
 		/// </summary>
 		public void ArtistsDataAvailable()
 		{
-			( ( ArtistsAdapter) Adapter ).SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
-
-			if ( ArtistsViewModel.ListViewState != null )
+			// If this data has been cleared in the model then pass empty data on to the adapter rather than null data
+			if ( ArtistsViewModel.Artists == null )
 			{
-				ListView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
+				( ( ArtistsAdapter )Adapter ).SetData( new List<Artist>(), new Dictionary<string, int>() );
 				ArtistsViewModel.ListViewState = null;
 			}
+			else
+			{
+				( ( ArtistsAdapter )Adapter ).SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
+
+				if ( ArtistsViewModel.ListViewState != null )
+				{
+					ListView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
+					ArtistsViewModel.ListViewState = null;
+				}
+			}
+
+			// Indicate whether or not a filter has been applied
+			AppendToTabTitle( ( CurrentFilter == null ) ? "" : string.Format( "\r\n[{0}]", CurrentFilter.Name ) );
+
+			// Update the icon as well
+			SetFilterIcon();
 		}
 
 		/// <summary>
@@ -74,10 +84,13 @@ namespace DBTest
 		public override void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
 		{
 			// Determine the number of songs in the selected items
-			itemsSelected = selectedItems.Values.OfType< Song >().Count();
+			songsSelected = selectedItems.Values.OfType< Song >().Count();
 
 			// Update the Action Mode bar title
-			ActionModeTitle = ( itemsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelected );
+			ActionModeTitle = ( songsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, songsSelected );
+
+			// Show the tag command if any albums are selected
+			tagCommand.Visible = ( selectedItems.Values.OfType<ArtistAlbum>().Count() > 0 );
 
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();
@@ -117,10 +130,7 @@ namespace DBTest
 				// Create a Popup menu containing the play list names and show it
 				PopupMenu playlistsMenu = new PopupMenu( Context, addToPlaylistCommand.BoundButton );
 
-				foreach ( string name in ArtistsViewModel.PlaylistNames )
-				{
-					playlistsMenu.Menu.Add( 0, Menu.None, 0, name );
-				}
+				ArtistsViewModel.PlaylistNames.ForEach( name => playlistsMenu.Menu.Add( 0, Menu.None, 0, name ) );
 
 				// When a menu item is clicked get the songs from the adapter and the playlist name from the selected item
 				// and pass them both to the ArtistsController
@@ -135,6 +145,22 @@ namespace DBTest
 				};
 
 				playlistsMenu.Show();
+			}
+			else if ( commandId == Resource.Id.tag )
+			{
+				List<ArtistAlbum> selectedAlbums = Adapter.SelectedItems.Values.OfType<ArtistAlbum>().ToList();
+
+				// Create TagSelection dialogue and display it
+				TagSelection selectionDialogue = new TagSelection( Context, ( List<AppliedTag> appliedTags ) => 
+				{
+					// Apply the changes
+					FilterManagementController.ApplyTagsAsync( selectedAlbums, appliedTags );
+
+					// Leave action mode
+					LeaveActionMode();
+				} );
+
+				selectionDialogue.SelectFilter( selectedAlbums );
 			}
 		}
 
@@ -157,13 +183,16 @@ namespace DBTest
 		{
 			// Need to bind to the add_to_playlist command in order to anchor the playlist context menu
 			addToPlaylistCommand = commandBar.BindCommand( Resource.Id.add_to_playlist );
+
+			// Bind the tag command
+			tagCommand = commandBar.BindCommand( Resource.Id.tag );
 		}
 
 		/// <summary>
 		/// Let derived classes determine whether or not the command bar should be shown
 		/// </summary>
 		/// <returns></returns>
-		protected override bool ShowCommandBar() => ( itemsSelected > 0 );
+		protected override bool ShowCommandBar() => ( songsSelected > 0 );
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -176,14 +205,32 @@ namespace DBTest
 		protected override int ListViewLayout { get; } = Resource.Id.artistsList;
 
 		/// <summary>
-		/// Keep track of the number of items reported as selected
+		/// Return the filter held by the model
 		/// </summary>
-		private int itemsSelected = 0;
+		protected override Tag CurrentFilter => ArtistsViewModel.CurrentFilter;
 
 		/// <summary>
-		/// Binder to the add_to_playlist command to allow the actual button to be accessed
+		/// Apply a new filter to the fragment's data
+		/// </summary>
+		/// <param name="newFilter"></param>
+		protected override void ApplyFilter( Tag newFilter )
+		{
+			if ( newFilter != CurrentFilter )
+			{
+				ArtistsController.ApplyFilter( newFilter );
+			}
+		}
+
+		/// <summary>
+		/// Keep track of the number of songs reported as selected
+		/// </summary>
+		private int songsSelected = 0;
+
+		/// <summary>
+		/// Command handlers
 		/// </summary>
 		private CommandBinder addToPlaylistCommand = null;
+		private CommandBinder tagCommand = null;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

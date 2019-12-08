@@ -2,15 +2,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 	<item
-        android:id="@+id/select_playback_device"
-		android:title="Select playback device"
-        app:showAsAction="never" />
+		android:title="Playback control..."
+		app:showAsAction="never" >
+		<menu>
+			<item
+				android:id="@+id/show_media_controls"
+				android:title="Show playback controls" />
+			<item
+				android:id="@+id/select_playback_device"
+				android:title="Select playback device" />
+			<item
+				android:id="@+id/rescan_remote_devices"
+				android:title="Rescan remote devices" />
+		</menu>
+	</item>
 	<item
-        android:id="@+id/show_media_controls"
-		android:title="Show playback controls"
-        app:showAsAction="never" />
-	<item
-        android:id="@+id/rescan_library"
-		android:title="Rescan library"
-        app:showAsAction="never" />
+		android:title="Library management..."
+		app:showAsAction="never" >
+		<menu>
+			<item
+				android:id="@+id/select_library"
+				android:title="Select library" />
+			<item
+				android:id="@+id/rescan_library"
+				android:title="Rescan library" />
+		</menu>
+	</item>
 </menu>

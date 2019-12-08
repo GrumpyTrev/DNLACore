@@ -14,7 +14,7 @@
 		android:layout_marginLeft="-5dp"
 		android:layout_marginRight="-5dp" />
 	<TextView
-		android:id="@+id/Track"
+		android:id="@+id/track"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:minEms="2"
@@ -24,16 +24,16 @@
 		android:textColor="#ff000000" 
 	/>
 	<TextView
-		android:id="@+id/Title"
+		android:id="@+id/title"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:layout_toLeftOf="@+id/Duration"
-		android:layout_toRightOf="@+id/Track"
+		android:layout_toLeftOf="@+id/duration"
+		android:layout_toRightOf="@+id/track"
 		android:text="Song title"
 		android:textColor="#ff000000" 
 	/>
 	<TextView
-		android:id="@+id/Duration"
+		android:id="@+id/duration"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:text="Duration"

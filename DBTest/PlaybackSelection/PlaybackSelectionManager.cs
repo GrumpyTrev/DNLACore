@@ -20,12 +20,21 @@ namespace DBTest
 			contextForAlert = alertContext;
 		}
 
-
+		/// <summary>
+		/// Initialise the PlaybackSelectionController and start detecting remote devices
+		/// </summary>
 		public void StartSelection()
 		{
-			// Initialise the PlaybackSelectionController and start detecting remote devices
 			PlaybackSelectionController.Reporter = this;
 			PlaybackSelectionController.DiscoverDevices();
+		}
+
+		/// <summary>
+		/// Rescan remove devices
+		/// </summary>
+		public void RescanForDevices()
+		{
+			PlaybackSelectionController.ReDiscoverDevices();
 		}
 
 		public void ShowSelection()

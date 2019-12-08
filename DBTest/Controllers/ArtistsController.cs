@@ -16,6 +16,8 @@ namespace DBTest
 		{
 			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistDeletedMessage ) );
 			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistAddedMessage ) );
+			Mediator.RegisterPermanent( TagMembershipChanged, typeof( TagMembershipChangedMessage ) );
+			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 		}
 
 		/// <summary>
@@ -31,7 +33,7 @@ namespace DBTest
 			{
 				// New data is required
 				ArtistsViewModel.LibraryId = libraryId;
-				ArtistsViewModel.Artists = await ArtistAccess.GetArtistDetailsAsync( ArtistsViewModel.LibraryId );
+				ArtistsViewModel.Artists = await ArtistAccess.GetArtistDetailsAsync( ArtistsViewModel.LibraryId, ArtistsViewModel.CurrentFilter );
 
 				// Sort the list of artists by name
 				ArtistsViewModel.Artists.Sort( ( a, b ) => {
@@ -60,6 +62,9 @@ namespace DBTest
 
 				// Extract just the names as well
 				ArtistsViewModel.PlaylistNames = playlists.Select( i => i.Name ).ToList();
+
+				// Get the Tags as well
+				ArtistsViewModel.Tags = await FilterAccess.GetTagsAsync();
 			}
 
 			// Publish the data
@@ -72,7 +77,7 @@ namespace DBTest
 		/// <param name="theArtist"></param>
 		public static void GetArtistContents( Artist theArtist )
 		{
-			ArtistAccess.GetArtistContents( theArtist );
+			ArtistAccess.GetArtistContents( theArtist, ArtistsViewModel.CurrentFilter );
 
 			// Sort the albums alphabetically
 			theArtist.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
@@ -102,6 +107,25 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Apply the new filter to the data being displayed
+		/// </summary>
+		/// <param name="newFilter"></param>
+		public static void ApplyFilter( Tag newFilter )
+		{
+			// Clear the displayed data first as this may take a while
+			ArtistsViewModel.Artists = null;
+			ArtistsViewModel.AlphaIndex = null;
+
+			// Publish the data
+			Reporter?.ArtistsDataAvailable();
+
+			// Update the model and reread the data
+			ArtistsViewModel.CurrentFilter = newFilter;
+
+			GetArtistsAsync( ArtistsViewModel.LibraryId );
+		}
+
+		/// <summary>
 		/// Called when a PlaylistDeletedMessage or PlaylistAddedMessage message has been received
 		/// Update the list of playlists held by the model
 		/// </summary>
@@ -112,6 +136,43 @@ namespace DBTest
 			List<Playlist> playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
 
 			ArtistsViewModel.PlaylistNames = playlists.Select( i => i.Name ).ToList();
+		}
+
+		/// <summary>
+		/// Called when a TagMembershipChangedMessage has been received
+		/// If there is no filtering of if the tag being filtered on has not changed then no action is required.
+		/// Otherwise the data must be refreshed
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagMembershipChanged( object message )
+		{
+			if ( ( ArtistsViewModel.CurrentFilter != null ) &&
+				( ( message as TagMembershipChangedMessage ).ChangedTags.Contains( ArtistsViewModel.CurrentFilter.Name ) == true ) )
+			{
+				ApplyFilter( ArtistsViewModel.CurrentFilter );
+			}
+		}
+
+		/// <summary>
+		/// Called when a SelectedLibraryChangedMessage has been received
+		/// Clear the current data and the filter and then reload
+		/// </summary>
+		/// <param name="message"></param>
+		private static void SelectedLibraryChanged( object message )
+		{
+			// Set the new library
+			ArtistsViewModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
+
+			// Clear the displayed data and filter
+			ArtistsViewModel.Artists = null;
+			ArtistsViewModel.AlphaIndex = null;
+			ArtistsViewModel.CurrentFilter = null;
+
+			// Publish the data
+			Reporter?.ArtistsDataAvailable();
+
+			// Reread the data
+			GetArtistsAsync( ArtistsViewModel.LibraryId );
 		}
 
 		/// <summary>

@@ -191,5 +191,41 @@ namespace DBTest
 
 		[OneToOne]
 		public Song Song { get; set; }
+
+		/// <summary>
+		/// This entry is not in the database but needs to be accessed via the Song's ArtistAlbum and its Artist id
+		/// </summary>
+		[Ignore]
+		public Artist Artist { get; set; }
+	}
+
+	[Table( "Tag" )]
+	public class Tag
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		[OneToMany]
+		public List<TaggedAlbum> TaggedAlbums { get; set; }
+	}
+
+	[Table( "TaggedAlbum" )]
+	public class TaggedAlbum
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public int TagIndex { get; set; }
+
+		[ForeignKey( typeof( Album ) )]
+		public int AlbumId { get; set; }
+
+		[OneToOne]
+		public Album Album { get; set; }
+
+		[ForeignKey( typeof( Tag ) )]
+		public int TagId { get; set; }
 	}
 }

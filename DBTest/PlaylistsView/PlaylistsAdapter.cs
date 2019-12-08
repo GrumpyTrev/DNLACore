@@ -70,7 +70,7 @@ namespace DBTest
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
 			// If the supplied view previously contained a Playlist heading then don't use it
-			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.Title ) == null ) )
+			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.title ) == null ) )
 			{
 				convertView = null;
 			}
@@ -81,11 +81,12 @@ namespace DBTest
 				convertView = inflator.Inflate( Resource.Layout.playlistitem_layout, null );
 			}
 
-			Song songItem = Groups[ groupPosition ].PlaylistItems[ childPosition ].Song;
+			PlaylistItem item = Groups[ groupPosition ].PlaylistItems[ childPosition ];
 
-			// Display the Title and Duration
-			convertView.FindViewById<TextView>( Resource.Id.Title ).Text = songItem.Title;
-			convertView.FindViewById<TextView>( Resource.Id.Duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
+			// Display the Title, Duration and Artist
+			convertView.FindViewById<TextView>( Resource.Id.title ).Text = item.Song.Title;
+			convertView.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( item.Song.Length ).ToString( @"mm\:ss" );
+			convertView.FindViewById<TextView>( Resource.Id.artist ).Text = item.Artist.Name;
 
 			return convertView;
 		}
@@ -101,7 +102,7 @@ namespace DBTest
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
 			// If the supplied view previously contained other than a PLaylist then don't use it
-			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.PlayListName ) == null ) )
+			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.playListName ) == null ) )
 			{
 				convertView = null;
 			}
@@ -113,7 +114,7 @@ namespace DBTest
 			}
 
 			// Display the artist's name
-			convertView.FindViewById<TextView>( Resource.Id.PlayListName ).Text = Groups[ groupPosition ].Name;
+			convertView.FindViewById<TextView>( Resource.Id.playListName ).Text = Groups[ groupPosition ].Name;
 
 			return convertView;
 		}

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+ 	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+	<ExpandableListView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/albumsList"
+		android:fastScrollEnabled="true"
+		android:layout_weight="1">
+	</ExpandableListView>
+	<android.support.v7.widget.Toolbar
+		android:id="@+id/bottomToolbar"
+		android:layout_width="fill_parent"
+		android:layout_height="?attr/actionBarSize"
+		android:layout_gravity="bottom"
+		android:background="?attr/colorPrimary"
+		app:theme="@style/AppTheme"
+		app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+		<include android:id="@+id/tag"
+			layout="@layout/bottom_button"/>
+
+		<include android:id="@+id/add_to_playlist"
+			layout="@layout/bottom_button"/>
+		
+		<include android:id="@+id/add_to_queue"
+			layout="@layout/bottom_button"/>
+		
+		<include android:id="@+id/play_now"
+			layout="@layout/bottom_button"/>
+		
+	</android.support.v7.widget.Toolbar>
+</LinearLayout>
