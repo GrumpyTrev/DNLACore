@@ -66,6 +66,7 @@
     <Compile Include="Controllers\ArtistsController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\FilterManagementController.cs" />
+    <Compile Include="Controllers\LibraryNameDisplayController.cs" />
     <Compile Include="Controllers\LibrarySelectionController.cs" />
     <Compile Include="Controllers\PlaybackManagementController.cs" />
     <Compile Include="Controllers\NowPlayingController.cs" />

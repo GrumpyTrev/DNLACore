@@ -92,18 +92,15 @@
 		/// <param name="message"></param>
 		private static void SelectedLibraryChanged( object message )
 		{
-			// Set the new library
-			NowPlayingViewModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
-
 			// Clear the displayed data and filter
-			NowPlayingViewModel.NowPlayingPlaylist = null;
+			NowPlayingViewModel.NowPlayingPlaylist?.PlaylistItems.Clear();
 			NowPlayingViewModel.SelectedSong = -1;
 
 			// Publish the data
 			Reporter?.NowPlayingDataAvailable();
 
 			// Reread the data
-			GetNowPlayingListAsync( NowPlayingViewModel.LibraryId );
+			GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>

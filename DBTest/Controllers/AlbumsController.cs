@@ -104,8 +104,12 @@ namespace DBTest
 		public static void ApplyFilter( Tag newFilter )
 		{
 			// Clear the displayed data first as this may take a while
-			AlbumsViewModel.Albums = null;
-			AlbumsViewModel.AlphaIndex = null;
+			AlbumsViewModel.Albums?.Clear();
+			AlbumsViewModel.AlphaIndex?.Clear();
+			AlbumsViewModel.ListViewState = null;
+
+			// Clear the library as well so that the data will be reloaded on the next GetArtistsAsync call
+			AlbumsViewModel.LibraryId = -1;
 
 			// Publish the data
 			Reporter?.AlbumsDataAvailable();
@@ -113,7 +117,7 @@ namespace DBTest
 			// Update the model and reread the data
 			AlbumsViewModel.CurrentFilter = newFilter;
 
-			GetAlbumsAsync( AlbumsViewModel.LibraryId );
+			GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>
@@ -151,19 +155,17 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SelectedLibraryChanged( object message )
 		{
-			// Set the new library
-			AlbumsViewModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
-
 			// Clear the displayed data and filter
-			AlbumsViewModel.Albums = null;
-			AlbumsViewModel.AlphaIndex = null;
+			AlbumsViewModel.Albums?.Clear();
+			AlbumsViewModel.AlphaIndex?.Clear();
+			AlbumsViewModel.ListViewState = null;
 			AlbumsViewModel.CurrentFilter = null;
 
 			// Publish the data
 			Reporter?.AlbumsDataAvailable();
 
 			// Reread the data
-			GetAlbumsAsync( AlbumsViewModel.LibraryId );
+			GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>

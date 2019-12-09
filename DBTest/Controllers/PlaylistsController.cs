@@ -140,17 +140,14 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SelectedLibraryChanged( object message )
 		{
-			// Set the new library
-			PlaylistsViewModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
-
 			// Clear the displayed data
-			PlaylistsViewModel.Playlists = null;
+			PlaylistsViewModel.Playlists?.Clear();
 
 			// Publish the data
 			Reporter?.PlaylistsDataAvailable();
 
 			// Reread the data
-			RefreshModelData();
+			GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>

@@ -53,21 +53,12 @@ namespace DBTest
 		/// </summary>
 		public void AlbumsDataAvailable()
 		{
-			// If this data has been cleared in the model then pass empty data on to the adapter rather than null data
-			if ( AlbumsViewModel.Albums == null )
-			{
-				( ( AlbumsAdapter )Adapter ).SetData( new List<Album>(), new Dictionary<string, int>() );
-				AlbumsViewModel.ListViewState = null;
-			}
-			else
-			{
-				( ( AlbumsAdapter )Adapter ).SetData( AlbumsViewModel.Albums, AlbumsViewModel.AlphaIndex );
+			( ( AlbumsAdapter )Adapter ).SetData( AlbumsViewModel.Albums, AlbumsViewModel.AlphaIndex );
 
-				if ( AlbumsViewModel.ListViewState != null )
-				{
-					ListView.OnRestoreInstanceState( AlbumsViewModel.ListViewState );
-					AlbumsViewModel.ListViewState = null;
-				}
+			if ( AlbumsViewModel.ListViewState != null )
+			{
+				ListView.OnRestoreInstanceState( AlbumsViewModel.ListViewState );
+				AlbumsViewModel.ListViewState = null;
 			}
 
 			// Indicate whether or not a filter has been applied

@@ -26,7 +26,14 @@ namespace DBTest
 		{
 			// Get the Now Playing list
 			Playlist thePlaylist = await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().
-				Where( d => ( ( d.LibraryId == libraryId ) ) && ( d.Name == NowPlayingController.NowPlayingPlaylistName ) ).FirstAsync();
+				Where( d => ( d.LibraryId == libraryId ) && ( d.Name == NowPlayingController.NowPlayingPlaylistName ) ).FirstOrDefaultAsync();
+
+			if ( thePlaylist == null )
+			{
+				// If there is no NowPlaying list create one
+				thePlaylist = new Playlist() { Name = NowPlayingController.NowPlayingPlaylistName, LibraryId = libraryId };
+				await ConnectionDetailsModel.AsynchConnection.InsertAsync( thePlaylist );
+			}
 
 			// Get the children PlaylistItems and then the Song entries for each of them
 			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( thePlaylist );

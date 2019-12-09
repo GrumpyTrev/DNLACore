@@ -124,28 +124,14 @@ namespace DBTest
 		/// Display the data held in the Playlists view model
 		/// </summary>
 		/// <param name="message"></param>
-		public void PlaylistsDataAvailable()
-		{
-			// If the data has been set to null, pass on an empty list
-			if ( PlaylistsViewModel.Playlists == null )
-			{
-				Adapter.SetData( new List<Playlist>() );
-			}
-			else
-			{
-				Adapter.SetData( PlaylistsViewModel.Playlists );
-			}
-		}
+		public void PlaylistsDataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists );
 
 		/// <summary>
 		/// Called when the PlaylistSongsAddedMessage is received
 		/// Pass on the changes to the adpater
 		/// </summary>
 		/// <param name="message"></param>
-		public void PlaylistUpdated( string playlistName )
-		{
-			( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlistName );
-		}
+		public void PlaylistUpdated( string playlistName ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlistName );
 
 		/// <summary>
 		/// Called when the number of selected items has changed.

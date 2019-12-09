@@ -54,20 +54,12 @@ namespace DBTest
 		public void ArtistsDataAvailable()
 		{
 			// If this data has been cleared in the model then pass empty data on to the adapter rather than null data
-			if ( ArtistsViewModel.Artists == null )
-			{
-				( ( ArtistsAdapter )Adapter ).SetData( new List<Artist>(), new Dictionary<string, int>() );
-				ArtistsViewModel.ListViewState = null;
-			}
-			else
-			{
-				( ( ArtistsAdapter )Adapter ).SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
+			( ( ArtistsAdapter )Adapter ).SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
 
-				if ( ArtistsViewModel.ListViewState != null )
-				{
-					ListView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
-					ArtistsViewModel.ListViewState = null;
-				}
+			if ( ArtistsViewModel.ListViewState != null )
+			{
+				ListView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
+				ArtistsViewModel.ListViewState = null;
 			}
 
 			// Indicate whether or not a filter has been applied

@@ -16,7 +16,7 @@ using SQLiteNetExtensions.Extensions;
 namespace DBTest
 {
 	[Activity( Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true )]
-	public class MainActivity: AppCompatActivity, Logger.ILogger
+	public class MainActivity: AppCompatActivity, Logger.ILogger, LibraryNameDisplayController.IReporter
 	{
 		/// <summary>
 		/// Called to create the UI components of the activity
@@ -71,6 +71,10 @@ namespace DBTest
 			// Initialise the LibrarySelection
 			libararySelector = new LibrarySelection( this );
 
+			// Link in to the LibraryNameDisplayController to be informed of library name changes
+			LibraryNameDisplayController.Reporter = this;
+			LibraryNameDisplayController.GetCurrentLibraryName();
+
 			// Make sure someone reads the available filters before they are needed
 			FilterManagementController.GetTagsAsync();
 
@@ -87,12 +91,6 @@ namespace DBTest
 				StartActivity( new Intent().SetAction( Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations )
 					.SetData( Uri.Parse( "package:" + PackageName ) ) );
 			}
-
-			// Get the current library name for the app title.
-			// TO DO make this part of a more well designed library choice functionality
-			currentLibrary = ConnectionDetailsModel.SynchConnection.Get<Library>( ConnectionDetailsModel.LibraryId );
-
-			SupportActionBar.Title = currentLibrary.Name;
 
 			// Initialise the fragments showing the selected library
 			InitialiseFragments();
@@ -172,6 +170,30 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when the library name has been obtained at start-up or if it has changed
+		/// </summary>
+		/// <param name="libraryName"></param>
+		public void LibraryNameAvailable( string libraryName ) => SupportActionBar.Title = libraryName;
+
+		/// <summary>
+		/// Log a message
+		/// </summary>
+		/// <param name="message"></param>
+		public void Log( string message ) => Android.Util.Log.WriteLine( Android.Util.LogPriority.Debug, "DBTest", message );
+
+		/// <summary>
+		/// Report an event 
+		/// </summary>
+		/// <param name="message"></param>
+		public void Event( string message ) => RunOnUiThread( () => Toast.MakeText( this, message, ToastLength.Short ).Show() );
+
+		/// <summary>
+		/// Report an error
+		/// </summary>
+		/// <param name="message"></param>
+		public void Error( string message ) => RunOnUiThread( () => Toast.MakeText( this, message, ToastLength.Long ).Show() );
+
+		/// <summary>
 		/// Called when the activity is being closed down.
 		/// This can either be temporary to respond to a configuration change (rotation),
 		/// or permanent if the user or system is shutting down the application
@@ -197,35 +219,9 @@ namespace DBTest
 			// Some of the managers need to remove themselves from the scene
 			libraryRescanner.ReleaseResources();
 			FragmentTitles.ParentActivity = null;
+			LibraryNameDisplayController.Reporter = null;
 
 			base.OnDestroy();
-		}
-
-		/// <summary>
-		/// Log a message
-		/// </summary>
-		/// <param name="message"></param>
-		public void Log( string message )
-		{
-			Android.Util.Log.WriteLine( Android.Util.LogPriority.Debug, "DBTest", message );
-		}
-
-		/// <summary>
-		/// Report an event 
-		/// </summary>
-		/// <param name="message"></param>
-		public void Event( string message )
-		{
-			Toast.MakeText( this, message, ToastLength.Short ).Show();
-		}
-
-		/// <summary>
-		/// Report an error
-		/// </summary>
-		/// <param name="message"></param>
-		public void Error( string message )
-		{
-			Toast.MakeText( this, message, ToastLength.Long ).Show();
 		}
 
 		/// <summary>
@@ -401,11 +397,6 @@ namespace DBTest
 		/// The LibrarySelection class controls the selection of a library to be displayed
 		/// </summary>
 		private LibrarySelection libararySelector = null;
-
-		/// <summary>
-		/// The library currently being displayed
-		/// </summary>
-		private Library currentLibrary = null;
 	}
 }
 

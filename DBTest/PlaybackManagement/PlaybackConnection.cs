@@ -140,7 +140,6 @@ namespace DBTest
 			}
 		}
 
-
 		/// <summary>
 		/// Play the currently selected song
 		/// </summary>

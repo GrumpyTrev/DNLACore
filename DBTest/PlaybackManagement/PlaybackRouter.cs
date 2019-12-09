@@ -204,7 +204,19 @@ namespace DBTest
 		/// <summary>
 		/// Start or resume playback
 		/// </summary>
-		public void Start() => selectedConnection?.Start();
+		public void Start()
+		{
+			// If no song is currently selected and there is a song available then select it
+			if ( ( PlaybackManagerModel.CurrentSongIndex == -1 ) && ( ( PlaybackManagerModel.NowPlayingPlaylist?.PlaylistItems.Count ?? 0 ) > 0 ) )
+			{
+				PlaybackManagementController.SetSelectedSong( 0 );
+			}
+
+			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
+			{
+				selectedConnection?.Start();
+			}
+		}
 
 		/// <summary>
 		/// Called when the service has changed the song index
