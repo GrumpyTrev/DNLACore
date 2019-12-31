@@ -7,7 +7,17 @@ namespace DBTest
 		/// <summary>
 		/// The list of filters obtaied from the database
 		/// </summary>
-		public static List< Tag > Tags { get; set; } = null;
+		public static List< Tag > Tags { get; internal set; } = null;
+
+		/// <summary>
+		/// The recently added tag
+		/// </summary>
+		public static Tag RecentlyAddedTag { get; internal set; } = null;
+
+		/// <summary>
+		/// The just played tag
+		/// </summary>
+		public static Tag JustPlayedTag { get; internal set; } = null;
 	}
 
 	/// <summary>

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -29,39 +30,36 @@ namespace DBTest
 		public static async void GetArtistsAsync( int libraryId )
 		{
 			// Check if the Artist details for the library have already been obtained
-			if ( ( ArtistsViewModel.Artists == null ) || ( ArtistsViewModel.LibraryId != libraryId ) )
+			if ( ArtistsViewModel.LibraryId != libraryId )
 			{
 				// New data is required
 				ArtistsViewModel.LibraryId = libraryId;
 				ArtistsViewModel.Artists = await ArtistAccess.GetArtistDetailsAsync( ArtistsViewModel.LibraryId, ArtistsViewModel.CurrentFilter );
 
-				// Sort the list of artists by name
-				ArtistsViewModel.Artists.Sort( ( a, b ) => {
+				// Sort the Artists and create the indexes in a Task rather than the UI
+				await Task.Run( () => {
+					// Sort the list of artists by name. This is done even when the artists are filtered because an artist can contain multiple albums
 					// Do a normal comparison, except remove a leading 'The ' before comparing
-					string artistA = ( a.Name.ToUpper().StartsWith( "THE " ) == true ) ? a.Name.Substring( 4 ) : a.Name;
-					string artistB = ( b.Name.ToUpper().StartsWith( "THE " ) == true ) ? b.Name.Substring( 4 ) : b.Name;
+					ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
 
-					return artistA.CompareTo( artistB );
+					// Work out the section indexes for the sorted data
+					ArtistsViewModel.AlphaIndex.Clear();
+
+					int index = 0;
+					foreach ( Artist artist in ArtistsViewModel.Artists )
+					{
+						// Remember to ignore leading 'The ' here as well
+						string key = artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper();
+						if ( ArtistsViewModel.AlphaIndex.ContainsKey( key ) == false )
+						{
+							ArtistsViewModel.AlphaIndex[ key ] = index;
+						}
+						index++;
+					}
 				} );
 
-				// Work out the section indexes for the sorted data
-				ArtistsViewModel.AlphaIndex = new Dictionary<string, int>();
-				int index = 0;
-				foreach ( Artist artist in ArtistsViewModel.Artists )
-				{
-					string key = artist.Name[ 0 ].ToString();
-					if ( ArtistsViewModel.AlphaIndex.ContainsKey( key ) == false )
-					{
-						ArtistsViewModel.AlphaIndex[ key ] = index;
-					}
-					index++;
-				}
-
-				// Get the list of current playlists
-				List< Playlist > playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
-
-				// Extract just the names as well
-				ArtistsViewModel.PlaylistNames = playlists.Select( i => i.Name ).ToList();
+				// Get the list of current playlists and extract the names to a list
+				await GetPlayListNames();
 
 				// Get the Tags as well
 				ArtistsViewModel.Tags = await FilterAccess.GetTagsAsync();
@@ -73,11 +71,13 @@ namespace DBTest
 
 		/// <summary>
 		/// Get the contents for the specified Artist
+		/// This amount of work could/should be done in a non-UI task, but not sure at the moment how to
+		/// interact with the expanding UI.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public static void GetArtistContents( Artist theArtist )
+		public static async Task GetArtistContentsAsync( Artist theArtist )
 		{
-			ArtistAccess.GetArtistContents( theArtist, ArtistsViewModel.CurrentFilter );
+			await ArtistAccess.GetArtistContentsAsync( theArtist, ArtistsViewModel.CurrentFilter );
 
 			// Sort the albums alphabetically
 			theArtist.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
@@ -97,10 +97,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static void AddSongsToPlaylist( List<Song> songsToAdd, string playlistName )
+		public static async void AddSongsToPlaylistAsync( List<Song> songsToAdd, string playlistName )
 		{
 			// Carry out the common processing to add songs to a playlist
-			PlaylistAccess.AddSongsToPlaylist( songsToAdd, playlistName, ArtistsViewModel.LibraryId );
+			await PlaylistAccess.AddSongsToPlaylistAsync( songsToAdd, playlistName, ArtistsViewModel.LibraryId );
 
 			// Publish this event
 			new PlaylistSongsAddedMessage() { PlaylistName = playlistName }.Send();
@@ -113,12 +113,7 @@ namespace DBTest
 		public static void ApplyFilter( Tag newFilter )
 		{
 			// Clear the displayed data first as this may take a while
-			ArtistsViewModel.Artists?.Clear();
-			ArtistsViewModel.AlphaIndex?.Clear();
-			ArtistsViewModel.ListViewState = null;
-
-			// Clear the library as well so that the data will be reloaded on the next GetArtistsAsync call
-			ArtistsViewModel.LibraryId = -1;
+			ArtistsViewModel.ClearModel();
 
 			// Publish the data
 			Reporter?.ArtistsDataAvailable();
@@ -134,13 +129,7 @@ namespace DBTest
 		/// Update the list of playlists held by the model
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void PlaylistAddedOrDeleted( object message )
-		{
-			// Get the list of current playlists
-			List<Playlist> playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
-
-			ArtistsViewModel.PlaylistNames = playlists.Select( i => i.Name ).ToList();
-		}
+		private static async void PlaylistAddedOrDeleted( object message ) => await GetPlayListNames();
 
 		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
@@ -165,10 +154,7 @@ namespace DBTest
 		private static void SelectedLibraryChanged( object message )
 		{
 			// Clear the displayed data and filter
-			ArtistsViewModel.Artists?.Clear();
-			ArtistsViewModel.AlphaIndex?.Clear();
-			ArtistsViewModel.CurrentFilter = null;
-			ArtistsViewModel.ListViewState = null;
+			ArtistsViewModel.ClearModel();
 
 			// Publish the data
 			Reporter?.ArtistsDataAvailable();
@@ -176,6 +162,12 @@ namespace DBTest
 			// Reread the data
 			GetArtistsAsync( ConnectionDetailsModel.LibraryId );
 		}
+
+		/// <summary>
+		/// Get the names of all the user playlists
+		/// </summary>
+		private static async Task GetPlayListNames() => 
+			ArtistsViewModel.PlaylistNames = ( await PlaylistAccess.GetPlaylistDetailsAsync( ArtistsViewModel.LibraryId ) ).Select( i => i.Name ).ToList();
 
 		/// <summary>
 		/// The interface instance used to report back controller results

@@ -2,7 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 	<item
-		android:title="Playback control..."
+		android:title="Playback"
 		app:showAsAction="never" >
 		<menu>
 			<item
@@ -14,10 +14,13 @@
 			<item
 				android:id="@+id/rescan_remote_devices"
 				android:title="Rescan remote devices" />
+			<item
+				android:id="@+id/shuffle_now_playing"
+				android:title="Shuffle now playing list" />
 		</menu>
 	</item>
 	<item
-		android:title="Library management..."
+		android:title="Library"
 		app:showAsAction="never" >
 		<menu>
 			<item
@@ -26,6 +29,9 @@
 			<item
 				android:id="@+id/rescan_library"
 				android:title="Rescan library" />
+			<item
+				android:id="@+id/clear_library"
+				android:title="Clear library" />
 		</menu>
 	</item>
 </menu>

@@ -137,6 +137,17 @@ namespace DBTest
 
 		[OneToMany]
 		public List<Song> Songs { get; set; }
+
+		[ForeignKey( typeof( Artist ) )]
+		public int ArtistId { get; set; }
+
+		public bool VariousArtists { get; set; } = false;
+
+		/// <summary>
+		/// Don't put this in database as some Albums may have an invalid ArtistId
+		/// </summary>
+		[Ignore]
+		public Artist Artist { get; set; }
 	}
 
 	[Table( "ArtistAlbum" ) ]
@@ -206,6 +217,26 @@ namespace DBTest
 		public int Id { get; set; }
 
 		public string Name { get; set; }
+
+		/// <summary>
+		/// Name to be displayed in tab when filter applied
+		/// </summary>
+		public string ShortName { get; set; }
+
+		/// <summary>
+		/// Is this a user or system tag
+		/// </summary>
+		public bool UserTag { get; set; } = true;
+
+		/// <summary>
+		/// The maximum number of albums that can be tagged (used by system tags only)
+		/// </summary>
+		public int MaxCount { get; set; } = -1;
+
+		/// <summary>
+		/// Sort tagged albums by tag id
+		/// </summary>
+		public bool TagOrder { get; set; } = false;
 
 		[OneToMany]
 		public List<TaggedAlbum> TaggedAlbums { get; set; }

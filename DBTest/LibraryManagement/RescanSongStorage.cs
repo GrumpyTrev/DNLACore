@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -25,10 +26,10 @@ namespace DBTest
 		/// For now filter these out of the list and let the base class handle the new songs
 		/// </summary>
 		/// <param name="songs"></param>
-		public override void SongsScanned( List<ScannedSong> songs )
+		public override Task SongsScanned( List<ScannedSong> songs )
 		{
 			songs.RemoveAll( song => songLookup.ContainsKey( song.SourcePath ) == true );
-			base.SongsScanned( songs );
+			return base.SongsScanned( songs );
 		}
 
 		/// <summary>

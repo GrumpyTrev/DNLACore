@@ -9,7 +9,7 @@ namespace DBTest
 	/// <summary>
 	/// The LibrarySelection class controls the selection of a library to be displayed
 	/// </summary>
-	class LibrarySelection : LibrarySelectionController.IReporter
+	class LibrarySelection : LibraryManagementController.IReporter
 	{
 		/// <summary>
 		/// LibrarySelection constructor
@@ -19,7 +19,6 @@ namespace DBTest
 		public LibrarySelection( Context alertContext )
 		{
 			contextForAlert = alertContext;
-			LibrarySelectionController.Reporter = this;
 		}
 
 		/// <summary>
@@ -28,7 +27,7 @@ namespace DBTest
 		public void SelectLibrary()
 		{
 			// Get the list of available libraries
-			LibrarySelectionController.GetLibrariesAsync();
+			LibraryManagementController.GetLibrariesAsync( this );
 		}
 
 		/// <summary>
@@ -38,17 +37,17 @@ namespace DBTest
 		public void LibraryDataAvailable()
 		{
 			// Get the names of the libraries to display and the index in thelist of the current library
-			List<string> libraryNames = LibrarySelectionModel.Libraries.Select( lib => lib.Name ).ToList();
-			int currentLibraryIndex = LibrarySelectionModel.Libraries.FindIndex( lib => ( lib.Id == ConnectionDetailsModel.LibraryId ) );
-			Library libraryToSelect = LibrarySelectionModel.Libraries[ currentLibraryIndex ];
+			List<string> libraryNames = LibraryManagementModel.Libraries.Select( lib => lib.Name ).ToList();
+			int currentLibraryIndex = LibraryManagementModel.Libraries.FindIndex( lib => ( lib.Id == ConnectionDetailsModel.LibraryId ) );
+			Library libraryToSelect = LibraryManagementModel.Libraries[ currentLibraryIndex ];
 
 			AlertDialog alert = new AlertDialog.Builder( contextForAlert )
 				.SetTitle( "Select library to display" )
 				.SetSingleChoiceItems( libraryNames.ToArray(), currentLibraryIndex,
 					new EventHandler<DialogClickEventArgs>( delegate ( object sender, DialogClickEventArgs e ) {
-						libraryToSelect = LibrarySelectionModel.Libraries[ e.Which ];
+						libraryToSelect = LibraryManagementModel.Libraries[ e.Which ];
 					} ) )
-				.SetPositiveButton( "Ok", delegate { LibrarySelectionController.SelectLibrary( libraryToSelect ); } )
+				.SetPositiveButton( "Ok", delegate { LibraryManagementController.SelectLibraryAsync( libraryToSelect ); } )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Show();
 		}

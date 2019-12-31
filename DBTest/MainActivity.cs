@@ -54,10 +54,7 @@ namespace DBTest
 				ConnectionDetailsModel.LibraryId = InitialiseDatabase();
 			}
 
-			//			if ( File.Exists( databasePath ) == true )
-			//			{
-			//				File.Delete( databasePath );
-			//			}
+//			FixupArtistIdInAlbums();
 
 			// Initialise the PlaybackRouter
 			playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
@@ -65,15 +62,18 @@ namespace DBTest
 			// Initialise the PlaybackSelectionManager
 			playbackSelector = new PlaybackSelectionManager( this );
 
-			// Initialise the LibraryRescanManager
-			libraryRescanner = new LibraryRescanManager( this );
+			// Initialise the LibraryScanner
+			libraryScanner = new LibraryScanner( this );
 
 			// Initialise the LibrarySelection
-			libararySelector = new LibrarySelection( this );
+			librarySelector = new LibrarySelection( this );
+
+			// Initialise the LibraryClear
+			libraryClearer = new LibraryClear( this );
 
 			// Link in to the LibraryNameDisplayController to be informed of library name changes
 			LibraryNameDisplayController.Reporter = this;
-			LibraryNameDisplayController.GetCurrentLibraryName();
+			LibraryNameDisplayController.GetCurrentLibraryNameAsync();
 
 			// Make sure someone reads the available filters before they are needed
 			FilterManagementController.GetTagsAsync();
@@ -146,7 +146,7 @@ namespace DBTest
 			}
 			else if ( id == Resource.Id.rescan_library )
 			{
-				libraryRescanner.RescanSelection();
+				libraryScanner.ScanSelection();
 				handled = true;
 			}
 			else if ( id == Resource.Id.rescan_remote_devices )
@@ -156,7 +156,17 @@ namespace DBTest
 			}
 			else if ( id == Resource.Id.select_library )
 			{
-				libararySelector.SelectLibrary();
+				librarySelector.SelectLibrary();
+				handled = true;
+			}
+			else if ( id == Resource.Id.clear_library )
+			{
+				libraryClearer.SelectLibraryToClear();
+				handled = true;
+			}
+			else if ( id == Resource.Id.shuffle_now_playing )
+			{
+				NowPlayingController.ShuffleNowPlayingList();
 				handled = true;
 			}
 
@@ -217,7 +227,7 @@ namespace DBTest
 			}
 
 			// Some of the managers need to remove themselves from the scene
-			libraryRescanner.ReleaseResources();
+			libraryScanner.ReleaseResources();
 			FragmentTitles.ParentActivity = null;
 			LibraryNameDisplayController.Reporter = null;
 
@@ -286,8 +296,7 @@ namespace DBTest
 						TableQuery<Library> libraries = ConnectionDetailsModel.SynchConnection.Table<Library>();
 						foreach ( Library lib in libraries )
 						{
-							LibraryScanner scanner = new LibraryScanner( lib );
-							scanner.ScanLibrary();
+							new LibraryCreator( lib ).ScanLibrary();
 						}
 
 						currentLibrary = ConnectionDetailsModel.SynchConnection.GetAllWithChildren<Library>().SingleOrDefault();
@@ -322,8 +331,9 @@ namespace DBTest
 					// We now have a current library. If we don't have a Playback record then create one now
 					if ( playbackRecord == null )
 					{
-						playbackRecord = new Playback();
-						playbackRecord.SongIndex = -1;
+						playbackRecord = new Playback {
+							SongIndex = -1
+						};
 						ConnectionDetailsModel.SynchConnection.Insert( playbackRecord );
 					}
 
@@ -378,6 +388,43 @@ namespace DBTest
 			FragmentTitles.ParentActivity = this;
 		}
 
+		private void FixupArtistIdInAlbums()
+		{
+			// Get all the ArtistAlbum entries in the database
+			List<ArtistAlbum> artistAlbums = ConnectionDetailsModel.SynchConnection.Table<ArtistAlbum>().ToList();
+
+			// For each ArtistAlbum get the child Album
+			foreach ( ArtistAlbum artistAlbum in artistAlbums )
+			{
+				// Read in the Album
+				Album album = ConnectionDetailsModel.SynchConnection.Table<Album>().Where( alb => ( alb.Id == artistAlbum.AlbumId ) ).SingleOrDefault();
+
+				if ( album != null )
+				{
+					// If the ArtistId in the Album has no been set then set it to the value in this ArtistAblbum
+					// If is has been set and is different then set the various artists flag
+					if ( album.ArtistId == 0 )
+					{
+						album.ArtistId = artistAlbum.ArtistId;
+						album.VariousArtists = false;
+					}
+					else
+					{
+						if ( album.ArtistId != artistAlbum.ArtistId )
+						{
+							album.VariousArtists = true;
+						}
+					}
+
+					// Update the Album entry
+					ConnectionDetailsModel.SynchConnection.Update( album );
+				}
+				else
+				{
+				}
+			}
+		}
+
 		/// <summary>
 		/// The PlaybackRouter used to route playback commands to the selected device
 		/// </summary>
@@ -389,14 +436,19 @@ namespace DBTest
 		private PlaybackSelectionManager playbackSelector = null;
 
 		/// <summary>
-		/// The LibraryRescanManager class controls the rescanning of a library
+		/// The LibraryScanner class controls the rescanning of a library
 		/// </summary>
-		private LibraryRescanManager libraryRescanner = null;
+		private LibraryScanner libraryScanner = null;
 
 		/// <summary>
 		/// The LibrarySelection class controls the selection of a library to be displayed
 		/// </summary>
-		private LibrarySelection libararySelector = null;
+		private LibrarySelection librarySelector = null;
+
+		/// <summary>
+		/// The LibraryClear class controls the clearance of a library
+		/// </summary>
+		private LibraryClear libraryClearer = null;
 	}
 }
 

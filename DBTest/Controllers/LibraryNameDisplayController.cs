@@ -13,8 +13,8 @@
 		/// <summary>
 		/// Get the name of the currently displayed library and report it back via the delegate
 		/// </summary>
-		public static void GetCurrentLibraryName() => 
-			Reporter?.LibraryNameAvailable( ConnectionDetailsModel.SynchConnection.Get<Library>( ConnectionDetailsModel.LibraryId ).Name );
+		public static async void GetCurrentLibraryNameAsync() => 
+			Reporter?.LibraryNameAvailable( await LibraryAccess.GetLibraryNameAsync( ConnectionDetailsModel.LibraryId ) );
 
 		/// <summary>
 		/// Called when a SelectedLibraryChangedMessage has been received

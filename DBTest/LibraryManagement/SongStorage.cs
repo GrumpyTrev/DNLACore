@@ -11,6 +11,11 @@ namespace DBTest
 	/// </summary>
 	class SongStorage : ISongStorage
 	{
+		/// <summary>
+		/// Constructor specifying the library and source
+		/// </summary>
+		/// <param name="libraryToScan"></param>
+		/// <param name="sourceToScan"></param>
 		public SongStorage( Library libraryToScan, Source sourceToScan )
 		{
 			scanLibrary = libraryToScan;
@@ -22,7 +27,7 @@ namespace DBTest
 		/// Group the songs into albums by album name and then process each of these albums
 		/// </summary>
 		/// <param name="songs"></param>
-		public virtual async void SongsScanned( List<ScannedSong> songs )
+		public virtual async Task SongsScanned( List<ScannedSong> songs )
 		{
 			Dictionary<string, ScannedAlbum> albumGroups = new Dictionary<string, ScannedAlbum>();
 
@@ -59,6 +64,12 @@ namespace DBTest
 			}
 		}
 
+		/// <summary>
+		/// Method overridden in derived classes to determine if the specified song requires scanning
+		/// </summary>
+		/// <param name="filepath"></param>
+		/// <param name="modifiedTime"></param>
+		/// <returns></returns>
 		public virtual bool DoesSongRequireScanning( string filepath, DateTime modifiedTime )
 		{
 			return true;
@@ -165,6 +176,20 @@ namespace DBTest
 				// Add to the Album
 				songAlbum.Songs.Add( songToAdd );
 
+				// Store the artist with the album
+				if ( songAlbum.ArtistId == 0 )
+				{
+					songAlbum.ArtistId = songArtist.Id;
+				}
+				else
+				{
+					// The artist has already been stored - check if it is the same artist
+					if ( ( songAlbum.VariousArtists == false ) && ( songAlbum.ArtistId != songArtist.Id ) )
+					{
+						songAlbum.VariousArtists = true;
+					}
+				}
+
 				// Add to the source
 				sourceBeingScanned.Songs.Add( songToAdd );
 
@@ -229,6 +254,9 @@ namespace DBTest
 				// Add to Library
 				scanLibrary.Albums.Add( songAlbum );
 				await LibraryAccess.UpdateLibraryAsync( scanLibrary );
+
+				// Add this album to the Recently Added list
+				new AlbumAddedMessage() { AlbumAdded = songAlbum }.Send();
 			}
 
 			return songAlbum;
@@ -318,7 +346,7 @@ namespace DBTest
 		/// Method called when a group of songs from the same folder have been scanned in
 		/// </summary>
 		/// <param name="songs"></param>
-		void SongsScanned( List<ScannedSong> songs );
+		Task SongsScanned( List<ScannedSong> songs );
 
 		/// <summary>
 		/// Method called when checking whether or not a song requires scanning (downloading)

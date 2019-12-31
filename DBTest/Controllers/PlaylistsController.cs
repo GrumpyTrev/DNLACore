@@ -15,7 +15,7 @@ namespace DBTest
 		/// </summary>
 		static PlaylistsController()
 		{
-			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
+			Mediator.RegisterPermanent( SongsAddedAsync, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 		}
 
@@ -45,9 +45,9 @@ namespace DBTest
 		/// Get the contents for the specified Playlist
 		/// </summary>
 		/// <param name="thePlaylist"></param>
-		public static void GetPlaylistContents( Playlist thePlaylist )
+		public static async Task GetPlaylistContentsAsync( Playlist thePlaylist )
 		{
-			PlaylistAccess.GetPlaylistContentsWithArtists( thePlaylist );
+			await PlaylistAccess.GetPlaylistContentsWithArtistsAsync( thePlaylist );
 
 			// Sort the PlaylistItems by Track
 			thePlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
@@ -103,7 +103,7 @@ namespace DBTest
 		/// and let the view know
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongsAdded( object message )
+		private static async void SongsAddedAsync( object message )
 		{
 			if ( PlaylistsViewModel.Playlists != null )
 			{
@@ -115,7 +115,7 @@ namespace DBTest
 
 				if ( addedToPlaylist != null )
 				{
-					GetPlaylistContents( addedToPlaylist );
+					await GetPlaylistContentsAsync( addedToPlaylist );
 					Reporter?.PlaylistUpdated( songsAddedMessage.PlaylistName );
 				}
 			}

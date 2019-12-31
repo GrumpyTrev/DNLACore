@@ -3,7 +3,6 @@ using Android.Content;
 using Android.OS;
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -53,6 +52,8 @@ namespace DBTest
 							IsPlaying = true;
 							StartTimer();
 							AquireLock();
+
+							ReportSongPlayed();
 						}
 					}
 

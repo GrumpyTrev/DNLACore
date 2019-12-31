@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -10,44 +11,44 @@ namespace DBTest
 		/// <summary>
 		/// Set the selected song in the database
 		/// </summary>
-		public static void SetSelectedSong( int songIndex )
+		public static async Task SetSelectedSongAsync( int songIndex )
 		{
-			Playback playbackRecord = ConnectionDetailsModel.SynchConnection.Table<Playback>().Single();
+			Playback playbackRecord = await ConnectionDetailsModel.AsynchConnection.Table<Playback>().FirstAsync();
 			playbackRecord.SongIndex = songIndex;
-			ConnectionDetailsModel.SynchConnection.Update( playbackRecord );
+			await ConnectionDetailsModel.AsynchConnection.UpdateAsync( playbackRecord );
 		}
 
 		/// <summary>
 		/// Get the selected song
 		/// </summary>
 		/// <returns></returns>
-		public static int GetSelectedSong() => ConnectionDetailsModel.SynchConnection.Table<Playback>().Single().SongIndex;
+		public static async Task<int> GetSelectedSongAsync() => ( await ConnectionDetailsModel.AsynchConnection.Table<Playback>().FirstAsync() ).SongIndex;
 
 		/// <summary>
 		/// Get the current (last used) playback device name
 		/// </summary>
 		/// <returns></returns>
-		public static string GetPlaybackDevice() => ConnectionDetailsModel.SynchConnection.Table<Playback>().Single().PlaybackDeviceName;
+		public static async Task< string > GetPlaybackDeviceAsync() => ( await ConnectionDetailsModel.AsynchConnection.Table<Playback>().FirstAsync() ).PlaybackDeviceName;
 
 		/// <summary>
 		/// Save the device name in the database
 		/// </summary>
-		public static void SetPlaybackDevice( string deviceName )
+		public static async Task SetPlaybackDeviceAsync( string deviceName )
 		{
-			Playback playbackRecord = ConnectionDetailsModel.SynchConnection.Table<Playback>().Single();
+			Playback playbackRecord = await ConnectionDetailsModel.AsynchConnection.Table<Playback>().FirstAsync();
 			playbackRecord.PlaybackDeviceName = deviceName;
-			ConnectionDetailsModel.SynchConnection.Update( playbackRecord );
+			await ConnectionDetailsModel.AsynchConnection.UpdateAsync( playbackRecord );
 		}
 
 		/// <summary>
 		/// Update the selected library
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
-		public static void SetSelectedLibrary( Library selectedLibrary )
+		public static async Task SetSelectedLibraryAsync( Library selectedLibrary )
 		{
-			Playback playbackRecord = ConnectionDetailsModel.SynchConnection.Table<Playback>().Single();
+			Playback playbackRecord = await ConnectionDetailsModel.AsynchConnection.Table<Playback>().FirstAsync();
 			playbackRecord.LibraryId = selectedLibrary.Id;
-			ConnectionDetailsModel.SynchConnection.Update( playbackRecord );
+			await ConnectionDetailsModel.AsynchConnection.UpdateAsync( playbackRecord );
 		}
 	}
 }

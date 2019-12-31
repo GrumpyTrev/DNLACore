@@ -16,7 +16,7 @@ namespace DBTest
 		{
 			contextForBinding = bindContext;
 			typeForService = serviceType;
-			reporter = callBack;
+			Reporter = callBack;
 		}
 
 		/// <summary>
@@ -99,7 +99,7 @@ namespace DBTest
 			// If the service has connected after the connection has been selected then must inform the router 
 			if ( Selected == true )
 			{
-				reporter?.ServiceConnected( this );
+				Reporter?.ServiceConnected( this );
 			}
 		}
 
@@ -108,10 +108,7 @@ namespace DBTest
 		/// This only happens when something unexpected has happened at the service end
 		/// </summary>
 		/// <param name="name"></param>
-		public void OnServiceDisconnected( ComponentName name )
-		{
-			playerService = null;
-		}
+		public void OnServiceDisconnected( ComponentName name ) => playerService = null;
 
 		/// <summary>
 		/// Called when the Media Control data has been read
@@ -218,24 +215,24 @@ namespace DBTest
 		/// Called when the service has changed the song index
 		/// Pass this on to the controller
 		/// </summary>
-		public void SongIndexChanged( int songIndex )
-		{
-			reporter?.SongIndexChanged( songIndex );
-		}
+		public void SongIndexChanged( int songIndex ) => Reporter?.SongIndexChanged( songIndex );
 
 		/// <summary>
 		/// Called when playback of a song has started.
 		/// Report this back
 		/// </summary>
-		public void PlayStateChanged()
-		{
-			reporter?.PlayStateChanged();
-		}
+		public void PlayStateChanged() => Reporter?.PlayStateChanged();
 
 		/// <summary>
 		/// Play the next track
 		/// </summary>
 		public void PlayNext() => playerService?.PlayNext();
+
+		/// <summary>
+		/// Report the song currently being played
+		/// </summary>
+		/// <param name="playedSong"></param>
+		public void SongPlayed( Song playedSong ) => Reporter?.SongPlayed( playedSong );
 
 		/// <summary>
 		/// Play the previous track
@@ -263,14 +260,14 @@ namespace DBTest
 		private bool Selected { get; set; } = false;
 
 		/// <summary>
+		/// The interface used to report significant playback events
+		/// </summary>
+		private IConnectionCallbacks Reporter { get; set; } = null;
+
+		/// <summary>
 		/// At startup the Resume button should be treated as Play.
 		/// </summary>
 		private bool treatResumeAsPlay = false;
-
-		/// <summary>
-		/// The interface used to report significant playback events
-		/// </summary>
-		private IConnectionCallbacks reporter = null;
 
 		/// <summary>
 		/// The interface defining the calls back to the application
@@ -280,6 +277,7 @@ namespace DBTest
 			void PlayStateChanged();
 			void SongIndexChanged( int songIndex );
 			void ServiceConnected( PlaybackConnection connection );
+			void SongPlayed( Song songPlayed );
 		}
 	}
 }

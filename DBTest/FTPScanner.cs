@@ -105,7 +105,7 @@ namespace DBTest
 			// If any songs are available pass them back via the delegate
 			if ( songs.Count > 0 )
 			{
-				storageInterface.SongsScanned( songs );
+				await storageInterface.SongsScanned( songs );
 			}
 		}
 

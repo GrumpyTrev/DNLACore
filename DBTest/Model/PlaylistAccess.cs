@@ -1,9 +1,6 @@
-﻿using SQLite;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SQLiteNetExtensionsAsync.Extensions;
-using SQLiteNetExtensions.Extensions;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace DBTest
 {
@@ -36,19 +33,7 @@ namespace DBTest
 			}
 
 			// Get the children PlaylistItems and then the Song entries for each of them
-			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( thePlaylist );
-
-			foreach ( PlaylistItem playList in thePlaylist.PlaylistItems )
-			{
-				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( playList );
-
-				if ( withArtists == true )
-				{
-					// Now the Song entries are available get the Artist via the ArtistAlbum 
-					ArtistAlbum artistAlbum =await ConnectionDetailsModel.AsynchConnection.GetAsync<ArtistAlbum>( playList.Song.ArtistAlbumId );
-					playList.Artist = await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( artistAlbum.ArtistId );
-				}
-			}
+			await GetPlaylistContentsWithArtistsAsync( thePlaylist, withArtists );
 
 			return thePlaylist;
 		}
@@ -56,18 +41,29 @@ namespace DBTest
 		/// <summary>
 		/// Get the songs in the Now Playing playlist associated with the library 
 		/// </summary>
-		public static void GetPlaylistContentsWithArtists( Playlist thePlaylist )
+		public static async Task GetPlaylistContentsWithArtistsAsync( Playlist thePlaylist, bool withArtists = true )
 		{
 			// Get the children PlaylistItems and then the Song entries for each of them
-			ConnectionDetailsModel.SynchConnection.GetChildren( thePlaylist );
+			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( thePlaylist );
 
 			foreach ( PlaylistItem playList in thePlaylist.PlaylistItems )
 			{
-				ConnectionDetailsModel.SynchConnection.GetChildren( playList );
+				// The following call does not seem to always work, maybe something to do with the foreach?
+				//				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( playList );
+				playList.Song = await ConnectionDetailsModel.AsynchConnection.GetAsync<Song>( playList.SongId );
 
-				// Now the Song entries are available get the Artist via the ArtistAlbum 
-				ArtistAlbum artistAlbum = ConnectionDetailsModel.SynchConnection.Get<ArtistAlbum>( playList.Song.ArtistAlbumId );
-				playList.Artist = ConnectionDetailsModel.SynchConnection.Get<Artist>( artistAlbum.ArtistId );
+				if ( withArtists == true )
+				{
+					// Now the Song entries are available get the Artist via the ArtistAlbum 
+					if ( playList.Song != null )
+					{
+						ArtistAlbum artistAlbum = await ConnectionDetailsModel.AsynchConnection.GetAsync<ArtistAlbum>( playList.Song.ArtistAlbumId );
+						playList.Artist = await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( artistAlbum.ArtistId );
+					}
+					else
+					{
+					}
+				}
 			}
 		}
 
@@ -76,15 +72,15 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="list"></param>
-		public static void AddSongsToPlaylist( List<Song> songsToAdd, string selectedPlaylist, int libraryId )
+		public static async Task AddSongsToPlaylistAsync( List<Song> songsToAdd, string selectedPlaylist, int libraryId )
 		{
-			Playlist selectedList = ConnectionDetailsModel.SynchConnection.Table<Playlist>().
-				Where( list => ( list.Name == selectedPlaylist ) && ( list.LibraryId == libraryId ) ).SingleOrDefault();
+			Playlist selectedList = await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().
+				Where( d => ( d.LibraryId == libraryId ) && ( d.Name == selectedPlaylist ) ).FirstOrDefaultAsync();
 
 			if ( selectedList != null )
 			{
 				// Get the full contents of the playlist and add PlaylistItem entries to it
-				ConnectionDetailsModel.SynchConnection.GetChildren( selectedList );
+				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( selectedList );
 
 				foreach ( Song songToAdd in songsToAdd )
 				{
@@ -93,11 +89,11 @@ namespace DBTest
 						Track = selectedList.PlaylistItems.Count + 1
 					};
 
-					ConnectionDetailsModel.SynchConnection.Insert( listItem );
+					await ConnectionDetailsModel.AsynchConnection.InsertAsync( listItem );
 					selectedList.PlaylistItems.Add( listItem );
 				}
 
-				ConnectionDetailsModel.SynchConnection.UpdateWithChildren( selectedList );
+				await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( selectedList );
 			}
 		}
 
@@ -105,20 +101,20 @@ namespace DBTest
 		/// Clear the Now Playing list
 		/// </summary>
 		/// <param name="libraryId"></param>
-		public static void ClearNowPlayingList( int libraryId )
+		public static async Task ClearNowPlayingListAsync( int libraryId )
 		{
-			Playlist nowPlayingList = ConnectionDetailsModel.SynchConnection.Table<Playlist>().
-				Where( list => ( list.Name == NowPlayingController.NowPlayingPlaylistName ) && ( list.LibraryId == libraryId ) ).SingleOrDefault();
+			Playlist nowPlayingList = await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().
+				Where( list => ( list.Name == NowPlayingController.NowPlayingPlaylistName ) && ( list.LibraryId == libraryId ) ).FirstOrDefaultAsync();
 
 			if ( nowPlayingList != null )
 			{
-				// Make sure the list of PlaylistItems is read in
-				ConnectionDetailsModel.SynchConnection.GetChildren( nowPlayingList );
+				// Get the full contents of the playlist and add PlaylistItem entries to it
+				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( nowPlayingList );
 
 				// Delete the items from the database
 				foreach ( PlaylistItem item in nowPlayingList.PlaylistItems )
 				{
-					ConnectionDetailsModel.SynchConnection.Delete( item );
+					await ConnectionDetailsModel.AsynchConnection.DeleteAsync( item );
 				}
 			}
 		}
@@ -128,10 +124,8 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static void AddSongsToNowPlayingList( List<Song> songsToAdd, int libraryId )
-		{
-			AddSongsToPlaylist( songsToAdd, NowPlayingController.NowPlayingPlaylistName, libraryId );
-		}
+		public static async Task AddSongsToNowPlayingListAsync( List<Song> songsToAdd, int libraryId ) => 
+			await AddSongsToPlaylistAsync( songsToAdd, NowPlayingController.NowPlayingPlaylistName, libraryId );
 
 		/// <summary>
 		/// Delete the specified playlist from the database

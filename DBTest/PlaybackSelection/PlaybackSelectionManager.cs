@@ -51,7 +51,7 @@ namespace DBTest
 						// Save the selection
 						if ( e.Which != deviceIndex )
 						{
-							PlaybackSelectionController.SetSelectedPlayback( devices[ e.Which ] );
+							PlaybackSelectionController.SetSelectedPlaybackAsync( devices[ e.Which ] );
 						}
 
 						// Dismiss the dialogue

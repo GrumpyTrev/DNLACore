@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using SQLiteNetExtensionsAsync.Extensions;
-using SQLiteNetExtensions.Extensions;
 using System.Collections.Generic;
 using System.Linq;
+using SQLiteNetExtensions.Extensions;
 
 namespace DBTest
 {
@@ -46,9 +46,9 @@ namespace DBTest
 		/// Get the collection of ArtistAlbums and then the songs from each of those
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public static void GetArtistContents( Artist theArtist, Tag currentFilter )
+		public static async Task GetArtistContentsAsync( Artist theArtist, Tag currentFilter )
 		{
-			ConnectionDetailsModel.SynchConnection.GetChildren( theArtist );
+			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( theArtist );
 
 			if ( currentFilter != null )
 			{
@@ -60,7 +60,10 @@ namespace DBTest
 				theArtist.ArtistAlbums.RemoveAll( aa => albumIds.Contains( aa.AlbumId ) == false );
 			}
 
-			theArtist.ArtistAlbums.ForEach( item => ConnectionDetailsModel.SynchConnection.GetChildren( item ) );
+			foreach ( ArtistAlbum artistAlbum in theArtist.ArtistAlbums )
+			{
+				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( artistAlbum );
+			}
 		}
 
 		/// <summary>

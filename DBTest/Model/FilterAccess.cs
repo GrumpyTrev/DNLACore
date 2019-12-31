@@ -19,49 +19,41 @@ namespace DBTest
 			// not required - yet
 			List< Tag > tags = await ConnectionDetailsModel.AsynchConnection.GetAllWithChildrenAsync<Tag>();
 
+			// The Album entry in the TaggedAlbums will be required so we may as well get those now
+			tags.ForEach( tag => tag.TaggedAlbums.ForEach( async taggedAlbum => await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( taggedAlbum ) ) );
+
 			return tags;
 		}
 
 		/// <summary>
-		/// Remove an ArtistAlbum from the specified Tag
+		/// Get the named tag
 		/// </summary>
-		/// <param name="changedTag"></param>
-		/// <param name="selectedAlbum"></param>
-		public static async void RemoveTaggedAlbumAsync( Tag changedTag, ArtistAlbum selectedAlbum )
+		/// <param name="tagName"></param>
+		/// <returns></returns>
+		public static async Task<Tag> GetTagAsync( string tagName )
 		{
-			// Check if the album is actually tagged
-			int index = changedTag.TaggedAlbums.FindIndex( tag => ( tag.AlbumId == selectedAlbum.AlbumId ) );
-			if ( index != -1 )
-			{
-				await ConnectionDetailsModel.AsynchConnection.DeleteAsync( changedTag.TaggedAlbums[ index ] );
-				changedTag.TaggedAlbums.RemoveAt( index );
-				await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( changedTag );
-			}
+			Tag namedTag = await ConnectionDetailsModel.AsynchConnection.GetAsync<Tag>( t => t.Name == tagName );
+			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( namedTag );
+
+			return namedTag;
 		}
 
 		/// <summary>
-		/// Add a new TaggedAlbum entry for the Tag and ArtistAlbum combination and add it to the database and the tag
-		/// If an existing entry already exists remove it first
+		/// Remove the specified TaggedAlbum  from the database
 		/// </summary>
-		/// <param name="tagToAdd"></param>
-		/// <param name="selectedAlbum"></param>
-		public static async void AddTaggedAlbumAsync( Tag tagToAdd, ArtistAlbum selectedAlbum )
-		{
-			// look for existing entry
-			int index = tagToAdd.TaggedAlbums.FindIndex( tag => ( tag.AlbumId == selectedAlbum.AlbumId ) );
-			if ( index != -1 )
-			{
-				await ConnectionDetailsModel.AsynchConnection.DeleteAsync( tagToAdd.TaggedAlbums[ index ] );
-				tagToAdd.TaggedAlbums.RemoveAt( index );
-			}
+		/// <param name="taggedAlbum"></param>
+		public static async Task DeleteTaggedAlbumAsync( TaggedAlbum taggedAlbum ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( taggedAlbum );
 
-			// Add a new entry
-			TaggedAlbum newTaggedAlbum = new TaggedAlbum() { TagId = tagToAdd.Id, AlbumId = selectedAlbum.AlbumId };
+		/// <summary>
+		/// Update the database with any changes to this Tag
+		/// </summary>
+		/// <param name="tagToUpdate"></param>
+		public static async Task UpdateTagAsync( Tag tagToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( tagToUpdate );
 
-			await ConnectionDetailsModel.AsynchConnection.InsertAsync( newTaggedAlbum );
-
-			tagToAdd.TaggedAlbums.Add( newTaggedAlbum );
-			await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( tagToAdd );
-		}
+		/// <summary>
+		/// Add the specified TaggedAlbum to the database
+		/// </summary>
+		/// <param name="taggedAlbum"></param>
+		public static async Task AddTaggedAlbumAsync( TaggedAlbum taggedAlbum ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( taggedAlbum );
 	}
 }

@@ -3,12 +3,12 @@
 namespace DBTest
 {
 	/// <summary>
-	/// The LibraryScanner class is used to fill and empty library by scanning for songs from the library's sources
+	/// The LibraryCreator class is used to fill and empty library by scanning for songs from the library's sources
 	/// </summary>
-	class LibraryScanner
+	class LibraryCreator
 	{
 		// Public interface specifying the library to scan
-		public LibraryScanner( Library libraryToScan )
+		public LibraryCreator( Library libraryToScan )
 		{
 			scanLibrary = libraryToScan;
 		}

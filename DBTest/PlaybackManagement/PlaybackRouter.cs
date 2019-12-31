@@ -57,11 +57,11 @@ namespace DBTest
 		/// If the playlist songs have been replaced then treat this as a request to play the first of the songs
 		/// </summary>
 		/// <param name="songsReplaced"></param>
-		public void MediaControlDataAvailable( bool songsReplaced )
+		public async void MediaControlDataAvailable( bool songsReplaced )
 		{
 			if ( ( songsReplaced == true ) && ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
 			{
-				PlaybackManagementController.SetSelectedSong( 0 );
+				await PlaybackManagementController.SetSelectedSongAsync( 0 );
 			}
 
 			// Pass on the media data to all connections
@@ -204,12 +204,12 @@ namespace DBTest
 		/// <summary>
 		/// Start or resume playback
 		/// </summary>
-		public void Start()
+		public async void Start()
 		{
 			// If no song is currently selected and there is a song available then select it
 			if ( ( PlaybackManagerModel.CurrentSongIndex == -1 ) && ( ( PlaybackManagerModel.NowPlayingPlaylist?.PlaylistItems.Count ?? 0 ) > 0 ) )
 			{
-				PlaybackManagementController.SetSelectedSong( 0 );
+				await PlaybackManagementController.SetSelectedSongAsync( 0 );
 			}
 
 			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
@@ -222,10 +222,14 @@ namespace DBTest
 		/// Called when the service has changed the song index
 		/// Pass this on to the controller
 		/// </summary>
-		public void SongIndexChanged( int songIndex )
-		{
-			contextForBinding.RunOnUiThread( () => { PlaybackManagementController.SetSelectedSong( songIndex ); } );
-		}
+		public void SongIndexChanged( int songIndex ) => 
+			contextForBinding.RunOnUiThread( async () => { await PlaybackManagementController.SetSelectedSongAsync( songIndex ); } );
+
+		/// <summary>
+		/// Called when a new song is being played. Pass this on to the controller
+		/// </summary>
+		/// <param name="songPlayed"></param>
+		public void SongPlayed( Song songPlayed ) => PlaybackManagementController.SongPlayed( songPlayed );
 
 		/// <summary>
 		/// Are the playback controls currently visible
@@ -282,18 +286,12 @@ namespace DBTest
 		/// <summary>
 		/// Play the next track
 		/// </summary>
-		private void PlayNext()
-		{
-			selectedConnection?.PlayNext();
-		}
+		private void PlayNext() => selectedConnection?.PlayNext();
 
 		/// <summary>
 		/// Play the previous track
 		/// </summary>
-		private void PlayPrevious()
-		{
-			selectedConnection?.PlayPrevious();
-		}
+		private void PlayPrevious() => selectedConnection?.PlayPrevious();
 
 		/// <summary>
 		/// Called when the playback has started
@@ -311,15 +309,11 @@ namespace DBTest
 		/// </summary>
 		private class ClickHandler: Java.Lang.Object, View.IOnClickListener
 		{
-
 			/// <summary>
 			/// Called when a click has been detected
 			/// </summary>
 			/// <param name="v"></param>
-			public void OnClick( View v )
-			{
-				OnClickAction();
-			}
+			public void OnClick( View v ) => OnClickAction();
 
 			/// <summary>
 			/// The Action to be performed when a click has been detected

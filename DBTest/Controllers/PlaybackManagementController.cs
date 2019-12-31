@@ -1,4 +1,7 @@
-﻿namespace DBTest
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The PlaybackManagementController is the Controller for the MediaControl. It responds to MediaControl commands and maintains media player data in the
@@ -36,7 +39,7 @@
 				PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 
 				// Get the selected song
-				PlaybackManagerModel.CurrentSongIndex = PlaybackAccess.GetSelectedSong();
+				PlaybackManagerModel.CurrentSongIndex = await PlaybackAccess.GetSelectedSongAsync();
 
 				// Get the sources associated with the library
 				PlaybackManagerModel.Sources = await LibraryAccess.GetSourcesAsync( PlaybackManagerModel.LibraryId );
@@ -49,12 +52,22 @@
 		/// <summary>
 		/// Set the selected song in the database and raise the SongSelectedMessage
 		/// </summary>
-		public static void SetSelectedSong( int songIndex )
+		public static async Task SetSelectedSongAsync( int songIndex )
 		{
-			PlaybackAccess.SetSelectedSong( songIndex );
+			await PlaybackAccess.SetSelectedSongAsync( songIndex );
 			PlaybackManagerModel.CurrentSongIndex = songIndex;
 
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
+		}
+
+		/// <summary>
+		/// Called when a new song is being played.
+		/// Pass this on to the relevane controller, not this one
+		/// </summary>
+		/// <param name="songPlayed"></param>
+		public static void SongPlayed( Song songPlayed )
+		{
+			new SongPlayedMessage() { SongPlayed = songPlayed }.Send();
 		}
 
 		/// <summary>
@@ -131,14 +144,14 @@
 		/// Clear the current data and the filter and then reload
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object message )
+		private static async void SelectedLibraryChanged( object message )
 		{
 			// Set the new library
 			PlaybackManagerModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
 
 			// Clear the now playing data and reset the selected song
 			PlaybackManagerModel.NowPlayingPlaylist = null;
-			SetSelectedSong( -1 );
+			await SetSelectedSongAsync( -1 );
 
 			// Publish the data
 			Reporter?.SongsCleared();

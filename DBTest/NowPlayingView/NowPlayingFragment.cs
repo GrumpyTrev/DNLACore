@@ -2,6 +2,7 @@
 using Android.Widget;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -29,10 +30,11 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get all the PlaylistItem entries associated with a specified Playlist.
+		/// Get all the PlaylistItem entries associated with the Now Playing playlist.
+		/// No group content required
 		/// </summary>
 		/// <param name="thePlayList"></param>
-		public void ProvideGroupContents( PlaylistItem theItem)
+		public async Task ProvideGroupContents( PlaylistItem theItem)
 		{
 		}
 
@@ -61,10 +63,7 @@ namespace DBTest
 		/// Pass this change to the controller
 		/// </summary>
 		/// <param name="itemNo"></param>
-		public void SongSelected( int itemNo )
-		{
-			NowPlayingController.SetSelectedSong( itemNo );
-		}
+		public void SongSelected( int itemNo ) => NowPlayingController.SetSelectedSongAsync( itemNo );
 
 		/// <summary>
 		/// Called when song selection has been reported by the controller

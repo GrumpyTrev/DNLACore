@@ -13,28 +13,28 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static void AddSongsToNowPlayingList( List<Song> songsToAdd, bool clearFirst, int libraryId )
+		public static async void AddSongsToNowPlayingListAsync( List<Song> songsToAdd, bool clearFirst, int libraryId )
 		{
 			// Should the Now Playing playlist be cleared first
 			if ( clearFirst == true )
 			{
 				// Before clearing it reset the selected song index
-				PlaybackAccess.SetSelectedSong( -1 );
+				await PlaybackAccess.SetSelectedSongAsync( -1 );
 				new SongSelectedMessage() { ItemNo = -1 }.Send();
 
 				// Now clear it
-				PlaylistAccess.ClearNowPlayingList( libraryId );
+				await PlaylistAccess.ClearNowPlayingListAsync( libraryId );
 				new NowPlayingClearedMessage().Send();
 			}
 
 			// Carry out the common processing to add songs to a playlist
-			PlaylistAccess.AddSongsToNowPlayingList( songsToAdd, libraryId );
+			await PlaylistAccess.AddSongsToNowPlayingListAsync( songsToAdd, libraryId );
 			new NowPlayingSongsAddedMessage() { SongsReplaced = clearFirst }.Send();
 
 			// If the list was cleared and there are now some items in the list select the first entry
 			if ( ( clearFirst == true ) & ( songsToAdd.Count > 0 ) )
 			{
-				PlaybackAccess.SetSelectedSong( 0 );
+				await PlaybackAccess.SetSelectedSongAsync( 0 );
 			}
 		}
 	}

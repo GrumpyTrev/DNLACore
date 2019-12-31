@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Android.Content;
 using Android.Views;
 using Android.Widget;
@@ -36,40 +37,22 @@ namespace DBTest
 		/// <summary>
 		/// The number of groups
 		/// </summary>
-		public override int GroupCount
-		{
-			get
-			{
-				return Groups.Count;
-			}
-		}
+		public override int GroupCount => Groups.Count;
 
 		/// <summary>
 		/// Required by interface
 		/// </summary>
-		public override bool HasStableIds
-		{
-			get
-			{
-				return false;
-			}
-		}
+		public override bool HasStableIds => false;
 
 		/// <summary>
 		/// Required by interface
 		/// </summary>
-		public override Java.Lang.Object GetChild( int groupPosition, int childPosition )
-		{
-			return null;
-		}
+		public override Java.Lang.Object GetChild( int groupPosition, int childPosition ) => null;
 
 		/// <summary>
 		/// Required by interface
 		/// </summary>
-		public override long GetChildId( int groupPosition, int childPosition )
-		{
-			return childPosition;
-		}
+		public override long GetChildId( int groupPosition, int childPosition ) => childPosition;
 
 		/// <summary>
 		/// Number of child items of selected group
@@ -106,20 +89,14 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override Java.Lang.Object GetGroup( int groupPosition )
-		{
-			return null;
-		}
+		public override Java.Lang.Object GetGroup( int groupPosition ) => null;
 
 		/// <summary>
 		/// Required by the interface
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override long GetGroupId( int groupPosition )
-		{
-			return groupPosition;
-		}
+		public override long GetGroupId( int groupPosition ) => groupPosition;
 
 		/// <summary>
 		/// Provide a view containing artist details at the specified position
@@ -149,10 +126,7 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		public override bool IsChildSelectable( int groupPosition, int childPosition )
-		{
-			return true;
-		}
+		public override bool IsChildSelectable( int groupPosition, int childPosition ) => true;
 
 		/// <summary>
 		/// Update the data and associated sections displayed by the list view
@@ -162,7 +136,8 @@ namespace DBTest
 		{
 			// If this is the first time data has been set then restore group expansions and the Action Mode.
 			// If data is being replaced then clear all state data related to the previous data
-			if ( Groups.Count == 0 )
+			// Only restore group expansions if there is any data to display
+			if ( ( Groups.Count == 0 ) && ( newData.Count > 0 ) )
 			{
 				Groups = newData;
 
@@ -199,10 +174,7 @@ namespace DBTest
 		/// </summary>
 		public bool ActionMode
 		{
-			get
-			{
-				return adapterModel.ActionMode;
-			}
+			get => adapterModel.ActionMode;
 			set
 			{
 				// Action mode determines whether or not check boxes are shown so refresh the displayed items
@@ -322,8 +294,8 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when a group item has been clicked
-		/// If a group/artist is being expanded then get its contents if not previously displayed
-		/// Keep track of which groups have been expanded and the last group expanded
+		/// Process the expansion or collapse request asynchronously
+		/// Return true to prevent the group expansion/collapse from occuring
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="clickedView"></param>
@@ -332,40 +304,9 @@ namespace DBTest
 		/// <returns></returns>
 		public virtual bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
 		{
-			if ( parent.IsGroupExpanded( groupPosition ) == false )
-			{
-				// This group is expanding. Get its contents
-				// If any content is supplied and the group is selected then select the new items
-				int childCount = GetChildrenCount( groupPosition );
+			OnGroupClickAsync( parent, groupPosition );
 
-				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
-
-				// Have any items been supplied
-				if ( GetChildrenCount( groupPosition ) != childCount )
-				{
-					// If the group is selected then select the new items
-					if ( IsItemSelected( FormGroupTag( groupPosition ) ) == true )
-					{
-						SelectGroupContents( groupPosition, true );
-					}
-				}
-
-				// Add this to the record of which groups are expanded
-				adapterModel.ExpandedGroups.Add( groupPosition );
-
-				adapterModel.LastGroupOpened = groupPosition;
-			}
-			else
-			{
-				adapterModel.ExpandedGroups.Remove( groupPosition );
-
-				adapterModel.LastGroupOpened = -1;
-			}
-
-			// Report the new expanded count
-			contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
-
-			return false;
+			return true;
 		}
 
 		/// <summary>
@@ -442,10 +383,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		/// <returns></returns>
-		protected bool IsItemSelected( int tag )
-		{
-			return adapterModel.CheckedObjects.ContainsKey( tag );
-		}
+		protected bool IsItemSelected( int tag ) => adapterModel.CheckedObjects.ContainsKey( tag );
 
 		/// <summary>
 		/// Record the selection state of the specified item
@@ -483,20 +421,14 @@ namespace DBTest
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
 		/// </summary>
 		/// <param name="tag"></param>
-		protected virtual bool SelectLongClickedItem( int tag )
-		{
-			return false;
-		}
+		protected virtual bool SelectLongClickedItem( int tag ) => false;
 
 		/// <summary>
 		/// Form a tag for a group item
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		protected static int FormGroupTag( int groupPosition )
-		{
-			return ( groupPosition << 16 ) + 0xFFFF;
-		}
+		protected static int FormGroupTag( int groupPosition ) => ( groupPosition << 16 ) + 0xFFFF;
 
 		/// <summary>
 		/// Form a tag for a child item
@@ -504,39 +436,76 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected static int FormChildTag( int groupPosition, int childPosition )
-		{
-			return ( groupPosition << 16 ) + childPosition;
-		}
+		protected static int FormChildTag( int groupPosition, int childPosition ) => ( groupPosition << 16 ) + childPosition;
 
 		/// <summary>
 		/// Return the child number from a tag
 		/// </summary>
 		/// <param name="tag"></param>
 		/// <returns></returns>
-		protected static int GetChildFromTag( int tag )
-		{
-			return ( tag & 0xFFFF );
-		}
+		protected static int GetChildFromTag( int tag ) => ( tag & 0xFFFF );
 
 		/// <summary>
 		/// Does the tag represent a group
 		/// </summary>
 		/// <param name="tag"></param>
 		/// <returns></returns>
-		protected static bool IsGroupTag( int tag )
-		{
-			return ( tag & 0xFFFF ) == 0xFFFF;
-		}
+		protected static bool IsGroupTag( int tag ) => ( tag & 0xFFFF ) == 0xFFFF;
 
 		/// <summary>
 		/// Return the group number from a tag
 		/// </summary>
 		/// <param name="tag"></param>
 		/// <returns></returns>
-		protected static int GetGroupFromTag( int tag )
+		protected static int GetGroupFromTag( int tag ) => tag >> 16;
+
+		/// <summary>
+		/// Called to perform the actual group collpase or expansion asynchronously
+		/// If a group/artist is being expanded then get its contents if not previously displayed
+		/// Keep track of which groups have been expanded and the last group expanded
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="groupPosition"></param>
+		private async void OnGroupClickAsync( ExpandableListView parent, int groupPosition )
 		{
-			return tag >> 16;
+			if ( parent.IsGroupExpanded( groupPosition ) == false )
+			{
+				// This group is expanding. Get its contents
+				// If any content is supplied and the group is selected then select the new items
+				int childCount = GetChildrenCount( groupPosition );
+
+				await contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
+
+				// Have any items been supplied
+				if ( GetChildrenCount( groupPosition ) != childCount )
+				{
+					// If the group is selected then select the new items
+					if ( IsItemSelected( FormGroupTag( groupPosition ) ) == true )
+					{
+						SelectGroupContents( groupPosition, true );
+					}
+				}
+
+				// Add this to the record of which groups are expanded
+				adapterModel.ExpandedGroups.Add( groupPosition );
+
+				adapterModel.LastGroupOpened = groupPosition;
+
+				// Now expand the group
+				parent.ExpandGroup( groupPosition );
+			}
+			else
+			{
+				adapterModel.ExpandedGroups.Remove( groupPosition );
+
+				adapterModel.LastGroupOpened = -1;
+
+				// Now collapse the group
+				parent.CollapseGroup( groupPosition );
+			}
+
+			// Report the new expanded count
+			contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
 		}
 
 		/// <summary>
@@ -547,7 +516,6 @@ namespace DBTest
 		/// <param name="e"></param>
 		private void SelectionBoxClick( object sender, EventArgs e )
 		{
-			CheckBox selectionBox = sender as CheckBox;
 			int tag = ( int )( ( CheckBox )sender ).Tag;
 			int groupPosition = GetGroupFromTag( tag );
 
@@ -635,7 +603,7 @@ namespace DBTest
 			/// Provide the details for the specified group
 			/// </summary>
 			/// <param name="theGroup"></param>
-			void ProvideGroupContents( U theGroup );
+			Task ProvideGroupContents( U theGroup );
 
 			/// <summary>
 			/// The number of expanded groups has changed
@@ -647,7 +615,7 @@ namespace DBTest
 		/// <summary>
 		/// The set of groups items displayed by the ExpandableListView
 		/// </summary>
-		public List< T > Groups { get; set; } = new List< T >();
+		protected List<T> Groups { get; set; } = new List<T>();
 
 		/// <summary>
 		/// Inflator used to create the item view 

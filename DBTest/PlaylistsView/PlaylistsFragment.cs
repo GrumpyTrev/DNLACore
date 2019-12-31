@@ -6,6 +6,7 @@ using Android.Support.V7.App;
 using Android.Content;
 using System;
 using Android.Views.InputMethods;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -111,11 +112,11 @@ namespace DBTest
 		/// Get all the PlaylistItem entries associated with a specified Playlist.
 		/// </summary>
 		/// <param name="thePlayList"></param>
-		public void ProvideGroupContents( Playlist thePlayList )
+		public async Task ProvideGroupContents( Playlist thePlayList )
 		{
 			if ( thePlayList.PlaylistItems == null )
 			{
-				PlaylistsController.GetPlaylistContents( thePlayList );
+				await PlaylistsController.GetPlaylistContentsAsync( thePlayList );
 			}
 		}
 
@@ -205,7 +206,7 @@ namespace DBTest
 
 			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
 			{
-				BaseController.AddSongsToNowPlayingList( songsSelected.Select( song => song.Song ).ToList(), ( commandId == Resource.Id.play_now ), 
+				BaseController.AddSongsToNowPlayingListAsync( songsSelected.Select( song => song.Song ).ToList(), ( commandId == Resource.Id.play_now ), 
 					PlaylistsViewModel.LibraryId );
 				LeaveActionMode();
 			}

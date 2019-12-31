@@ -147,8 +147,12 @@ namespace DBTest
 				convertView = inflator.Inflate( Resource.Layout.albums_album_layout, null );
 			}
 
-			// Display the artist's name
-			convertView.FindViewById<TextView>( Resource.Id.albumName ).Text = Groups[ groupPosition ].Name;
+			// Display the album and artist name
+			Album displayAlbum = Groups[ groupPosition ];
+			convertView.FindViewById<TextView>( Resource.Id.albumName ).Text = displayAlbum.Name;
+
+			string artistName = ( displayAlbum.VariousArtists == true ) ? "Various Artists" : ( displayAlbum.Artist == null ) ? "Unknown" : displayAlbum.Artist.Name;
+			convertView.FindViewById<TextView>( Resource.Id.artist ).Text = artistName;
 
 			return convertView;
 		}

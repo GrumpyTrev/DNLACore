@@ -8,7 +8,7 @@ namespace DBTest
 	class TagMembershipChangedMessage: BaseMessage
 	{
 		/// <summary>
-		/// The playlist that the songs have been added to
+		/// The names of the tags whose membership has changed
 		/// </summary>
 		public List< string > ChangedTags { get; set; } = null;
 	}

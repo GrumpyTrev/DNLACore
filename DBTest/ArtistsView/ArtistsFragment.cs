@@ -2,6 +2,7 @@
 using Android.Views;
 using Android.Widget;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -31,11 +32,11 @@ namespace DBTest
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public void ProvideGroupContents( Artist theArtist )
+		public async Task ProvideGroupContents( Artist theArtist )
 		{
 			if ( theArtist.ArtistAlbums == null )
 			{
-				ArtistsController.GetArtistContents( theArtist );
+				await ArtistsController.GetArtistContentsAsync( theArtist );
 			}
 		}
 
@@ -53,20 +54,24 @@ namespace DBTest
 		/// </summary>
 		public void ArtistsDataAvailable()
 		{
-			// If this data has been cleared in the model then pass empty data on to the adapter rather than null data
-			( ( ArtistsAdapter )Adapter ).SetData( ArtistsViewModel.Artists, ArtistsViewModel.AlphaIndex );
+			// Make sure that this is being processed in the UI thread as it may have arrived during libraray scanning
+			Activity.RunOnUiThread( () => {
 
-			if ( ArtistsViewModel.ListViewState != null )
-			{
-				ListView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
-				ArtistsViewModel.ListViewState = null;
-			}
+				// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
+				( ( ArtistsAdapter )Adapter ).SetData( ArtistsViewModel.Artists.ToList(), new Dictionary< string, int >( ArtistsViewModel.AlphaIndex ) );
 
-			// Indicate whether or not a filter has been applied
-			AppendToTabTitle( ( CurrentFilter == null ) ? "" : string.Format( "\r\n[{0}]", CurrentFilter.Name ) );
+				if ( ArtistsViewModel.ListViewState != null )
+				{
+					ListView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
+					ArtistsViewModel.ListViewState = null;
+				}
 
-			// Update the icon as well
-			SetFilterIcon();
+				// Indicate whether or not a filter has been applied
+				AppendToTabTitle( ( CurrentFilter == null ) ? "" : string.Format( "\r\n[{0}]", CurrentFilter.ShortName ) );
+
+				// Update the icon as well
+				SetFilterIcon();
+			} );
 		}
 
 		/// <summary>
@@ -113,7 +118,7 @@ namespace DBTest
 		{
 			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
 			{
-				BaseController.AddSongsToNowPlayingList( Adapter.SelectedItems.Values.OfType<Song>().ToList(),
+				BaseController.AddSongsToNowPlayingListAsync( Adapter.SelectedItems.Values.OfType<Song>().ToList(),
 					( commandId == Resource.Id.play_now ), ArtistsViewModel.LibraryId );
 				LeaveActionMode();
 			}
@@ -131,7 +136,7 @@ namespace DBTest
 					List<Song> selectedSongs = Adapter.SelectedItems.Values.OfType<Song>().ToList();
 
 					// Determine which Playlist has been selected and add the selected songs to the playlist
-					ArtistsController.AddSongsToPlaylist( selectedSongs, args1.Item.TitleFormatted.ToString() );
+					ArtistsController.AddSongsToPlaylistAsync( selectedSongs, args1.Item.TitleFormatted.ToString() );
 
 					LeaveActionMode();
 				};

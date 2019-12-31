@@ -9,14 +9,26 @@ namespace DBTest
 	static class AlbumsViewModel
 	{
 		/// <summary>
+		/// Clear the data held by this model
+		/// </summary>
+		public static void ClearModel()
+		{
+			Albums.Clear();
+			AlphaIndex.Clear();
+			LibraryId = -1;
+			ListViewState = null;
+			CurrentFilter = null;
+		}
+
+		/// <summary>
 		/// The list of artists that has been obtained from the database
 		/// </summary>
-		public static List<Album> Albums { get; set; } = null;
+		public static List<Album> Albums { get; set; } = new List<Album>();
 
 		/// <summary>
 		/// Index into the list of Artists
 		/// </summary>
-		public static Dictionary<string, int> AlphaIndex { get; set; } = null;
+		public static Dictionary<string, int> AlphaIndex { get; set; } = new Dictionary<string, int>();
 
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained

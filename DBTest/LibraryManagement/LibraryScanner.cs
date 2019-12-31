@@ -8,28 +8,26 @@ using Android.Content;
 namespace DBTest
 {
 	/// <summary>
-	/// The LibraryRescanManager class controls the rescanning of a library
+	/// The LibraryScanner class controls the scanning or rescanning of a library
 	/// </summary>
-	class LibraryRescanManager : LibraryScanningController.IReporter
+	class LibraryScanner : LibraryManagementController.IReporter
 	{
 		/// <summary>
-		/// LibraryRescanManager constructor
+		/// LibraryScanner constructor
 		/// Save the supplied context for binding later on
 		/// </summary>
 		/// <param name="bindContext"></param>
-		public LibraryRescanManager( Context alertContext )
+		public LibraryScanner( Context alertContext )
 		{
 			contextForAlert = alertContext;
-			LibraryScanningController.Reporter = this;
 		}
 
 		/// <summary>
 		/// Get the list of libraries and present them to the user
 		/// </summary>
-		public void RescanSelection()
+		public void ScanSelection()
 		{
-			// Get the list of available libraries
-			LibraryScanningController.GetLibrariesAsync();
+			LibraryManagementController.GetLibrariesAsync( this );
 		}
 
 		/// <summary>
@@ -38,18 +36,18 @@ namespace DBTest
 		/// </summary>
 		public void LibraryDataAvailable()
 		{
-			List<string> libraryNames = LibraryScanningModel.Libraries.Select( lib => lib.Name ).ToList();
+			List<string> libraryNames = LibraryManagementModel.Libraries.Select( lib => lib.Name ).ToList();
 			Library libraryToScan = null;
 
 			AlertDialog alert = new AlertDialog.Builder( contextForAlert )
-				.SetTitle( "Select library to rescan" )
+				.SetTitle( "Select library to scan" )
 				.SetSingleChoiceItems( libraryNames.ToArray(), -1,
 					new EventHandler<DialogClickEventArgs>( delegate ( object sender, DialogClickEventArgs e )
 					{
-						libraryToScan = LibraryScanningModel.Libraries[ e.Which ];
+						libraryToScan = LibraryManagementModel.Libraries[ e.Which ];
 						( sender as AlertDialog ).GetButton( ( int )DialogButtonType.Positive ).Enabled = true;
 					} ) )
-				.SetPositiveButton( "Ok", delegate { RescanSelectedLibrary( libraryToScan ); } )
+				.SetPositiveButton( "Ok", delegate { ScanSelectedLibrary( libraryToScan ); } )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Show();
 
@@ -59,43 +57,45 @@ namespace DBTest
 		/// <summary>
 		/// Called to release any resources held by the fragment
 		/// </summary>
-		public void ReleaseResources() => LibraryScanningController.Reporter = null;
+		public void ReleaseResources()
+		{
+		}
 
 		/// <summary>
-		/// Rescan the selected library
-		/// Display a cancellable progress dialogue and start the rescan process going
+		/// Scan the selected library
+		/// Display a cancellable progress dialogue and start the scan process going
 		/// </summary>
 		/// <param name="libraryToScan"></param>
-		private void RescanSelectedLibrary( Library libraryToScan )
+		private void ScanSelectedLibrary( Library libraryToScan )
 		{
 			// Reset any previous cancel request
-			cancelRescanRequested = false;
+			cancelScanRequested = false;
 
 			// Start scanning
-			RescanWorkAsync( libraryToScan  );
+			ScanWorkAsync( libraryToScan  );
 
-			rescanningDialogue = new AlertDialog.Builder( contextForAlert )
+			scanningDialogue = new AlertDialog.Builder( contextForAlert )
 				.SetTitle( string.Format( "Scanning library: {0}", libraryToScan.Name ) )
 				.SetCancelable( false )
 				.SetNegativeButton( "Cancel", ( EventHandler<DialogClickEventArgs> )null )
 				.Create();
 
-			rescanningDialogue.Show();
+			scanningDialogue.Show();
 
 			// Install a handler for the cancel button so that a cancel can be scheduled rather than acted upon immediately
-			rescanningDialogue.GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) => { cancelRescanRequested = true; };
+			scanningDialogue.GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) => { cancelScanRequested = true; };
 		}
 
 		/// <summary>
-		/// Carry out the rescanning opersations in an async method
+		/// Carry out the scanning operations in an async method
 		/// </summary>
 		/// <param name="libraryToScan"></param>
-		private async void RescanWorkAsync( Library libraryToScan )
+		private async void ScanWorkAsync( Library libraryToScan )
 		{
 			await Task.Run( async () =>  
 			{
-				// Create a LibraryScanner instance to do the processing of any new songs found during the rescan
-				// The part of the LibraryScanner that is being used here expects its chldren to be read, so do that here
+				// Create a LibraryCreator instance to do the processing of any new songs found during the rescan
+				// The part of the LibraryCreator that is being used here expects its chldren to be read, so do that here
 				await LibraryAccess.GetLibraryChildrenAsync( libraryToScan );
 
 				// Iterate all the sources associated with this library. Get the songs as well as we're going to need them below
@@ -118,14 +118,21 @@ namespace DBTest
 						await new FTPScanner( new RescanSongStorage( libraryToScan, source, pathLookup ) ) {
 							CancelRequested = CancelRequested }.Scan( source.ScanSource );
 					}
+					else if ( source.ScanType == "Local" )
+					{
+						// Scan using the generic InternalScanner but with our callbacks
+						await new InternalScanner( new RescanSongStorage( libraryToScan, source, pathLookup ) ) {
+							CancelRequested = CancelRequested
+						}.Scan( source.ScanSource );
+					}
 				}
 			} );
 
 			// Dismiss the rescanning (progress) dialogue and display a done dialogue
-			rescanningDialogue.Dismiss();
+			scanningDialogue.Dismiss();
 
 			AlertDialog alert = new AlertDialog.Builder( contextForAlert )
-				.SetTitle( string.Format( "Scanning of library: {0} {1}", libraryToScan.Name, ( cancelRescanRequested == true ) ? "cancelled" : "finished" ) )
+				.SetTitle( string.Format( "Scanning of library: {0} {1}", libraryToScan.Name, ( cancelScanRequested == true ) ? "cancelled" : "finished" ) )
 				.SetPositiveButton( "Ok", delegate { } )
 				.Show();
 		}
@@ -138,17 +145,17 @@ namespace DBTest
 		/// Delegate called by the scanners to check if the process has been cancelled
 		/// </summary>
 		/// <returns></returns>
-		private bool CancelRequested() => cancelRescanRequested;
+		private bool CancelRequested() => cancelScanRequested;
 
 		/// <summary>
 		/// Has a cancel been requested
 		/// </summary>
-		private bool cancelRescanRequested = false;
+		private bool cancelScanRequested = false;
 
 		/// <summary>
 		/// Keep track of the in progress dialogue as it has to be accessed outside the method that created it
 		/// </summary>
-		private AlertDialog rescanningDialogue = null;
+		private AlertDialog scanningDialogue = null;
 
 		/// <summary>
 		/// Context to use for building the selection dialogue

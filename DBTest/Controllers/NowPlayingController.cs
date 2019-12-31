@@ -1,4 +1,8 @@
-﻿namespace DBTest
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The NowPlayingController is the Controller for the NowPlayingView. It responds to NowPlayingView commands and maintains Now Playing data in the
@@ -37,7 +41,7 @@
 				NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 
 				// Get the selected song
-				NowPlayingViewModel.SelectedSong = PlaybackAccess.GetSelectedSong();
+				NowPlayingViewModel.SelectedSong = await PlaybackAccess.GetSelectedSongAsync();
 			}
 
 			// Publish this data
@@ -48,10 +52,37 @@
 		/// Set the selected song in the database and raise the SongSelectedMessage
 		/// Don't update the model at this stage. Update it when the SongSelectedMessage is received
 		/// </summary>
-		public static void SetSelectedSong( int songIndex )
+		public static async void SetSelectedSongAsync( int songIndex )
 		{
-			PlaybackAccess.SetSelectedSong( songIndex );
+			await PlaybackAccess.SetSelectedSongAsync( songIndex );
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
+		}
+
+		/// <summary>
+		/// Shuffle the NowPlayingPlaylist.PlaylistItems and select the first item to play
+		/// </summary>
+		public static void ShuffleNowPlayingList()
+		{
+			if ( NowPlayingViewModel.NowPlayingPlaylist != null )
+			{
+				SetSelectedSongAsync( -1 );
+
+				// Extract the songs from the playlist and shuffle them
+				List< Song > songs = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Select( item => item.Song ).ToList();
+
+				int n = songs.Count;
+				while ( n > 1 )
+				{
+					n--;
+					int k = rng.Next( n + 1 );
+					Song value = songs[ k ];
+					songs[ k ] = songs[ n ];
+					songs[ n ] = value;
+				}
+
+				// Now make these songs the playlist
+				BaseController.AddSongsToNowPlayingListAsync( songs, true, NowPlayingViewModel.LibraryId );
+			}
 		}
 
 		/// <summary>
@@ -102,6 +133,8 @@
 			// Reread the data
 			GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 		}
+
+		private static Random rng = new Random();
 
 		/// <summary>
 		/// The name given to the Now Playing playlist

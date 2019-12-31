@@ -1,26 +1,26 @@
 ﻿namespace DBTest
 {
 	/// <summary>
-	/// The LibrarySelectionController is the Controller for the LibrarySelection. It responds to LibrarySelection commands and maintains library data in the
-	/// LibrarySelectionModel
+	/// The LibraryManagementController is the Controller for the LibraryManagement. It responds to LibraryManagement commands and maintains library data in the
+	/// LibraryManagementModel
 	/// </summary>
-	static class LibrarySelectionController
+	static class LibraryManagementController
 	{
 		/// <summary>
 		/// Get the Library data associated with the database
 		/// If the data has already been obtained then notify view immediately.
 		/// Otherwise get the data from the database asynchronously
 		/// </summary>
-		public static async void GetLibrariesAsync()
+		public static async void GetLibrariesAsync( IReporter reporter )
 		{
 			// Check if the Playlists details for the library have already been obtained
-			if ( LibrarySelectionModel.Libraries == null )
+			if ( LibraryManagementModel.Libraries == null )
 			{
-				LibrarySelectionModel.Libraries = await LibraryAccess.GetLibrariesAsync();
+				LibraryManagementModel.Libraries = await LibraryAccess.GetLibrariesAsync();
 			}
 
 			// Let the Views know that Libraries data is available
-			Reporter?.LibraryDataAvailable();
+			reporter.LibraryDataAvailable();
 		}
 
 		/// <summary>
@@ -28,21 +28,16 @@
 		/// Notify other controllers
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
-		public static void SelectLibrary( Library selectedLibrary )
+		public static async void SelectLibraryAsync( Library selectedLibrary )
 		{
 			// Only process this if the library has changed
 			if ( selectedLibrary.Id != ConnectionDetailsModel.LibraryId )
 			{
-				PlaybackAccess.SetSelectedLibrary( selectedLibrary );
+				await PlaybackAccess.SetSelectedLibraryAsync( selectedLibrary );
 				ConnectionDetailsModel.LibraryId = selectedLibrary.Id;
 				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary }.Send();
 			}
 		}
-
-		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public static IReporter Reporter { private get; set; } = null;
 
 		/// <summary>
 		/// The interface used to report back controller results

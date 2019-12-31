@@ -2,6 +2,7 @@
 using Android.Views;
 using Android.Widget;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -31,11 +32,11 @@ namespace DBTest
 		/// Get all the Song entries associated with a specified Album.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public void ProvideGroupContents( Album theAlbum )
+		public async Task ProvideGroupContents( Album theAlbum )
 		{
 			if ( theAlbum.Songs == null )
 			{
-				AlbumsController.GetAlbumContents( theAlbum );
+				await AlbumsController.GetAlbumContentsAsync( theAlbum );
 			}
 		}
 
@@ -53,19 +54,23 @@ namespace DBTest
 		/// </summary>
 		public void AlbumsDataAvailable()
 		{
-			( ( AlbumsAdapter )Adapter ).SetData( AlbumsViewModel.Albums, AlbumsViewModel.AlphaIndex );
-
-			if ( AlbumsViewModel.ListViewState != null )
+			Activity.RunOnUiThread( () => 
 			{
-				ListView.OnRestoreInstanceState( AlbumsViewModel.ListViewState );
-				AlbumsViewModel.ListViewState = null;
-			}
+				// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
+				( ( AlbumsAdapter )Adapter ).SetData( AlbumsViewModel.Albums.ToList(), new Dictionary<string, int>( AlbumsViewModel.AlphaIndex ) );
 
-			// Indicate whether or not a filter has been applied
-			AppendToTabTitle( ( CurrentFilter == null ) ? "" : string.Format( "\r\n[{0}]", CurrentFilter.Name ) );
+				if ( AlbumsViewModel.ListViewState != null )
+				{
+					ListView.OnRestoreInstanceState( AlbumsViewModel.ListViewState );
+					AlbumsViewModel.ListViewState = null;
+				}
 
-			// Update the icon as well
-			SetFilterIcon();
+				// Indicate whether or not a filter has been applied
+				AppendToTabTitle( ( CurrentFilter == null ) ? "" : string.Format( "\r\n[{0}]", CurrentFilter.ShortName ) );
+
+				// Update the icon as well
+				SetFilterIcon();
+			} );
 		}
 
 		/// <summary>
@@ -112,7 +117,7 @@ namespace DBTest
 		{
 			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
 			{
-				BaseController.AddSongsToNowPlayingList( Adapter.SelectedItems.Values.OfType<Song>().ToList(),
+				BaseController.AddSongsToNowPlayingListAsync( Adapter.SelectedItems.Values.OfType<Song>().ToList(),
 					( commandId == Resource.Id.play_now ), AlbumsViewModel.LibraryId );
 				LeaveActionMode();
 			}
@@ -130,7 +135,7 @@ namespace DBTest
 					List<Song> selectedSongs = Adapter.SelectedItems.Values.OfType<Song>().ToList();
 
 					// Determine which Playlist has been selected and add the selected songs to the playlist
-					AlbumsController.AddSongsToPlaylist( selectedSongs, args1.Item.TitleFormatted.ToString() );
+					AlbumsController.AddSongsToPlaylistAsync( selectedSongs, args1.Item.TitleFormatted.ToString() );
 
 					LeaveActionMode();
 				};

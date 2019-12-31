@@ -40,5 +40,15 @@
 
 			return trimmedString;
 		}
+
+		/// <summary>
+		/// Remove a leading 'The ' from the string
+		/// </summary>
+		/// <param name="subject"></param>
+		/// <returns></returns>
+		public static string RemoveThe( this string subject )
+		{
+			return ( subject.ToUpper().StartsWith( "THE " ) == true ) ? subject.Substring( 4 ) : subject;
+		}
 	}
 }

@@ -114,14 +114,14 @@ namespace DBTest
 		/// Save it in the model and report it
 		/// </summary>
 		/// <param name="deviceName"></param>
-		public static void SetSelectedPlayback( string deviceName )
+		public static async void SetSelectedPlaybackAsync( string deviceName )
 		{
 			Device selectedDevice = PlaybackSelectionModel.RemoteDevices.FindDevice( deviceName );
 			if ( selectedDevice != null )
 			{
 				PlaybackSelectionModel.SelectedDevice = selectedDevice;
 				PlaybackSelectionModel.SelectedDeviceName = selectedDevice.FriendlyName;
-				PlaybackAccess.SetPlaybackDevice( PlaybackSelectionModel.SelectedDeviceName );
+				await PlaybackAccess.SetPlaybackDeviceAsync( PlaybackSelectionModel.SelectedDeviceName );
 
 				new PlaybackDeviceAvailableMessage() { SelectedDevice = PlaybackSelectionModel.SelectedDevice }.Send();
 			}
@@ -130,18 +130,18 @@ namespace DBTest
 		/// <summary>
 		/// Get the selected device from the database and if its the local device report is as available
 		/// </summary>
-		private static void ReportLocalSelectedDevice()
+		private static async void ReportLocalSelectedDevice()
 		{
 			Device localDevice = PlaybackSelectionModel.RemoteDevices.DeviceCollection[ 0 ];
 
 			// Use the PlaybackAccess class to retrieve the last selected device
-			PlaybackSelectionModel.SelectedDeviceName = PlaybackAccess.GetPlaybackDevice();
+			PlaybackSelectionModel.SelectedDeviceName = await PlaybackAccess.GetPlaybackDeviceAsync();
 
 			if ( PlaybackSelectionModel.SelectedDeviceName.Length == 0 )
 			{
 				// No device selected. Select the local device
 				PlaybackSelectionModel.SelectedDeviceName = localDevice.FriendlyName;
-				PlaybackAccess.SetPlaybackDevice( PlaybackSelectionModel.SelectedDeviceName );
+				await PlaybackAccess.SetPlaybackDeviceAsync( PlaybackSelectionModel.SelectedDeviceName );
 			}
 
 			// If the selected device is the local device then report it as available

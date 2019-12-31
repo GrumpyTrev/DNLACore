@@ -25,20 +25,14 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetChildrenCount( int groupPosition )
-		{
-			return Groups[ groupPosition ].Contents.Count;
-		}
+		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].Contents.Count;
 
 		/// <summary>
 		/// Get the starting position for a section
 		/// </summary>
 		/// <param name="sectionIndex"></param>
 		/// <returns></returns>
-		public int GetPositionForSection( int sectionIndex )
-		{
-			return alphaIndexer[ sections[ sectionIndex ] ];
-		}
+		public int GetPositionForSection( int sectionIndex ) => alphaIndexer[ sections[ sectionIndex ] ];
 
 		/// <summary>
 		/// Get the section that the specified position is in
@@ -47,33 +41,22 @@ namespace DBTest
 		/// <returns></returns>
 		public int GetSectionForPosition( int position )
 		{
-			int prevSection = 0;
 			int index = 0;
 			bool positionFound = false;
 
 			while ( ( positionFound == false ) && ( index < sections.Length ) )
 			{
-				if ( GetPositionForSection( index ) > position )
-				{
-					positionFound = true;
-				}
-				else
-				{
-					prevSection = index++;
-				}
+				positionFound = ( GetPositionForSection( index++ ) > position );
 			}
 
-			return prevSection;
+			return ( positionFound == true ) ? index -= 1 : 0;
 		}
 
 		/// <summary>
 		/// Return the names of all the sections
 		/// </summary>
 		/// <returns></returns>
-		public Java.Lang.Object[] GetSections()
-		{
-			return new Java.Util.ArrayList( alphaIndexer.Keys ).ToArray();
-		}
+		public Java.Lang.Object[] GetSections() => new Java.Util.ArrayList( alphaIndexer.Keys ).ToArray();
 
 		/// <summary>
 		/// Update the data and associated sections displayed by the list view
@@ -83,7 +66,10 @@ namespace DBTest
 		public void SetData( List<Artist> newData, Dictionary<string, int> alphaIndex )
 		{
 			alphaIndexer = alphaIndex;
+
+			// Save a sorted copy of the keys
 			sections = alphaIndexer.Keys.ToArray();
+			Array.Sort( sections );
 
 			SetData( newData );
 		}
@@ -178,10 +164,8 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition )
-		{
-			return ( childPosition == 0xFFFF ) ? Groups[ groupPosition ] : Groups[ groupPosition ].Contents[ childPosition ];
-		}
+		protected override object GetItemAt( int groupPosition, int childPosition ) => 
+			( childPosition == 0xFFFF ) ? Groups[ groupPosition ] : Groups[ groupPosition ].Contents[ childPosition ];
 
 		/// <summary>
 		/// The base implementation selects or deselects the containing group according to the state of its children
@@ -298,13 +282,10 @@ namespace DBTest
 
 		/// <summary>
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
+		/// If the item selected when going into Action Mode is not an Artist item then select it
 		/// </summary>
 		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag )
-		{
-			// If the item selected when going into Action Mode is not an Artist item then select it
-			return ( IsGroupTag( tag ) == false );
-		}
+		protected override bool SelectLongClickedItem( int tag ) => ( IsGroupTag( tag ) == false );
 
 		/// <summary>
 		/// Lookup table specifying the starting position for each section name

@@ -3,9 +3,9 @@
 namespace DBTest
 {
 	/// <summary>
-	/// The LibraryScanningModel holds the Library data obtained from the LibraryScanningController
+	/// The LibraryManagementModel holds the Library data obtained from the LibraryManagementController
 	/// </summary>
-	static class LibraryScanningModel
+	static class LibraryManagementModel
 	{
 		/// <summary>
 		/// The list of Libraries that has been obtained from the database

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -29,39 +30,38 @@ namespace DBTest
 		public static async void GetAlbumsAsync( int libraryId )
 		{
 			// Check if the Album details for the library have already been obtained
-			if ( ( AlbumsViewModel.Albums == null ) || ( AlbumsViewModel.LibraryId != libraryId ) )
+			if ( AlbumsViewModel.LibraryId != libraryId )
 			{
 				// New data is required
 				AlbumsViewModel.LibraryId = libraryId;
 				AlbumsViewModel.Albums = await AlbumAccess.GetAlbumDetailsAsync( AlbumsViewModel.LibraryId, AlbumsViewModel.CurrentFilter );
+				AlbumsViewModel.AlphaIndex.Clear();
 
-				// Sort the list of artists by name
-				AlbumsViewModel.Albums.Sort( ( a, b ) => {
-					// Do a normal comparison, except remove a leading 'The ' before comparing
-					string albumA = ( a.Name.ToUpper().StartsWith( "THE " ) == true ) ? a.Name.Substring( 4 ) : a.Name;
-					string albumB = ( b.Name.ToUpper().StartsWith( "THE " ) == true ) ? b.Name.Substring( 4 ) : b.Name;
-
-					return albumA.CompareTo( albumB );
-				} );
-
-				// Work out the section indexes for the sorted data
-				AlbumsViewModel.AlphaIndex = new Dictionary<string, int>();
-				int index = 0;
-				foreach ( Album album in AlbumsViewModel.Albums )
+				// Sort the list of albums by name unless a filter has been applied
+				if ( ( AlbumsViewModel.CurrentFilter?.TagOrder ?? false ) == false )
 				{
-					string key = album.Name[ 0 ].ToString();
-					if ( AlbumsViewModel.AlphaIndex.ContainsKey( key ) == false )
-					{
-						AlbumsViewModel.AlphaIndex[ key ] = index;
-					}
-					index++;
+					// Do the sorting and indexing off the UI task
+					await Task.Run( () => {
+
+						// Do a normal comparison, except remove a leading 'The ' before comparing
+						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
+
+						// Work out the section indexes for the sorted data
+						int index = 0;
+						foreach ( Album album in AlbumsViewModel.Albums )
+						{
+							string key = album.Name.RemoveThe().Substring( 0, 1 ).ToUpper();
+							if ( AlbumsViewModel.AlphaIndex.ContainsKey( key ) == false )
+							{
+								AlbumsViewModel.AlphaIndex[ key ] = index;
+							}
+							index++;
+						}
+					} );
 				}
 
 				// Get the list of current playlists
-				List< Playlist > playlists = await PlaylistAccess.GetPlaylistDetailsAsync( AlbumsViewModel.LibraryId );
-
-				// Extract just the names as well
-				AlbumsViewModel.PlaylistNames = playlists.Select( i => i.Name ).ToList();
+				await GetPlayListNames();
 
 				// Get the Tags as well
 				AlbumsViewModel.Tags = await FilterAccess.GetTagsAsync();
@@ -75,9 +75,9 @@ namespace DBTest
 		/// Get the contents for the specified Album
 		/// </summary>
 		/// <param name="theAlbum"></param>
-		public static void GetAlbumContents( Album theAlbum )
+		public static async Task GetAlbumContentsAsync( Album theAlbum )
 		{
-			AlbumAccess.GetAlbumContents( theAlbum );
+			await AlbumAccess.GetAlbumContentsAsync( theAlbum );
 
 			// Sort the songs by track number
 			theAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
@@ -88,10 +88,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static void AddSongsToPlaylist( List<Song> songsToAdd, string playlistName )
+		public static async void AddSongsToPlaylistAsync( List<Song> songsToAdd, string playlistName )
 		{
 			// Carry out the common processing to add songs to a playlist
-			PlaylistAccess.AddSongsToPlaylist( songsToAdd, playlistName, AlbumsViewModel.LibraryId );
+			await PlaylistAccess.AddSongsToPlaylistAsync( songsToAdd, playlistName, AlbumsViewModel.LibraryId );
 
 			// Publish this event
 			new PlaylistSongsAddedMessage() { PlaylistName = playlistName }.Send();
@@ -104,12 +104,7 @@ namespace DBTest
 		public static void ApplyFilter( Tag newFilter )
 		{
 			// Clear the displayed data first as this may take a while
-			AlbumsViewModel.Albums?.Clear();
-			AlbumsViewModel.AlphaIndex?.Clear();
-			AlbumsViewModel.ListViewState = null;
-
-			// Clear the library as well so that the data will be reloaded on the next GetArtistsAsync call
-			AlbumsViewModel.LibraryId = -1;
+			AlbumsViewModel.ClearModel();
 
 			// Publish the data
 			Reporter?.AlbumsDataAvailable();
@@ -125,13 +120,7 @@ namespace DBTest
 		/// Update the list of playlists held by the model
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void PlaylistAddedOrDeleted( object message )
-		{
-			// Get the list of current playlists
-			List<Playlist> playlists = await PlaylistAccess.GetPlaylistDetailsAsync( AlbumsViewModel.LibraryId );
-
-			AlbumsViewModel.PlaylistNames = playlists.Select( i => i.Name ).ToList();
-		}
+		private static async void PlaylistAddedOrDeleted( object message ) => await GetPlayListNames();
 
 		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
@@ -156,10 +145,7 @@ namespace DBTest
 		private static void SelectedLibraryChanged( object message )
 		{
 			// Clear the displayed data and filter
-			AlbumsViewModel.Albums?.Clear();
-			AlbumsViewModel.AlphaIndex?.Clear();
-			AlbumsViewModel.ListViewState = null;
-			AlbumsViewModel.CurrentFilter = null;
+			AlbumsViewModel.ClearModel();
 
 			// Publish the data
 			Reporter?.AlbumsDataAvailable();
@@ -167,6 +153,12 @@ namespace DBTest
 			// Reread the data
 			GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
 		}
+
+		/// <summary>
+		/// Get the names of all the user playlists
+		/// </summary>
+		private static async Task GetPlayListNames() =>
+			ArtistsViewModel.PlaylistNames = ( await PlaylistAccess.GetPlaylistDetailsAsync( ArtistsViewModel.LibraryId ) ).Select( i => i.Name ).ToList();
 
 		/// <summary>
 		/// The interface instance used to report back controller results

@@ -127,10 +127,7 @@ namespace DBTest
 		/// </summary>
 		public virtual bool IsPlaying
 		{
-			get
-			{
-				return playing;
-			}
+			get => playing;
 
 			set
 			{
@@ -166,6 +163,12 @@ namespace DBTest
 			return resource;
 		}
 
+		/// <summary>
+		/// Form the name for the song depending on the source type type 
+		/// </summary>
+		/// <param name="songSource"></param>
+		/// <param name="songPath"></param>
+		/// <returns></returns>
 		protected string FormSourceName( Source songSource, string songPath )
 		{
 			string sourceName = songPath;
@@ -181,6 +184,15 @@ namespace DBTest
 
 			return sourceName;
 		}
+
+		/// <summary>
+		/// Report that the current song is being played
+		/// </summary>
+		protected void ReportSongPlayed()
+		{
+			Reporter?.SongPlayed( Playlist.PlaylistItems[ CurrentSongIndex ].Song );
+		}
+
 		/// <summary>
 		/// The playlist of songs to play
 		/// </summary>
@@ -239,6 +251,7 @@ namespace DBTest
 		{
 			void SongIndexChanged( int songIndex );
 			void PlayStateChanged();
+			void SongPlayed( Song songPlayed );
 		}
 	}
 }
