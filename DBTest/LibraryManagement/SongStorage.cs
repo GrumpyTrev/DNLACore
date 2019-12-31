@@ -177,16 +177,16 @@ namespace DBTest
 				songAlbum.Songs.Add( songToAdd );
 
 				// Store the artist with the album
-				if ( songAlbum.ArtistId == 0 )
+				if ( ( songAlbum.ArtistName == null ) || ( songAlbum.ArtistName.Length == 0 ) )
 				{
-					songAlbum.ArtistId = songArtist.Id;
+					songAlbum.ArtistName = songArtist.Name;
 				}
 				else
 				{
 					// The artist has already been stored - check if it is the same artist
-					if ( ( songAlbum.VariousArtists == false ) && ( songAlbum.ArtistId != songArtist.Id ) )
+					if ( songAlbum.ArtistName != songArtist.Name )
 					{
-						songAlbum.VariousArtists = true;
+						songAlbum.ArtistName = "Various Artists";
 					}
 				}
 

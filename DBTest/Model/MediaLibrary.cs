@@ -138,16 +138,7 @@ namespace DBTest
 		[OneToMany]
 		public List<Song> Songs { get; set; }
 
-		[ForeignKey( typeof( Artist ) )]
-		public int ArtistId { get; set; }
-
-		public bool VariousArtists { get; set; } = false;
-
-		/// <summary>
-		/// Don't put this in database as some Albums may have an invalid ArtistId
-		/// </summary>
-		[Ignore]
-		public Artist Artist { get; set; }
+		public string ArtistName { get; set; }
 	}
 
 	[Table( "ArtistAlbum" ) ]

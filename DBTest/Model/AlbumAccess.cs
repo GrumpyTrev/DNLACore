@@ -37,14 +37,6 @@ namespace DBTest
 				albums = albums.OrderBy( album => albumIds.IndexOf( album.Id ) ).ToList();
 			}
 
-			foreach ( Album album in albums )
-			{
-				if ( ( album.VariousArtists == false ) && ( album.ArtistId != 0 ) )
-				{
-					album.Artist = await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( album.ArtistId );
-				}
-			}
-
 			return albums;
 		}
 

@@ -390,6 +390,11 @@ namespace DBTest
 
 		private void FixupArtistIdInAlbums()
 		{
+			// Get all the Album entries in the database and reset the ArtistName to empty
+			List<Album> albums = ConnectionDetailsModel.SynchConnection.Table<Album>().ToList();
+			albums.ForEach( alb => alb.ArtistName = "" );
+			ConnectionDetailsModel.SynchConnection.UpdateAll( albums );
+			
 			// Get all the ArtistAlbum entries in the database
 			List<ArtistAlbum> artistAlbums = ConnectionDetailsModel.SynchConnection.Table<ArtistAlbum>().ToList();
 
@@ -401,23 +406,23 @@ namespace DBTest
 
 				if ( album != null )
 				{
-					// If the ArtistId in the Album has no been set then set it to the value in this ArtistAblbum
+					string albumArtistName = ConnectionDetailsModel.SynchConnection.Get<Artist>( artistAlbum.ArtistId ).Name;
+
+					// If the ArtistName in the Album has not been set then set it to the value in this ArtistAblbum
 					// If is has been set and is different then set the various artists flag
-					if ( album.ArtistId == 0 )
+					if ( album.ArtistName.Length == 0 )
 					{
-						album.ArtistId = artistAlbum.ArtistId;
-						album.VariousArtists = false;
+						album.ArtistName = albumArtistName;
+						ConnectionDetailsModel.SynchConnection.Update( album );
 					}
 					else
 					{
-						if ( album.ArtistId != artistAlbum.ArtistId )
+						if ( ( album.ArtistName != "Various Artists" ) && ( album.ArtistName != albumArtistName ) )
 						{
-							album.VariousArtists = true;
+							album.ArtistName = "Various Artists";
+							ConnectionDetailsModel.SynchConnection.Update( album );
 						}
 					}
-
-					// Update the Album entry
-					ConnectionDetailsModel.SynchConnection.Update( album );
 				}
 				else
 				{

@@ -19,7 +19,7 @@ namespace DBTest
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
 		public AlbumsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< Album > provider, IAdapterActionHandler actionHandler ) :
-			base( context, parentView, provider,  PlaylistsAdapterModel.BaseModel, actionHandler )
+			base( context, parentView, provider,  AlbumsAdapterModel.BaseModel, actionHandler )
 		{
 		}
 
@@ -150,9 +150,7 @@ namespace DBTest
 			// Display the album and artist name
 			Album displayAlbum = Groups[ groupPosition ];
 			convertView.FindViewById<TextView>( Resource.Id.albumName ).Text = displayAlbum.Name;
-
-			string artistName = ( displayAlbum.VariousArtists == true ) ? "Various Artists" : ( displayAlbum.Artist == null ) ? "Unknown" : displayAlbum.Artist.Name;
-			convertView.FindViewById<TextView>( Resource.Id.artist ).Text = artistName;
+			convertView.FindViewById<TextView>( Resource.Id.artist ).Text = ( displayAlbum.ArtistName.Length > 0 ) ? displayAlbum.ArtistName : "Unknown";
 
 			return convertView;
 		}
