@@ -95,7 +95,7 @@ namespace DBTest
 			if ( isPreparing == false )
 			{
 				// Get the source path for the current song
-				string filename = GetSongResource();
+				string filename = GetSongResource( true );
 				if ( filename.Length > 0 )
 				{
 					// Set uri

@@ -143,7 +143,7 @@ namespace DBTest
 		/// Get the source path for the currently playing song
 		/// </summary>
 		/// <returns></returns>
-		protected string GetSongResource()
+		protected string GetSongResource( bool local )
 		{
 			string resource = "";
 
@@ -156,7 +156,7 @@ namespace DBTest
 
 				if ( songSource != null )
 				{
-					resource = FormSourceName( songSource, songToPlay.Path );
+					resource = FormSourceName( songSource, songToPlay.Path, local );
 				}
 			}
 
@@ -164,22 +164,22 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Form the name for the song depending on the source type type 
+		/// Form the name for the song depending on the source type 
 		/// </summary>
 		/// <param name="songSource"></param>
 		/// <param name="songPath"></param>
 		/// <returns></returns>
-		protected string FormSourceName( Source songSource, string songPath )
+		protected string FormSourceName( Source songSource, string songPath, bool local )
 		{
-			string sourceName = songPath;
+			string sourceName;
 
-			if ( songSource.AccessType == "HTTP" )
+			if ( local == true )
 			{
-				// Trim combiners from both the source and path
-				string accessSource = songSource.AccessSource.TrimEnd( '/' );
-				songPath.TrimStart( '/' );
-
-				sourceName = Path.Combine( songSource.AccessSource, Uri.EscapeDataString( songPath ) );
+				sourceName = Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) );
+			}
+			else
+			{
+				sourceName = Path.Combine( songSource.RemoteAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
 			}
 
 			return sourceName;

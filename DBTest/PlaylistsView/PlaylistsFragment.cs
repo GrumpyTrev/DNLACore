@@ -125,7 +125,7 @@ namespace DBTest
 		/// Display the data held in the Playlists view model
 		/// </summary>
 		/// <param name="message"></param>
-		public void PlaylistsDataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists );
+		public void PlaylistsDataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists.ToList() );
 
 		/// <summary>
 		/// Called when the PlaylistSongsAddedMessage is received
@@ -277,11 +277,8 @@ namespace DBTest
 		/// Let derived classes determine whether or not the command bar should be shown
 		/// </summary>
 		/// <returns></returns>
-		protected override bool ShowCommandBar()
-		{
-			return playNowCommand.Visible || addToQueueCommand.Visible || deleteCommand.Visible || moveUpCommand.Visible ||
+		protected override bool ShowCommandBar() => playNowCommand.Visible || addToQueueCommand.Visible || deleteCommand.Visible || moveUpCommand.Visible ||
 				moveDownCommand.Visible || renameCommand.Visible;
-		}
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment

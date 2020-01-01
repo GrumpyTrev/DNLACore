@@ -125,19 +125,14 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition )
-		{
-			return ( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : ( object )Groups[ groupPosition ].PlaylistItems[ childPosition ];
-		}
+		protected override object GetItemAt( int groupPosition, int childPosition ) => 
+			( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : ( object )Groups[ groupPosition ].PlaylistItems[ childPosition ];
 
 		/// <summary>
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
+		/// All items should be selected
 		/// </summary>
 		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag )
-		{
-			// All items should be selected
-			return true;
-		}
+		protected override bool SelectLongClickedItem( int tag ) => true;
 	}
 }

@@ -5,10 +5,18 @@
 	/// </summary>
 	static class NowPlayingViewModel
 	{
-		/// <summary>
+		/// <summary>		/// <summary>
+		/// Clear the data held by this model
+		/// </summary>
+		public static void ClearModel()
+		{
+			NowPlayingPlaylist.PlaylistItems.Clear();
+			LibraryId = -1;
+		}
+
 		/// The Now Playing playlist that has been obtained from the database
 		/// </summary>
-		public static Playlist NowPlayingPlaylist { get; set; } = null;
+		public static Playlist NowPlayingPlaylist { get; set; } = new Playlist();
 
 		/// <summary>
 		/// Index of the selected song

@@ -28,20 +28,14 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetChildrenCount( int groupPosition )
-		{
-			return Groups[ groupPosition ].Songs?.Count ?? 0;
-		}
+		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].Songs?.Count ?? 0;
 
 		/// <summary>
 		/// Get the starting position for a section
 		/// </summary>
 		/// <param name="sectionIndex"></param>
 		/// <returns></returns>
-		public int GetPositionForSection( int sectionIndex )
-		{
-			return alphaIndexer[ sections[ sectionIndex ] ];
-		}
+		public int GetPositionForSection( int sectionIndex ) => alphaIndexer[ sections[ sectionIndex ] ];
 
 		/// <summary>
 		/// Get the section that the specified position is in
@@ -73,10 +67,7 @@ namespace DBTest
 		/// Return the names of all the sections
 		/// </summary>
 		/// <returns></returns>
-		public Java.Lang.Object[] GetSections()
-		{
-			return new Java.Util.ArrayList( alphaIndexer.Keys ).ToArray();
-		}
+		public Java.Lang.Object[] GetSections() => new Java.Util.ArrayList( alphaIndexer.Keys ).ToArray();
 
 		/// <summary>
 		/// Update the data and associated sections displayed by the list view
@@ -161,20 +152,15 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition )
-		{
-			return ( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : ( object )Groups[ groupPosition ].Songs[ childPosition ];
-		}
+		protected override object GetItemAt( int groupPosition, int childPosition ) => 
+			( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : ( object )Groups[ groupPosition ].Songs[ childPosition ];
 
 		/// <summary>
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
+		/// All items should be selected
 		/// </summary>
 		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag )
-		{
-			// All items should be selected
-			return true;
-		}
+		protected override bool SelectLongClickedItem( int tag ) => true;
 
 		/// <summary>
 		/// Lookup table specifying the starting position for each section name

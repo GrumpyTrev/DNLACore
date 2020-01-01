@@ -55,8 +55,8 @@ namespace DBTest
 		public string Name { get; set; }
 		public string ScanSource { get; set; }
 		public string ScanType { get; set; }
-		public string AccessSource { get; set; }
-		public string AccessType { get; set; }
+		public string LocalAccess { get; set; }
+		public string RemoteAccess { get; set; }
 
 		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }

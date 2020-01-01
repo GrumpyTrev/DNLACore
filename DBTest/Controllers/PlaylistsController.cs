@@ -28,7 +28,7 @@ namespace DBTest
 		public static async void GetPlaylistsAsync( int libraryId )
 		{
 			// Check if the Playlists details for the library have already been obtained
-			if ( ( PlaylistsViewModel.Playlists == null ) || ( PlaylistsViewModel.LibraryId != libraryId ) )
+			if ( PlaylistsViewModel.LibraryId != libraryId )
 			{
 				PlaylistsViewModel.LibraryId = libraryId;
 
@@ -99,25 +99,21 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when the PlaylistSongsAddedMessage is received
-		/// If the playlists have already been obtained then make sure that the specified playlist contents are refreshed
-		/// and let the view know
+		/// Make sure that the specified playlist contents are refreshed and let the view know
 		/// </summary>
 		/// <param name="message"></param>
 		private static async void SongsAddedAsync( object message )
 		{
-			if ( PlaylistsViewModel.Playlists != null )
+			PlaylistSongsAddedMessage songsAddedMessage = message as PlaylistSongsAddedMessage;
+
+			// Get the playlist from the model (not the database) and refresh its contents.
+			// If it can't be found then do nothing - report an error?
+			Playlist addedToPlaylist = PlaylistsViewModel.Playlists.FirstOrDefault( d => ( d.Name == songsAddedMessage.PlaylistName ) );
+
+			if ( addedToPlaylist != null )
 			{
-				PlaylistSongsAddedMessage songsAddedMessage = message as PlaylistSongsAddedMessage;
-
-				// Get the playlist from the model (not the database) and refresh its contents.
-				// If it can't be found then do nothing - report an error?
-				Playlist addedToPlaylist = PlaylistsViewModel.Playlists.FirstOrDefault( d => ( d.Name == songsAddedMessage.PlaylistName ) );
-
-				if ( addedToPlaylist != null )
-				{
-					await GetPlaylistContentsAsync( addedToPlaylist );
-					Reporter?.PlaylistUpdated( songsAddedMessage.PlaylistName );
-				}
+				await GetPlaylistContentsAsync( addedToPlaylist );
+				Reporter?.PlaylistUpdated( songsAddedMessage.PlaylistName );
 			}
 		}
 
@@ -135,13 +131,13 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when a SelectedLibraryChangedMessage has been received
-		/// Clear the current data and the filter and then reload
+		/// Clear the current data then reload
 		/// </summary>
 		/// <param name="message"></param>
 		private static void SelectedLibraryChanged( object message )
 		{
 			// Clear the displayed data
-			PlaylistsViewModel.Playlists?.Clear();
+			PlaylistsViewModel.ClearModel();
 
 			// Publish the data
 			Reporter?.PlaylistsDataAvailable();

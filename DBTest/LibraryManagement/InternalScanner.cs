@@ -23,6 +23,7 @@ namespace DBTest
 		/// <returns></returns>
 		public async Task Scan( string fileRoot )
 		{
+			rootDirectory = fileRoot;
 			await ScanDirectory( fileRoot );
 		}
 
@@ -88,7 +89,7 @@ namespace DBTest
 				try
 				{
 					song.Modified = fileItem.LastWriteTime;
-					song.SourcePath = fileItem.FullName;
+					song.SourcePath = fileItem.FullName.TrimStart( rootDirectory );
 
 					using ( FileStream fs = File.OpenRead( fileItem.FullName ) )
 					{
@@ -113,6 +114,11 @@ namespace DBTest
 		/// Keep a running count of the number of songs scanned
 		/// </summary>
 		private int songCount;
+
+		/// <summary>
+		/// The root directory for this internal scan
+		/// </summary>
+		private string rootDirectory;
 
 		/// <summary>
 		/// Delegate used to determine if this task has been cancelled

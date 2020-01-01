@@ -11,7 +11,6 @@ using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
 using SQLite;
-using SQLiteNetExtensions.Extensions;
 
 namespace DBTest
 {
@@ -224,6 +223,8 @@ namespace DBTest
 
 				SQLite.SQLiteAsyncConnection.ResetPool();
 				ConnectionDetailsModel.AsynchConnection = null;
+
+				localServer.Stop();
 			}
 
 			// Some of the managers need to remove themselves from the scene
@@ -258,98 +259,6 @@ namespace DBTest
 
 				// Check for a Playback record which will tell us the currently selected library
 				Playback playbackRecord = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault();
-
-				if ( ( playbackRecord == null ) || ( playbackRecord.LibraryId == -1 ) )
-				{
-					// Current library is not specified so find one now
-					// Check for an existing library
-					Library currentLibrary = ConnectionDetailsModel.SynchConnection.Table<Library>().FirstOrDefault();
-
-					if ( currentLibrary == null )
-					{
-						// For debugging - setup a single library
-						Library lib1 = new Library() { Name = "Remote" };
-
-						Source source1 = new Source() {
-							Name = "Laptop", ScanSource = "192.168.1.5", ScanType = "FTP",
-							AccessSource = "http://192.168.1.5:80/RemoteMusic/", AccessType = "HTTP"
-						};
-						source1.Songs = new List<Song>();
-
-						Source source2 = new Source() {
-							Name = "Phone", ScanSource = "/storage/emulated/0/Music/", ScanType = "Local",
-							AccessSource = "/storage/emulated/0/Music/", AccessType = "Local"
-						};
-						source2.Songs = new List<Song>();
-
-						ConnectionDetailsModel.SynchConnection.Insert( lib1 );
-						ConnectionDetailsModel.SynchConnection.Insert( source1 );
-						ConnectionDetailsModel.SynchConnection.Insert( source2 );
-
-						lib1.Sources = new List<Source> { source1, source2 };
-						lib1.Artists = new List<Artist>();
-						lib1.Albums = new List<Album>();
-
-						ConnectionDetailsModel.SynchConnection.UpdateWithChildren( lib1 );
-
-						// Read the library definitions and process
-						TableQuery<Library> libraries = ConnectionDetailsModel.SynchConnection.Table<Library>();
-						foreach ( Library lib in libraries )
-						{
-							new LibraryCreator( lib ).ScanLibrary();
-						}
-
-						currentLibrary = ConnectionDetailsModel.SynchConnection.GetAllWithChildren<Library>().SingleOrDefault();
-
-						// Check for any playlists associated with the current library
-						List<Playlist> playlists = ConnectionDetailsModel.SynchConnection.Table<Playlist>().
-							Where( d => ( d.LibraryId == currentLibrary.Id ) ).ToList();
-
-						if ( playlists.Count == 0 )
-						{
-							// Add some playlists to the current library
-							// First fully load the library so that it can be updated
-							ConnectionDetailsModel.SynchConnection.GetChildren<Library>( currentLibrary );
-
-							// Add PlayLists to the databse and the library
-							Playlist list = new Playlist() { Name = "Playlist 1" };
-							ConnectionDetailsModel.SynchConnection.Insert( list );
-							currentLibrary.PlayLists.Add( list );
-
-							list = new Playlist() { Name = "Playlist 2" };
-							ConnectionDetailsModel.SynchConnection.Insert( list );
-							currentLibrary.PlayLists.Add( list );
-
-							list = new Playlist() { Name = NowPlayingController.NowPlayingPlaylistName };
-							ConnectionDetailsModel.SynchConnection.Insert( list );
-							currentLibrary.PlayLists.Add( list );
-
-							ConnectionDetailsModel.SynchConnection.UpdateWithChildren( currentLibrary );
-						}
-					}
-
-					// We now have a current library. If we don't have a Playback record then create one now
-					if ( playbackRecord == null )
-					{
-						playbackRecord = new Playback {
-							SongIndex = -1
-						};
-						ConnectionDetailsModel.SynchConnection.Insert( playbackRecord );
-					}
-
-					playbackRecord.LibraryId = currentLibrary.Id;
-					playbackRecord.PlaybackDeviceName = "Local playback";
-
-					ConnectionDetailsModel.SynchConnection.Update( playbackRecord );
-				}
-
-				// Any Tags defined
-				if ( ConnectionDetailsModel.SynchConnection.Table<Tag>().FirstOrDefault() == null )
-				{
-					// Create a couple of standard Tags
-					ConnectionDetailsModel.SynchConnection.Insert( new Tag() { Name = "Latest" } );
-					ConnectionDetailsModel.SynchConnection.Insert( new Tag() { Name = "Play next" } );
-				}
 
 				currentLibraryId = playbackRecord.LibraryId;
 			}
@@ -454,6 +363,11 @@ namespace DBTest
 		/// The LibraryClear class controls the clearance of a library
 		/// </summary>
 		private LibraryClear libraryClearer = null;
+
+		/// <summary>
+		/// The one and only Http server used to serve local files to remote devices
+		/// </summary>
+		private static SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
 	}
 }
 

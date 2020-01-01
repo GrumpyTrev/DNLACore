@@ -30,7 +30,7 @@ namespace DBTest
 		public static async void GetNowPlayingListAsync( int libraryId )
 		{
 			// Check if the Playlists details for the library have already been obtained
-			if ( ( NowPlayingViewModel.NowPlayingPlaylist == null ) || ( NowPlayingViewModel.LibraryId != libraryId ) )
+			if ( NowPlayingViewModel.LibraryId != libraryId )
 			{
 				NowPlayingViewModel.LibraryId = libraryId;
 
@@ -63,26 +63,23 @@ namespace DBTest
 		/// </summary>
 		public static void ShuffleNowPlayingList()
 		{
-			if ( NowPlayingViewModel.NowPlayingPlaylist != null )
+			SetSelectedSongAsync( -1 );
+
+			// Extract the songs from the playlist and shuffle them
+			List<Song> songs = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Select( item => item.Song ).ToList();
+
+			int n = songs.Count;
+			while ( n > 1 )
 			{
-				SetSelectedSongAsync( -1 );
-
-				// Extract the songs from the playlist and shuffle them
-				List< Song > songs = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Select( item => item.Song ).ToList();
-
-				int n = songs.Count;
-				while ( n > 1 )
-				{
-					n--;
-					int k = rng.Next( n + 1 );
-					Song value = songs[ k ];
-					songs[ k ] = songs[ n ];
-					songs[ n ] = value;
-				}
-
-				// Now make these songs the playlist
-				BaseController.AddSongsToNowPlayingListAsync( songs, true, NowPlayingViewModel.LibraryId );
+				n--;
+				int k = rng.Next( n + 1 );
+				Song value = songs[ k ];
+				songs[ k ] = songs[ n ];
+				songs[ n ] = value;
 			}
+
+			// Now make these songs the playlist
+			BaseController.AddSongsToNowPlayingListAsync( songs, true, NowPlayingViewModel.LibraryId );
 		}
 
 		/// <summary>
@@ -92,13 +89,10 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SongsAdded( object message )
 		{
-			if ( NowPlayingViewModel.NowPlayingPlaylist != null )
-			{
-				// Force a total refresh  by clearing the previous results
-				// Hence no need to register for the playlist cleared message (this assumes that the 'added' always follows a 'cleared'????
-				NowPlayingViewModel.NowPlayingPlaylist = null;
-				GetNowPlayingListAsync( NowPlayingViewModel.LibraryId );
-			}
+			// Force a total refresh  by clearing the previous results
+			// Hence no need to register for the playlist cleared message (this assumes that the 'added' always follows a 'cleared'????
+			NowPlayingViewModel.ClearModel();
+			GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>
@@ -108,12 +102,8 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SongSelected( object message )
 		{
-			// Only process this if the playlist has been read at least once
-			if ( NowPlayingViewModel.NowPlayingPlaylist != null )
-			{
-				NowPlayingViewModel.SelectedSong = ( ( SongSelectedMessage )message ).ItemNo;
-				Reporter?.SongSelected();
-			}
+			NowPlayingViewModel.SelectedSong = ( ( SongSelectedMessage )message ).ItemNo;
+			Reporter?.SongSelected();
 		}
 
 		/// <summary>
@@ -123,14 +113,8 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SelectedLibraryChanged( object message )
 		{
-			// Clear the displayed data and filter
-			NowPlayingViewModel.NowPlayingPlaylist?.PlaylistItems.Clear();
-			NowPlayingViewModel.SelectedSong = -1;
-
-			// Publish the data
-			Reporter?.NowPlayingDataAvailable();
-
-			// Reread the data
+			// Clear the displayed data
+			NowPlayingViewModel.ClearModel();
 			GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 		}
 

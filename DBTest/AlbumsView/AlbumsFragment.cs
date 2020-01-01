@@ -11,10 +11,7 @@ namespace DBTest
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
-		public AlbumsFragment()
-		{
-			ActionModeTitle = NoItemsSelectedText;
-		}
+		public AlbumsFragment() => ActionModeTitle = NoItemsSelectedText;
 
 		/// <summary>
 		/// Add fragment specific menu items to the main toolbar
