@@ -75,13 +75,10 @@ namespace DBTest
 		/// </summary>
 		public override void Shutdown()
 		{
-			if ( localPlayer != null )
-			{
-				localPlayer.Stop();
-				localPlayer.Release();
+			localPlayer.Stop();
+			localPlayer.Release();
 
-				IsPlaying = false;
-			}
+			IsPlaying = false;
 
 			StopSelf();
 		}
@@ -161,10 +158,7 @@ namespace DBTest
 		/// Seek to the specified position
 		/// </summary>
 		/// <param name="position"></param>
-		public override void Seek( int position )
-		{
-			localPlayer.SeekTo( position );
-		}
+		public override void Seek( int position ) => localPlayer.SeekTo( position );
 
 		/// <summary>
 		/// Get the current position of the playing song
@@ -213,8 +207,14 @@ namespace DBTest
 			localPlayer.SetOnCompletionListener( this );
 		}
 
+		/// <summary>
+		/// The Android MediaPlayer instance user to actually play the songs
+		/// </summary>
 		private MediaPlayer localPlayer = null;
 
+		/// <summary>
+		/// Flag to indicate that the media player is in the middle of preparing a file for playback
+		/// </summary>
 		private bool isPreparing = false;
 	}
 }

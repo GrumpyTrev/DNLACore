@@ -20,10 +20,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="intent"></param>
 		/// <returns></returns>
-		public override IBinder OnBind( Intent intent )
-		{
-			return serviceBinder;
-		}
+		public override IBinder OnBind( Intent intent ) => serviceBinder;
 
 		/// <summary>
 		/// Called when the service is first created. Create the binder to pass back the service instance
@@ -36,10 +33,8 @@ namespace DBTest
 		}
 
 		[return: GeneratedEnum]
-		public override StartCommandResult OnStartCommand( Intent intent, [GeneratedEnum] StartCommandFlags flags, int startId )
-		{
-			return base.OnStartCommand( intent, flags, startId );
-		}
+		public override StartCommandResult OnStartCommand( Intent intent, [GeneratedEnum] StartCommandFlags flags, int startId ) => 
+			base.OnStartCommand( intent, flags, startId );
 
 		/// <summary>
 		/// Play the previous song in the list wrapping back to the end if required
@@ -169,29 +164,14 @@ namespace DBTest
 		/// <param name="songSource"></param>
 		/// <param name="songPath"></param>
 		/// <returns></returns>
-		protected string FormSourceName( Source songSource, string songPath, bool local )
-		{
-			string sourceName;
-
-			if ( local == true )
-			{
-				sourceName = Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) );
-			}
-			else
-			{
-				sourceName = Path.Combine( songSource.RemoteAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
-			}
-
-			return sourceName;
-		}
+		protected string FormSourceName( Source songSource, string songPath, bool local ) => 
+			( local == true ) ? Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) ) :
+				Path.Combine( songSource.RemoteAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
 
 		/// <summary>
 		/// Report that the current song is being played
 		/// </summary>
-		protected void ReportSongPlayed()
-		{
-			Reporter?.SongPlayed( Playlist.PlaylistItems[ CurrentSongIndex ].Song );
-		}
+		protected void ReportSongPlayed() => Reporter?.SongPlayed( Playlist.PlaylistItems[ CurrentSongIndex ].Song );
 
 		/// <summary>
 		/// The playlist of songs to play
@@ -233,10 +213,7 @@ namespace DBTest
 		/// </summary>
 		public class PlaybackBinder: Binder
 		{
-			public PlaybackBinder( BasePlaybackService theService )
-			{
-				Service = theService;
-			}
+			public PlaybackBinder( BasePlaybackService theService ) => Service = theService;
 
 			/// <summary>
 			/// The service instance passed back to the application

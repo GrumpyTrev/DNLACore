@@ -112,7 +112,7 @@ namespace DBTest
 		/// Get all the PlaylistItem entries associated with a specified Playlist.
 		/// </summary>
 		/// <param name="thePlayList"></param>
-		public async Task ProvideGroupContents( Playlist thePlayList )
+		public async Task ProvideGroupContentsAsync( Playlist thePlayList )
 		{
 			if ( thePlayList.PlaylistItems == null )
 			{

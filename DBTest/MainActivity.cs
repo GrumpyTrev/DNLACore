@@ -148,11 +148,6 @@ namespace DBTest
 				libraryScanner.ScanSelection();
 				handled = true;
 			}
-			else if ( id == Resource.Id.rescan_remote_devices )
-			{
-				playbackSelector.RescanForDevices();
-				handled = true;
-			}
 			else if ( id == Resource.Id.select_library )
 			{
 				librarySelector.SelectLibrary();

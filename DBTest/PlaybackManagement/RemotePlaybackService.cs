@@ -98,24 +98,12 @@ namespace DBTest
 		/// <summary>
 		/// Report the position obtained from the remote device
 		/// </summary>
-		public override int Position
-		{
-			get
-			{
-				return positionMilliseconds;
-			}
-		}
+		public override int Position => positionMilliseconds;
 
 		/// <summary>
 		/// Report the duration obtained from the remote device
 		/// </summary>
-		public override int Duration
-		{
-			get
-			{
-				return durationMilliseconds;
-			}
-		}
+		public override int Duration => durationMilliseconds;
 
 		/// <summary>
 		/// Send a Pause request to the DNLA device
@@ -267,15 +255,15 @@ namespace DBTest
 			return ( int )ts.TotalMilliseconds;
 		}
 
-		private void StartTimer()
-		{
-			positionTimer.Start();
-		}
+		/// <summary>
+		/// Start the progress timer
+		/// </summary>
+		private void StartTimer() => positionTimer.Start();
 
-		private void StopTimer()
-		{
-			positionTimer.Stop();
-		}
+		/// <summary>
+		/// Stop the progress timer
+		/// </summary>
+		private void StopTimer() => positionTimer.Stop();
 
 		/// <summary>
 		/// Aquire the wakelock if not already held
@@ -299,16 +287,34 @@ namespace DBTest
 			}
 		}
 
+		/// <summary>
+		/// The duration as reported from the remote device
+		/// </summary>
 		private int durationMilliseconds = 0;
 
+		/// <summary>
+		/// The position as reported from the remote device
+		/// </summary>
 		private int positionMilliseconds = 0;
 
+		/// <summary>
+		/// Flag indicating that the remote device is busy preparing a song to be played
+		/// </summary>
 		private bool isPreparing = false;
 
+		/// <summary>
+		/// Counter used to detect when the end of a song may have been missed
+		/// </summary>
 		private int noPlayCount = 0;
 
+		/// <summary>
+		/// The timer used to check the progress of the song
+		/// </summary>
 		private Timer positionTimer = null;
 
+		/// <summary>
+		/// Lock used to keep the app alive
+		/// </summary>
 		private PowerManager.WakeLock wakeLock = null;
 	}
 }

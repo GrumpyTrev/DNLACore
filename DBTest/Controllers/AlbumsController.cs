@@ -59,6 +59,13 @@ namespace DBTest
 						}
 					} );
 				}
+				else
+				{
+					// When a filter is applied the entries are in Tag ID order. 
+					// The most useful order for display purposes is the reverse of this.
+					// Do the sorting and indexing off the UI task
+					await Task.Run( () => { AlbumsViewModel.Albums.Reverse(); } );
+				}
 
 				// Get the list of current playlists
 				await GetPlayListNames();

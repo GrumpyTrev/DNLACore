@@ -2531,8 +2531,8 @@ namespace DBTest
 			// aapt resource value: 0x7f0800b5
 			public const int chronometer = 2131230901;
 			
-			// aapt resource value: 0x7f0800d2
-			public const int clear_library = 2131230930;
+			// aapt resource value: 0x7f0800d1
+			public const int clear_library = 2131230929;
 			
 			// aapt resource value: 0x7f08004e
 			public const int clip_horizontal = 2131230798;
@@ -2714,8 +2714,8 @@ namespace DBTest
 			// aapt resource value: 0x7f08003b
 			public const int never = 2131230779;
 			
-			// aapt resource value: 0x7f0800d3
-			public const int new_playlist = 2131230931;
+			// aapt resource value: 0x7f0800d2
+			public const int new_playlist = 2131230930;
 			
 			// aapt resource value: 0x7f080022
 			public const int none = 2131230754;
@@ -2768,11 +2768,8 @@ namespace DBTest
 			// aapt resource value: 0x7f0800c2
 			public const int rename = 2131230914;
 			
-			// aapt resource value: 0x7f0800d1
-			public const int rescan_library = 2131230929;
-			
-			// aapt resource value: 0x7f0800ce
-			public const int rescan_remote_devices = 2131230926;
+			// aapt resource value: 0x7f0800d0
+			public const int rescan_library = 2131230928;
 			
 			// aapt resource value: 0x7f08004a
 			public const int right = 2131230794;
@@ -2843,8 +2840,8 @@ namespace DBTest
 			// aapt resource value: 0x7f08008a
 			public const int select_dialog_listview = 2131230858;
 			
-			// aapt resource value: 0x7f0800d0
-			public const int select_library = 2131230928;
+			// aapt resource value: 0x7f0800cf
+			public const int select_library = 2131230927;
 			
 			// aapt resource value: 0x7f0800cd
 			public const int select_playback_device = 2131230925;
@@ -2864,8 +2861,8 @@ namespace DBTest
 			// aapt resource value: 0x7f0800cc
 			public const int show_media_controls = 2131230924;
 			
-			// aapt resource value: 0x7f0800cf
-			public const int shuffle_now_playing = 2131230927;
+			// aapt resource value: 0x7f0800ce
+			public const int shuffle_now_playing = 2131230926;
 			
 			// aapt resource value: 0x7f08008c
 			public const int sliding_tabs = 2131230860;
@@ -3269,28 +3266,31 @@ namespace DBTest
 			public const int playlists_fragment = 2130968643;
 			
 			// aapt resource value: 0x7f040044
-			public const int select_dialog_item_material = 2130968644;
+			public const int rescan_progress_layout = 2130968644;
 			
 			// aapt resource value: 0x7f040045
-			public const int select_dialog_multichoice_material = 2130968645;
+			public const int select_dialog_item_material = 2130968645;
 			
 			// aapt resource value: 0x7f040046
-			public const int select_dialog_singlechoice_material = 2130968646;
+			public const int select_dialog_multichoice_material = 2130968646;
 			
 			// aapt resource value: 0x7f040047
-			public const int support_simple_spinner_dropdown_item = 2130968647;
+			public const int select_dialog_singlechoice_material = 2130968647;
 			
 			// aapt resource value: 0x7f040048
-			public const int tag_dialogue_layout = 2130968648;
+			public const int support_simple_spinner_dropdown_item = 2130968648;
 			
 			// aapt resource value: 0x7f040049
-			public const int tag_item_layout = 2130968649;
+			public const int tag_dialogue_layout = 2130968649;
 			
 			// aapt resource value: 0x7f04004a
-			public const int toolbar = 2130968650;
+			public const int tag_item_layout = 2130968650;
 			
 			// aapt resource value: 0x7f04004b
-			public const int tooltip = 2130968651;
+			public const int toolbar = 2130968651;
+			
+			// aapt resource value: 0x7f04004c
+			public const int tooltip = 2130968652;
 			
 			static Layout()
 			{

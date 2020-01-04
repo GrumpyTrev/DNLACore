@@ -32,7 +32,7 @@ namespace DBTest
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public async Task ProvideGroupContents( Artist theArtist )
+		public async Task ProvideGroupContentsAsync( Artist theArtist )
 		{
 			if ( theArtist.ArtistAlbums == null )
 			{

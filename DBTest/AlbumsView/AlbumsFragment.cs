@@ -29,7 +29,7 @@ namespace DBTest
 		/// Get all the Song entries associated with a specified Album.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public async Task ProvideGroupContents( Album theAlbum )
+		public async Task ProvideGroupContentsAsync( Album theAlbum )
 		{
 			if ( theAlbum.Songs == null )
 			{

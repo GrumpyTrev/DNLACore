@@ -133,39 +133,48 @@ namespace DBTest
 				request.ContentLength64, request.ContentType,
 				request.HttpMethod, request.KeepAlive, request.RawUrl, request.ServiceName, request.Url.OriginalString ) );
 
-			Logger.Log( "Serving file: " + filename );
-
-			if ( File.Exists( filename ) )
+			if ( ( request.HttpMethod == "HEAD" ) || ( request.HttpMethod == "GET" ) )
 			{
-				try
+				if ( File.Exists( filename ) )
 				{
-					using ( StreamReader reader = new StreamReader( filename ) )
+					try
 					{
-						using ( BinaryReader bReader = new BinaryReader( reader.BaseStream ) )
+						using ( StreamReader reader = new StreamReader( filename ) )
 						{
-							string mime;
-							context.Response.ContentType = _mimeTypeMappings.TryGetValue( Path.GetExtension( filename ), out mime ) ? mime : "application/octet-stream";
+							context.Response.ContentType = _mimeTypeMappings.TryGetValue( Path.GetExtension( filename ), out string mime ) ? mime : "application/octet-stream";
 							context.Response.ContentLength64 = reader.BaseStream.Length;
 							context.Response.AddHeader( "Date", DateTime.Now.ToString( "r" ) );
 							context.Response.AddHeader( "Last-Modified", System.IO.File.GetLastWriteTime( filename ).ToString( "r" ) );
 
-							byte[] bytes = bReader.ReadBytes( ( int )reader.BaseStream.Length );
-							context.Response.OutputStream.Write( bytes, 0, bytes.Length );
+							if ( request.HttpMethod == "GET" )
+							{
+								Logger.Log( "Serving file: " + filename );
+
+								using ( BinaryReader bReader = new BinaryReader( reader.BaseStream ) )
+								{
+									byte[] bytes = bReader.ReadBytes( ( int )reader.BaseStream.Length );
+									context.Response.OutputStream.Write( bytes, 0, bytes.Length );
+								}
+
+								context.Response.OutputStream.Flush();
+							}
 						}
+
+						context.Response.StatusCode = ( int )HttpStatusCode.OK;
 					}
-
-					context.Response.StatusCode = ( int )HttpStatusCode.OK;
-					context.Response.OutputStream.Flush();
+					catch ( Exception )
+					{
+						context.Response.StatusCode = ( int )HttpStatusCode.InternalServerError;
+					}
 				}
-				catch ( Exception ex )
+				else
 				{
-					context.Response.StatusCode = ( int )HttpStatusCode.InternalServerError;
+					context.Response.StatusCode = ( int )HttpStatusCode.NotFound;
 				}
-
 			}
 			else
 			{
-				context.Response.StatusCode = ( int )HttpStatusCode.NotFound;
+				context.Response.StatusCode = ( int )HttpStatusCode.MethodNotAllowed;
 			}
 
 			context.Response.OutputStream.Close();
@@ -174,7 +183,7 @@ namespace DBTest
 		/// <summary>
 		/// The root directory for the actual physical location of the files
 		/// </summary>
-		private string rootDirectory;
+		private readonly string rootDirectory;
 
 		/// <summary>
 		/// The Http listener

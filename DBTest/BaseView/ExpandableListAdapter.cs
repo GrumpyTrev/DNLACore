@@ -460,7 +460,7 @@ namespace DBTest
 		protected static int GetGroupFromTag( int tag ) => tag >> 16;
 
 		/// <summary>
-		/// Called to perform the actual group collpase or expansion asynchronously
+		/// Called to perform the actual group collase or expansion asynchronously
 		/// If a group/artist is being expanded then get its contents if not previously displayed
 		/// Keep track of which groups have been expanded and the last group expanded
 		/// </summary>
@@ -474,7 +474,7 @@ namespace DBTest
 				// If any content is supplied and the group is selected then select the new items
 				int childCount = GetChildrenCount( groupPosition );
 
-				await contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
+				await contentsProvider.ProvideGroupContentsAsync( Groups[ groupPosition ] );
 
 				// Have any items been supplied
 				if ( GetChildrenCount( groupPosition ) != childCount )
@@ -482,7 +482,7 @@ namespace DBTest
 					// If the group is selected then select the new items
 					if ( IsItemSelected( FormGroupTag( groupPosition ) ) == true )
 					{
-						SelectGroupContents( groupPosition, true );
+						await SelectGroupContents( groupPosition, true );
 					}
 				}
 
@@ -514,7 +514,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void SelectionBoxClick( object sender, EventArgs e )
+		private async void SelectionBoxClick( object sender, EventArgs e )
 		{
 			int tag = ( int )( ( CheckBox )sender ).Tag;
 			int groupPosition = GetGroupFromTag( tag );
@@ -528,7 +528,7 @@ namespace DBTest
 			// If this is a group item then select or deselect all of its children
 			if ( IsGroupTag( tag ) == true )
 			{
-				selectionChanged = SelectGroupContents( groupPosition, IsItemSelected( tag ) );
+				selectionChanged = await SelectGroupContents( groupPosition, IsItemSelected( tag ) );
 			}
 			else
 			{
@@ -550,14 +550,15 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="selected"></param>
-		private bool SelectGroupContents( int groupPosition, bool selected )
+		private async Task<bool> SelectGroupContents( int groupPosition, bool selected )
 		{
 			bool selectionChanged = false;
 
 			// If there are no child items associated with this group call the provider to get the children
 			if ( GetChildrenCount( groupPosition ) == 0 )
 			{
-				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
+				// At the moment 
+				await contentsProvider.ProvideGroupContentsAsync( Groups[ groupPosition ] );
 			}
 
 			for ( int childIndex = 0; childIndex < GetChildrenCount( groupPosition ) ; childIndex++ )
@@ -603,7 +604,7 @@ namespace DBTest
 			/// Provide the details for the specified group
 			/// </summary>
 			/// <param name="theGroup"></param>
-			Task ProvideGroupContents( U theGroup );
+			Task ProvideGroupContentsAsync( U theGroup );
 
 			/// <summary>
 			/// The number of expanded groups has changed

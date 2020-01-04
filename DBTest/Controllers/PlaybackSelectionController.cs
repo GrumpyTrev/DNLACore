@@ -26,7 +26,7 @@ namespace DBTest
 		/// Send out a multicast discovery request and await replies.
 		/// Parse the reply to determine the ipaddress and port of the discovered device
 		/// </summary>
-		public static async void DiscoverDevices()
+		public static async void DiscoverDevicesAsync()
 		{
 			// Only start discovering device if no remote devices have already been discovered (remember the collection always include the local device)
 			if ( PlaybackSelectionModel.RemoteDevices.DeviceCollection.Count == 1 )
@@ -106,7 +106,7 @@ namespace DBTest
 		public static void ReDiscoverDevices()
 		{
 			InitialiseDiscoveredDevices();
-			DiscoverDevices();
+			DiscoverDevicesAsync();
 		}
 
 		/// <summary>
@@ -125,6 +125,15 @@ namespace DBTest
 
 				new PlaybackDeviceAvailableMessage() { SelectedDevice = PlaybackSelectionModel.SelectedDevice }.Send();
 			}
+		}
+
+		/// <summary>
+		/// This method is called when a rescan has been requested by the user
+		/// Pass this back to the selection manager
+		/// </summary>
+		public static void RescanRequested()
+		{
+			Reporter?.RescanRequested();
 		}
 
 		/// <summary>
@@ -164,6 +173,7 @@ namespace DBTest
 		{
 			void PlaybackSelectionDataAvailable();
 			void DiscoveryFinished();
+			void RescanRequested();
 		}
 
 		/// <summary>

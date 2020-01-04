@@ -34,8 +34,9 @@ namespace DBTest
 		/// No group content required
 		/// </summary>
 		/// <param name="thePlayList"></param>
-		public async Task ProvideGroupContents( PlaylistItem theItem)
+		public async Task ProvideGroupContentsAsync( PlaylistItem theItem)
 		{
+			await Task.Run( () => { } );
 		}
 
 		/// <summary>
