@@ -22,7 +22,42 @@ namespace DBTest
 		{
 			inflater.Inflate( Resource.Menu.menu_albums, menu );
 
+			sortItem = menu.FindItem( Resource.Id.sort );
+			if ( sortItem != null )
+			{
+				sortItem.SetIcon( AlbumsViewModel.SortSelector.SelectedResource );
+			}
+
 			base.OnCreateOptionsMenu( menu, inflater );
+		}
+
+		/// <summary>
+		/// Called when a menu item has been selected
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
+		public override bool OnOptionsItemSelected( IMenuItem item )
+		{
+			bool handled = false;
+
+			if ( item.ItemId == Resource.Id.sort )
+			{
+				// Select the next sort order
+				AlbumsViewModel.SortSelector.SelectNext();
+
+				// Display the next sort option
+				sortItem.SetIcon( AlbumsViewModel.SortSelector.SelectedResource );
+
+				// Redisplay the data with the new sort applied
+				AlbumsController.RefreshData();
+			}
+
+			if ( handled == false )
+			{
+				handled = base.OnOptionsItemSelected( item );
+			}
+
+			return handled;
 		}
 
 		/// <summary>
@@ -83,7 +118,7 @@ namespace DBTest
 			ActionModeTitle = ( songsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, songsSelected );
 
 			// Show the tag command if any albums are selected
-			tagCommand.Visible = ( selectedItems.Values.OfType<ArtistAlbum>().Count() > 0 );
+			tagCommand.Visible = ( selectedItems.Values.OfType<Album>().Count() > 0 );
 
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();
@@ -141,7 +176,7 @@ namespace DBTest
 			}
 			else if ( commandId == Resource.Id.tag )
 			{
-				List<ArtistAlbum> selectedAlbums = Adapter.SelectedItems.Values.OfType<ArtistAlbum>().ToList();
+				List<Album> selectedAlbums = Adapter.SelectedItems.Values.OfType<Album>().ToList();
 
 				// Create TagSelection dialogue and display it
 				TagSelection selectionDialogue = new TagSelection( Context, ( List<AppliedTag> appliedTags ) => 
@@ -217,6 +252,9 @@ namespace DBTest
 			if ( newFilter != CurrentFilter )
 			{
 				AlbumsController.ApplyFilter( newFilter );
+
+				// If a filter has been applied then hide the sort menu option as that is only applicable( at the moment) for unfiltered data
+				sortItem.SetVisible( newFilter == null );
 			}
 		}
 
@@ -231,5 +269,10 @@ namespace DBTest
 		/// </summary>
 		private const string NoItemsSelectedText = "Select songs";
 		private const string ItemsSelectedText = "{0} selected";
+
+		/// <summary>
+		/// The sort menu item that is used to control the sort order of the displayed albums
+		/// </summary>
+		private IMenuItem sortItem = null;
 	}
 }

@@ -19,6 +19,8 @@ namespace DBTest
 			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistAddedMessage ) );
 			Mediator.RegisterPermanent( TagMembershipChanged, typeof( TagMembershipChangedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
+			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
+			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
 		}
 
 		/// <summary>
@@ -37,25 +39,56 @@ namespace DBTest
 				AlbumsViewModel.Albums = await AlbumAccess.GetAlbumDetailsAsync( AlbumsViewModel.LibraryId, AlbumsViewModel.CurrentFilter );
 				AlbumsViewModel.AlphaIndex.Clear();
 
-				// Sort the list of albums by name unless a filter has been applied
+				// Sort the list of albums by name unless a filter with the tag order set has been applied
 				if ( ( AlbumsViewModel.CurrentFilter?.TagOrder ?? false ) == false )
 				{
 					// Do the sorting and indexing off the UI task
 					await Task.Run( () => {
 
-						// Do a normal comparison, except remove a leading 'The ' before comparing
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
+						// Use the sort order stored in the model
+						AlbumSortSelector.AlbumSortOrder sortOrder = AlbumsViewModel.SortSelector.CurrentSortOrder;
 
-						// Work out the section indexes for the sorted data
-						int index = 0;
-						foreach ( Album album in AlbumsViewModel.Albums )
+						switch ( sortOrder )
 						{
-							string key = album.Name.RemoveThe().Substring( 0, 1 ).ToUpper();
-							if ( AlbumsViewModel.AlphaIndex.ContainsKey( key ) == false )
+							case AlbumSortSelector.AlbumSortOrder.alphaDescending:                            
+							case AlbumSortSelector.AlbumSortOrder.alphaAscending:
 							{
-								AlbumsViewModel.AlphaIndex[ key ] = index;
+								if ( sortOrder == AlbumSortSelector.AlbumSortOrder.alphaAscending )
+								{
+									AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
+								}
+								else
+								{
+									AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ); } );
+								}
+
+								// Work out the section indexes for the sorted data
+								int index = 0;
+								foreach ( Album album in AlbumsViewModel.Albums )
+								{
+									string key = album.Name.RemoveThe().Substring( 0, 1 ).ToUpper();
+									if ( AlbumsViewModel.AlphaIndex.ContainsKey( key ) == false )
+									{
+										AlbumsViewModel.AlphaIndex[ key ] = index;
+									}
+									index++;
+								}
+
+								break;
 							}
-							index++;
+
+							case AlbumSortSelector.AlbumSortOrder.idAscending:
+							{
+								// Already in this order
+								break;
+							}
+
+							case AlbumSortSelector.AlbumSortOrder.idDescending:
+							{
+								// Reverse the albums
+								AlbumsViewModel.Albums.Reverse();
+								break;
+							}
 						}
 					} );
 				}
@@ -123,6 +156,19 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Refresh the data after a sort or other change requiring reaquiring and display of the data
+		/// </summary>
+		/// <param name="newFilter"></param>
+		public static void RefreshData()
+		{
+			// Clear the displayed data
+			AlbumsViewModel.ClearModel();
+
+			// Get the data again
+			GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
+		}
+
+		/// <summary>
 		/// Called when a PlaylistDeletedMessage or PlaylistAddedMessage message has been received
 		/// Update the list of playlists held by the model
 		/// </summary>
@@ -159,6 +205,37 @@ namespace DBTest
 
 			// Reread the data
 			GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
+		}
+
+		/// <summary>
+		/// Called when a TagDetailsChangedMessage has been received
+		/// If the tag is currently being used to filter the albums then update the filter and
+		/// redisplay the albums
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagDetailsChanged( object message )
+		{
+			if ( AlbumsViewModel.CurrentFilter != null )
+			{
+				TagDetailsChangedMessage tagMessage = message as TagDetailsChangedMessage;
+				if ( AlbumsViewModel.CurrentFilter.Name == tagMessage.PreviousName )
+				{
+					ApplyFilter( tagMessage.ChangedTag );
+				}
+			}
+		}
+
+		/// <summary>
+		/// Called when a TagDeletedMessage has been received
+		/// If the tag is currently being used to filter the albums then remove the filter and redisplay
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagDeleted( object message )
+		{
+			if ( ( AlbumsViewModel.CurrentFilter != null ) && ( AlbumsViewModel.CurrentFilter.Name == ( message as TagDeletedMessage ).DeletedTag.Name ) )
+			{
+				ApplyFilter( null );
+			}
 		}
 
 		/// <summary>

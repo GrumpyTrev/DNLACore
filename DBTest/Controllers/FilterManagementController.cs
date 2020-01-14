@@ -39,11 +39,139 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Return a list of the names of all the user tags
+		/// </summary>
+		/// <returns></returns>
+		public static List<string> GetUserTagNames() => ( FilterManagementModel.Tags != null ) ? 
+			FilterManagementModel.Tags.Where( tag => tag.UserTag == true ).Select( tag => tag.Name ).ToList() : new List<string>();
+
+		/// <summary>
+		/// Return the Tag with the given name, or null if no such Tag
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public static Tag GetTagFromName( string name ) => FilterManagementModel.Tags.SingleOrDefault( tag => tag.Name == name );
+
+		/// <summary>
+		/// Update an existing Tag with updated values.
+		/// Remove TaggedAlbums if the MaxCount for a library has now been exceeded
+		/// </summary>
+		/// <param name="existingTag"></param>
+		/// <param name="updatedTag"></param>
+		/// <param name="tagDelegate"></param>
+		public static async void UpdateTagAsync( Tag existingTag, Tag updatedTag, TagUpdatedDelegate tagDelegate )
+		{
+			bool updateOk = true;
+
+			// Check for a name change
+			if ( updatedTag.Name != existingTag.Name )
+			{
+				// Check that there is not another tag with the new name
+				updateOk = ( FilterManagementModel.Tags.Count( tag => ( tag.Name == updatedTag.Name ) ) == 0 );
+			}
+
+			// Check for a short name change
+			if ( ( updateOk == true ) && ( updatedTag.ShortName != existingTag.ShortName ) )
+			{
+				updatedTag.ShortName = ( updatedTag.ShortName.Length > 0 ) ? updatedTag.ShortName : updatedTag.Name;
+
+				// Check that there is not another tag with the new name
+				updateOk = ( FilterManagementModel.Tags.Count( tag => ( tag.ShortName == updatedTag.ShortName ) ) == 0 );
+			}
+
+			if ( updateOk == true )
+			{
+				// No problems in performing the update.
+				// Has the maximum number changed and do we need to do anything about it?
+				if ( updatedTag.MaxCount != existingTag.MaxCount )
+				{
+					if ( ( updatedTag.MaxCount != -1 ) && ( ( existingTag.MaxCount == -1 ) || ( updatedTag.MaxCount < existingTag.MaxCount ) ) )
+					{
+						// Possibly need to reduce the number of tagged albums (for each library)
+						List<Library> libraries = await LibraryAccess.GetLibrariesAsync();
+						foreach ( Library lib in libraries )
+						{
+							// Get the count for this library 
+							int tagCount = existingTag.TaggedAlbums.Count( taggedAlbum => ( taggedAlbum.Album.LibraryId == lib.Id ) );
+							if ( tagCount > updatedTag.MaxCount )
+							{
+								// Need to remove the first (tagCount - updatedTag.MaxCount) entries from the Tag for this library
+								List<TaggedAlbum> albums = existingTag.TaggedAlbums.Where( album => ( album.Album.LibraryId == lib.Id ) ).
+									Take( tagCount - updatedTag.MaxCount ).ToList();
+
+								foreach ( TaggedAlbum album in albums )
+								{
+									await FilterAccess.DeleteTaggedAlbumAsync( album );
+									existingTag.TaggedAlbums.Remove( album );
+								}
+							}
+						}
+					}
+				}
+
+				// Update the details for the existing Tag and save it
+				// Save the old name to send in the message
+				string oldTagName = existingTag.Name;
+				existingTag.Name = updatedTag.Name;
+				existingTag.ShortName = updatedTag.ShortName;
+				existingTag.MaxCount = updatedTag.MaxCount;
+				existingTag.TagOrder = updatedTag.TagOrder;
+
+				await FilterAccess.UpdateTagAsync( existingTag );
+
+				new TagDetailsChangedMessage() { ChangedTag = existingTag, PreviousName = oldTagName }.Send();
+			}
+
+			tagDelegate( updateOk );
+		}
+
+		/// <summary>
+		/// Update an existing Tag with updated values.
+		/// Remove TaggedAlbums if the MaxCount for a library has now been exceeded
+		/// </summary>
+		/// <param name="existingTag"></param>
+		/// <param name="updatedTag"></param>
+		/// <param name="tagDelegate"></param>
+		public static async void CreateTagAsync( Tag newTag, TagUpdatedDelegate tagDelegate )
+		{
+			bool updateOk = true;
+
+			// Check for a valid name
+			updateOk = ( newTag.Name.Length > 0 );
+
+			if ( updateOk == true )
+			{
+				// Check that there is not another tag with the new name
+				updateOk = ( FilterManagementModel.Tags.Count( tag => ( tag.Name == newTag.Name ) ) == 0 );
+			}
+
+			// Check for a valid short name
+			if ( updateOk == true )
+			{
+				newTag.ShortName = ( newTag.ShortName.Length > 0 ) ? newTag.ShortName : newTag.Name;
+
+				// Check that there is not another tag with the new name
+				updateOk = ( FilterManagementModel.Tags.Count( tag => ( tag.ShortName == newTag.ShortName ) ) == 0 );
+			}
+
+			if ( updateOk == true )
+			{
+				// No problems in performing the update. Add the tag to the model
+				newTag.UserTag = true;
+
+				await FilterAccess.AddTagAsync( newTag );
+				FilterManagementModel.Tags.Add( newTag );
+			}
+
+			tagDelegate( updateOk );
+		}
+
+		/// <summary>
 		/// Apply the list of selected albums to the Tags data to produce a list of all available tags and an indication of 
 		/// whether the tag has been applied to none, all or some of the albums
 		/// </summary>
 		/// <param name="selectedAlbums"></param>
-		public static async void GetAppliedTagsAsync( List<ArtistAlbum> selectedAlbums, AppliedTagsDelegate tagsDelegate )
+		public static async void GetAppliedTagsAsync( List<Album> selectedAlbums, AppliedTagsDelegate tagsDelegate )
 		{
 			List<AppliedTag> appliedTags = new List<AppliedTag>();
 
@@ -54,14 +182,15 @@ namespace DBTest
 
 					// Check if all, none or some of the selected albums are tagged with this tag
 					int taggedCount = 0;
-					foreach ( ArtistAlbum selectedAlbum in selectedAlbums )
+					foreach ( Album selectedAlbum in selectedAlbums )
 					{
-						if ( tag.TaggedAlbums.Exists( artistAlbum => ( artistAlbum.AlbumId == selectedAlbum.AlbumId ) ) == true )
+						if ( tag.TaggedAlbums.Exists( artistAlbum => ( artistAlbum.AlbumId == selectedAlbum.Id ) ) == true )
 						{
 							taggedCount++;
 						}
 					}
 
+					// Set the Applied value according to the taggedCount
 					appliedTag.Applied = ( taggedCount == 0 ) ? AppliedTag.AppliedType.None :
 						( ( taggedCount == selectedAlbums.Count ) ? AppliedTag.AppliedType.All : AppliedTag.AppliedType.Some );
 
@@ -81,7 +210,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="selectedAlbums"></param>
 		/// <param name="appliedTags"></param>
-		public static async void ApplyTagsAsync( List<ArtistAlbum> selectedAlbums, List<AppliedTag> appliedTags )
+		public static async void ApplyTagsAsync( List<Album> selectedAlbums, List<AppliedTag> appliedTags )
 		{
 			// Keep track of which tags have been changed so that this can be sent to other controllers
 			List<string> changedTags = new List<string>();
@@ -100,12 +229,12 @@ namespace DBTest
 						if ( appliedTag.Applied == AppliedTag.AppliedType.None )
 						{
 							// Remove the selected albums from this tag
-							selectedAlbums.ForEach( async selectedAlbum => await RemoveAlbumFromTagAsync( changedTag, selectedAlbum.AlbumId ) );
+							selectedAlbums.ForEach( async selectedAlbum => await RemoveAlbumFromTagAsync( changedTag, selectedAlbum.Id ) );
 						}
 						else if ( appliedTag.Applied == AppliedTag.AppliedType.All )
 						{
 							// Add the selected albums to this tag
-							selectedAlbums.ForEach( async selectedAlbum => await AddAlbumToTagAsync( changedTag, selectedAlbum.Album ) );
+							selectedAlbums.ForEach( async selectedAlbum => await AddAlbumToTagAsync( changedTag, selectedAlbum ) );
 						}
 
 						await FilterAccess.UpdateTagAsync( changedTag );
@@ -118,6 +247,20 @@ namespace DBTest
 			{
 				new TagMembershipChangedMessage() { ChangedTags = changedTags }.Send();
 			}
+		}
+
+		/// <summary>
+		/// Delete the specified Tag 
+		/// </summary>
+		/// <param name="tagtoDelete"></param>
+		public static async void DeleteTagAsync( Tag tagToDelete )
+		{
+			tagToDelete.TaggedAlbums.ForEach( async album => await FilterAccess.DeleteTaggedAlbumAsync( album ) );
+			await FilterAccess.DeleteTagAsync( tagToDelete );
+
+			FilterManagementModel.Tags.Remove( tagToDelete );
+
+			new TagDeletedMessage() { DeletedTag = tagToDelete }.Send();
 		}
 
 		/// <summary>
@@ -237,6 +380,12 @@ namespace DBTest
 		/// </summary>
 		/// <param name="appliedTags"></param>
 		public delegate void AppliedTagsDelegate( List<AppliedTag> appliedTags );
+
+		/// <summary>
+		/// Definition of delegate to call when a Tag has been updated
+		/// </summary>
+		/// <returns></returns>
+		public delegate void TagUpdatedDelegate( bool updateOk );
 
 		/// <summary>
 		/// The name given to the "Just played" tag

@@ -28,7 +28,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="currentFilter"></param>
 		/// <returns></returns>
-		public void SelectFilter( List<ArtistAlbum> selectedAlbums )
+		public void SelectFilter( List<Album> selectedAlbums )
 		{
 			// Create the custom view to contain the tags and their selected states
 			View tagView = inflator.Inflate( Resource.Layout.tag_dialogue_layout, null );

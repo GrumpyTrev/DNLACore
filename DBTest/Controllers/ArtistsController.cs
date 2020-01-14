@@ -19,6 +19,8 @@ namespace DBTest
 			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistAddedMessage ) );
 			Mediator.RegisterPermanent( TagMembershipChanged, typeof( TagMembershipChangedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
+			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
+			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
 		}
 
 		/// <summary>
@@ -161,6 +163,37 @@ namespace DBTest
 
 			// Reread the data
 			GetArtistsAsync( ConnectionDetailsModel.LibraryId );
+		}
+
+		/// <summary>
+		/// Called when a TagDetailsChangedMessage has been received
+		/// If the tag is currently being used to filter the albums then update the filter and
+		/// redisplay the albums
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagDetailsChanged( object message )
+		{
+			if ( ArtistsViewModel.CurrentFilter != null )
+			{
+				TagDetailsChangedMessage tagMessage = message as TagDetailsChangedMessage;
+				if ( ArtistsViewModel.CurrentFilter.Name == tagMessage.PreviousName )
+				{
+					ApplyFilter( tagMessage.ChangedTag );
+				}
+			}
+		}
+
+		/// <summary>
+		/// Called when a TagDeletedMessage has been received
+		/// If the tag is currently being used to filter the albums then remove the filter and redisplay
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagDeleted( object message )
+		{
+			if ( ( ArtistsViewModel.CurrentFilter != null ) && ( ArtistsViewModel.CurrentFilter.Name == ( message as TagDeletedMessage ).DeletedTag.Name ) )
+			{
+				ApplyFilter( null );
+			}
 		}
 
 		/// <summary>

@@ -145,7 +145,7 @@ namespace DBTest
 			}
 			else if ( commandId == Resource.Id.tag )
 			{
-				List<ArtistAlbum> selectedAlbums = Adapter.SelectedItems.Values.OfType<ArtistAlbum>().ToList();
+				List<Album> selectedAlbums = Adapter.SelectedItems.Values.OfType<ArtistAlbum>().Select( aa => aa.Album ).Distinct().ToList();
 
 				// Create TagSelection dialogue and display it
 				TagSelection selectionDialogue = new TagSelection( Context, ( List<AppliedTag> appliedTags ) => 

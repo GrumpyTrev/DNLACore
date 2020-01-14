@@ -55,5 +55,19 @@ namespace DBTest
 		/// </summary>
 		/// <param name="taggedAlbum"></param>
 		public static async Task AddTaggedAlbumAsync( TaggedAlbum taggedAlbum ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( taggedAlbum );
+
+		/// <summary>
+		/// Add the specified tag to the database
+		/// </summary>
+		/// <param name="tagToAdd"></param>
+		/// <returns></returns>
+		public static async Task AddTagAsync( Tag tagToAdd ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( tagToAdd );
+
+		/// <summary>
+		/// Delete the specified tag from the database
+		/// </summary>
+		/// <param name="tagToDelete"></param>
+		/// <returns></returns>
+		public static async Task DeleteTagAsync( Tag tagToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( tagToDelete );
 	}
 }

@@ -54,5 +54,10 @@ namespace DBTest
 		/// The list of filters obtained from the database
 		/// </summary>
 		public static List<Tag> Tags { get; set; } = null;
+
+		/// <summary>
+		/// Class used to select the album sort order
+		/// </summary>
+		public static AlbumSortSelector SortSelector { get; } = new AlbumSortSelector();
 	}
 }

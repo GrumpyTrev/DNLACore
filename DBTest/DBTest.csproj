@@ -34,6 +34,7 @@
     <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
     <AndroidLinkMode>None</AndroidLinkMode>
     <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>PdbOnly</DebugType>
@@ -61,6 +62,7 @@
     <Compile Include="AlbumsView\AlbumsViewModel.cs" />
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
+    <Compile Include="AlbumsView\AlbumSortSelector.cs" />
     <Compile Include="CommonUI\CommandToolbar.cs" />
     <Compile Include="Controllers\AlbumsController.cs" />
     <Compile Include="Controllers\ArtistsController.cs" />
@@ -77,6 +79,9 @@
     <Compile Include="BaseView\ExpandableListAdapterModel.cs" />
     <Compile Include="Controllers\PlaybackSelectionController.cs" />
     <Compile Include="FilterManagement\FilterManagementModel.cs" />
+    <Compile Include="FilterManagement\TagCommandHandler.cs" />
+    <Compile Include="FilterManagement\TagDeletor.cs" />
+    <Compile Include="FilterManagement\TagEditor.cs" />
     <Compile Include="FilterManagement\TagSelection.cs" />
     <Compile Include="FilterManagement\FilterSelection.cs" />
     <Compile Include="FilterManagement\TagDataAdapter.cs" />
@@ -99,6 +104,8 @@
     <Compile Include="Messages\SelectedLibraryChangedMessage.cs" />
     <Compile Include="Messages\AlbumAddedMessage.cs" />
     <Compile Include="Messages\SongPlayedMessage.cs" />
+    <Compile Include="Messages\TagDeletedMessage.cs" />
+    <Compile Include="Messages\TagDetailsChangedMessage.cs" />
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />
     <Compile Include="Model\AlbumAccess.cs" />
     <Compile Include="Model\FilterAccess.cs" />
@@ -326,6 +333,30 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\rescan_progress_layout.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\sort_by_alpha_ascending.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\sort_by_alpha_descending.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\sort_by_id_ascending.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\sort_by_id_descending.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\tag_details_dialogue_layout.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout-land\tag_details_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

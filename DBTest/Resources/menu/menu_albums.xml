@@ -12,5 +12,11 @@
 		android:icon="@drawable/filter_off"
 		android:orderInCategory="1"
 		app:showAsAction="always"
-		android:title="Collapse"/>
-	</menu>
+		android:title="Filter"/>
+	<item
+		android:id="@+id/sort"
+		android:icon="@drawable/sort_by_alpha_descending"
+		android:orderInCategory="1"
+		app:showAsAction="always"
+		android:title="Filter"/>
+</menu>

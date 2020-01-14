@@ -70,6 +70,10 @@ namespace DBTest
 			// Initialise the LibraryClear
 			libraryClearer = new LibraryClear( this );
 
+			// Initialise the tag command handlers
+			tagDeleteCommandHandler = new TagDeletor( this );
+			tagEditCommandHandler = new TagEditor( this );
+
 			// Link in to the LibraryNameDisplayController to be informed of library name changes
 			LibraryNameDisplayController.Reporter = this;
 			LibraryNameDisplayController.GetCurrentLibraryNameAsync();
@@ -117,6 +121,21 @@ namespace DBTest
 			// Enable or disable the playback visible item according to the current media controller visibility
 			menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( playbackRouter.PlaybackControlsVisible == false );
 
+			// Populate the rename and delete tag menus with submenus containing the user tags items
+			int menuId = Menu.First;
+
+			IMenuItem renameTag = menu.FindItem( Resource.Id.edit_tag );
+			if ( renameTag != null )
+			{
+				tagEditCommandHandler.PrepareMenu( renameTag, ref menuId );
+			}
+
+			IMenuItem deleteTag = menu.FindItem( Resource.Id.delete_tag );
+			if ( deleteTag != null )
+			{
+				tagDeleteCommandHandler.PrepareMenu( deleteTag, ref menuId );
+			}
+
 			return base.OnPrepareOptionsMenu( menu );
 		}
 
@@ -161,6 +180,19 @@ namespace DBTest
 			else if ( id == Resource.Id.shuffle_now_playing )
 			{
 				NowPlayingController.ShuffleNowPlayingList();
+				handled = true;
+			}
+			else if ( tagEditCommandHandler.OnOptionsItemSelected( id, item.TitleFormatted.ToString() ) == true )
+			{
+				handled = true;
+			}
+			else if ( tagDeleteCommandHandler.OnOptionsItemSelected( id, item.TitleFormatted.ToString() ) == true )
+			{
+				handled = true;
+			}
+			else if ( id == Resource.Id.add_tag )
+			{
+				TagCreator.AddNewTag( this );
 				handled = true;
 			}
 
@@ -363,6 +395,16 @@ namespace DBTest
 		/// The one and only Http server used to serve local files to remote devices
 		/// </summary>
 		private static SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
+
+		/// <summary>
+		/// The handler for the tag deletion command
+		/// </summary>
+		private TagDeletor tagDeleteCommandHandler = null;
+
+		/// <summary>
+		/// The handler for the tag editor command
+		/// </summary>
+		private TagEditor tagEditCommandHandler = null;
 	}
 }
 

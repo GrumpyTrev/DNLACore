@@ -6,7 +6,6 @@ using Android.OS;
 using Android.Support.V7.App;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
-using Fragment = Android.Support.V4.App.Fragment;
 
 namespace DBTest
 {
