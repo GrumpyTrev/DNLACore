@@ -31,14 +31,28 @@
 		android:imeOptions="actionDone"
 		android:id="@+id/tagShortName"
 		android:layout_marginTop="-10dp" />
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content" >
 	<CheckBox
 		android:text="Sort by id"
 		android:textSize="14sp"
 		android:textStyle="normal"
-		android:layout_width="match_parent"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_marginTop="5dp"
-		android:id="@+id/idSort" />
+		android:id="@+id/idSort"
+		android:paddingRight="20dp" />
+	<CheckBox
+		android:text="Synchronise across libraries"
+		android:textSize="14sp"
+		android:textStyle="normal"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="5dp"
+		android:id="@+id/idSynchronise" />
+	</LinearLayout>
 	<TextView
 		android:text="Maximum count (-1 = no max) :"
 		android:textSize="14sp"

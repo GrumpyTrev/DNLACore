@@ -147,7 +147,7 @@ namespace DBTest
 				Song songToPlay = Playlist.PlaylistItems[ CurrentSongIndex ].Song;
 
 				// Find the Source associated with this song
-				Source songSource = Sources.FirstOrDefault( d => ( d.Id == songToPlay.SourceId ) );
+				Source songSource = Sources.SingleOrDefault( d => ( d.Id == songToPlay.SourceId ) );
 
 				if ( songSource != null )
 				{

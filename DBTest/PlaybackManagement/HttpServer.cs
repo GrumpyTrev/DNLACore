@@ -94,6 +94,7 @@ namespace DBTest
 			listener = new HttpListener();
 			listener.Prefixes.Add( "http://*:" + port.ToString() + "/" );
 			listener.Start();
+
 			Listen();
 		}
 
@@ -110,10 +111,16 @@ namespace DBTest
 		/// </summary>
 		private async void Listen()
 		{
-			while ( true )
+			try
 			{
-				HttpListenerContext context = await listener.GetContextAsync();
-				Task.Factory.StartNew( () => Process( context ) );
+				while ( true )
+				{
+					HttpListenerContext context = await listener.GetContextAsync();
+					Task.Factory.StartNew( () => Process( context ) );
+				}
+			}
+			catch ( ObjectDisposedException )
+			{
 			}
 		}
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using Android.App;
+using Android.Content;
+using Android.OS;
 using Android.Views;
 using static Android.Widget.MediaController;
 
@@ -9,7 +11,8 @@ namespace DBTest
 	/// The PlaybackRouter is responsible for routing playback instruction to a particular playback device according to the 
 	/// current selection
 	/// </summary>
-	class PlaybackRouter: Java.Lang.Object, PlaybackManagementController.IReporter, IMediaPlayerControl, PlaybackConnection.IConnectionCallbacks
+	class PlaybackRouter: Java.Lang.Object, PlaybackManagementController.IReporter, IMediaPlayerControl, PlaybackConnection.IConnectionCallbacks, 
+		IServiceConnection, MediaControlService.IServiceCallbacks
 	{
 		/// <summary>
 		/// PlaybackRouter constructor
@@ -36,6 +39,12 @@ namespace DBTest
 			// Initialise the PlaybackManagementController and request the playlist and current song details
 			PlaybackManagementController.Reporter = this;
 			PlaybackManagementController.GetMediaControlDataAsync( ConnectionDetailsModel.LibraryId );
+
+			// Start the media control service
+			contextForBinding.StartService( new Intent( contextForBinding, typeof( MediaControlService ) ) );
+
+			// Bind to the service
+			contextForBinding.BindService( new Intent( contextForBinding, typeof( MediaControlService ) ), this, Bind.None );
 		}
 
 		/// <summary>
@@ -50,7 +59,41 @@ namespace DBTest
 
 			// As this instance is being destroyed don't leave any references hanging around
 			PlaybackManagementController.Reporter = null;
+
+			// Only access the media control service if still bound
+			if ( controlService != null )
+			{
+				controlService.Reporter = null;
+
+				contextForBinding.UnbindService( this );
+
+				if ( permanentStop == true )
+				{
+					controlService.PlayStopped();
+
+					controlService = null;
+				}
+			}
 		}
+
+		/// <summary>
+		/// Called when the running service has connected to this manager
+		/// Retain a reference to the service for commands and provide this instance as the service's callback interface
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="service"></param>
+		public void OnServiceConnected( ComponentName name, IBinder service )
+		{
+			controlService = ( ( MediaControlService.MediaControlServiceBinder )service ).Service;
+			controlService.Reporter = this;
+		}
+
+		/// <summary>
+		/// Called when the service has disconnected
+		/// This only happens when something unexpected has happened at the service end
+		/// </summary>
+		/// <param name="name"></param>
+		public void OnServiceDisconnected( ComponentName name ) => controlService = null;
 
 		/// <summary>
 		/// Called when the media data has been received or updated
@@ -229,7 +272,12 @@ namespace DBTest
 		/// Called when a new song is being played. Pass this on to the controller
 		/// </summary>
 		/// <param name="songPlayed"></param>
-		public void SongPlayed( Song songPlayed ) => PlaybackManagementController.SongPlayed( songPlayed );
+		public void SongPlayed( Song songPlayed )
+		{
+			PlaybackManagementController.SongPlayed( songPlayed );
+
+			controlService?.SongPlayed( songPlayed );
+		}
 
 		/// <summary>
 		/// Are the playback controls currently visible
@@ -267,6 +315,35 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when the playback has started
+		/// </summary>
+		public void PlayStateChanged()
+		{
+			if ( mediaController != null )
+			{
+				contextForBinding.RunOnUiThread( () => { mediaController?.Show(); } );
+			}
+
+			controlService?.IsPlaying( selectedConnection?.IsPlaying ?? false );
+		}
+
+		/// <summary>
+		/// Called by the MediaControlService to play a paused song
+		/// </summary>
+		public void MediaPlay()
+		{
+			selectedConnection?.Start();
+		}
+
+		/// <summary>
+		/// Called by the MediaControlService to pause a playing song
+		/// </summary>
+		public void MediaPause()
+		{
+			selectedConnection?.Pause();
+		}
+
+		/// <summary>
 		/// Initialise the MediaController component
 		/// </summary>
 		private void SetController()
@@ -292,17 +369,6 @@ namespace DBTest
 		/// Play the previous track
 		/// </summary>
 		private void PlayPrevious() => selectedConnection?.PlayPrevious();
-
-		/// <summary>
-		/// Called when the playback has started
-		/// </summary>
-		public void PlayStateChanged()
-		{
-			if ( mediaController != null )
-			{
-				contextForBinding.RunOnUiThread( () => { mediaController?.Show(); } );
-			}
-		}
 
 		/// <summary>
 		/// Class required to implement the View.IOnClickListener interface
@@ -375,5 +441,10 @@ namespace DBTest
 		/// The MediaController to use to display the UI
 		/// </summary>
 		private MediaControllerNoHide mediaController = null;
+
+		/// <summary>
+		/// The service carrying out the notification media controls
+		/// </summary>
+		private MediaControlService controlService = null;
 	}
 }

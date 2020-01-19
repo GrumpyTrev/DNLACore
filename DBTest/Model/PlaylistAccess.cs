@@ -46,10 +46,12 @@ namespace DBTest
 			// Get the children PlaylistItems and then the Song entries for each of them
 			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( thePlaylist );
 
+			// Keep track of the last accessed ArtistAlbumId and Artist
+			int lastArtistAlbumId = -1;
+			Artist lastArtist = null;
+
 			foreach ( PlaylistItem playList in thePlaylist.PlaylistItems )
 			{
-				// The following call does not seem to always work, maybe something to do with the foreach?
-				//				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( playList );
 				playList.Song = await ConnectionDetailsModel.AsynchConnection.GetAsync<Song>( playList.SongId );
 
 				if ( withArtists == true )
@@ -57,11 +59,22 @@ namespace DBTest
 					// Now the Song entries are available get the Artist via the ArtistAlbum 
 					if ( playList.Song != null )
 					{
-						ArtistAlbum artistAlbum = await ConnectionDetailsModel.AsynchConnection.GetAsync<ArtistAlbum>( playList.Song.ArtistAlbumId );
-						playList.Artist = await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( artistAlbum.ArtistId );
-					}
-					else
-					{
+						if ( playList.Song.ArtistAlbumId == lastArtistAlbumId )
+						{
+							playList.Artist = lastArtist;
+						}
+						else
+						{
+							ArtistAlbum artistAlbum = await ConnectionDetailsModel.AsynchConnection.GetAsync<ArtistAlbum>( playList.Song.ArtistAlbumId );
+							playList.Artist = await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( artistAlbum.ArtistId );
+
+							// Save these in case they are required next
+							lastArtistAlbumId = playList.Song.ArtistAlbumId;
+							lastArtist = playList.Artist;
+						}
+
+						// Now that the Artist is available save it in the Song
+						playList.Song.Artist = playList.Artist;
 					}
 				}
 			}

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -33,7 +32,7 @@ namespace DBTest
 			if ( ( PlaybackManagerModel.NowPlayingPlaylist == null ) || ( PlaybackManagerModel.LibraryId != libraryId ) )
 			{
 				PlaybackManagerModel.LibraryId = libraryId;
-				PlaybackManagerModel.NowPlayingPlaylist = await PlaylistAccess.GetNowPlayingListAsync( PlaybackManagerModel.LibraryId );
+				PlaybackManagerModel.NowPlayingPlaylist = await PlaylistAccess.GetNowPlayingListAsync( PlaybackManagerModel.LibraryId, true );
 
 				// Sort the PlaylistItems by Track
 				PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );

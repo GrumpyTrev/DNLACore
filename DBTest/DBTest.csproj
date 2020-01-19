@@ -113,6 +113,7 @@
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />
     <Compile Include="PlaybackManagement\HttpServer.cs" />
     <Compile Include="PlaybackManagement\LocalPlaybackService.cs" />
+    <Compile Include="PlaybackManagement\MediaControlService.cs" />
     <Compile Include="PlaybackManagement\PlaybackRouter.cs" />
     <Compile Include="PlaybackManagement\RemotePlaybackService.cs" />
     <Compile Include="PlaybackManagement\MediaControllerNoHide.cs" />
