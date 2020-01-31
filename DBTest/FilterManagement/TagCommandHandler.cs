@@ -27,7 +27,8 @@ namespace DBTest
 			firstId = lastId;
 
 			item.SubMenu.Clear();
-			FilterManagementController.GetUserTagNames().ForEach( name => item.SubMenu.Add( Menu.None, lastId++, Menu.None, name ) );
+//			FilterManagementController.GetUserTagNames().ForEach( name => item.SubMenu.Add( Menu.None, lastId++, Menu.None, name ) );
+			FilterManagementController.GetTagNames().ForEach( name => item.SubMenu.Add( Menu.None, lastId++, Menu.None, name ) );
 
 			menuId = lastId;
 		}

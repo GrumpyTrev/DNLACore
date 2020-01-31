@@ -53,7 +53,7 @@ namespace DBTest
 							Logger.Log( string.Format( "Processing song no {1} : {0}", fi.FullName, ++songCount ) );
 
 							// At this point if the library is only being rescanned then there may be no reason to actually start downloading the file
-							if ( storageInterface.DoesSongRequireScanning( fi.FullName, fi.LastWriteTime ) == true )
+							if ( storageInterface.DoesSongRequireScanning( fi.FullName.Replace( rootDirectory, "" ) , fi.LastWriteTime ) == true )
 							{
 								songs.Add( await GetFileTags( fi ) );
 							}

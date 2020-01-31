@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using Android.App;
 using Android.Content;
 using Android.Net;
@@ -53,7 +51,11 @@ namespace DBTest
 				ConnectionDetailsModel.LibraryId = InitialiseDatabase();
 			}
 
-//			FixupArtistIdInAlbums();
+			// Start the tab view data access as early as possible
+			ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
+			AlbumsController.GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
+			PlaylistsController.GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
+			NowPlayingController.GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 
 			// Initialise the PlaybackRouter
 			playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
@@ -88,11 +90,14 @@ namespace DBTest
 				playbackSelector.StartSelection();
 			} );
 
-			// Make sure that this application is not subject to battery optimisations
-			if ( ( ( PowerManager )GetSystemService( Context.PowerService ) ).IsIgnoringBatteryOptimizations( PackageName ) == false )
+			if ( Build.VERSION.SdkInt >= BuildVersionCodes.M )
 			{
-				StartActivity( new Intent().SetAction( Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations )
-					.SetData( Uri.Parse( "package:" + PackageName ) ) );
+				// Make sure that this application is not subject to battery optimisations
+				if ( ( ( PowerManager )GetSystemService( Context.PowerService ) ).IsIgnoringBatteryOptimizations( PackageName ) == false )
+				{
+					StartActivity( new Intent().SetAction( Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations )
+						.SetData( Uri.Parse( "package:" + PackageName ) ) );
+				}
 			}
 
 			// Initialise the fragments showing the selected library
@@ -162,7 +167,7 @@ namespace DBTest
 				playbackRouter.PlaybackControlsVisible = true;
 				handled = true;
 			}
-			else if ( id == Resource.Id.rescan_library )
+			else if ( id == Resource.Id.scan_library )
 			{
 				libraryScanner.ScanSelection();
 				handled = true;
@@ -322,48 +327,6 @@ namespace DBTest
 
 			// Now that everything's been linked together let the FragmentTitles do some of it own initialisation
 			FragmentTitles.ParentActivity = this;
-		}
-
-		private void FixupArtistIdInAlbums()
-		{
-			// Get all the Album entries in the database and reset the ArtistName to empty
-			List<Album> albums = ConnectionDetailsModel.SynchConnection.Table<Album>().ToList();
-			albums.ForEach( alb => alb.ArtistName = "" );
-			ConnectionDetailsModel.SynchConnection.UpdateAll( albums );
-			
-			// Get all the ArtistAlbum entries in the database
-			List<ArtistAlbum> artistAlbums = ConnectionDetailsModel.SynchConnection.Table<ArtistAlbum>().ToList();
-
-			// For each ArtistAlbum get the child Album
-			foreach ( ArtistAlbum artistAlbum in artistAlbums )
-			{
-				// Read in the Album
-				Album album = ConnectionDetailsModel.SynchConnection.Table<Album>().Where( alb => ( alb.Id == artistAlbum.AlbumId ) ).SingleOrDefault();
-
-				if ( album != null )
-				{
-					string albumArtistName = ConnectionDetailsModel.SynchConnection.Get<Artist>( artistAlbum.ArtistId ).Name;
-
-					// If the ArtistName in the Album has not been set then set it to the value in this ArtistAblbum
-					// If is has been set and is different then set the various artists flag
-					if ( album.ArtistName.Length == 0 )
-					{
-						album.ArtistName = albumArtistName;
-						ConnectionDetailsModel.SynchConnection.Update( album );
-					}
-					else
-					{
-						if ( ( album.ArtistName != "Various Artists" ) && ( album.ArtistName != albumArtistName ) )
-						{
-							album.ArtistName = "Various Artists";
-							ConnectionDetailsModel.SynchConnection.Update( album );
-						}
-					}
-				}
-				else
-				{
-				}
-			}
 		}
 
 		/// <summary>

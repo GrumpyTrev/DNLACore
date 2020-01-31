@@ -341,6 +341,8 @@ namespace DBTest
 			bool endOfTags = false;
 			while ( ( reader.BaseStream.Position < maxPosition ) && ( endOfTags == false ) )
 			{
+				Logger.Log( string.Format( "Position at start of frame {0}", reader.BaseStream.Position ) );
+
 				// Check for end of the frames
 				char frameNameFirstChar = reader.ReadChar();
 				if ( frameNameFirstChar == '\0' )
@@ -352,7 +354,9 @@ namespace DBTest
 					// Get the rest of the tag name and its contents
 					string frameName = frameNameFirstChar + new string( reader.ReadChars( nameSize - 1 ) );
 
-					ulong frameSize = ReadFrameSize( reader, nameSize );
+					ulong frameSize = ReadFrameSize( reader, nameSize, majorVersion );
+
+					Logger.Log( string.Format( "Frame {0}, size {1}", frameName, frameSize ) );
 
 					// Skip a couple of bytes and then read the frame contents
 					reader.ReadByte();
@@ -370,7 +374,9 @@ namespace DBTest
 						// Still need to skip over the frame contents
 						if ( frameSize > 0 )
 						{
+							Logger.Log( string.Format( "Position before skipping {0} bytes is {1}", frameSize, reader.BaseStream.Position ) );
 							reader.ReadBytes( ( int )frameSize );
+							Logger.Log( string.Format( "Position after skipping bytes {0}", reader.BaseStream.Position ) );
 						}
 					}
 				}
@@ -433,12 +439,12 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Read either a 3 or 4 byte big endian value
+		/// Read either a 3 or 4 byte big endian value, each byte is only 7 bits long
 		/// </summary>
 		/// <param name="reader"></param>
 		/// <param name="noBytes"></param>
 		/// <returns></returns>
-		private static ulong ReadFrameSize( BinaryReader reader, int noBytes )
+		private static ulong ReadFrameSize( BinaryReader reader, int noBytes, int majorVersion )
 		{
 			ulong size = 0;
 
@@ -446,7 +452,14 @@ namespace DBTest
 
 			if ( noBytes == 4 )
 			{
-				size = ( ulong )( tagSize[ 3 ] + ( tagSize[ 2 ] << 8 ) + ( tagSize[ 1 ] << 16 ) + ( tagSize[ 0 ] << 24 ) );
+				if ( majorVersion == 4 )
+				{
+					size = ( ulong )( ( tagSize[ 3 ] & 127 ) + ( ( tagSize[ 2 ] & 127 ) << 7 ) + ( ( tagSize[ 1 ] & 127 ) << 14 ) + ( ( tagSize[ 0 ] & 127 ) << 21 ) );
+				}
+				else
+				{
+					size = ( ulong )( tagSize[ 3 ] + ( tagSize[ 2 ] << 8 ) + ( tagSize[ 1 ] << 16 ) + ( tagSize[ 0 ] << 24 ) );
+				}
 			}
 			else
 			{

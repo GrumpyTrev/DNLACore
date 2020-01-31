@@ -34,10 +34,7 @@ namespace DBTest
 		/// <param name="theArtist"></param>
 		public async Task ProvideGroupContentsAsync( Artist theArtist )
 		{
-			if ( theArtist.ArtistAlbums == null )
-			{
-				await ArtistsController.GetArtistContentsAsync( theArtist );
-			}
+			await ArtistsController.GetArtistContentsAsync( theArtist );
 		}
 
 		/// <summary>
@@ -214,7 +211,7 @@ namespace DBTest
 		{
 			if ( newFilter != CurrentFilter )
 			{
-				ArtistsController.ApplyFilter( newFilter );
+				ArtistsController.ApplyFilterAsync( newFilter );
 			}
 		}
 

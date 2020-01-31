@@ -20,6 +20,7 @@ namespace DBTest
 		{
 			scanLibrary = libraryToScan;
 			sourceBeingScanned = sourceToScan;
+			LibraryModified = false;
 		}
 
 		/// <summary>
@@ -27,7 +28,7 @@ namespace DBTest
 		/// Group the songs into albums by album name and then process each of these albums
 		/// </summary>
 		/// <param name="songs"></param>
-		public virtual async Task SongsScanned( List<ScannedSong> songs )
+		public async Task SongsScanned( List<ScannedSong> songs )
 		{
 			Dictionary<string, ScannedAlbum> albumGroups = new Dictionary<string, ScannedAlbum>();
 
@@ -44,8 +45,11 @@ namespace DBTest
 					albumGroups[ song.Tags.Album ] = album;
 				}
 
-				// Add the song to the album
-				album.Songs.Add( song );
+				if ( await DoesSongRequireAdding( song ) == true )
+				{
+					// Add the song to the album
+					album.Songs.Add( song );
+				}
 
 				// If this is not the first song in the group then check if the artist is the same
 				if ( album.Songs.Count > 1 )
@@ -60,7 +64,10 @@ namespace DBTest
 			// Store the scanned song data
 			foreach ( ScannedAlbum album in albumGroups.Values )
 			{
-				await StoreAlbumAsync( album );
+				if ( album.Songs.Count > 0 )
+				{
+					await StoreAlbumAsync( album );
+				}
 			}
 		}
 
@@ -74,6 +81,21 @@ namespace DBTest
 		{
 			return true;
 		}
+
+		/// <summary>
+		/// Method overridden in derived classes to determine if the specified song actually does require adding to the library
+		/// </summary>
+		/// <param name="song"></param>
+		/// <returns></returns>
+		public virtual async Task <bool> DoesSongRequireAdding( ScannedSong song )
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// Was the librray modified during the scan
+		/// </summary>
+		public bool LibraryModified { get; set; }
 
 		/// <summary>
 		/// Replace zero length tag files with standard replacements, parse the track number and the length
@@ -130,6 +152,8 @@ namespace DBTest
 		/// <param name="album"></param>
 		private async Task StoreAlbumAsync( ScannedAlbum album )
 		{
+			LibraryModified = true;
+
 			Logger.Log( string.Format( "Album: {0} Single artist: {1}", album.Name, album.SingleArtist ) );
 
 			// Get an existing or new Album entry for the songs
@@ -240,6 +264,12 @@ namespace DBTest
 					}
 
 					songAlbum = songArtistAlbum.Album;
+
+					// The rest of the code expects the Album to have its songs populated, so check here
+					if ( songAlbum.Songs == null )
+					{
+						await AlbumAccess.GetAlbumContentsAsync( songAlbum );
+					}
 				}
 			}
 
@@ -355,5 +385,10 @@ namespace DBTest
 		/// <param name="modifiedTime"></param>
 		/// <returns></returns>
 		bool DoesSongRequireScanning( string filepath, DateTime modifiedTime );
+
+		/// <summary>
+		/// Was the library scanned during the scanning operation
+		/// </summary>
+		bool LibraryModified { get; }
 	}
 }

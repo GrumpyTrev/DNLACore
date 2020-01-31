@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SQLiteNetExtensionsAsync.Extensions;
 
@@ -15,27 +16,14 @@ namespace DBTest
 		/// </summary>
 		public static async Task<List<Tag>> GetTagsAsync()
 		{
-			// Get all the Tag records with their TaggedAlbums. Can't go fully recursive as that would read in the songs as well which are
-			// not required - yet
-			List< Tag > tags = await ConnectionDetailsModel.AsynchConnection.GetAllWithChildrenAsync<Tag>();
+			// Get all the Tag records with their TaggedAlbums.
+			// Doing this manually rather that using the SQLite extenstion for efficiency
+			Dictionary<int, Tag> tags = ( await ConnectionDetailsModel.AsynchConnection.Table<Tag>().ToListAsync() ).ToDictionary( tag => tag.Id );
 
-			// The Album entry in the TaggedAlbums will be required so we may as well get those now
-			tags.ForEach( tag => tag.TaggedAlbums.ForEach( async taggedAlbum => await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( taggedAlbum ) ) );
+			// Get all the TaggedAlbum entries and add them to their Tag entries
+			( await ConnectionDetailsModel.AsynchConnection.GetAllWithChildrenAsync<TaggedAlbum>() ).ForEach( ta => tags[ ta.TagId ].TaggedAlbums.Add( ta ) );
 
-			return tags;
-		}
-
-		/// <summary>
-		/// Get the named tag
-		/// </summary>
-		/// <param name="tagName"></param>
-		/// <returns></returns>
-		public static async Task<Tag> GetTagAsync( string tagName )
-		{
-			Tag namedTag = await ConnectionDetailsModel.AsynchConnection.GetAsync<Tag>( t => t.Name == tagName );
-			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( namedTag );
-
-			return namedTag;
+			return tags.Values.ToList();
 		}
 
 		/// <summary>

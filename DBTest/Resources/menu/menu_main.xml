@@ -24,8 +24,8 @@
 				android:id="@+id/select_library"
 				android:title="Select library" />
 			<item
-				android:id="@+id/rescan_library"
-				android:title="Rescan library" />
+				android:id="@+id/scan_library"
+				android:title="Scan library" />
 			<item
 				android:id="@+id/clear_library"
 				android:title="Clear library" />

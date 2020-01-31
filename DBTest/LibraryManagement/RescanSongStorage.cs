@@ -21,18 +21,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a group of songs from the same folder have been scanned
-		/// Special processing is required here for existing songs that have been modified.
-		/// For now filter these out of the list and let the base class handle the new songs
-		/// </summary>
-		/// <param name="songs"></param>
-		public override Task SongsScanned( List<ScannedSong> songs )
-		{
-			songs.RemoveAll( song => songLookup.ContainsKey( song.SourcePath ) == true );
-			return base.SongsScanned( songs );
-		}
-
-		/// <summary>
 		/// Called when the filepath and modified time for a song have been determined
 		/// If it's a exisiting song with the same modified time then the song does not require any further scanning
 		/// Otherwise let scanning continue
@@ -62,6 +50,43 @@ namespace DBTest
 			}
 
 			return scanRequired;
+		}
+
+		/// <summary>
+		/// Called to determine whether a song that has been scanned requires adding to the library, or just an exisiting entry updated
+		/// </summary>
+		/// <param name="song"></param>
+		/// <returns></returns>
+		public override async Task <bool> DoesSongRequireAdding( ScannedSong song )
+		{
+			bool needsAdding = true;
+
+			// Lookup the path of this song in the dictionary
+			if ( ( songLookup.TryGetValue( song.SourcePath, out Song matchedSong ) == true ) && ( matchedSong.ScanAction == Song.ScanActionType.Differ ) )
+			{
+				// Get the associated ArtistAlbum and Album entries
+				ArtistAlbum artistAlbum = await ArtistAccess.GetArtistAlbumAsync( matchedSong.ArtistAlbumId );
+				Album album = await AlbumAccess.GetAlbumAsync( artistAlbum.AlbumId );
+
+				// If the artist or album name has changed then treat this as a new song. Otherwise update the existing song in the library
+				if ( ( album.ArtistName.ToUpper() != song.ArtistName.ToUpper() ) || ( album.Name.ToUpper() != song.Tags.Album.ToUpper() ) )
+				{
+					// Mark the existing song for deletion
+					matchedSong.ScanAction = Song.ScanActionType.NotMatched;
+				}
+				else
+				{
+					matchedSong.Length = song.Length;
+					matchedSong.ModifiedTime = song.Modified;
+					matchedSong.Title = song.Tags.Title;
+					matchedSong.Track = song.Track;
+					await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedSong );
+
+					needsAdding = false;
+				}
+			}
+
+			return needsAdding;
 		}
 
 		/// <summary>

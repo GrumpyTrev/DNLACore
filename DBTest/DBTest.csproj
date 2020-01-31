@@ -35,6 +35,9 @@
     <AndroidLinkMode>None</AndroidLinkMode>
     <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
     <LangVersion>default</LangVersion>
+    <AotAssemblies>false</AotAssemblies>
+    <EnableLLVM>false</EnableLLVM>
+    <BundleAssemblies>false</BundleAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>PdbOnly</DebugType>
@@ -98,6 +101,7 @@
     <Compile Include="LibraryManagement\LibraryScanner.cs" />
     <Compile Include="LibraryManagement\RescanSongStorage.cs" />
     <Compile Include="LibraryManagement\SongStorage.cs" />
+    <Compile Include="Messages\AlbumsDeletedMessage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
     <Compile Include="Messages\PlaylistDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />

@@ -54,6 +54,11 @@ namespace DBTest
 		/// <returns></returns>
 		public bool OnError( MediaPlayer mp, [GeneratedEnum] MediaError what, int extra )
 		{
+			localPlayer.Reset();
+			isPreparing = false;
+
+			Logger.Error( string.Format( "Error reported by MediaPlayer : {0} : {1}", what, extra ) );
+
 			return true;
 		}
 
@@ -201,7 +206,19 @@ namespace DBTest
 		{
 			localPlayer = new MediaPlayer();
 			localPlayer.SetWakeMode( ApplicationContext, WakeLockFlags.Partial );
-			localPlayer.SetAudioAttributes( new AudioAttributes.Builder().SetContentType( AudioContentType.Music ).Build() ); 
+
+			// SetAudioAttributes requires API 21 == Lollipop
+			if ( Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop )
+			{
+				localPlayer.SetAudioAttributes( new AudioAttributes.Builder().SetContentType( AudioContentType.Music ).Build() );
+			}
+			else
+			{
+				// Forced to use deprecated SetAudioStreamType for API < 21
+				#pragma warning disable 0618
+				localPlayer.SetAudioStreamType( Stream.Music );
+				#pragma warning restore 0618
+			}
 			localPlayer.SetOnPreparedListener( this );
 			localPlayer.SetOnErrorListener( this );
 			localPlayer.SetOnCompletionListener( this );

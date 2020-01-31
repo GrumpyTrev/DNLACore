@@ -262,3 +262,5 @@ __pycache__/
 /Test.db3
 /log.txt
 /OldTest.db3
+/Full scan results.txt
+/Rescan local results.txt

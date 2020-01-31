@@ -2804,9 +2804,6 @@ namespace DBTest
 			// aapt resource value: 0x7f0800da
 			public const int rename_tag_submenu = 2131230938;
 			
-			// aapt resource value: 0x7f0800d6
-			public const int rescan_library = 2131230934;
-			
 			// aapt resource value: 0x7f08004a
 			public const int right = 2131230794;
 			
@@ -2824,6 +2821,9 @@ namespace DBTest
 			
 			// aapt resource value: 0x7f08000e
 			public const int save_scale_type = 2131230734;
+			
+			// aapt resource value: 0x7f0800d6
+			public const int scan_library = 2131230934;
 			
 			// aapt resource value: 0x7f080029
 			public const int screen = 2131230761;

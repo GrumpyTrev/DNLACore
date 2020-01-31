@@ -5,9 +5,14 @@ namespace DBTest
 	static class FilterManagementModel
 	{
 		/// <summary>
-		/// The list of filters obtaied from the database
+		/// The list of filters
 		/// </summary>
 		public static List< Tag > Tags { get; internal set; } = null;
+
+		/// <summary>
+		/// The libraries
+		/// </summary>
+		public static List<Library> Libraries { get; internal set; } = null;
 
 		/// <summary>
 		/// The recently added tag

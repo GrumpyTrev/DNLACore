@@ -15,18 +15,25 @@ namespace DBTest
 		{
 			Albums.Clear();
 			AlphaIndex.Clear();
+			UnfilteredAlbums.Clear();
 			LibraryId = -1;
 			ListViewState = null;
 			CurrentFilter = null;
+			SortSelector.CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.alphaAscending;
 		}
 
 		/// <summary>
-		/// The list of artists that has been obtained from the database
+		/// The list of albums that has been obtained from the database (may be sorted or filtered)
 		/// </summary>
 		public static List<Album> Albums { get; set; } = new List<Album>();
 
 		/// <summary>
-		/// Index into the list of Artists
+		/// The list of albums that has been obtained from the database before any sorting or filtering
+		/// </summary>
+		public static List<Album> UnfilteredAlbums { get; set; } = new List<Album>();
+
+		/// <summary>
+		/// Index into the list of Albums
 		/// </summary>
 		public static Dictionary<string, int> AlphaIndex { get; set; } = new Dictionary<string, int>();
 
@@ -49,11 +56,6 @@ namespace DBTest
 		/// The current tag being used to filter the artists displayed
 		/// </summary>
 		public static Tag CurrentFilter { get; set; } = null;
-
-		/// <summary>
-		/// The list of filters obtained from the database
-		/// </summary>
-		public static List<Tag> Tags { get; set; } = null;
 
 		/// <summary>
 		/// Class used to select the album sort order

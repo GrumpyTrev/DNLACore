@@ -36,35 +36,17 @@ namespace DBTest
 			{
 				// New data is required
 				ArtistsViewModel.LibraryId = libraryId;
-				ArtistsViewModel.Artists = await ArtistAccess.GetArtistDetailsAsync( ArtistsViewModel.LibraryId, ArtistsViewModel.CurrentFilter );
+				ArtistsViewModel.UnfilteredArtists = await ArtistAccess.GetArtistDetailsAsync( ArtistsViewModel.LibraryId );
+				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists;
 
-				// Sort the Artists and create the indexes in a Task rather than the UI
-				await Task.Run( () => {
-					// Sort the list of artists by name. This is done even when the artists are filtered because an artist can contain multiple albums
-					// Do a normal comparison, except remove a leading 'The ' before comparing
-					ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
-
-					// Work out the section indexes for the sorted data
-					ArtistsViewModel.AlphaIndex.Clear();
-
-					int index = 0;
-					foreach ( Artist artist in ArtistsViewModel.Artists )
-					{
-						// Remember to ignore leading 'The ' here as well
-						string key = artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper();
-						if ( ArtistsViewModel.AlphaIndex.ContainsKey( key ) == false )
-						{
-							ArtistsViewModel.AlphaIndex[ key ] = index;
-						}
-						index++;
-					}
-				} );
+				// Sort the displayed artists
+				await SortDataAsync();
 
 				// Get the list of current playlists and extract the names to a list
 				await GetPlayListNames();
 
-				// Get the Tags as well
-				ArtistsViewModel.Tags = await FilterAccess.GetTagsAsync();
+				// Get all the albums
+				ArtistsViewModel.ArtistAlbums = await ArtistAccess.GetArtistAlbumsAsync();
 			}
 
 			// Publish the data
@@ -79,19 +61,36 @@ namespace DBTest
 		/// <param name="theArtist"></param>
 		public static async Task GetArtistContentsAsync( Artist theArtist )
 		{
-			await ArtistAccess.GetArtistContentsAsync( theArtist, ArtistsViewModel.CurrentFilter );
-
-			// Sort the albums alphabetically
-			theArtist.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
-
-			// Sort the songs by track number
-			foreach ( ArtistAlbum artistAlbum in theArtist.ArtistAlbums )
+			// Have the ArtistAlbums been accessed before
+			if ( theArtist.ArtistAlbums == null )
 			{
-				artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+				// No get them
+				await ArtistAccess.GetArtistContentsAsync( theArtist );
+
+				// Sort the albums alphabetically
+				theArtist.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
+
+				// Sort the songs by track number
+				foreach ( ArtistAlbum artistAlbum in theArtist.ArtistAlbums )
+				{
+					artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+				}
 			}
 
-			// Now all the ArtistAlbum and Song entries have been read form a single list from them
-			theArtist.EnumerateContents();
+			// Does this set of content need refreshing
+			if ( theArtist.Contents.Count == 0 )
+			{
+				// Now all the ArtistAlbum and Song entries have been read form a single list from them
+				if ( ArtistsViewModel.CurrentFilter != null )
+				{
+					HashSet<int> albumIds = ArtistsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
+					theArtist.EnumerateContents( albumIds );
+				}
+				else
+				{
+					theArtist.EnumerateContents( null );
+				}
+			}
 		}
 
 		/// <summary>
@@ -112,18 +111,107 @@ namespace DBTest
 		/// Apply the new filter to the data being displayed
 		/// </summary>
 		/// <param name="newFilter"></param>
-		public static void ApplyFilter( Tag newFilter )
+		public static async void ApplyFilterAsync( Tag newFilter )
 		{
-			// Clear the displayed data first as this may take a while
-			ArtistsViewModel.ClearModel();
+			// Update the model
+			ArtistsViewModel.CurrentFilter = newFilter;
+
+			// Assume the artists are going to be displayed in alphabetical order
+			ArtistsViewModel.CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.alphaAscending;
+
+			// Clear the Contents entry for all the Artists so that it can be set according to the current filter
+			ArtistsViewModel.UnfilteredArtists.ForEach( art => art.Contents.Clear() );
+
+			// If there is no filter then display the unfiltered data 
+			if ( ArtistsViewModel.CurrentFilter == null )
+			{
+				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists;
+			}
+			else
+			{
+				// Access artists that have albums that are tagged with the current tag
+				// For all TagAlbums in current tag get the ArtistAlbum (from the AlbumId) and the Artists 
+
+				// First of all form a list of all the album identities in the selected filter
+				HashSet<int> albumIds = ArtistsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
+
+				// Now get all the artist identities of the albums that are tagged
+				HashSet<int> artistIds = ArtistsViewModel.ArtistAlbums.FindAll( aa => albumIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).ToHashSet();
+
+				// Now get the Artists from the list of artist ids
+				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) == true ).ToList();
+
+				// If the TagOrder flag is set then set the sort order to Id order.
+				if ( ArtistsViewModel.CurrentFilter.TagOrder == true )
+				{
+					ArtistsViewModel.CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.idDescending;
+				}
+			}
+
+			// Sort the displayed albums to the order specified in the SortSelector
+			await SortDataAsync();
 
 			// Publish the data
 			Reporter?.ArtistsDataAvailable();
+		}
 
-			// Update the filter and reread the data
-			ArtistsViewModel.CurrentFilter = newFilter;
+		/// <summary>
+		/// Sort the available data
+		/// </summary>
+		public static async Task SortDataAsync( bool refreshData = false )
+		{
+			// Do the sorting and indexing off the UI task
+			await Task.Run( () => 
+			{
+				switch ( ArtistsViewModel.CurrentSortOrder )
+				{
+					case AlbumSortSelector.AlbumSortOrder.alphaDescending:
+					case AlbumSortSelector.AlbumSortOrder.alphaAscending:
+					{
+						if ( ArtistsViewModel.CurrentSortOrder == AlbumSortSelector.AlbumSortOrder.alphaAscending )
+						{
+							ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
+						}
+						else
+						{
+							ArtistsViewModel.Artists.Sort( ( a, b ) => { return b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ); } );
+						}
 
-			GetArtistsAsync( ConnectionDetailsModel.LibraryId );
+						// Work out the section indexes for the sorted data
+						int index = 0;
+						foreach ( Artist artist in ArtistsViewModel.Artists )
+						{
+							// Remember to ignore leading 'The ' here as well
+							string key = artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper();
+							if ( ArtistsViewModel.AlphaIndex.ContainsKey( key ) == false )
+							{
+								ArtistsViewModel.AlphaIndex[ key ] = index;
+							}
+							index++;
+						}
+
+						break;
+					}
+
+					case AlbumSortSelector.AlbumSortOrder.idAscending:
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
+						break;
+					}
+
+					case AlbumSortSelector.AlbumSortOrder.idDescending:
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => { return b.Id.CompareTo( a.Id ); } );
+						break;
+					}
+				}
+			} );
+
+			if ( refreshData == true )
+			{
+				// Publish the data
+				Reporter?.ArtistsDataAvailable();
+			}
 		}
 
 		/// <summary>
@@ -144,7 +232,7 @@ namespace DBTest
 			if ( ( ArtistsViewModel.CurrentFilter != null ) &&
 				( ( message as TagMembershipChangedMessage ).ChangedTags.Contains( ArtistsViewModel.CurrentFilter.Name ) == true ) )
 			{
-				ApplyFilter( ArtistsViewModel.CurrentFilter );
+				ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
 			}
 		}
 
@@ -178,7 +266,7 @@ namespace DBTest
 				TagDetailsChangedMessage tagMessage = message as TagDetailsChangedMessage;
 				if ( ArtistsViewModel.CurrentFilter.Name == tagMessage.PreviousName )
 				{
-					ApplyFilter( tagMessage.ChangedTag );
+					ApplyFilterAsync( tagMessage.ChangedTag );
 				}
 			}
 		}
@@ -192,7 +280,7 @@ namespace DBTest
 		{
 			if ( ( ArtistsViewModel.CurrentFilter != null ) && ( ArtistsViewModel.CurrentFilter.Name == ( message as TagDeletedMessage ).DeletedTag.Name ) )
 			{
-				ApplyFilter( null );
+				ApplyFilterAsync( null );
 			}
 		}
 

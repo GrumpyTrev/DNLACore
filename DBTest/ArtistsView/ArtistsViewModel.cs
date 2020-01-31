@@ -14,16 +14,28 @@ namespace DBTest
 		public static void ClearModel()
 		{
 			Artists.Clear();
+			UnfilteredArtists.Clear();
 			AlphaIndex.Clear();
 			LibraryId = -1;
 			ListViewState = null;
 			CurrentFilter = null;
+			CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.alphaAscending;
 		}
 
 		/// <summary>
 		/// The list of artists that has been obtained from the database
 		/// </summary>
 		public static List<Artist> Artists { get; set; } = new List<Artist>();
+
+		/// <summary>
+		/// The list of artists that has been obtained from the database before any sorting or filtering
+		/// </summary>
+		public static List<Artist> UnfilteredArtists { get; set; } = new List<Artist>();
+
+		/// <summary>
+		/// THe list of all ArtistAlbum items
+		/// </summary>
+		public static List<ArtistAlbum> ArtistAlbums { get; set; } = new List<ArtistAlbum>();
 
 		/// <summary>
 		/// Index into the list of Artists
@@ -51,8 +63,8 @@ namespace DBTest
 		public static Tag CurrentFilter { get; set; } = null;
 
 		/// <summary>
-		/// The list of filters obtained from the database
+		/// The current sort order for the displayed Artists
 		/// </summary>
-		public static List<Tag> Tags { get; set; } = null;
+		public static AlbumSortSelector.AlbumSortOrder CurrentSortOrder { get; set; } = AlbumSortSelector.AlbumSortOrder.alphaAscending;
 	}
 }

@@ -6,6 +6,7 @@ using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using System;
+using System.Collections.Generic;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 
@@ -93,6 +94,7 @@ namespace DBTest
 			tagShortName = tagView.FindViewById<EditText>( Resource.Id.tagShortName );
 			idSort = tagView.FindViewById<CheckBox>( Resource.Id.idSort );
 			maxCount = tagView.FindViewById<EditText>( Resource.Id.maxCount );
+			synchLibs = tagView.FindViewById<CheckBox>( Resource.Id.idSynchronise );
 
 			// If editing an existing tag then set the dialogue fields to the current values from the tag
 			if ( editTag != null )
@@ -101,6 +103,7 @@ namespace DBTest
 				tagShortName.Text = editTag.ShortName;
 				idSort.Checked = editTag.TagOrder;
 				maxCount.Text = editTag.MaxCount.ToString();
+				synchLibs.Checked = editTag.Synchronise;
 			}
 			else
 			{
@@ -137,13 +140,14 @@ namespace DBTest
 			( ( AlertDialog ) Dialog).GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) => {
 
 				Tag newOrUpdatedTag = new Tag() { Name = tagName.Text, ShortName = tagShortName.Text, MaxCount = int.Parse( maxCount.Text ),
-					TagOrder = idSort.Checked };
+					TagOrder = idSort.Checked, Synchronise = synchLibs.Checked, TaggedAlbums = new List<TaggedAlbum>() };
 
 				// If nothing has changed then tell the user, otherwise carry out the save operation
 				if ( editTag != null )
 				{
 					if ( ( editTag.Name != newOrUpdatedTag.Name ) || ( editTag.ShortName != newOrUpdatedTag.ShortName ) || 
-						( editTag.TagOrder != newOrUpdatedTag.TagOrder ) || ( editTag.MaxCount != newOrUpdatedTag.MaxCount ) )
+						( editTag.TagOrder != newOrUpdatedTag.TagOrder ) || ( editTag.MaxCount != newOrUpdatedTag.MaxCount ) ||
+						( editTag.Synchronise != newOrUpdatedTag.Synchronise ) )
 					{
 						// Something has changed so attempt to update the tag
 						FilterManagementController.UpdateTagAsync( editTag, newOrUpdatedTag, TagUpdated );
@@ -192,6 +196,7 @@ namespace DBTest
 		EditText tagShortName = null;
 		CheckBox idSort = null;
 		EditText maxCount = null;
+		CheckBox synchLibs = null;
 	}
 
 	/// <summary>

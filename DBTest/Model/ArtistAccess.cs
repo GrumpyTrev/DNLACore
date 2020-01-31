@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using SQLiteNetExtensionsAsync.Extensions;
 using System.Collections.Generic;
-using System.Linq;
-using SQLiteNetExtensions.Extensions;
 
 namespace DBTest
 {
@@ -14,51 +12,17 @@ namespace DBTest
 		/// <summary>
 		/// Get all the Artists associated with the library identity
 		/// </summary>
-		public static async Task<List<Artist>> GetArtistDetailsAsync( int libraryId, Tag currentFilter )
-		{
-			List<Artist> artists = null;
-			if ( currentFilter == null )
-			{
-				artists = ( await ConnectionDetailsModel.AsynchConnection.GetWithChildrenAsync<Library>( libraryId ) ).Artists;
-			}
-			else
-			{
-				// Access artists that have albums that are tagged with the current tag
-				// For all TagAlbums in current tag get the ArtistAlbum (from the AlbumId) and the Artists 
-
-				// First of all form a list of all the album identities in the selected filter
-				List<int> albumIds = currentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToList();
-
-				// Now get all the artist identities of the albums that are tagged
-				List< int > artistIds = ( await ConnectionDetailsModel.AsynchConnection.Table<ArtistAlbum>().
-					Where( aa => ( albumIds.Contains( aa.AlbumId ) == true ) ).ToListAsync() ).Select( aa => aa.ArtistId ).ToList();
-
-				// Now get the Artists from the list of artist ids
-				artists = await ConnectionDetailsModel.AsynchConnection.Table<Artist>().
-					Where( art => ( art.LibraryId == libraryId ) && ( artistIds.Contains( art.Id ) == true ) ).ToListAsync();
-			}
-
-			return artists;
-		}
+		public static async Task<List<Artist>> GetArtistDetailsAsync( int libraryId ) =>
+			await ConnectionDetailsModel.AsynchConnection.Table< Artist >().Where( art => art.LibraryId == libraryId ).ToListAsync();
 
 		/// <summary>
 		/// Get the contents for the specified Artist
 		/// Get the collection of ArtistAlbums and then the songs from each of those
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public static async Task GetArtistContentsAsync( Artist theArtist, Tag currentFilter )
+		public static async Task GetArtistContentsAsync( Artist theArtist )
 		{
 			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( theArtist );
-
-			if ( currentFilter != null )
-			{
-				// Remove albums that are not tagged
-
-				// First of all form a list of all the album identities in the selected filter. This could be cached somewhere
-				List<int> albumIds = currentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToList();
-
-				theArtist.ArtistAlbums.RemoveAll( aa => albumIds.Contains( aa.AlbumId ) == false );
-			}
 
 			foreach ( ArtistAlbum artistAlbum in theArtist.ArtistAlbums )
 			{
@@ -137,7 +101,13 @@ namespace DBTest
 		/// </summary>
 		/// <param name="artistAlbumId"></param>
 		/// <returns></returns>
-		public static async Task<ArtistAlbum> GetArtistAlbumAsync( int artistAlbumId ) => 
-			await ConnectionDetailsModel.AsynchConnection.GetAsync< ArtistAlbum >( artistAlbumId );
+		public static async Task<ArtistAlbum> GetArtistAlbumAsync( int artistAlbumId ) =>
+			await ConnectionDetailsModel.AsynchConnection.GetAsync<ArtistAlbum>( artistAlbumId );
+
+		/// <summary>
+		/// Get all of the ArtistAlbum entries in the database
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<List<ArtistAlbum>> GetArtistAlbumsAsync() => await ConnectionDetailsModel.AsynchConnection.Table<ArtistAlbum>().ToListAsync();
 	}
 }

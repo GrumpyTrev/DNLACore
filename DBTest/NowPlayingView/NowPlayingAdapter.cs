@@ -45,8 +45,9 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when a group item has been clicked
-		/// If a group/artist is being expanded then get its contents if not previously displayed
-		/// Keep track of which groups have been expanded and the last group expanded
+		/// If ActionMode is in effect then add this item to the collection of selected items
+		/// If Action mode is not in effect then treat this as a song selection event. To prevent this being called
+		/// erroneously when attempting to scroll the list, only convert this to a song selection event on a double click
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="clickedView"></param>
@@ -56,15 +57,24 @@ namespace DBTest
 		public override bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
 		{
 			// If the adapter is in Action Mode then select this item.
-			// Otherwise pass the selection back to the handler
 			if ( ActionMode == true )
 			{
 				OnChildClick( parent, clickedView, groupPosition, 0, 0 );
 			}
 			else
 			{
-				// Pass the index back to the handler
-				adapterHandler.SongSelected( groupPosition );
+				// Detect a double click
+				if ( ( groupPosition == lastClickedItem ) && ( ( DateTime.Now - lastClickTime ).TotalMilliseconds < DoubleClickDurationMilliseconds ) )
+				{
+					// Pass the index back to the handler
+					adapterHandler.SongSelected( groupPosition );
+				}
+				else
+				{
+					// Not a completed double-click, treat as the start of a double-click
+					lastClickedItem = groupPosition;
+					lastClickTime = DateTime.Now;
+				}
 			}
 
 			return false;
@@ -150,6 +160,21 @@ namespace DBTest
 		/// Interface used to handler adapter request and state changes
 		/// </summary>
 		private IActionHandler adapterHandler = null;
+
+		/// <summary>
+		/// The time when the last item was clicked
+		/// </summary>
+		private DateTime lastClickTime = DateTime.MinValue;
+
+		/// <summary>
+		/// The identity of the last item clicked
+		/// </summary>
+		private int lastClickedItem = -1;
+
+		/// <summary>
+		/// The time two click events on the same item for them to be treated as a double-click event
+		/// </summary>
+		private const int DoubleClickDurationMilliseconds = 500;
 
 		/// <summary>
 		/// Interface used to handler adapter request and state changes

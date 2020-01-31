@@ -16,6 +16,7 @@ namespace DBTest
 		{
 			Mediator.RegisterPermanent( SongPlayed, typeof( SongPlayedMessage ) );
 			Mediator.RegisterPermanent( AlbumAdded, typeof( AlbumAddedMessage ) );
+			Mediator.RegisterPermanent( AlbumsDeleted, typeof( AlbumsDeletedMessage ) );
 		}
 
 		/// <summary>
@@ -35,6 +36,9 @@ namespace DBTest
 				// Extract the 'system' tags from this list for easy access later
 				FilterManagementModel.RecentlyAddedTag = FilterManagementModel.Tags.SingleOrDefault( tag => tag.Name == RecentlyAddedTagName );
 				FilterManagementModel.JustPlayedTag = FilterManagementModel.Tags.SingleOrDefault( tag => tag.Name == JustPlayedTagName );
+
+				/// Get the current set of libraries as they'll be required for tag synchronisation
+				FilterManagementModel.Libraries = await LibraryAccess.GetLibrariesAsync();
 			}
 		}
 
@@ -42,8 +46,15 @@ namespace DBTest
 		/// Return a list of the names of all the user tags
 		/// </summary>
 		/// <returns></returns>
-		public static List<string> GetUserTagNames() => ( FilterManagementModel.Tags != null ) ? 
+		public static List<string> GetUserTagNames() => ( FilterManagementModel.Tags != null ) ?
 			FilterManagementModel.Tags.Where( tag => tag.UserTag == true ).Select( tag => tag.Name ).ToList() : new List<string>();
+
+		/// <summary>
+		/// Return a list of the names of all the tags
+		/// </summary>
+		/// <returns></returns>
+		public static List<string> GetTagNames() => ( FilterManagementModel.Tags != null ) ?
+			FilterManagementModel.Tags.Select( tag => tag.Name ).ToList() : new List<string>();
 
 		/// <summary>
 		/// Return the Tag with the given name, or null if no such Tag
@@ -88,8 +99,7 @@ namespace DBTest
 					if ( ( updatedTag.MaxCount != -1 ) && ( ( existingTag.MaxCount == -1 ) || ( updatedTag.MaxCount < existingTag.MaxCount ) ) )
 					{
 						// Possibly need to reduce the number of tagged albums (for each library)
-						List<Library> libraries = await LibraryAccess.GetLibrariesAsync();
-						foreach ( Library lib in libraries )
+						foreach ( Library lib in FilterManagementModel.Libraries )
 						{
 							// Get the count for this library 
 							int tagCount = existingTag.TaggedAlbums.Count( taggedAlbum => ( taggedAlbum.Album.LibraryId == lib.Id ) );
@@ -109,6 +119,41 @@ namespace DBTest
 					}
 				}
 
+				// If the synchronise libraries flag has just been set then attempt to synchronise the contents of this tag
+				// across all libraries
+				if ( ( updatedTag.Synchronise != existingTag.Synchronise ) && ( updatedTag.Synchronise == true ) )
+				{
+					// Find all the unique Album/Artist name associated with the tag
+					var distinctAlbums = existingTag.TaggedAlbums.Select( tagged => new { tagged.Album.Name, tagged.Album.ArtistName } ).Distinct().ToList();
+
+					// Now check that each distinct album is tagged in each library, if present in the library
+					foreach ( var distinctAlbum in distinctAlbums )
+					{
+						// If there are as many tagged albums with matching name and artist name as there are libraries then no work is required
+						List<Album> matchingAlbums = existingTag.TaggedAlbums
+							.Where( tagged => ( tagged.Album.Name == distinctAlbum.Name ) && ( tagged.Album.ArtistName == distinctAlbum.ArtistName ) )
+							.Select( tagged => tagged.Album ).ToList();
+
+						if ( matchingAlbums.Count != FilterManagementModel.Libraries.Count )
+						{
+							// Need to work out which albums are missing and the check if that album is actually in its library
+							foreach ( Library library in FilterManagementModel.Libraries )
+							{
+								if ( matchingAlbums.FindIndex( album => ( album.LibraryId == library.Id ) ) == -1 )
+								{
+									// No tag found for the album in the current library.
+									// Does the album/artist combination exist in the library
+									Album albumToTag = await AlbumAccess.GetAlbumInLibraryAsync( distinctAlbum.Name, distinctAlbum.ArtistName, library.Id );
+									if ( albumToTag != null )
+									{
+										await AddAlbumToTagAsync( existingTag, albumToTag );
+									}
+								}
+							}
+						}
+					}
+				}
+
 				// Update the details for the existing Tag and save it
 				// Save the old name to send in the message
 				string oldTagName = existingTag.Name;
@@ -116,6 +161,8 @@ namespace DBTest
 				existingTag.ShortName = updatedTag.ShortName;
 				existingTag.MaxCount = updatedTag.MaxCount;
 				existingTag.TagOrder = updatedTag.TagOrder;
+				existingTag.TagOrder = updatedTag.TagOrder;
+				existingTag.Synchronise = updatedTag.Synchronise;
 
 				await FilterAccess.UpdateTagAsync( existingTag );
 
@@ -126,35 +173,33 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Update an existing Tag with updated values.
-		/// Remove TaggedAlbums if the MaxCount for a library has now been exceeded
+		/// Create a new tag
 		/// </summary>
-		/// <param name="existingTag"></param>
-		/// <param name="updatedTag"></param>
+		/// <param name="newTag"></param>
 		/// <param name="tagDelegate"></param>
 		public static async void CreateTagAsync( Tag newTag, TagUpdatedDelegate tagDelegate )
 		{
-			bool updateOk = true;
+			bool createdOk = true;
 
 			// Check for a valid name
-			updateOk = ( newTag.Name.Length > 0 );
+			createdOk = ( newTag.Name.Length > 0 );
 
-			if ( updateOk == true )
+			if ( createdOk == true )
 			{
 				// Check that there is not another tag with the new name
-				updateOk = ( FilterManagementModel.Tags.Count( tag => ( tag.Name == newTag.Name ) ) == 0 );
+				createdOk = ( FilterManagementModel.Tags.Count( tag => ( tag.Name == newTag.Name ) ) == 0 );
 			}
 
 			// Check for a valid short name
-			if ( updateOk == true )
+			if ( createdOk == true )
 			{
 				newTag.ShortName = ( newTag.ShortName.Length > 0 ) ? newTag.ShortName : newTag.Name;
 
 				// Check that there is not another tag with the new name
-				updateOk = ( FilterManagementModel.Tags.Count( tag => ( tag.ShortName == newTag.ShortName ) ) == 0 );
+				createdOk = ( FilterManagementModel.Tags.Count( tag => ( tag.ShortName == newTag.ShortName ) ) == 0 );
 			}
 
-			if ( updateOk == true )
+			if ( createdOk == true )
 			{
 				// No problems in performing the update. Add the tag to the model
 				newTag.UserTag = true;
@@ -163,7 +208,7 @@ namespace DBTest
 				FilterManagementModel.Tags.Add( newTag );
 			}
 
-			tagDelegate( updateOk );
+			tagDelegate( createdOk );
 		}
 
 		/// <summary>
@@ -276,6 +321,18 @@ namespace DBTest
 			{
 				await FilterAccess.DeleteTaggedAlbumAsync( taggedAlbum );
 				fromTag.TaggedAlbums.Remove( taggedAlbum );
+
+				// If this tag is synchronised across libraries then remove all instances of this album
+				if ( fromTag.Synchronise == true )
+				{
+					List<TaggedAlbum> otherAlbums = fromTag.TaggedAlbums
+						.Where( tag => ( tag.Album.Name == taggedAlbum.Album.Name ) && ( tag.Album.ArtistName == taggedAlbum.Album.ArtistName ) ).ToList();
+					foreach ( TaggedAlbum album in otherAlbums )
+					{
+						await FilterAccess.DeleteTaggedAlbumAsync( album );
+						fromTag.TaggedAlbums.Remove( album );
+					}
+				}
 			}
 		}
 
@@ -284,7 +341,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="toTag"></param>
 		/// <param name="albumToAdd"></param>
-		private static async Task AddAlbumToTagAsync( Tag toTag, Album albumToAdd )
+		private static async Task AddAlbumToTagAsync( Tag toTag, Album albumToAdd, bool dontSynchronise = false )
 		{
 			// Keep track of whether or not a new entry is required, as it gets complicated
 			bool addNewEntry = true;
@@ -329,6 +386,22 @@ namespace DBTest
 
 				await FilterAccess.AddTaggedAlbumAsync( newTaggedAlbum );
 				toTag.TaggedAlbums.Add( newTaggedAlbum );
+
+				// If this tag is synchronised across libraries then find any matching albums in the other libraries and add them to the tag if not already present
+				if ( ( dontSynchronise == false ) && ( toTag.Synchronise == true ) )
+				{
+					foreach ( Library library in FilterManagementModel.Libraries )
+					{
+						if ( library.Id != albumToAdd.LibraryId )
+						{
+							Album albumToSynch = await AlbumAccess.GetAlbumInLibraryAsync( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
+							if ( albumToSynch != null )
+							{
+								await AddAlbumToTagAsync( toTag, albumToSynch, true );
+							}
+						}
+					}
+				}
 			}
 		}
 
@@ -376,13 +449,47 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when a AlbumsDeletedMessage message has been received
+		/// Remove the albums from any associated tags
+		/// Do not synchronise as this is due to a library scan and not the user removing albums from a tag
+		/// </summary>
+		/// <param name="message"></param>
+		private static async void AlbumsDeleted( object message )
+		{
+			// Get the list of albums and apply to each tag
+			List<int> deletedAlbumIds = ( message as AlbumsDeletedMessage ).DeletedAlbumIds;
+
+			foreach ( Tag tag in FilterManagementModel.Tags )
+			{
+				// Keep track of whether or not the tag is modified
+				bool tagModified = false;
+
+				foreach ( int albumId in deletedAlbumIds )
+				{
+					// If this tag contains the album then remove the TaggedAlbum item
+					TaggedAlbum taggedAlbum = tag.TaggedAlbums.SingleOrDefault( ta => ( ta.AlbumId == albumId ) );
+					if ( taggedAlbum != null )
+					{
+						await FilterAccess.DeleteTaggedAlbumAsync( taggedAlbum );
+						tag.TaggedAlbums.Remove( taggedAlbum );
+						tagModified = true;
+					}
+				}
+
+				if ( tagModified == true )
+				{
+					new TagMembershipChangedMessage() { ChangedTags = new List<string>() { tag.Name } }.Send();
+				}
+			}
+		}
+		/// <summary>
 		/// Definition of delegate to call when the set of applied tags has been determined
 		/// </summary>
 		/// <param name="appliedTags"></param>
 		public delegate void AppliedTagsDelegate( List<AppliedTag> appliedTags );
 
 		/// <summary>
-		/// Definition of delegate to call when a Tag has been updated
+		/// Definition of delegate to call when a Tag has been updated or created
 		/// </summary>
 		/// <returns></returns>
 		public delegate void TagUpdatedDelegate( bool updateOk );

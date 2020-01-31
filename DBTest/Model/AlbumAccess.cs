@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using SQLiteNetExtensionsAsync.Extensions;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace DBTest
 {
@@ -13,32 +12,20 @@ namespace DBTest
 		/// <summary>
 		/// Get all the Albums associated with the library identity
 		/// </summary>
-		public static async Task<List<Album>> GetAlbumDetailsAsync( int libraryId, Tag currentFilter )
-		{
-			List<Album> albums = null;
+		public static async Task<List<Album>> GetAlbumDetailsAsync( int libraryId ) => 
+			await ConnectionDetailsModel.AsynchConnection.Table<Album>().Where( album => album.LibraryId == libraryId ).ToListAsync();
 
-			// If there is no filter get all the albums in the library
-			if ( currentFilter == null )
-			{
-				albums = ( await ConnectionDetailsModel.AsynchConnection.GetWithChildrenAsync<Library>( libraryId ) ).Albums;
-			}
-			else
-			{
-				// Only obtain albums that have been tagged
+		/// <summary>
+		/// Get an album from the database with the specified name, artist name and library
+		/// </summary>
+		/// <param name="albumName"></param>
+		/// <param name="artistName"></param>
+		/// <param name="libraryId"></param>
+		/// <returns></returns>
+		public static async Task<Album> GetAlbumInLibraryAsync( string albumName, string artistName, int libraryId ) => 
+			await ConnectionDetailsModel.AsynchConnection.Table<Album>()
+				.Where( album => ( album.LibraryId == libraryId ) && ( album.Name == albumName ) && ( album.ArtistName == artistName ) ).FirstOrDefaultAsync();
 
-				// First of all form a list of all the album identities in the selected filter
-				List<int> albumIds = currentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToList();
-
-				// Now get all the albums that are tagged and in the correct library
-				albums = ( await ConnectionDetailsModel.AsynchConnection.Table<Album>().
-					Where( album => ( albumIds.Contains( album.Id ) == true ) && ( album.LibraryId == libraryId ) ).ToListAsync() );
-
-				// Use the list of album ids to sort the albums
-				albums = albums.OrderBy( album => albumIds.IndexOf( album.Id ) ).ToList();
-			}
-
-			return albums;
-		}
 
 		/// <summary>
 		/// Get the Album specified by the id

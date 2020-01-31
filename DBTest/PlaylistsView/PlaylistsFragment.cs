@@ -206,7 +206,7 @@ namespace DBTest
 
 			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
 			{
-				BaseController.AddSongsToNowPlayingListAsync( songsSelected.Select( song => song.Song ).ToList(), ( commandId == Resource.Id.play_now ), 
+				BaseController.AddSongsToNowPlayingListAsync( songsSelected.Select( song => song.Song ).ToList(), ( commandId == Resource.Id.play_now ),
 					PlaylistsViewModel.LibraryId );
 				LeaveActionMode();
 			}
@@ -241,6 +241,15 @@ namespace DBTest
 
 				LeaveActionMode();
 			}
+			else if ( commandId == Resource.Id.move_down )
+			{
+				// All of the songs will be associated with the same playlist. Need to access the playlist
+				Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) );
+
+				// There must be at least one PlayList entry beyond those that are selected. That entry needs to be moved to above the start of the selection
+				// The item 
+			}
+
 		}
 
 		/// <summary>

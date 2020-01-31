@@ -120,12 +120,19 @@ namespace DBTest
 		/// </summary>
 		public List<object> Contents { get; } = new List<object>();
 
-		public void EnumerateContents()
+		/// <summary>
+		/// Add the ArtistAlbum and Song entries associated with this artist to a single list
+		/// </summary>
+		/// <param name="albumIds"></param>
+		public void EnumerateContents( HashSet<int> albumIds )
 		{
 			foreach ( ArtistAlbum album in ArtistAlbums )
 			{
-				Contents.Add( album );
-				Contents.AddRange( album.Songs );
+				if ( ( albumIds == null ) || ( albumIds.Contains( album.AlbumId ) == true ) )
+				{
+					Contents.Add( album );
+					Contents.AddRange( album.Songs );
+				}
 			}
 		}
 	}
@@ -235,8 +242,13 @@ namespace DBTest
 		/// </summary>
 		public bool TagOrder { get; set; } = false;
 
+		/// <summary>
+		/// Synchronise tagged albums across libraries
+		/// </summary>
+		public bool Synchronise { get; set; } = false;
+
 		[OneToMany]
-		public List<TaggedAlbum> TaggedAlbums { get; set; }
+		public List<TaggedAlbum> TaggedAlbums { get; set; } = new List<TaggedAlbum>();
 	}
 
 	[Table( "TaggedAlbum" )]

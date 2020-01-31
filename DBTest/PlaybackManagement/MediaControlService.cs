@@ -99,7 +99,10 @@ namespace DBTest
 		/// </summary>
 		private void InitMediaSession()
 		{
-			mediaSession = new MediaSessionCompat( this, AudioPlayerId ) { Active = true };
+			// The mediaButtonReceiver parameter is required for pre-Lollipop SDK
+			ComponentName mediaButtonReceiver = new ComponentName( this, Java.Lang.Class.FromType( typeof( MediaButtonReceiver ) ) );
+
+			mediaSession = new MediaSessionCompat( this, AudioPlayerId, mediaButtonReceiver, null ) { Active = true };
 			mediaSession.SetFlags( MediaSessionCompat.FlagHandlesTransportControls );
 
 			transportControls = mediaSession.Controller.GetTransportControls();
