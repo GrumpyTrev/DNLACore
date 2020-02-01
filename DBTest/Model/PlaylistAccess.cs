@@ -19,7 +19,7 @@ namespace DBTest
 		/// <summary>
 		/// Get the songs in the Now Playing playlist associated with the library 
 		/// </summary>
-		public static async Task< Playlist > GetNowPlayingListAsync( int libraryId, bool withArtists = false )
+		public static async Task<Playlist> GetNowPlayingListAsync( int libraryId, bool withArtists = false )
 		{
 			// Get the Now Playing list
 			Playlist thePlaylist = await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().
@@ -137,7 +137,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static async Task AddSongsToNowPlayingListAsync( List<Song> songsToAdd, int libraryId ) => 
+		public static async Task AddSongsToNowPlayingListAsync( List<Song> songsToAdd, int libraryId ) =>
 			await AddSongsToPlaylistAsync( songsToAdd, NowPlayingController.NowPlayingPlaylistName, libraryId );
 
 		/// <summary>
@@ -178,7 +178,14 @@ namespace DBTest
 		/// <param name="playlistName"></param>
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
-		public static async Task AddPlaylistAsync( string playlistName, int libraryId ) => 
+		public static async Task AddPlaylistAsync( string playlistName, int libraryId ) =>
 			await ConnectionDetailsModel.AsynchConnection.InsertAsync( new Playlist() { Name = playlistName, LibraryId = libraryId } );
+
+		/// <summary>
+		/// Update a modified PlaylistItem
+		/// </summary>
+		/// <param name="itemToUpdate"></param>
+		/// <returns></returns>
+		public static async Task UpdatePlaylistItemAsync( PlaylistItem itemToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( itemToUpdate );
 	}
-}
+};

@@ -246,8 +246,18 @@ namespace DBTest
 				// All of the songs will be associated with the same playlist. Need to access the playlist
 				Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) );
 
-				// There must be at least one PlayList entry beyond those that are selected. That entry needs to be moved to above the start of the selection
-				// The item 
+				PlaylistsController.MoveItemsDown( parentPlaylist, songsSelected.ToList() );
+
+				LeaveActionMode();
+			}
+			else if ( commandId == Resource.Id.move_up )
+			{
+				// All of the songs will be associated with the same playlist. Need to access the playlist
+				Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) );
+
+				PlaylistsController.MoveItemsUp( parentPlaylist, songsSelected.ToList() );
+
+				LeaveActionMode();
 			}
 
 		}
