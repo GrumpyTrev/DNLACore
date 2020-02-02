@@ -45,7 +45,7 @@ namespace DBTest
 					isPreparing = true;
 
 					// Prepare and start playing the song
-					if ( await PrepareSong( filename ) == true )
+					if ( await PrepareSong( filename, Playlist.PlaylistItems[ CurrentSongIndex ].Song ) == true )
 					{
 						if ( await PlaySong() == true )
 						{
@@ -151,10 +151,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="fileName"></param>
 		/// <returns></returns>
-		private async Task<bool> PrepareSong( string fileName )
+		private async Task<bool> PrepareSong( string fileName, Song songToPlay )
 		{
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "SetAVTransportURI",
-				string.Format( "<CurrentURI>{0}</CurrentURI>\r\n<CurrentURIMetaData></CurrentURIMetaData>\r\n", fileName ) );
+				string.Format( "<CurrentURI>{0}</CurrentURI>\r\n<CurrentURIMetaData>{1}</CurrentURIMetaData>\r\n", fileName, Desc( fileName, songToPlay ) ) );
 
 			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl,
 				"urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI", PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
@@ -163,6 +163,22 @@ namespace DBTest
 
 			return ( DlnaRequestHelper.GetResponseCode( response ) == 200 );
 		}
+
+		/// <summary>
+		/// Get the metadata for the specified filename
+		/// </summary>
+		/// <returns></returns>
+		private string Desc( string fileName, Song songToPlay ) =>
+			string.Format(
+				"<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" " +
+				"xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">\r\n" +
+				"<item id=\"HTTP stream\" restricted=\"0\">\r\n" +
+				"<dc:title>{0} : {2}</dc:title>\r\n" +
+				"<upnp:class>object.item.audioItem.musicTrack</upnp:class>\r\n" +
+				"<res protocolInfo=\"http-get:*:audio/mpeg:*\">{1}</res>\r\n" +
+				"</item>\r\n" +
+				"</DIDL-Lite>\r\n",
+				songToPlay.Title, fileName, songToPlay.Artist.Name );
 
 		/// <summary>
 		/// Send a Play request to the DNLA device
