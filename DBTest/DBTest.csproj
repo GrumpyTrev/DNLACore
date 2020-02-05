@@ -358,7 +358,9 @@
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\repeat.png" />
+  </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout-land\tag_details_dialogue_layout.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>

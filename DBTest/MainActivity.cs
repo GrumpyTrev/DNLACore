@@ -113,6 +113,10 @@ namespace DBTest
 		{
 			MenuInflater.Inflate( Resource.Menu.menu_main, menu );
 
+			// Keep a reference to the repeat off menu item
+			repeatOffMenu = menu.FindItem( Resource.Id.action_repeat_off );
+			repeatOffMenu.SetVisible( PlaybackManagerModel.RepeatOn );
+
 			return true;
 		}
 
@@ -125,6 +129,9 @@ namespace DBTest
 		{
 			// Enable or disable the playback visible item according to the current media controller visibility
 			menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( playbackRouter.PlaybackControlsVisible == false );
+
+			// Change the text for the repeat item according to the repeat mode
+			menu.FindItem( Resource.Id.repeat_on_off ).SetTitle( PlaybackManagerModel.RepeatOn ? "Repeat off" : "Repeat on" );
 
 			// Populate the rename and delete tag menus with submenus containing the user tags items
 			int menuId = Menu.First;
@@ -198,6 +205,13 @@ namespace DBTest
 			else if ( id == Resource.Id.add_tag )
 			{
 				TagCreator.AddNewTag( this );
+				handled = true;
+			}
+			else if ( ( id == Resource.Id.repeat_on_off ) || ( id == Resource.Id.action_repeat_off ) )
+			{
+				// Toggle the repeat state
+				PlaybackManagerModel.RepeatOn = ! PlaybackManagerModel.RepeatOn;
+				repeatOffMenu.SetVisible( PlaybackManagerModel.RepeatOn );
 				handled = true;
 			}
 
@@ -368,6 +382,11 @@ namespace DBTest
 		/// The handler for the tag editor command
 		/// </summary>
 		private TagEditor tagEditCommandHandler = null;
+
+		/// <summary>
+		/// A reference to the repeat off menu item so that it can be shown or hidden
+		/// </summary>
+		private IMenuItem repeatOffMenu = null;
 	}
 }
 

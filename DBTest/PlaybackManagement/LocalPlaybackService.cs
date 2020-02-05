@@ -32,11 +32,8 @@ namespace DBTest
 			IsPlaying = false;
 
 			// Play the next song if there is one
-			if ( CurrentSongIndex < ( Playlist.PlaylistItems.Count - 1 ) )
+			if ( CanPlayNextSong() == true )
 			{
-				CurrentSongIndex++;
-				Reporter?.SongIndexChanged( CurrentSongIndex );
-
 				Play();
 			}
 			else

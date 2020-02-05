@@ -247,8 +247,6 @@ namespace DBTest
 				Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) );
 
 				PlaylistsController.MoveItemsDown( parentPlaylist, songsSelected.ToList() );
-
-				LeaveActionMode();
 			}
 			else if ( commandId == Resource.Id.move_up )
 			{
@@ -256,8 +254,6 @@ namespace DBTest
 				Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) );
 
 				PlaylistsController.MoveItemsUp( parentPlaylist, songsSelected.ToList() );
-
-				LeaveActionMode();
 			}
 
 		}

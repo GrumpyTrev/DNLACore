@@ -232,19 +232,15 @@ namespace DBTest
 					Logger.Log( string.Format( "Next song please" ) );
 
 					noPlayCount = 0;
+					IsPlaying = false;
 
 					// Play the next song if there is one
-					if ( CurrentSongIndex < ( Playlist.PlaylistItems.Count - 1 ) )
+					if ( CanPlayNextSong() == true )
 					{
-						CurrentSongIndex++;
-						Reporter?.SongIndexChanged( CurrentSongIndex );
-
-						IsPlaying = false;
 						Play();
 					}
 					else
 					{
-						IsPlaying = false;
 						ReleaseLock();
 					}
 				}

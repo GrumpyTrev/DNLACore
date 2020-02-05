@@ -174,6 +174,33 @@ namespace DBTest
 		protected void ReportSongPlayed() => Reporter?.SongPlayed( Playlist.PlaylistItems[ CurrentSongIndex ].Song );
 
 		/// <summary>
+		/// Select the next song to play based on whether or not repeat is on and the number of songs in the playlist
+		/// </summary>
+		/// <returns></returns>
+		protected bool CanPlayNextSong()
+		{
+			bool canPlay = true;
+
+			if ( CurrentSongIndex < ( Playlist.PlaylistItems.Count - 1 ) )
+			{
+				CurrentSongIndex++;
+				Reporter?.SongIndexChanged( CurrentSongIndex );
+			}
+			else if ( ( PlaybackManagerModel.RepeatOn == true ) && ( Playlist.PlaylistItems.Count > 0 ) )
+			{
+				// Play the first song
+				CurrentSongIndex = 0;
+				Reporter?.SongIndexChanged( CurrentSongIndex );
+			}
+			else
+			{
+				canPlay = false;
+			}
+
+			return canPlay;
+		}
+
+		/// <summary>
 		/// The playlist of songs to play
 		/// </summary>
 		public Playlist Playlist { get; set; } = null;

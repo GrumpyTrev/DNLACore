@@ -36,5 +36,10 @@ namespace DBTest
 		/// Keep track of whether or not the Media Controller is being displayed
 		/// </summary>
 		public static bool MediaControllerVisible { get; set; } = true;
+
+		/// <summary>
+		/// Keep track of whether or not repeat play is on
+		/// </summary>
+		public static bool RepeatOn { get; set; } = false;
 	}
 }

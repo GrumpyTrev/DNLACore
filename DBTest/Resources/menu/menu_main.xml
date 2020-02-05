@@ -2,9 +2,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 	<item
+		android:id="@+id/action_repeat_off"
+		android:icon="@drawable/repeat"
+		android:orderInCategory="1"
+		app:showAsAction="always"
+		android:title="Repeat off"/>
+	<item
 		android:title="Playback"
 		app:showAsAction="never" >
 		<menu>
+			<item
+				android:id="@+id/repeat_on_off"
+				android:title="Repeat on" />
 			<item
 				android:id="@+id/show_media_controls"
 				android:title="Show playback controls" />
