@@ -148,9 +148,12 @@ namespace DBTest
 		public static async Task DeletePlaylistAsync( Playlist thePlaylist )
 		{
 			// Delete the PlaylistItem entries from the database
-			foreach ( PlaylistItem item in thePlaylist.PlaylistItems )
+			if ( thePlaylist.PlaylistItems != null )
 			{
-				await ConnectionDetailsModel.AsynchConnection.DeleteAsync( item );
+				foreach ( PlaylistItem item in thePlaylist.PlaylistItems )
+				{
+					await ConnectionDetailsModel.AsynchConnection.DeleteAsync( item );
+				}
 			}
 
 			// Now delete the playlist itself
@@ -187,5 +190,11 @@ namespace DBTest
 		/// <param name="itemToUpdate"></param>
 		/// <returns></returns>
 		public static async Task UpdatePlaylistItemAsync( PlaylistItem itemToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( itemToUpdate );
+
+		/// <summary>
+		/// Get a list of all the playlists in the database
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<List<Playlist>> GetAllPlaylists() => await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().ToListAsync();
 	}
 };

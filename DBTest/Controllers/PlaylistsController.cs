@@ -134,6 +134,84 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Check if the specified playlist exists in other libraries
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="playListLibrary"></param>
+		/// <returns></returns>
+		public static async Task<bool> CheckForOtherPlaylistsAsync( string name, int playListLibrary ) =>
+			( await PlaylistAccess.GetAllPlaylists() ).Count( playlist => ( playlist.Name == name ) && ( playlist.LibraryId != playListLibrary ) ) > 0;
+
+		/// <summary>
+		/// Duplicate a playlist in the other libraries
+		/// </summary>
+		/// <param name="playlistToDuplicate"></param>
+		public static async void DuplicatePlaylistAsync( Playlist playlistToDuplicate )
+		{
+			// Duplicate the playlist in all libraries except the one it is in
+			List< Library > libraries = await LibraryAccess.GetLibrariesAsync();
+			foreach ( Library library in libraries )
+			{
+				if ( library.Id != playlistToDuplicate.LibraryId )
+				{
+					// If a playlist with the same name already exists then delete its contents
+					Playlist existingPlaylist = ( await PlaylistAccess.GetPlaylistDetailsAsync( library.Id ) )
+						.Where( playlist => playlist.Name == playlistToDuplicate.Name ).SingleOrDefault();
+
+					if ( existingPlaylist != null )
+					{
+						await PlaylistAccess.DeletePlaylistAsync( existingPlaylist );
+					}
+
+					// Now create a new playlist in the library with the same name
+					await PlaylistAccess.AddPlaylistAsync( playlistToDuplicate.Name, library.Id );
+
+					// Attempt to find matching songs for each PlaylistItem in the Playlist
+					// Need to access the songs via the Sources associated with the Library
+					List< Source > sources = await LibraryAccess.GetSourcesAsync( library.Id );
+
+					// Keep track of the matching songs
+					List<Song> songsToAdd = new List<Song>();
+
+					foreach ( PlaylistItem item in playlistToDuplicate.PlaylistItems )
+					{
+						Song matchingSong = null;
+						int sourceIndex = 0;
+
+						while ( ( matchingSong == null ) && ( sourceIndex < sources.Count ) )
+						{
+							// Get a list of all the songs with matching Titles in the source
+							List<Song> matchingTitles = await ArtistAccess.GetMatchingSongAsync( item.Song.Title, sources[ sourceIndex++ ].Id );
+
+							// Now for each song access the associated artist
+							int titleIndex = 0;
+							while ( ( matchingSong == null ) && ( titleIndex < matchingTitles.Count ) )
+							{
+								ArtistAlbum artistAlbum = await ArtistAccess.GetArtistAlbumAsync( matchingTitles[ titleIndex ].ArtistAlbumId );
+								Artist nameCheck = await ArtistAccess.GetArtistAsync( artistAlbum.ArtistId );
+
+								// Correct name?
+								if ( nameCheck.Name == item.Artist.Name )
+								{
+									matchingSong = matchingTitles[ titleIndex ];
+									songsToAdd.Add( matchingSong );
+								}
+
+								titleIndex++;
+							}
+						}
+					}
+
+					if ( songsToAdd.Count > 0 )
+					{
+						// Add the songs to the new Playlist
+						await PlaylistAccess.AddSongsToPlaylistAsync( songsToAdd, playlistToDuplicate.Name, library.Id );
+					}
+				}
+			}
+		}
+
+		/// <summary>
 		/// Adjust the track numbers to match the indexex in the collection
 		/// </summary>
 		/// <param name="thePlaylist"></param>

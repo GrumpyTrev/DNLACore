@@ -179,7 +179,10 @@ namespace DBTest
 			}
 
 			// The edit command is only available if a single playlist has been selected
-			renameCommand.Visible = ( playlistCount == 1 );
+			editCommand.Visible = ( playlistCount == 1 );
+
+			// The duplicate command is only available if a single playlist has been selected
+			duplicateCommand.Visible = ( playlistCount == 1 );
 
 			// Set the action bar title
 			SetActionBarTitle( songCount, playlistCount );
@@ -197,12 +200,14 @@ namespace DBTest
 		/// Called when a command bar command has been invoked
 		/// </summary>
 		/// <param name="button"></param>
-		protected override void HandleCommand( int commandId )
+		protected override async void HandleCommand( int commandId )
 		{
-			IEnumerable<PlaylistItem> songsSelected = Adapter.SelectedItems.Values.OfType<PlaylistItem>();
-			IEnumerable<Playlist> playlistSelected = Adapter.SelectedItems.Values.OfType<Playlist>();
-			int songCount = songsSelected.Count();
-			int playlistCount = playlistSelected.Count();
+			List<PlaylistItem> songsSelected = Adapter.SelectedItems.Values.OfType<PlaylistItem>().ToList();
+			List<Playlist> playlistSelected = Adapter.SelectedItems.Values.OfType<Playlist>().ToList();
+
+			// Get the parent playlist of the first song
+			Playlist parentPlaylist = ( songsSelected.Count > 0 ) ?
+				PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) ) : null;
 
 			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
 			{
@@ -213,7 +218,7 @@ namespace DBTest
 			else if ( commandId == Resource.Id.delete )
 			{
 				// If a playlist as well as songs are selected then prompt the user to check if the playlist entry should be deleted as well
-				if ( ( songCount > 0 ) && ( playlistCount > 0 ) )
+				if ( ( songsSelected.Count() > 0 ) && ( playlistSelected.Count() > 0 ) )
 				{
 					new AlertDialog.Builder( Context ).SetTitle( "Do you want to delete the playlist" )
 						.SetPositiveButton( "Yes", delegate {
@@ -222,16 +227,13 @@ namespace DBTest
 						} )
 						.SetNegativeButton( "No", delegate {
 							// Just delete the songs. They will all be in the selected playlist
-							PlaylistsController.DeletePlaylistItemsAsync( playlistSelected.First(), songsSelected.ToList() );
+							PlaylistsController.DeletePlaylistItemsAsync( playlistSelected.First(), songsSelected );
 						} )
 						.Show();
 				}
-				else if ( songCount > 0 )
+				else if ( songsSelected.Count() > 0 )
 				{
-					// All of the songs will be associated with the same playlist. Need to access the playlist
-					Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) );
-
-					PlaylistsController.DeletePlaylistItemsAsync( parentPlaylist, songsSelected.ToList() );
+					PlaylistsController.DeletePlaylistItemsAsync( parentPlaylist, songsSelected );
 				}
 				else
 				{
@@ -243,19 +245,34 @@ namespace DBTest
 			}
 			else if ( commandId == Resource.Id.move_down )
 			{
-				// All of the songs will be associated with the same playlist. Need to access the playlist
-				Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) );
-
-				PlaylistsController.MoveItemsDown( parentPlaylist, songsSelected.ToList() );
+				PlaylistsController.MoveItemsDown( parentPlaylist, songsSelected );
 			}
 			else if ( commandId == Resource.Id.move_up )
 			{
-				// All of the songs will be associated with the same playlist. Need to access the playlist
-				Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == songsSelected.First().PlaylistId ) );
-
-				PlaylistsController.MoveItemsUp( parentPlaylist, songsSelected.ToList() );
+				PlaylistsController.MoveItemsUp( parentPlaylist, songsSelected );
 			}
+			else if ( commandId == Resource.Id.duplicate )
+			{
+				// If the playlist already exists in other libraries then prompt for deletion
+				Playlist playlistToDuplicate = playlistSelected.First();
+				if ( await PlaylistsController.CheckForOtherPlaylistsAsync( playlistToDuplicate.Name, ConnectionDetailsModel.LibraryId ) == true )
+				{
+					new AlertDialog.Builder( Context ).SetTitle( "The playlist already exists in other libraries. Are you sure you want to duplicate it?" )
+						.SetPositiveButton( "Yes", delegate {
+							// Duplicate the playlist in the other libraries
+							PlaylistsController.DuplicatePlaylistAsync( playlistToDuplicate );
+						} )
+						.SetNegativeButton( "No", delegate { } )
+						.Show();
+				}
+				else
+				{
+					// Duplicate the playlist in the other libraries
+					PlaylistsController.DuplicatePlaylistAsync( playlistToDuplicate );
+				}
 
+				LeaveActionMode();
+			}
 		}
 
 		/// <summary>
@@ -283,9 +300,10 @@ namespace DBTest
 			addToQueueCommand = commandBar.BindCommand( Resource.Id.add_to_queue );
 			playNowCommand = commandBar.BindCommand( Resource.Id.play_now );
 			deleteCommand = commandBar.BindCommand( Resource.Id.delete );
-			renameCommand = commandBar.BindCommand( Resource.Id.rename );
+			editCommand = commandBar.BindCommand( Resource.Id.rename );
 			moveUpCommand = commandBar.BindCommand( Resource.Id.move_up );
 			moveDownCommand = commandBar.BindCommand( Resource.Id.move_down );
+			duplicateCommand = commandBar.BindCommand( Resource.Id.duplicate );
 		}
 
 		/// <summary>
@@ -293,7 +311,7 @@ namespace DBTest
 		/// </summary>
 		/// <returns></returns>
 		protected override bool ShowCommandBar() => playNowCommand.Visible || addToQueueCommand.Visible || deleteCommand.Visible || moveUpCommand.Visible ||
-				moveDownCommand.Visible || renameCommand.Visible;
+				moveDownCommand.Visible || editCommand.Visible || duplicateCommand.Visible;
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -364,8 +382,9 @@ namespace DBTest
 		private CommandBinder addToQueueCommand = null;
 		private CommandBinder playNowCommand = null;
 		private CommandBinder deleteCommand = null;
-		private CommandBinder renameCommand = null;
+		private CommandBinder editCommand = null;
 		private CommandBinder moveUpCommand = null;
 		private CommandBinder moveDownCommand = null;
+		private CommandBinder duplicateCommand = null;
 	}
 }

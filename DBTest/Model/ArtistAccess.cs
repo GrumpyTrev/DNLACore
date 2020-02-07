@@ -101,7 +101,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="artistAlbumId"></param>
 		/// <returns></returns>
-		public static async Task<ArtistAlbum> GetArtistAlbumAsync( int artistAlbumId ) =>
+		public static async Task<ArtistAlbum> GetArtistAlbumAsync( int artistAlbumId ) => 
 			await ConnectionDetailsModel.AsynchConnection.GetAsync<ArtistAlbum>( artistAlbumId );
 
 		/// <summary>
@@ -109,5 +109,21 @@ namespace DBTest
 		/// </summary>
 		/// <returns></returns>
 		public static async Task<List<ArtistAlbum>> GetArtistAlbumsAsync() => await ConnectionDetailsModel.AsynchConnection.Table<ArtistAlbum>().ToListAsync();
+
+		/// <summary>
+		/// Get all the songs in the specified source with the specified title 
+		/// </summary>
+		/// <param name="songName"></param>
+		/// <param name="sourceId"></param>
+		/// <returns></returns>
+		public static async Task<List<Song>> GetMatchingSongAsync( string songName, int sourceId ) =>
+			await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.Title == songName ) && ( song.SourceId == sourceId ) ).ToListAsync();
+
+		/// <summary>
+		/// Get the artist from its id
+		/// </summary>
+		/// <param name="artistId"></param>
+		/// <returns></returns>
+		public static async Task<Artist> GetArtistAsync( int artistId ) => await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( artistId );
 	}
 }
