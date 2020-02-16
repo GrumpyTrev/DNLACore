@@ -206,32 +206,60 @@ namespace DBTest
 		{
 			StopTimer();
 
-			string soapContent = DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo", "" );
-
-			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
-				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
-
-			string response = await DlnaRequestHelper.SendRequest( PlaybackDevice, request );
+			// Send the GetPositionInfo request and get the response
+			string response = await DlnaRequestHelper.SendRequest( PlaybackDevice, 
+				DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
+					PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo", "" ) ) );
 
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 			{
-				string trackDuration = response.TrimStart( "<TrackDuration>" ).TrimAfter( "</TrackDuration>" );
-				durationMilliseconds = TimeStringToMilliseconds( trackDuration );
-
-				string relTime = response.TrimStart( "<RelTime>" ).TrimAfter( "</RelTime>" );
-				positionMilliseconds = TimeStringToMilliseconds( relTime );
+				durationMilliseconds = TimeStringToMilliseconds( response.TrimStart( "<TrackDuration>" ).TrimAfter( "</TrackDuration>" ) );
+				positionMilliseconds = TimeStringToMilliseconds( response.TrimStart( "<RelTime>" ).TrimAfter( "</RelTime>" ) );
 
 				Logger.Log( string.Format( "Position: {0}, Duration {1}", positionMilliseconds, durationMilliseconds ) );
 
-				// If the duration is 0 this could be due to missing the end of a song, or it can also happen at the 
-				// very start of a track. So keep track of this and if it happens a few times switch to the next track
-				// If the position is within 1 second of the duration when assume this track has finished and move on to the next track
-				if ( ( ( durationMilliseconds == 0 ) && ( ++noPlayCount > 3 ) ) ||
-						( ( durationMilliseconds != 0 ) && ( Math.Abs( durationMilliseconds - positionMilliseconds ) < 1050 ) ) )
-				{
-					Logger.Log( string.Format( "Next song please" ) );
+				// Assume the track has not finished
+				bool nextTrack = false;
 
-					noPlayCount = 0;
+				// If a chnage has already been schedukled then do it now
+				if ( changeTrackNextTime == true )
+				{
+					nextTrack = true;
+					changeTrackNextTime = false;
+				}
+				else
+				{
+					// If the duration is 0 this could be due to missing the end of a song, or it can also happen at the 
+					// very start of a track. So keep track of this and if it happens a few times switch to the next track
+					if ( durationMilliseconds == 0 )
+					{
+						if ( ++noPlayCount > 3 )
+						{
+							nextTrack = true;
+							noPlayCount = 0;
+						}
+					}
+					else
+					{
+						noPlayCount = 0;
+
+						// If the position is within 1/4 second of the duration when assume this track has finished and move on to the next track.
+						// If the position is around 1 second of the duration then move on to the next track the next time this position is obtained
+						int timeLeft = Math.Abs( durationMilliseconds - positionMilliseconds );
+
+						if ( timeLeft < 250 )
+						{
+							nextTrack = true;
+						}
+						else if ( timeLeft < 1050 )
+						{
+							changeTrackNextTime = true;
+						}
+					}
+				}
+
+				if ( nextTrack == true )
+				{
 					IsPlaying = false;
 
 					// Play the next song if there is one
@@ -246,11 +274,6 @@ namespace DBTest
 				}
 				else
 				{
-					if ( durationMilliseconds != 0 )
-					{
-						noPlayCount = 0;
-					}
-
 					StartTimer();
 				}
 			}
@@ -318,6 +341,11 @@ namespace DBTest
 		/// Counter used to detect when the end of a song may have been missed
 		/// </summary>
 		private int noPlayCount = 0;
+
+		/// <summary>
+		/// Flag indicating that the next track should be played the next time the position is obtained
+		/// </summary>
+		private bool changeTrackNextTime = false;
 
 		/// <summary>
 		/// The timer used to check the progress of the song
