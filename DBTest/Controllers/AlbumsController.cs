@@ -44,10 +44,15 @@ namespace DBTest
 
 				// Get the list of current playlists
 				await GetPlayListNames();
+
+				AlbumsViewModel.DataValid = true;
 			}
 
 			// Publish the data
-			Reporter?.AlbumsDataAvailable();
+			if ( AlbumsViewModel.DataValid == true )
+			{
+				Reporter?.AlbumsDataAvailable();
+			}
 		}
 
 		/// <summary>

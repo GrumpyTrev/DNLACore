@@ -20,6 +20,7 @@ namespace DBTest
 			ListViewState = null;
 			CurrentFilter = null;
 			CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.alphaAscending;
+			DataValid = false;
 		}
 
 		/// <summary>
@@ -66,5 +67,10 @@ namespace DBTest
 		/// The current sort order for the displayed Artists
 		/// </summary>
 		public static AlbumSortSelector.AlbumSortOrder CurrentSortOrder { get; set; } = AlbumSortSelector.AlbumSortOrder.alphaAscending;
+
+		/// <summary>
+		/// Indicates whether or not the data held by the class is valid
+		/// </summary>
+		public static bool DataValid { get; set; } = false;
 	}
 }

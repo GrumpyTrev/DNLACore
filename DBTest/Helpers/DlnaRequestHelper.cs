@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.Util;
 
 namespace DBTest
 {
@@ -24,19 +23,18 @@ namespace DBTest
 		/// <returns></returns>
 		public static string MakeRequest( string method, string Url, string SOAPAction, string ipAddress, int port, string content )
 		{
-			string request = string.Format(
-				"{0} /{1} HTTP/1.1\r\nCache-Control: no-cache\r\nConnection: Close\r\nPragma: no-cache\r\nHost: {2}:{3}\r\n" +
-				"User-Agent: Microsoft-Windows/6.3 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50\r\nFriendlyName.DLNA.ORG: {4}\r\n",
-				method.ToUpper(), Url, ipAddress, port, System.Environment.MachineName );
+			string request = $"{method.ToUpper()} /{Url} HTTP/1.1\r\nCache-Control: no-cache\r\nConnection: Close\r\nPragma: no-cache\r\n" + 
+				$"Host: {ipAddress}:{port}\r\nUser-Agent: Microsoft-Windows/6.3 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50\r\n" +
+				$"FriendlyName.DLNA.ORG: {System.Environment.MachineName}\r\n";
 
 			if ( content.Length > 0 )
 			{
-				request += string.Format( "Content-Length: {0}\r\nContent-Type: text/xml; charset=\"utf-8\"\r\n", content.Length );
+				request += $"Content-Length: {content.Length}\r\nContent-Type: text/xml; charset=\"utf-8\"\r\n";
 			}
 
 			if ( SOAPAction.Length > 0 )
 			{
-				request += string.Format( "SOAPAction: \"{0}\"\r\n", SOAPAction );
+				request += $"SOAPAction: \"{SOAPAction}\"\r\n";
 			}
 
 			request += "\r\n";
@@ -55,21 +53,17 @@ namespace DBTest
 		/// <param name="action"></param>
 		/// <param name="actionSpecific"></param>
 		/// <returns></returns>
-		public static string MakeSoapRequest( string action, string actionSpecific )
-		{
-			return string.Format(
+		public static string MakeSoapRequest( string action, string actionSpecific ) =>
 				"<?xml version=\"1.0\"?>\r\n" +
 				"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
 				"SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\r\n" +
 				"<SOAP-ENV:Body>\r\n" +
-				"<u:{0} xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\">\r\n" +
+				$"<u:{action} xmlns:u=\"urn:schemas-upnp-org:service:AVTransport:1\">\r\n" +
 				"<InstanceID>0</InstanceID>\r\n" +
-				"{1}" +
-				"</u:{0}>\r\n" +
+				$"{actionSpecific}" +
+				$"</u:{action}>\r\n" +
 				"</SOAP-ENV:Body>\r\n" +
-				"</SOAP-ENV:Envelope>\r\n",
-				action, actionSpecific );
-		}
+				"</SOAP-ENV:Envelope>\r\n";
 
 		/// <summary>
 		/// Send a request to the device using TCP protocol and await a response
@@ -89,28 +83,33 @@ namespace DBTest
 					try
 					{
 						// Connect to the client
-						await client.ConnectAsync( IPAddress.Parse( targetDevice.IPAddress ), targetDevice.Port );
-
-						// Get the network stream and send out the request
-						NetworkStream networkStream = client.GetStream();
-
-						// Convert to bytes
-						byte[] requestBytes = Encoding.UTF8.GetBytes( request );
-						await networkStream.WriteAsync( requestBytes, 0, requestBytes.Length );
-
-						// Read into a fixed length byte array
-						byte[] readBuffer = new byte[ 2000 ];
-						int bytesRead;
-
-						do
+						if ( client.ConnectAsync( IPAddress.Parse( targetDevice.IPAddress ), targetDevice.Port ).Wait( 1000 ) == true )
 						{
-							bytesRead = await networkStream.ReadAsync( readBuffer, 0, readBuffer.Length );
-							if ( bytesRead > 0 )
+							// Get the network stream and send out the request
+							NetworkStream networkStream = client.GetStream();
+
+							// Convert to bytes
+							byte[] requestBytes = Encoding.UTF8.GetBytes( request );
+							await networkStream.WriteAsync( requestBytes, 0, requestBytes.Length );
+
+							// Read into a fixed length byte array
+							byte[] readBuffer = new byte[ 2000 ];
+							int bytesRead;
+
+							do
 							{
-								response += Encoding.UTF8.GetString( readBuffer, 0, bytesRead );
+								bytesRead = await networkStream.ReadAsync( readBuffer, 0, readBuffer.Length );
+								if ( bytesRead > 0 )
+								{
+									response += Encoding.UTF8.GetString( readBuffer, 0, bytesRead );
+								}
 							}
+							while ( bytesRead > 0 );
 						}
-						while ( bytesRead > 0 );
+						else
+						{
+							Logger.Error( "Timeout sending DLNA request" );
+						}
 					}
 					catch ( SocketException sktProblem )
 					{

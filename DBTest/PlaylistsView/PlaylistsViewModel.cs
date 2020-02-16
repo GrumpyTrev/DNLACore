@@ -15,6 +15,7 @@ namespace DBTest
 			Playlists.Clear();
 			PlaylistNames.Clear();
 			LibraryId = -1;
+			DataValid = false;
 		}
 
 		/// <summary>
@@ -31,5 +32,10 @@ namespace DBTest
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
 		public static int LibraryId { get; set; } = -1;
+
+		/// <summary>
+		/// Indicates whether or not the data held by the class is valid
+		/// </summary>
+		public static bool DataValid { get; set; } = false;
 	}
 }

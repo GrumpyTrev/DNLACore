@@ -33,67 +33,59 @@ namespace DBTest
 			{
 				// Before discovering remote devices get the last selected device from the database and if it was the
 				// local device then report that device as available for playback
-				ReportLocalSelectedDevice();
+				await ReportLocalSelectedDeviceAsync();
 
-				// Send the discovery a few times in case its is missed
-				for ( int loopCount = 1; loopCount < AttemptLimit; loopCount++ )
+				// Encode the discovery request
+				Byte[] sendBytes = Encoding.UTF8.GetBytes( string.Format( SearchRequest, MulticastIP, MulticastPort, 3 ) );
+
+				try
 				{
-					using ( UdpClient client = new UdpClient() )
+					// Send the discovery a few times in case its is missed
+					for ( int loopCount = 1; loopCount < AttemptLimit; loopCount++ )
 					{
-						// Send a discovery request
-						Byte[] sendBytes = Encoding.UTF8.GetBytes( string.Format( SearchRequest, MulticastIP, MulticastPort, 3 ) );
-						await client.SendAsync( sendBytes, sendBytes.Length, new IPEndPoint( IPAddress.Parse( MulticastIP ), MulticastPort ) );
-
-						// Loop receiving replies until the reply times out
-						bool timedOut = false;
-						while ( timedOut == false )
+						using ( UdpClient client = new UdpClient() )
 						{
-							// Need a token to cancel the timer if a reply is received
-							CancellationTokenSource token = new CancellationTokenSource();
+							// Send the discovery request
+							await client.SendAsync( sendBytes, sendBytes.Length, new IPEndPoint( IPAddress.Parse( MulticastIP ), MulticastPort ) );
 
-							// Use delay and receive tasks
-							Task waitTask = Task.Delay( 2000, token.Token );
-							Task<UdpReceiveResult> receiveTask = client.ReceiveAsync();
-
-							// Wait for one of the tasks to finish
-							Task finishedTask = await Task.WhenAny( receiveTask, waitTask );
-
-							// If data has been received then process the data
-							if ( finishedTask == receiveTask )
+							// Loop receiving replies until the reply times out
+							bool timedOut = false;
+							while ( timedOut == false )
 							{
-								UdpReceiveResult result = await receiveTask;
-								string message = Encoding.UTF8.GetString( result.Buffer, 0, result.Buffer.Length );
+								// Need a token to cancel the timer if a reply is received
+								CancellationTokenSource token = new CancellationTokenSource();
 
-								// Extract the location of the server by extracting the IP address and port 
-								Match locationMatch = Regex.Match( message, @"LOCATION: http:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\/(\S+)" );
-								if ( locationMatch.Success == true )
+								// Use delay and receive tasks
+								Task waitTask = Task.Delay( 2000, token.Token );
+								Task<UdpReceiveResult> receiveTask = client.ReceiveAsync();
+
+								// Wait for one of the tasks to finish
+								Task finishedTask = await Task.WhenAny( receiveTask, waitTask );
+
+								// If data has been received then process the data
+								if ( finishedTask == receiveTask )
 								{
-									Device newDevice = new Device() {
-										IPAddress = locationMatch.Groups[ 1 ].Value, DescriptionURL = locationMatch.Groups[ 3 ].Value,
-										Port = Int32.Parse( locationMatch.Groups[ 2 ].Value )
-									};
+									UdpReceiveResult result = await receiveTask;
 
-									// Add this device to the candidate devices
-									if ( CandidateDevices.AddDevice( newDevice ) == true )
-									{
-										Logger.Log( string.Format( "Discovered IP {0}:{1} Url {2}", newDevice.IPAddress, newDevice.Port,
-											newDevice.DescriptionURL ) );
+									// Extract the location of the server by extracting the IP address and port 
+									ExtractDeviceLocation( Encoding.UTF8.GetString( result.Buffer, 0, result.Buffer.Length ) );
 
-										GetTransportService( newDevice );
-									}
+									// Cancel the timer
+									token.Cancel();
 								}
-
-								// Cancel the timer
-								token.Cancel();
-							}
-							else
-							{
-								// Get out of the loop and close the socket
-								timedOut = true;
-								client.Close();
+								else
+								{
+									// Get out of the loop and close the socket
+									timedOut = true;
+									client.Close();
+								}
 							}
 						}
 					}
+				}
+				catch ( SocketException exception )
+				{
+					Logger.Error( $"Error in device discovery {exception.Message}" );
 				}
 			}
 
@@ -137,9 +129,24 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// The interface instance used to report back controller results
+		/// </summary>
+		public static IReporter Reporter { private get; set; } = null;
+
+		/// <summary>
+		/// The interface used to report back controller results
+		/// </summary>
+		public interface IReporter
+		{
+			void PlaybackSelectionDataAvailable();
+			void DiscoveryFinished();
+			void RescanRequested();
+		}
+
+		/// <summary>
 		/// Get the selected device from the database and if its the local device report is as available
 		/// </summary>
-		private static async void ReportLocalSelectedDevice()
+		private static async Task ReportLocalSelectedDeviceAsync()
 		{
 			Device localDevice = PlaybackSelectionModel.RemoteDevices.DeviceCollection[ 0 ];
 
@@ -162,26 +169,11 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public static IReporter Reporter { private get; set; } = null;
-
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface IReporter
-		{
-			void PlaybackSelectionDataAvailable();
-			void DiscoveryFinished();
-			void RescanRequested();
-		}
-
-		/// <summary>
 		/// Get the list of services supported by the device and check if one is the AVTransport service that indicates that the device
 		/// suppports media playback
 		/// </summary>
 		/// <param name="targetDevice"></param>
-		private static async void GetTransportService( Device targetDevice )
+		private static async void GetTransportServiceAsync( Device targetDevice )
 		{
 			string request = DlnaRequestHelper.MakeRequest( "GET", targetDevice.DescriptionURL, "", targetDevice.IPAddress, targetDevice.Port, "" );
 			string response = await DlnaRequestHelper.SendRequest( targetDevice, request );
@@ -241,6 +233,32 @@ namespace DBTest
 			CandidateDevices.DeviceCollection.Clear();
 			PlaybackSelectionModel.RemoteDevices.DeviceCollection.Clear();
 			PlaybackSelectionModel.RemoteDevices.AddDevice( new Device() { CanPlayMedia = true, IsLocal = true, FriendlyName = "Local playback" } );
+		}
+
+		/// <summary>
+		/// Extract the IP address and port from a search response. If this is a newly discovered device then check it supports the transport service
+		/// </summary>
+		/// <param name="deviceResponse"></param>
+		private static void ExtractDeviceLocation( string deviceResponse )
+		{
+			// Extract the location of the server by extracting the IP address and port 
+			Match locationMatch = Regex.Match( deviceResponse, @"LOCATION: http:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\/(\S+)" );
+			if ( locationMatch.Success == true )
+			{
+				Device newDevice = new Device() {
+					IPAddress = locationMatch.Groups[ 1 ].Value, DescriptionURL = locationMatch.Groups[ 3 ].Value,
+					Port = Int32.Parse( locationMatch.Groups[ 2 ].Value )
+				};
+
+				// Add this device to the candidate devices
+				if ( CandidateDevices.AddDevice( newDevice ) == true )
+				{
+					Logger.Log( string.Format( "Discovered IP {0}:{1} Url {2}", newDevice.IPAddress, newDevice.Port,
+						newDevice.DescriptionURL ) );
+
+					GetTransportServiceAsync( newDevice );
+				}
+			}
 		}
 
 		/// <summary>

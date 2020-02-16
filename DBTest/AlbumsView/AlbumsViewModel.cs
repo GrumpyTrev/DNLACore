@@ -20,6 +20,7 @@ namespace DBTest
 			ListViewState = null;
 			CurrentFilter = null;
 			SortSelector.CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.alphaAscending;
+			DataValid = false;
 		}
 
 		/// <summary>
@@ -61,5 +62,10 @@ namespace DBTest
 		/// Class used to select the album sort order
 		/// </summary>
 		public static AlbumSortSelector SortSelector { get; } = new AlbumSortSelector();
+
+		/// <summary>
+		/// Indicates whether or not the data held by the class is valid
+		/// </summary>
+		public static bool DataValid { get; set; } = false;
 	}
 }

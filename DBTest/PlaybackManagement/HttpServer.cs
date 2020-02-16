@@ -130,11 +130,10 @@ namespace DBTest
 		/// <param name="context"></param>
 		private void Process( HttpListenerContext context )
 		{
-			string filename = context.Request.Url.AbsolutePath;
-			filename = filename.Substring( 1 ).Replace( "%20", " " );
-			filename = Path.Combine( rootDirectory, filename );
 
 			HttpListenerRequest request = context.Request;
+
+			string filename = Path.Combine( rootDirectory, request.Url.LocalPath );
 
 			Logger.Log( string.Format( "Server request - Length: {0}  Content type: {1} Method: {2} KeepAlive: {3} RawUrl: {4} ServiceName: {5} Url: {6}", 
 				request.ContentLength64, request.ContentType,

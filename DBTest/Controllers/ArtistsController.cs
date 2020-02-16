@@ -47,10 +47,15 @@ namespace DBTest
 
 				// Get all the albums
 				ArtistsViewModel.ArtistAlbums = await ArtistAccess.GetArtistAlbumsAsync();
+
+				ArtistsViewModel.DataValid = true;
 			}
 
 			// Publish the data
-			Reporter?.ArtistsDataAvailable();
+			if ( ArtistsViewModel.DataValid == true )
+			{
+				Reporter?.ArtistsDataAvailable();
+			}
 		}
 
 		/// <summary>

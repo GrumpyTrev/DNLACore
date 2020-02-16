@@ -37,7 +37,10 @@ namespace DBTest
 			else
 			{
 				// Let the Views know that Playlists data is available
-				Reporter?.PlaylistsDataAvailable();
+				if ( PlaylistsViewModel.DataValid == true )
+				{
+					Reporter?.PlaylistsDataAvailable();
+				}
 			}
 		}
 
@@ -259,6 +262,8 @@ namespace DBTest
 		{
 			PlaylistsViewModel.Playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
 			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
+
+			PlaylistsViewModel.DataValid = true;
 
 			// Let the views know that Playlists data is available
 			Reporter?.PlaylistsDataAvailable();

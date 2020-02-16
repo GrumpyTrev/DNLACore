@@ -42,10 +42,15 @@ namespace DBTest
 
 				// Get the selected song
 				NowPlayingViewModel.SelectedSong = await PlaybackAccess.GetSelectedSongAsync();
+
+				NowPlayingViewModel.DataValid = true;
 			}
 
-			// Publish this data
-			Reporter?.NowPlayingDataAvailable();
+			// Publish this data unless it is still being obtained
+			if ( NowPlayingViewModel.DataValid == true )
+			{
+				Reporter?.NowPlayingDataAvailable();
+			}
 		}
 
 		/// <summary>
@@ -118,6 +123,9 @@ namespace DBTest
 			GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 		}
 
+		/// <summary>
+		/// The random number generator used to shuffle the list
+		/// </summary>
 		private static Random rng = new Random();
 
 		/// <summary>
