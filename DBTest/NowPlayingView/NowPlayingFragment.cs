@@ -74,28 +74,20 @@ namespace DBTest
 		public override void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
 		{
 			// Determine the number of songs in the selected items
-			itemsSelected = selectedItems.Values.Count();
+			IEnumerable<PlaylistItem> itemSelected = selectedItems.Values.OfType< PlaylistItem>();
+			int itemsSelectedCount = itemSelected.Count();
 
 			// Update the Action Mode bar title
-			ActionModeTitle = ( itemsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelected );
+			ActionModeTitle = ( itemsSelectedCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelected );
 
 			// The delete command is enabled when one or more items are selected
-			deleteCommand.Visible = ( itemsSelected > 0 );
+			deleteCommand.Visible = ( itemsSelectedCount > 0 );
 
 			// The move_up command is enabled if one or more items are selected and the first item is not selected
 			// The move_down command is enbaled if one or more items are selected and the last item is not selected
 			List<PlaylistItem> itemsInPlaylist = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems;
-			moveUpCommand.Visible = ( itemsSelected > 0 ) &&
-				( selectedItems.Values.Any( list => {
-					int id = ( ( PlaylistItem )list ).Id;
-					return id == itemsInPlaylist.First().Id;
-				} ) == false );
-
-			moveDownCommand.Visible = ( itemsSelected > 0 ) &&
-				( selectedItems.Values.Any( list => {
-					int id = ( ( PlaylistItem )list ).Id;
-					return id == itemsInPlaylist.Last().Id;
-				} ) == false );
+			moveUpCommand.Visible = ( itemsSelectedCount > 0 ) && ( itemSelected.Any( list => ( list.Id == itemsInPlaylist.First().Id ) ) == false );
+			moveDownCommand.Visible = ( itemsSelectedCount > 0 ) && ( itemSelected.Any( list => ( list.Id == itemsInPlaylist.Last().Id ) ) == false );
 
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();

@@ -53,7 +53,7 @@ namespace DBTest
 		/// <param name="action"></param>
 		/// <param name="actionSpecific"></param>
 		/// <returns></returns>
-		public static string MakeSoapRequest( string action, string actionSpecific ) =>
+		public static string MakeSoapRequest( string action, string actionSpecific = "" ) =>
 				"<?xml version=\"1.0\"?>\r\n" +
 				"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
 				"SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\r\n" +
@@ -83,7 +83,7 @@ namespace DBTest
 					try
 					{
 						// Connect to the client
-						if ( client.ConnectAsync( IPAddress.Parse( targetDevice.IPAddress ), targetDevice.Port ).Wait( 1000 ) == true )
+						if ( client.ConnectAsync( IPAddress.Parse( targetDevice.IPAddress ), targetDevice.Port ).Wait( MillisecondsTimeout ) == true )
 						{
 							// Get the network stream and send out the request
 							NetworkStream networkStream = client.GetStream();
@@ -153,5 +153,15 @@ namespace DBTest
 		/// Lock object to prevent multiple threads accessing the device
 		/// </summary>
 		private static readonly SemaphoreSlim socketLock = new SemaphoreSlim( 1 );
+
+		/// <summary>
+		/// Timeout for DNLA connection
+		/// </summary>
+		private const int MillisecondsTimeout = 5000;
+
+		/// <summary>
+		/// Size of buffer to read DNLA response
+		/// </summary>
+		private const int ReadBufferSize = 2000;
 	}
 }

@@ -67,7 +67,7 @@ namespace DBTest
 		/// </summary>
 		public async override void Stop()
 		{
-			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Stop", "" );
+			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Stop" );
 
 			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Stop",
 				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
@@ -110,7 +110,7 @@ namespace DBTest
 		/// </summary>
 		public async override void Pause()
 		{
-			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Pause", "" );
+			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Pause" );
 
 			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Pause",
 				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
@@ -209,7 +209,7 @@ namespace DBTest
 			// Send the GetPositionInfo request and get the response
 			string response = await DlnaRequestHelper.SendRequest( PlaybackDevice, 
 				DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
-					PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo", "" ) ) );
+					PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo" ) ) );
 
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 			{
