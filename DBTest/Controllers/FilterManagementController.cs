@@ -337,7 +337,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Add a TagedAlnum entry for the album to the tag
+		/// Add a TagedAlbum entry for the album to the tag
 		/// </summary>
 		/// <param name="toTag"></param>
 		/// <param name="albumToAdd"></param>
@@ -346,8 +346,8 @@ namespace DBTest
 			// Keep track of whether or not a new entry is required, as it gets complicated
 			bool addNewEntry = true;
 
-			// Check whether or not this album is already in the tag
-			int index = toTag.TaggedAlbums.FindIndex( tag => ( tag.AlbumId == albumToAdd.Id ) );
+			// Check whether or not this album is already in the tag. Ensure the library id matches as well
+			int index = toTag.TaggedAlbums.FindIndex( tag => ( ( tag.AlbumId == albumToAdd.Id ) && ( tag.Album.LibraryId == albumToAdd.LibraryId ) ) );
 			if ( index != -1 )
 			{
 				// If this Tag is ordered by tag id and this existing entry is not the most recently added then

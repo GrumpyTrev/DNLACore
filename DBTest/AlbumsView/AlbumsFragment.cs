@@ -251,9 +251,6 @@ namespace DBTest
 		{
 			if ( newFilter != CurrentFilter )
 			{
-				// If a filter has been applied then hide the sort menu option as that is only applicable( at the moment) for unfiltered data
-				sortItem.SetVisible( newFilter == null );
-
 				AlbumsController.ApplyFilterAsync( newFilter );
 			}
 		}

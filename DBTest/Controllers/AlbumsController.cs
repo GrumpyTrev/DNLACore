@@ -163,15 +163,34 @@ namespace DBTest
 					}
 
 					case AlbumSortSelector.AlbumSortOrder.idAscending:
-					{
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
-						break;
-					}
-
 					case AlbumSortSelector.AlbumSortOrder.idDescending:
 					{
-						// Reverse the albums
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Id.CompareTo( a.Id ); } );
+						// If these entries are filtered then order them by the tag id rather than the album id
+						if ( AlbumsViewModel.CurrentFilter == null )
+						{
+							if ( sortOrder == AlbumSortSelector.AlbumSortOrder.idAscending )
+							{
+								AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
+							}
+							else
+							{
+								// Reverse the albums
+								AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Id.CompareTo( a.Id ); } );
+							}
+						}
+						else
+						{
+							// Form a list of all album ids in the same order as they are in the tag
+							List<int> albumIds = AlbumsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToList();
+
+							if ( sortOrder == AlbumSortSelector.AlbumSortOrder.idDescending )
+							{
+								albumIds.Reverse();
+							}
+
+							// Order the albums by the album id list
+							AlbumsViewModel.Albums = AlbumsViewModel.Albums.OrderBy( album => albumIds.IndexOf( album.Id ) ).ToList();
+						}
 						break;
 					}
 				}

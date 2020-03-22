@@ -157,7 +157,7 @@ namespace DBTest
 		/// <summary>
 		/// Timeout for DNLA connection
 		/// </summary>
-		private const int MillisecondsTimeout = 5000;
+		private const int MillisecondsTimeout = 10000;
 
 		/// <summary>
 		/// Size of buffer to read DNLA response
