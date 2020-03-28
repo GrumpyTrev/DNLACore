@@ -21,7 +21,14 @@ namespace DBTest
 
 			if ( fm.Fragments.Count > 0 )
 			{
-				fm.Fragments.CopyTo( this.fragments, 0 );
+				// Copy the manager fragments but only as many as the provided array can contain.
+				// Sometime the manager contains the tab page fragments as well as restored active dialog fragments.
+				// The first set in the manager are (assumed to be) the tab page fragments. 
+				int copyLimit = Math.Min( fm.Fragments.Count, fragments.Length );
+				for ( int index = 0; index < copyLimit; ++index )
+				{
+					fragments[ index ] = fm.Fragments[ index ];
+				}
 			}
 
 			titles = fragmentTitles;

@@ -2,11 +2,8 @@
 using Android.Widget;
 using System.Collections.Generic;
 using System.Linq;
-using Android.Support.V7.App;
-using Android.Content;
-using System;
-using Android.Views.InputMethods;
 using System.Threading.Tasks;
+using AlertDialog = Android.Support.V7.App.AlertDialog;
 
 namespace DBTest
 {
@@ -44,60 +41,8 @@ namespace DBTest
 			// Check for a new playlist request
 			if ( item.ItemId == Resource.Id.new_playlist )
 			{
-				// Show a dialogue asking for a new playlist name. Don't install handlers for Ok/Cancel yet.
-				// This prevents the default Dismiss action after the buttons are clicked
-				EditText playListName = new EditText( Context ) { Hint = "Enter new playlist name" };
-
-				AlertDialog alert = new AlertDialog.Builder( Context )
-					.SetTitle( "New playlist" )
-					.SetView( playListName )
-					.SetPositiveButton( "Ok", ( EventHandler<DialogClickEventArgs> )null )
-					.SetNegativeButton( "Cancel", ( EventHandler<DialogClickEventArgs> )null )
-					.Create();
-
-				alert.Show();
-
-				// Install a handler for the Ok button that performs the validation and playlist creation
-				alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) => 
-				{
-					string alertText = "";
-
-					if ( playListName.Text.Length == 0 )
-					{
-						alertText = "An empty name is not valid.";
-					}
-					else if ( PlaylistsViewModel.PlaylistNames.Contains( playListName.Text ) == true )
-					{
-						alertText = "A playlist with that name already exists.";
-					}
-					else
-					{
-						PlaylistsController.AddPlaylistAsync( playListName.Text );
-
-						// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
-						InputMethodManager imm = ( InputMethodManager )Context.GetSystemService( Context.InputMethodService );
-						imm.HideSoftInputFromWindow( playListName.WindowToken, 0 );
-
-						alert.Dismiss();
-					}
-
-					// Display an error message if the playlist name is not valid. Do not dismiss the dialog
-					if ( alertText.Length > 0 )
-					{
-						new AlertDialog.Builder( Context ).SetTitle( alertText ).SetPositiveButton( "Ok", delegate { } ).Show();
-					}
-				};
-
-				// Install a handler for the cancel button so that the keyboard can be explicitly hidden
-				alert.GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) => 
-				{
-					// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
-					InputMethodManager imm = ( InputMethodManager )Context.GetSystemService( Context.InputMethodService );
-					imm.HideSoftInputFromWindow( playListName.WindowToken, 0 );
-
-					alert.Dismiss();
-				};
-				
+				NewPlaylistNameDialogFragment.ShowFragment( Activity.SupportFragmentManager );
+			
 				handled = true;
 			}
 			else
@@ -220,19 +165,11 @@ namespace DBTest
 				// If a playlist as well as songs are selected then prompt the user to check if the playlist entry should be deleted as well
 				if ( ( songsSelected.Count() > 0 ) && ( playlistSelected.Count() > 0 ) )
 				{
-					new AlertDialog.Builder( Context ).SetTitle( "Do you want to delete the playlist" )
-						.SetPositiveButton( "Yes", delegate {
-							// Delete the single selected playlist and all of its contents
-							PlaylistsController.DeletePlaylistAsync( playlistSelected.First() );
-						} )
-						.SetNegativeButton( "No", delegate {
-							// Just delete the songs. They will all be in the selected playlist
-							PlaylistsController.DeletePlaylistItemsAsync( playlistSelected.First(), songsSelected );
-						} )
-						.Show();
+					DeletePlaylistDialogFragment.ShowFragment( Activity.SupportFragmentManager, playlistSelected.First(), songsSelected );
 				}
 				else if ( songsSelected.Count() > 0 )
 				{
+					// Deletion of songs from a playlist
 					PlaylistsController.DeletePlaylistItemsAsync( parentPlaylist, songsSelected );
 				}
 				else

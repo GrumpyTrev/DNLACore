@@ -155,7 +155,7 @@ namespace DBTest
 					else
 					{
 						// Nothing has changed
-						SomeKindOfErrorDialogFragment.NewInstance( "No changes made to tag" ).Show( Activity.SupportFragmentManager, "fragment_error_tag" );
+						NotificationDialogFragment.ShowFragment( Activity.SupportFragmentManager, "No changes made to tag" );
 					}
 				}
 				else
@@ -180,7 +180,8 @@ namespace DBTest
 			else
 			{
 				// Must have been a problem, display the 'name already used' dialogue
-				SomeKindOfErrorDialogFragment.NewInstance( "Tag with the same name already exists" ).Show( Activity.SupportFragmentManager, "fragment_error_tag" );
+				NotificationDialogFragment.ShowFragment( Activity.SupportFragmentManager, "Tag with the same name already exists" );
+
 			}
 		}
 
@@ -199,41 +200,4 @@ namespace DBTest
 		CheckBox synchLibs = null;
 	}
 
-	/// <summary>
-	/// Dialogue reporting some kind of problem with the requested action
-	/// </summary>
-	internal class SomeKindOfErrorDialogFragment: DialogFragment
-	{
-		/// <summary>
-		/// Create a SomeKindOfErrorDialogFragment with the specified arguments
-		/// </summary>
-		/// <param name="title"></param>
-		/// <param name="tagName"></param>
-		/// <returns></returns>
-		public static SomeKindOfErrorDialogFragment NewInstance( string title )
-		{
-			SomeKindOfErrorDialogFragment dialog = new SomeKindOfErrorDialogFragment { Arguments = new Bundle() };
-			dialog.Arguments.PutString( "title", title );
-
-			return dialog;
-		}
-
-		/// <summary>
-		/// Empty constructor required for DialogFragment
-		/// </summary>
-		public SomeKindOfErrorDialogFragment()
-		{
-		}
-
-		/// <summary>
-		/// Create the dialogue	
-		/// </summary>
-		/// <param name="savedInstanceState"></param>
-		/// <returns></returns>
-		public override Dialog OnCreateDialog( Bundle savedInstanceState ) =>
-			new AlertDialog.Builder( Activity )
-				.SetTitle( Arguments.GetString( "title", "" ) )
-				.SetPositiveButton( "OK", delegate { } )
-				.Create();
-	}
 }

@@ -66,6 +66,7 @@
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="AlbumsView\AlbumSortSelector.cs" />
+    <Compile Include="BaseView\NotificationDialogFragment.cs" />
     <Compile Include="CommonUI\CommandToolbar.cs" />
     <Compile Include="Controllers\AlbumsController.cs" />
     <Compile Include="Controllers\ArtistsController.cs" />
@@ -138,6 +139,8 @@
     <Compile Include="NowPlayingView\NowPlayingAdapterModel.cs" />
     <Compile Include="BaseView\PagedFragment.cs" />
     <Compile Include="PlaybackSelection\PlaybackSelectionManager.cs" />
+    <Compile Include="PlaylistsView\NewPlaylistNameDialogFragment.cs" />
+    <Compile Include="PlaylistsView\DeletePlaylistDialogFragment.cs" />
     <Compile Include="PlaylistsView\PlaylistsAdapter.cs" />
     <Compile Include="ArtistsView\ArtistsAdapterModel.cs" />
     <Compile Include="PlaylistsView\PlaylistsAdapterModel.cs" />
