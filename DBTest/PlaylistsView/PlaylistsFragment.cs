@@ -194,13 +194,7 @@ namespace DBTest
 				Playlist playlistToDuplicate = playlistSelected.First();
 				if ( await PlaylistsController.CheckForOtherPlaylistsAsync( playlistToDuplicate.Name, ConnectionDetailsModel.LibraryId ) == true )
 				{
-					new AlertDialog.Builder( Context ).SetTitle( "The playlist already exists in other libraries. Are you sure you want to duplicate it?" )
-						.SetPositiveButton( "Yes", delegate {
-							// Duplicate the playlist in the other libraries
-							PlaylistsController.DuplicatePlaylistAsync( playlistToDuplicate );
-						} )
-						.SetNegativeButton( "No", delegate { } )
-						.Show();
+					DuplicatePlaylistDialogFragment.ShowFragment( Activity.SupportFragmentManager, playlistToDuplicate );
 				}
 				else
 				{

@@ -23,10 +23,7 @@ namespace DBTest
 			inflater.Inflate( Resource.Menu.menu_albums, menu );
 
 			sortItem = menu.FindItem( Resource.Id.sort );
-			if ( sortItem != null )
-			{
-				sortItem.SetIcon( AlbumsViewModel.SortSelector.SelectedResource );
-			}
+			sortItem?.SetIcon( AlbumsViewModel.SortSelector.SelectedResource );
 
 			base.OnCreateOptionsMenu( menu, inflater );
 		}
