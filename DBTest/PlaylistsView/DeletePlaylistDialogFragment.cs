@@ -19,8 +19,8 @@ namespace DBTest
 		public static void ShowFragment( FragmentManager manager, Playlist selectedPlaylist, List<PlaylistItem> songsSelected )
 		{
 			// Save the playlist and songs statically to survive a rotation.
-			playlistToDelete = selectedPlaylist;
-			songsToDelete = songsSelected;
+			PlaylistToDelete = selectedPlaylist;
+			SongsToDelete = songsSelected;
 
 			new DeletePlaylistDialogFragment().Show( manager, "fragment_delete_playlist_tag" );
 		}
@@ -42,22 +42,22 @@ namespace DBTest
 				.SetTitle( "Do you want to delete the playlist" )
 				.SetPositiveButton( "Yes", delegate {
 						// Delete the single selected playlist and all of its contents
-						PlaylistsController.DeletePlaylistAsync( playlistToDelete );
+						PlaylistsController.DeletePlaylistAsync( PlaylistToDelete );
 					} )
 				.SetNegativeButton( "No", delegate {
 					// Just delete the songs. They will all be in the selected playlist
-					PlaylistsController.DeletePlaylistItemsAsync( playlistToDelete, songsToDelete );
+					PlaylistsController.DeletePlaylistItemsAsync( PlaylistToDelete, SongsToDelete );
 				} )
 				.Create();
 
 		/// <summary>
 		/// The playlist to delete
 		/// </summary>
-		private static Playlist playlistToDelete = null;
+		private static Playlist PlaylistToDelete { get; set; } = null;
 
 		/// <summary>
 		/// The songs to delete
 		/// </summary>
-		private static List<PlaylistItem> songsToDelete = null;
+		private static List<PlaylistItem> SongsToDelete { get; set; } = null;
 	}
 }

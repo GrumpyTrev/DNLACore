@@ -16,10 +16,7 @@ namespace DBTest
 	/// </summary>
 	internal class NewPlaylistNameDialogFragment : DialogFragment
 	{
-		public static void ShowFragment( FragmentManager manager )
-		{
-			new NewPlaylistNameDialogFragment().Show( manager, "fragment_new_playlist_name" );
-		}
+		public static void ShowFragment( FragmentManager manager ) => new NewPlaylistNameDialogFragment().Show( manager, "fragment_new_playlist_name" );
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment

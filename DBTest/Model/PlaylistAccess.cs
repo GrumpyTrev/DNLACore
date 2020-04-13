@@ -196,5 +196,13 @@ namespace DBTest
 		/// </summary>
 		/// <returns></returns>
 		public static async Task<List<Playlist>> GetAllPlaylists() => await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().ToListAsync();
+
+		/// <summary>
+		/// Delete any Playlist items associated with the list of songs
+		/// </summary>
+		/// <param name="songIds"></param>
+		/// <returns></returns>
+		public static async Task DeletePlaylistItemsAsync( List< int > songIds ) => await ConnectionDetailsModel.AsynchConnection.DeleteAllAsync(
+			await ConnectionDetailsModel.AsynchConnection.Table<PlaylistItem>().Where( item => songIds.Contains( item.SongId ) ).ToListAsync() );
 	}
 };

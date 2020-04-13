@@ -19,7 +19,7 @@ namespace DBTest
 		public static void ShowFragment( FragmentManager manager, Playlist selectedPlaylist )
 		{
 			// Save the playlist statically to survive a rotation.
-			playlistToDuplicate = selectedPlaylist;
+			PlaylistToDuplicate = selectedPlaylist;
 
 			new DuplicatePlaylistDialogFragment().Show( manager, "fragment_duplicate_playlist_tag" );
 		}
@@ -41,7 +41,7 @@ namespace DBTest
 				.SetTitle( "The playlist already exists in other libraries. Are you sure you want to duplicate it?" )
 				.SetPositiveButton( "Yes", delegate {
 					// Duplicate the playlist in the other libraries
-					PlaylistsController.DuplicatePlaylistAsync( playlistToDuplicate );
+					PlaylistsController.DuplicatePlaylistAsync( PlaylistToDuplicate );
 				} )
 				.SetNegativeButton( "No", delegate { } )
 				.Create();
@@ -49,6 +49,6 @@ namespace DBTest
 		/// <summary>
 		/// The playlist to duplicate
 		/// </summary>
-		private static Playlist playlistToDuplicate = null;
+		private static Playlist PlaylistToDuplicate { get; set; } = null;
 	}
 }

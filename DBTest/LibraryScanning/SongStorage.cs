@@ -222,7 +222,7 @@ namespace DBTest
 			}
 
 			// Update the db with the song collections in the Album, Source and ArtistAlbum
-			await ArtistAccess.UpdateAlbumAsync( songAlbum );
+			await AlbumAccess.UpdateAlbumAsync( songAlbum );
 			await LibraryAccess.UpdateSourceAsync( sourceBeingScanned );
 			await ArtistAccess.UpdateArtistAlbumAsync( songArtistAlbum );
 		}
@@ -279,7 +279,7 @@ namespace DBTest
 			if ( songAlbum == null )
 			{
 				songAlbum = new Album() { Name = album.Name, Songs = new List<Song>() };
-				await ArtistAccess.AddAlbumAsync( songAlbum );
+				await AlbumAccess.AddAlbumAsync( songAlbum );
 
 				// Add to Library
 				scanLibrary.Albums.Add( songAlbum );

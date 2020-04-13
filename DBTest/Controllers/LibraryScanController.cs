@@ -22,7 +22,7 @@ namespace DBTest
 				if ( ( LibraryScanModel.LibraryBeingScanned == libraryToScan ) && ( LibraryScanModel.UnmatchedSongs != null ) )
 				{
 					// Report the completion back through the delegate
-					Reporter?.ScanFinished();
+					ScanReporter?.ScanFinished();
 				}
 				else
 				{
@@ -36,8 +36,7 @@ namespace DBTest
 
 					await Task.Run( async () =>
 					{
-						// Create a LibraryCreator instance to do the processing of any new songs found during the rescan
-						// The part of the LibraryCreator that is being used here expects its chldren to be read, so do that here
+						// The part of the RescanSongStorage that is being used here expects the library's chldren to be read, so do that here
 						await LibraryAccess.GetLibraryChildrenAsync( LibraryScanModel.LibraryBeingScanned );
 
 						// Iterate all the sources associated with this library. Get the songs as well as we're going to need them below
@@ -78,7 +77,7 @@ namespace DBTest
 					scanInProgress = false;
 
 					// Report the completion back through the delegate
-					Reporter?.ScanFinished();
+					ScanReporter?.ScanFinished();
 				}
 			}
 		}
@@ -92,29 +91,114 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Delete the list of songs from the library
+		/// </summary>
+		/// <param name="songsToDelete"></param>
+		public static async Task DeleteSongsAsync()
+		{
+			// Prevent this from being executed twice
+			DeleteInProgress = true;
+
+			// Keep track of any albums that are deleted so that other controllers can be notified
+			List<int> deletedAlbumIds = new List<int>();
+
+			await Task.Run( async () =>
+			{
+				// Delete all the Songs
+				await ArtistAccess.DeleteSongsAsync( LibraryScanModel.UnmatchedSongs );
+
+				// Delete all the PlaylistItems associated with the songs 
+				await PlaylistAccess.DeletePlaylistItemsAsync( LibraryScanModel.UnmatchedSongs.Select( song => song.Id ).ToList() );
+
+				// Form a distinct list of all the ArtistAlbum items referenced by the deleted songs
+				IEnumerable<int> artistAlbumIds = LibraryScanModel.UnmatchedSongs.Select( song => song.ArtistAlbumId ).Distinct();
+
+				// Check if any of these ArtistAlbum items are now empty and need deleting
+				foreach ( int id in artistAlbumIds )
+				{
+					// Check if this ArtistAlbum is being referenced by any songs
+					if ( ( await ArtistAccess.GetSongsReferencingArtistAlbumAsync( id ) ).Count == 0 )
+					{
+						// Delete the ArtistAlbum as it is no longer being referenced
+						ArtistAlbum artistAlbum = await ArtistAccess.GetArtistAlbumAsync( id );
+						await ArtistAccess.DeleteArtistAlbumAsync( artistAlbum );
+
+						// Does any other ArtistAlbum reference the Album
+						if ( ( await ArtistAccess.GetArtistAlbumsReferencingAlbumAsync( artistAlbum.AlbumId ) ).Count == 0 )
+						{
+							// Not referenced by any ArtistAlbum. so delete it
+							await AlbumAccess.DeleteAlbumAsync( artistAlbum.AlbumId );
+							deletedAlbumIds.Add( artistAlbum.AlbumId );
+
+							// Does the associated Artist have any other Albums
+							if ( ( await ArtistAccess.GetArtistAlbumsReferencingArtistAsync( artistAlbum.ArtistId ) ).Count == 0 )
+							{
+								// Delete the Artist
+								await ArtistAccess.DeleteArtistAsync( artistAlbum.ArtistId );
+							}
+						}
+					}
+				}
+
+			} );
+
+			if ( deletedAlbumIds.Count > 0 )
+			{
+				new AlbumsDeletedMessage() { DeletedAlbumIds = deletedAlbumIds }.Send();
+			}
+
+			if ( LibraryScanModel.LibraryBeingScanned.Id == ConnectionDetailsModel.LibraryId )
+			{
+				new SelectedLibraryChangedMessage() { SelectedLibrary = LibraryScanModel.LibraryBeingScanned }.Send();
+			}
+
+			DeleteInProgress = false;
+			DeleteReporter?.DeleteFinished();
+		}
+
+
+		/// <summary>
 		/// Flag indicating whether or not the this controller is busy scanning a library
 		/// </summary>
 		private static bool scanInProgress = false;
 
 		/// <summary>
+		/// Flag indicating whether or not the this controller is busy deleting unmatched songs
+		/// </summary>
+		public static bool DeleteInProgress { get; set; } = false;
+
+		/// <summary>
 		/// Delegate called by the scanners to check if the process has been cancelled
 		/// </summary>
 		/// <returns></returns>
-		private static bool CancelRequested() => Reporter?.CancelRequested() ?? false;
+		private static bool CancelRequested() => ScanReporter?.CancelRequested() ?? false;
 
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter Reporter { get; set; } = null;
+		public static IScanReporter ScanReporter { get; set; } = null;
 
 		/// <summary>
-		/// The interface used to report back controller results
+		/// The interface used to report back scan results
 		/// </summary>
-		public interface IReporter
+		public interface IScanReporter
 		{
 			void ScanFinished();
 
 			bool CancelRequested();
+		}
+
+		/// <summary>
+		/// The interface instance used to report back controller results
+		/// </summary>
+		public static IDeleteReporter DeleteReporter { get; set; } = null;
+
+		/// <summary>
+		/// The interface used to report back scan results
+		/// </summary>
+		public interface IDeleteReporter
+		{
+			void DeleteFinished();
 		}
 	}
 }

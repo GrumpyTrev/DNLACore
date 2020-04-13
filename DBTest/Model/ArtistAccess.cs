@@ -76,20 +76,6 @@ namespace DBTest
 			await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( artistToUpdate );
 
 		/// <summary>
-		/// Insert a new Album in the database
-		/// </summary>
-		/// <param name="album"></param>
-		/// <returns></returns>
-		public static async Task AddAlbumAsync( Album album ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( album );
-
-		/// <summary>
-		/// Update the database with any changes to this Album
-		/// </summary>
-		/// <param name="album"></param>
-		/// <returns></returns>
-		public static async Task UpdateAlbumAsync( Album album ) => await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( album );
-
-		/// <summary>
 		/// Insert a new Song in the database
 		/// </summary>
 		/// <param name="song"></param>
@@ -125,5 +111,50 @@ namespace DBTest
 		/// <param name="artistId"></param>
 		/// <returns></returns>
 		public static async Task<Artist> GetArtistAsync( int artistId ) => await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( artistId );
+
+		/// <summary>
+		/// Delete the specified list of songs from the database
+		/// </summary>
+		/// <param name="songsToDelete"></param>
+		public static async Task DeleteSongsAsync( List< Song > songsToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAllAsync( songsToDelete );
+
+		/// <summary>
+		/// Get a list of all the songs associated the specified ArtistAlbum
+		/// </summary>
+		/// <param name="artistAlbumId"></param>
+		/// <returns></returns>
+		public static async Task<List<Song>> GetSongsReferencingArtistAlbumAsync( int artistAlbumId ) =>
+			await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.ArtistAlbumId == artistAlbumId ) ).ToListAsync();
+
+		/// <summary>
+		/// Delete the specified ArtistAlbum entry
+		/// </summary>
+		/// <param name="albumToDelete"></param>
+		/// <returns></returns>
+		public static async Task DeleteArtistAlbumAsync( ArtistAlbum albumToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( albumToDelete );
+
+		/// <summary>
+		/// Get a list of all the ArtistAlbums associated with the specified Album
+		/// </summary>
+		/// <param name="albumId"></param>
+		/// <returns></returns>
+		public static async Task<List<ArtistAlbum>> GetArtistAlbumsReferencingAlbumAsync( int albumId ) =>
+			 await ConnectionDetailsModel.AsynchConnection.Table<ArtistAlbum>().Where( artAlbum => ( artAlbum.AlbumId == albumId ) ).ToListAsync();
+
+		/// <summary>
+		/// Get a list of all the ArtistAlbums associated with the specified Artist
+		/// </summary>
+		/// <param name="artistId"></param>
+		/// <returns></returns>
+		public static async Task<List<ArtistAlbum>> GetArtistAlbumsReferencingArtistAsync( int artistId ) =>
+			 await ConnectionDetailsModel.AsynchConnection.Table<ArtistAlbum>().Where( artAlbum => (artAlbum.ArtistId == artistId ) ).ToListAsync();
+
+		/// <summary>
+		/// Delete the specified Artist
+		/// </summary>
+		/// <param name="artistId"></param>
+		/// <returns></returns>
+		public static async Task DeleteArtistAsync( int artistId ) =>
+			await ConnectionDetailsModel.AsynchConnection.DeleteAsync( await ConnectionDetailsModel.AsynchConnection.GetAsync<Artist>( artistId ) );
 	}
 }

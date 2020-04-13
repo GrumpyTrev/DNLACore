@@ -1,6 +1,5 @@
 ﻿using Android.App;
 using Android.OS;
-
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 using FragmentManager = Android.Support.V4.App.FragmentManager;
@@ -8,26 +7,20 @@ using FragmentManager = Android.Support.V4.App.FragmentManager;
 namespace DBTest
 {
 	/// <summary>
-	/// Dialogue reporting some kind of problem with the requested action
+	/// Select library dialogue based on DialogFragment to provide activity configuration support
 	/// </summary>
-	internal class NotificationDialogFragment : DialogFragment
+	internal class RescanProgressDialogFragment : DialogFragment
 	{
 		/// <summary>
-		/// Show an alert dialogue with the specified Title and a single OK button
+		/// Save the playlist and display the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		/// <param name="title"></param>
-		public static void ShowFragment( FragmentManager manager, string title )
-		{
-			NotificationDialogFragment dialog = new NotificationDialogFragment { Arguments = new Bundle() };
-			dialog.Arguments.PutString( "title", title );
-			dialog.Show( manager, "fragment_notification_tag" );
-		}
+		public static void ShowFragment( FragmentManager manager ) => new RescanProgressDialogFragment().Show( manager, FragmentName );
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public NotificationDialogFragment()
+		public RescanProgressDialogFragment()
 		{
 		}
 
@@ -38,8 +31,14 @@ namespace DBTest
 		/// <returns></returns>
 		public override Dialog OnCreateDialog( Bundle savedInstanceState ) =>
 			new AlertDialog.Builder( Activity )
-				.SetTitle( Arguments.GetString( "title", "" ) )
-				.SetPositiveButton( "OK", delegate { } )
+				.SetTitle( "Scanning for remote devices" )
+				.SetView( Resource.Layout.rescan_progress_layout )
+				.SetCancelable( false )
 				.Create();
+
+		/// <summary>
+		/// The name used by the fragment manager for this fragment
+		/// </summary>
+		public static string FragmentName { get; } = "fragment_rescan_devices";
 	}
 }

@@ -3,6 +3,7 @@ using Android.Views;
 using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
+using Android.Support.V7.App;
 
 namespace DBTest
 {
@@ -176,7 +177,7 @@ namespace DBTest
 				List<Album> selectedAlbums = Adapter.SelectedItems.Values.OfType<Album>().ToList();
 
 				// Create TagSelection dialogue and display it
-				TagSelection selectionDialogue = new TagSelection( Context, ( List<AppliedTag> appliedTags ) => 
+				TagSelection selectionDialogue = new TagSelection( ( AppCompatActivity )Activity, ( List<AppliedTag> appliedTags ) => 
 				{
 					// Apply the changes
 					FilterManagementController.ApplyTagsAsync( selectedAlbums, appliedTags );
@@ -241,16 +242,10 @@ namespace DBTest
 		protected override Tag CurrentFilter => AlbumsViewModel.CurrentFilter;
 
 		/// <summary>
-		/// Apply a new filter to the fragment's data
+		/// The delegate used to apply a filter change
 		/// </summary>
-		/// <param name="newFilter"></param>
-		protected override void ApplyFilter( Tag newFilter )
-		{
-			if ( newFilter != CurrentFilter )
-			{
-				AlbumsController.ApplyFilterAsync( newFilter );
-			}
-		}
+		/// <returns></returns>
+		protected override FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => AlbumsController.ApplyFilterAsync;
 
 		/// <summary>
 		/// Command handlers

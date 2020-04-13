@@ -3,7 +3,6 @@ using Android.Widget;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AlertDialog = Android.Support.V7.App.AlertDialog;
 
 namespace DBTest
 {

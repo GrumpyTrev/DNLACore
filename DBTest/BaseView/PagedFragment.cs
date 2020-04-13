@@ -3,6 +3,7 @@ using Android.Views;
 using Android.Support.V4.App;
 using Android.Widget;
 using System.Collections.Generic;
+using Android.Support.V7.App;
 
 namespace DBTest
 {
@@ -67,6 +68,8 @@ namespace DBTest
 		public sealed override void OnDestroyView()
 		{
 			FragmentView = null;
+
+			// Allow derived fragments to release their own resources
 			ReleaseResources();
 			base.OnDestroyView();
 		}
@@ -87,7 +90,7 @@ namespace DBTest
 			if ( filterItem != null )
 			{
 				// Create the FilterSelection. When a new filter has been selected pass it on to the derived class
-				filterSelector = new FilterSelection( Context, ( Tag newFilter ) => { ApplyFilter( newFilter); } );
+				filterSelector = new FilterSelection( ( AppCompatActivity )Activity, FilterSelectionDelegate() );
 
 				// Set the menu icon according to whether or not any filtering is in effect
 				SetFilterIcon();
@@ -325,11 +328,10 @@ namespace DBTest
 		protected virtual void HandleCommand( int commandId ) { }
 
 		/// <summary>
-		/// Apply a new filter to the fragment's data
-		/// Does nothing in the base class
+		/// The delegate used to apply a filter change
 		/// </summary>
-		/// <param name="newFilter"></param>
-		protected virtual void ApplyFilter( Tag newFilter ) { }
+		/// <returns></returns>
+		protected virtual FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => null;
 
 		/// <summary>
 		/// Let derived classes determine whether or not the bottom toolbar should be shown

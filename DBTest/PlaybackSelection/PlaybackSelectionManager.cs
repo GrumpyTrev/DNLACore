@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Support.V7.App;
-using AlertDialog = Android.Support.V7.App.AlertDialog;
-using DialogFragment = Android.Support.V4.App.DialogFragment;
+﻿using Android.Support.V7.App;
+using FragmentManager = Android.Support.V4.App.FragmentManager;
 
 namespace DBTest
 {
@@ -19,7 +13,7 @@ namespace DBTest
 		/// Save the supplied context
 		/// </summary>
 		/// <param name="bindContext"></param>
-		public PlaybackSelectionManager( AppCompatActivity alertContext ) => contextForAlert = alertContext;
+		public PlaybackSelectionManager( AppCompatActivity alertContext ) => manager = alertContext.SupportFragmentManager;
 
 		/// <summary>
 		/// Initialise the PlaybackSelectionController and start detecting remote devices
@@ -33,7 +27,7 @@ namespace DBTest
 		/// <summary>
 		/// Show the device selection dialogue
 		/// </summary>
-		public void ShowSelection() => new SelectDeviceDialogFragment().Show( contextForAlert.SupportFragmentManager, "fragment_device_selection" );
+		public void ShowSelection() => SelectDeviceDialogFragment.ShowFragment( manager );
 
 		/// <summary>
 		/// Called when the remote devices that support DNLA have been discovered
@@ -49,7 +43,7 @@ namespace DBTest
 		/// </summary>
 		public void DiscoveryFinished()
 		{
-			if ( contextForAlert.SupportFragmentManager.FindFragmentByTag( "fragment_rescan_devices" ) is RescanProgressDialogFragment possibleDialogue )
+			if ( manager.FindFragmentByTag( RescanProgressDialogFragment.FragmentName ) is RescanProgressDialogFragment possibleDialogue )
 			{
 				possibleDialogue.Dismiss();
 				ShowSelection();
@@ -64,84 +58,13 @@ namespace DBTest
 		{
 			PlaybackSelectionController.ReDiscoverDevices();
 
-			new RescanProgressDialogFragment().Show( contextForAlert.SupportFragmentManager, "fragment_rescan_devices" );
+			RescanProgressDialogFragment.ShowFragment( manager );
 		}
 
 		/// <summary>
-		/// Context to use for building the selection dialogue
+		/// FragmentManager to use for the dialogue fragments
 		/// </summary>
-		private readonly AppCompatActivity contextForAlert = null;
+		private readonly FragmentManager manager = null;
 	}
 
-	/// <summary>
-	/// Select library dialogue based on DialogFragment to provide activity configuration support
-	/// </summary>
-	internal class SelectDeviceDialogFragment: DialogFragment
-	{
-		/// <summary>
-		/// Empty constructor required for DialogFragment
-		/// </summary>
-		public SelectDeviceDialogFragment()
-		{
-		}
-
-		/// <summary>
-		/// Create the dialogue	
-		/// </summary>
-		/// <param name="savedInstanceState"></param>
-		/// <returns></returns>
-		public override Dialog OnCreateDialog( Bundle savedInstanceState )
-		{
-			// Lookup the currently selected device in the collection of device to get its index
-			List<string> devices = PlaybackSelectionModel.RemoteDevices.ConnectedDevices();
-			int deviceIndex = devices.IndexOf( PlaybackSelectionModel.SelectedDeviceName );
-
-			AlertDialog alert = new AlertDialog.Builder( Activity )
-				.SetTitle( "Select playback device" )
-				.SetSingleChoiceItems( devices.ToArray(), deviceIndex,
-					new EventHandler<DialogClickEventArgs>( delegate ( object sender, DialogClickEventArgs e ) {
-						// Save the selection
-						if ( e.Which != deviceIndex )
-						{
-							PlaybackSelectionController.SetSelectedPlaybackAsync( devices[ e.Which ] );
-						}
-
-						// Dismiss the dialogue
-						( sender as AlertDialog ).Dismiss();
-					} ) )
-				.SetNegativeButton( "Cancel", delegate { } )
-				.SetNeutralButton( "Rescan", delegate {
-					Dismiss();
-					PlaybackSelectionController.RescanRequested();
-				} )
-				.Create();
-
-			return alert;
-		}
-	}
-
-	/// <summary>
-	/// Select library dialogue based on DialogFragment to provide activity configuration support
-	/// </summary>
-	internal class RescanProgressDialogFragment: DialogFragment
-	{
-		/// <summary>
-		/// Empty constructor required for DialogFragment
-		/// </summary>
-		public RescanProgressDialogFragment()
-		{
-		}
-
-		/// <summary>
-		/// Create the dialogue	
-		/// </summary>
-		/// <param name="savedInstanceState"></param>
-		/// <returns></returns>
-		public override Dialog OnCreateDialog( Bundle savedInstanceState ) => 
-			new AlertDialog.Builder( Activity )
-				.SetTitle( "Scanning for remote devices" )
-				.SetView( Resource.Layout.rescan_progress_layout )
-				.SetCancelable( false )
-				.Create();
-	}
 }

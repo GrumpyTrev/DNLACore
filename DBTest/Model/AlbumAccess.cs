@@ -26,7 +26,6 @@ namespace DBTest
 			await ConnectionDetailsModel.AsynchConnection.Table<Album>()
 				.Where( album => ( album.LibraryId == libraryId ) && ( album.Name == albumName ) && ( album.ArtistName == artistName ) ).FirstOrDefaultAsync();
 
-
 		/// <summary>
 		/// Get the Album specified by the id
 		/// </summary>
@@ -39,5 +38,27 @@ namespace DBTest
 		/// </summary>
 		/// <param name="theAlbum"></param>
 		public static async Task GetAlbumContentsAsync( Album theAlbum ) => await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( theAlbum );
+
+		/// <summary>
+		/// Insert a new Album in the database
+		/// </summary>
+		/// <param name="album"></param>
+		/// <returns></returns>
+		public static async Task AddAlbumAsync( Album album ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( album );
+
+		/// <summary>
+		/// Update the database with any changes to this Album
+		/// </summary>
+		/// <param name="album"></param>
+		/// <returns></returns>
+		public static async Task UpdateAlbumAsync( Album album ) => await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( album );
+
+		/// <summary>
+		/// Delete the specifed Album
+		/// </summary>
+		/// <param name="albumId"></param>
+		/// <returns></returns>
+		public static async Task DeleteAlbumAsync( int albumId ) =>
+			await ConnectionDetailsModel.AsynchConnection.DeleteAsync( await ConnectionDetailsModel.AsynchConnection.GetAsync<Album>( albumId ) );
 	}
 }

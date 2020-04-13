@@ -1,6 +1,5 @@
 ﻿using Android.App;
 using Android.OS;
-
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 using FragmentManager = Android.Support.V4.App.FragmentManager;
@@ -10,24 +9,25 @@ namespace DBTest
 	/// <summary>
 	/// Dialogue reporting some kind of problem with the requested action
 	/// </summary>
-	internal class NotificationDialogFragment : DialogFragment
+	internal class DeleteConfirmationDialogFragment: DialogFragment
 	{
 		/// <summary>
-		/// Show an alert dialogue with the specified Title and a single OK button
+		/// Show the dialogue displaying the specified list of tags and the current tag
 		/// </summary>
 		/// <param name="manager"></param>
-		/// <param name="title"></param>
-		public static void ShowFragment( FragmentManager manager, string title )
+		public static void ShowFragment( FragmentManager manager, string title, string tagName )
 		{
-			NotificationDialogFragment dialog = new NotificationDialogFragment { Arguments = new Bundle() };
+			DeleteConfirmationDialogFragment dialog = new DeleteConfirmationDialogFragment { Arguments = new Bundle() };
 			dialog.Arguments.PutString( "title", title );
-			dialog.Show( manager, "fragment_notification_tag" );
+			dialog.Arguments.PutString( "tag", tagName );
+
+			dialog.Show( manager, "fragment_delete_tag" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public NotificationDialogFragment()
+		public DeleteConfirmationDialogFragment()
 		{
 		}
 
@@ -39,7 +39,15 @@ namespace DBTest
 		public override Dialog OnCreateDialog( Bundle savedInstanceState ) =>
 			new AlertDialog.Builder( Activity )
 				.SetTitle( Arguments.GetString( "title", "" ) )
-				.SetPositiveButton( "OK", delegate { } )
+				.SetPositiveButton( "OK", delegate 
+				{
+					Tag tagToDelete = FilterManagementController.GetTagFromName( Arguments.GetString( "tag", "" ) );
+					if ( tagToDelete != null )
+					{
+						FilterManagementController.DeleteTagAsync( tagToDelete );
+					}
+				} )
+				.SetNegativeButton( "Cancel", delegate { } )
 				.Create();
 	}
 }
