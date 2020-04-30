@@ -121,6 +121,11 @@ namespace DBTest
 						Logger.Error( ioProblem.ToString() );
 						response = "";
 					}
+					catch ( AggregateException combinedProblem )
+					{
+						Logger.Error( combinedProblem.ToString() );
+						response = "";
+					}
 				}
 			}
 			finally

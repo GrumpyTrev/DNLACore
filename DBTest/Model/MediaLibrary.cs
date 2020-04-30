@@ -118,7 +118,14 @@ namespace DBTest
 		/// Once all the ArtistAlbums have been read this list is used to hold all the ArtistAlbum and Song entries
 		/// in a single list
 		/// </summary>
+		[Ignore]
 		public List<object> Contents { get; } = new List<object>();
+
+		/// <summary>
+		/// Indicates when all the details for the Artist have been read
+		/// </summary>
+		[Ignore]
+		public bool DetailsRead { get; set; } = false;
 
 		/// <summary>
 		/// Add the ArtistAlbum and Song entries associated with this artist to a single list
@@ -152,6 +159,13 @@ namespace DBTest
 		public List<Song> Songs { get; set; }
 
 		public string ArtistName { get; set; }
+
+		public bool Played { get; set; } = false;
+
+		/// <summary>
+		/// The rating is from 0 (bad) to 4 (bril)
+		/// </summary>
+		public int Rating { get; set; } = 2;
 	}
 
 	[Table( "ArtistAlbum" ) ]

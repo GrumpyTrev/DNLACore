@@ -21,6 +21,7 @@ namespace DBTest
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
 			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
+			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
 		}
 
 		/// <summary>
@@ -39,22 +40,26 @@ namespace DBTest
 				ArtistsViewModel.UnfilteredArtists = await ArtistAccess.GetArtistDetailsAsync( ArtistsViewModel.LibraryId );
 				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists;
 
-				// Sort the displayed artists
+				// Sort the displayed artists - off the UI thread
 				await SortDataAsync();
 
 				// Get the list of current playlists and extract the names to a list
 				await GetPlayListNames();
 
-				// Get all the albums
-				ArtistsViewModel.ArtistAlbums = await ArtistAccess.GetArtistAlbumsAsync();
-
+				// The data is now valid and can be reported
 				ArtistsViewModel.DataValid = true;
-			}
-
-			// Publish the data
-			if ( ArtistsViewModel.DataValid == true )
-			{
 				Reporter?.ArtistsDataAvailable();
+
+				// Do the linking of ArtistAlbum entries off the UI thread
+				await PartiallyPopulateArtistsAsync();
+			}
+			else
+			{
+				// Publish the data if valid
+				if ( ArtistsViewModel.DataValid == true )
+				{
+					Reporter?.ArtistsDataAvailable();
+				}
 			}
 		}
 
@@ -66,11 +71,14 @@ namespace DBTest
 		/// <param name="theArtist"></param>
 		public static async Task GetArtistContentsAsync( Artist theArtist )
 		{
-			// Have the ArtistAlbums been accessed before
-			if ( theArtist.ArtistAlbums == null )
+			// Have the contents been accessed before
+			if ( theArtist.DetailsRead == false )
 			{
 				// No get them
 				await ArtistAccess.GetArtistContentsAsync( theArtist );
+
+				// Mark the details have been read
+				theArtist.DetailsRead = true;
 
 				// Sort the albums alphabetically
 				theArtist.ArtistAlbums.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
@@ -82,7 +90,8 @@ namespace DBTest
 				}
 			}
 
-			// Does this set of content need refreshing
+			// Now form the displayable content according to the current filter.
+			// NB The Content is cleared whenever the current filter is changed
 			if ( theArtist.Contents.Count == 0 )
 			{
 				// Now all the ArtistAlbum and Song entries have been read form a single list from them
@@ -134,6 +143,8 @@ namespace DBTest
 			}
 			else
 			{
+				// All of this is in the UI thread
+
 				// Access artists that have albums that are tagged with the current tag
 				// For all TagAlbums in current tag get the ArtistAlbum (from the AlbumId) and the Artists 
 
@@ -220,6 +231,49 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Once the Artists have been read in their associated ArtistAlbums can be read as well and linked to them
+		/// The ArtistAlbums are required for filtering so they may as well be linked in at the same time
+		/// Get the Album associated with the ArtistAlbum as well so that only a single copy of the Albums is used (that in the AlbumsViewModel)
+		/// </summary>
+		private static async Task PartiallyPopulateArtistsAsync()
+		{
+			// Do the linking of ArtistAlbum entries off the UI thread
+			await Task.Run( async () =>
+			{
+				// Get all the ArtistAlbums. NB This is all the ArtistAlbums in the whole database not just the current library.
+				// The list that gets stored will be built as the Albums are resolved below
+				List<ArtistAlbum> allArtistAlbums = await ArtistAccess.GetArtistAlbumsAsync();
+				ArtistsViewModel.ArtistAlbums = new List<ArtistAlbum>();
+
+				// Link the Albums from the AlbumModel to the ArtistAlbums and link the ArtistAlbums to their associated Artists. 
+				// Need to access the Artists by their identities and the Albums by their identities
+				Dictionary<int, Artist> artistDictionary = ArtistsViewModel.UnfilteredArtists.ToDictionary( artist => artist.Id );
+				Dictionary<int, Album> albumDictionary = AlbumsViewModel.UnfilteredAlbums.ToDictionary( album => album.Id );
+
+				foreach ( ArtistAlbum artAlbum in allArtistAlbums )
+				{
+					// Link in the single Album
+					artAlbum.Album = albumDictionary.GetValueOrDefault( artAlbum.AlbumId );
+
+					if ( artAlbum.Album != null )
+					{
+						// This ArtistAlbum is in the current library so save it
+						ArtistsViewModel.ArtistAlbums.Add( artAlbum );
+
+						// Add this ArtistAlbum to its Artist
+						Artist associatedArtist = artistDictionary[ artAlbum.ArtistId ];
+						if ( associatedArtist.ArtistAlbums == null )
+						{
+							associatedArtist.ArtistAlbums = new List<ArtistAlbum>();
+						}
+
+						associatedArtist.ArtistAlbums.Add( artAlbum );
+					}
+				}
+			} );
+		}
+
+		/// <summary>
 		/// Called when a PlaylistDeletedMessage or PlaylistAddedMessage message has been received
 		/// Update the list of playlists held by the model
 		/// </summary>
@@ -286,6 +340,48 @@ namespace DBTest
 			if ( ( ArtistsViewModel.CurrentFilter != null ) && ( ArtistsViewModel.CurrentFilter.Name == ( message as TagDeletedMessage ).DeletedTag.Name ) )
 			{
 				ApplyFilterAsync( null );
+			}
+		}
+
+		/// <summary>
+		/// Called when a AlbumPlayedStateChangedMessage had been received.
+		/// If this album is being displayed then inform the adapter of the data change.
+		/// To actually determine if the album is being displayed is not possible as we don't have access to that information here.
+		/// As an approximation, if any of the Artists that have been expanded contain the album then the adapter will be informed
+		/// </summary>
+		/// <param name="message"></param>
+		private static void AlbumChanged( object message )
+		{
+			Album changedAlbum = ( message as AlbumPlayedStateChangedMessage ).AlbumChanged;
+
+			// Only process this album if it is in the same library as is being displayed
+			// It may be in another library if this is being called as part of a library synchronisation process
+			if ( changedAlbum.LibraryId == ArtistsViewModel.LibraryId )
+			{
+				// Keep track of any changes that need to be displayed
+				bool anyChanges = false;
+
+				// Look in each Artist
+				List< Artist >.Enumerator enumerator = ArtistsViewModel.Artists.GetEnumerator();
+				while ( ( enumerator.MoveNext() == true ) && ( anyChanges == false ) )
+				{
+					// Only look in this artist if it has been expanded
+					if ( enumerator.Current.DetailsRead == true )
+					{
+						// Look for the changed album
+						ArtistAlbum artistAlbum = enumerator.Current.ArtistAlbums.Find( al => al.AlbumId == changedAlbum.Id );
+						if ( artistAlbum != null )
+						{
+							anyChanges = true;
+						}
+					}
+				}
+
+				// Report any changes
+				if ( anyChanges == true )
+				{
+					Reporter?.ArtistsDataAvailable();
+				}
 			}
 		}
 

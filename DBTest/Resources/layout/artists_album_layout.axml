@@ -20,6 +20,6 @@
 		android:text="Album"
 		android:layout_marginLeft="20dp"
 		android:layout_toRightOf="@+id/checkBox"
-		android:textColor="#ff1a237e"
+		android:textColor="@color/colorArtistAlbum"
 	/>
 </RelativeLayout>

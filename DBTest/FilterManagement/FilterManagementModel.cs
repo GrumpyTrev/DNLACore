@@ -23,6 +23,21 @@ namespace DBTest
 		/// The just played tag
 		/// </summary>
 		public static Tag JustPlayedTag { get; internal set; } = null;
+
+		/// <summary>
+		/// The identity of the album whose song was just played
+		/// </summary>
+		public static int JustPlayedAlbumId { get; set; } = -1;
+
+		/// <summary>
+		/// The number of times a song from the same album have been played consequtively
+		/// </summary>
+		public static int JustPlayedCount { get; set; } = 0;
+
+		/// <summary>
+		/// The number of times a song must be played for the album to be considered as having been played
+		/// </summary>
+		public const int JustPlayedLimit = 3;
 	}
 
 	/// <summary>

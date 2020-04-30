@@ -274,7 +274,7 @@ namespace DBTest
 						if ( appliedTag.Applied == AppliedTag.AppliedType.None )
 						{
 							// Remove the selected albums from this tag
-							selectedAlbums.ForEach( async selectedAlbum => await RemoveAlbumFromTagAsync( changedTag, selectedAlbum.Id ) );
+							selectedAlbums.ForEach( async selectedAlbum => await RemoveAlbumFromTagAsync( changedTag, selectedAlbum ) );
 						}
 						else if ( appliedTag.Applied == AppliedTag.AppliedType.All )
 						{
@@ -313,14 +313,16 @@ namespace DBTest
 		/// </summary>
 		/// <param name="fromTag"></param>
 		/// <param name="albumId"></param>
-		private static async Task RemoveAlbumFromTagAsync( Tag fromTag, int albumId )
+		private static async Task RemoveAlbumFromTagAsync( Tag fromTag, Album albumToRemove )
 		{
 			// Check if the album is actually tagged
-			TaggedAlbum taggedAlbum = fromTag.TaggedAlbums.SingleOrDefault( tag => ( tag.AlbumId == albumId ) );
+			TaggedAlbum taggedAlbum = fromTag.TaggedAlbums.SingleOrDefault( tag => ( tag.AlbumId == albumToRemove.Id ) );
 			if ( taggedAlbum != null )
 			{
 				await FilterAccess.DeleteTaggedAlbumAsync( taggedAlbum );
 				fromTag.TaggedAlbums.Remove( taggedAlbum );
+
+				await CheckForJustPlayedRemovalAsync( fromTag, albumToRemove );
 
 				// If this tag is synchronised across libraries then remove all instances of this album
 				if ( fromTag.Synchronise == true )
@@ -331,8 +333,29 @@ namespace DBTest
 					{
 						await FilterAccess.DeleteTaggedAlbumAsync( album );
 						fromTag.TaggedAlbums.Remove( album );
+
+						await CheckForJustPlayedRemovalAsync( fromTag, album.Album );
 					}
 				}
+			}
+		}
+
+		/// <summary>
+		/// If this Tag is the Just Played tag then clear the Played flag in the album and broadcast this change
+		/// </summary>
+		/// <param name="fromTag"></param>
+		/// <param name="albumId"></param>
+		/// <returns></returns>
+		private static async Task CheckForJustPlayedRemovalAsync( Tag fromTag, Album albumToClear )
+		{
+			// If this is the JustPlayed tag and the Played flag is set for the album then clear it
+			if ( fromTag == FilterManagementModel.JustPlayedTag )
+			{
+				albumToClear.Played = false;
+				await AlbumAccess.UpdateAlbumAsync( albumToClear, false );
+
+				// Inform interested parties
+				new AlbumPlayedStateChangedMessage() { AlbumChanged = albumToClear }.Send();
 			}
 		}
 
@@ -379,26 +402,41 @@ namespace DBTest
 				}
 			}
 
+			// Add a new entry if required
 			if ( addNewEntry == true )
 			{
-				// Add a new entry
 				TaggedAlbum newTaggedAlbum = new TaggedAlbum() { TagId = toTag.Id, AlbumId = albumToAdd.Id, Album = albumToAdd };
 
 				await FilterAccess.AddTaggedAlbumAsync( newTaggedAlbum );
 				toTag.TaggedAlbums.Add( newTaggedAlbum );
+			}
 
-				// If this tag is synchronised across libraries then find any matching albums in the other libraries and add them to the tag if not already present
-				if ( ( dontSynchronise == false ) && ( toTag.Synchronise == true ) )
+			// If this is the JustPlayed tag and the Played flag is not set for the album then set it now
+			if ( toTag == FilterManagementModel.JustPlayedTag )
+			{
+				if ( albumToAdd.Played == false )
 				{
-					foreach ( Library library in FilterManagementModel.Libraries )
+					albumToAdd.Played = true;
+					await AlbumAccess.UpdateAlbumAsync( albumToAdd, false );
+
+					// Inform interested parties
+					new AlbumPlayedStateChangedMessage() { AlbumChanged = albumToAdd }.Send();
+				}
+			}
+
+			// If this tag is synchronised across libraries then find any matching albums in the other libraries and add them to the tag if not already present
+			// Sychronise whether or not a new entry was added as we may need to reorder an existing tag item in other libraries
+			if ( ( dontSynchronise == false ) && ( toTag.Synchronise == true ) )
+			{
+				foreach ( Library library in FilterManagementModel.Libraries )
+				{
+					if ( library.Id != albumToAdd.LibraryId )
 					{
-						if ( library.Id != albumToAdd.LibraryId )
+						// Access this Album from the library as it may not be already be available anywhere, as it is a different library
+						Album albumToSynch = await AlbumAccess.GetAlbumInLibraryAsync( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
+						if ( albumToSynch != null )
 						{
-							Album albumToSynch = await AlbumAccess.GetAlbumInLibraryAsync( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
-							if ( albumToSynch != null )
-							{
-								await AddAlbumToTagAsync( toTag, albumToSynch, true );
-							}
+							await AddAlbumToTagAsync( toTag, albumToSynch, true );
 						}
 					}
 				}
@@ -415,14 +453,46 @@ namespace DBTest
 			// Only process this if the Just Played tag exists
 			if ( FilterManagementModel.JustPlayedTag != null )
 			{
-				// Need to get the Album rather than just the AlbumId to access the library id
-				Album songAlbum = await AlbumAccess.GetAlbumAsync( ( message as SongPlayedMessage ).SongPlayed.AlbumId );
-				await AddAlbumToTagAsync( FilterManagementModel.JustPlayedTag, songAlbum );
+				// Assume that the album does not need adding to the tag
+				bool addTag = false;
 
-				// Report this filter change if the associated library is being displayed
-				if ( ConnectionDetailsModel.LibraryId == songAlbum.LibraryId )
+				Album songAlbum = await AlbumAccess.GetAlbumAsync( ( message as SongPlayedMessage ).SongPlayed.AlbumId );
+
+				// Determine if this album should be marked as having been played
+				if ( songAlbum.Played == false )
 				{
-					new TagMembershipChangedMessage() { ChangedTags = new List<string>() { JustPlayedTagName } }.Send();
+					// Is this the same album as last time
+					if ( songAlbum.Id == FilterManagementModel.JustPlayedAlbumId )
+					{
+						// Have enough songs been played to tag the album
+						addTag = ( ++FilterManagementModel.JustPlayedCount == FilterManagementModel.JustPlayedLimit );
+					}
+					else
+					{
+						// Different album so save its identity and reset the count
+						FilterManagementModel.JustPlayedAlbumId = songAlbum.Id;
+						FilterManagementModel.JustPlayedCount = 1;
+					}
+				}
+				else
+				{
+					// Record this as the last album played anyway
+					FilterManagementModel.JustPlayedAlbumId = songAlbum.Id;
+
+					// And tag it
+					addTag = true;
+				}
+
+				// If the album has been played, either set just now or previously, add it to the tag (to get the ordering right)
+				if ( addTag == true )
+				{
+					await AddAlbumToTagAsync( FilterManagementModel.JustPlayedTag, songAlbum );
+
+					// Report this filter change if the associated library is being displayed
+					if ( ConnectionDetailsModel.LibraryId == songAlbum.LibraryId )
+					{
+						new TagMembershipChangedMessage() { ChangedTags = new List<string>() { JustPlayedTagName } }.Send();
+					}
 				}
 			}
 		}

@@ -44,7 +44,7 @@ namespace DBTest
 		public override Dialog OnCreateDialog( Bundle savedInstanceState )
 		{
 			// Create the custom view to contain the tags and their selected states
-			View tagView = LayoutInflater.Inflate( Resource.Layout.tag_dialogue_layout, null );
+			View tagView = Activity.LayoutInflater.Inflate( Resource.Layout.tag_dialogue_layout, null );
 			ListView listView = tagView.FindViewById<ListView>( Resource.Id.tagsList );
 
 			// Create and link in an adapter

@@ -115,12 +115,13 @@
     <Compile Include="LibraryManagement\LibraryScanner.cs" />
     <Compile Include="LibraryScanning\RescanSongStorage.cs" />
     <Compile Include="LibraryScanning\SongStorage.cs" />
+    <Compile Include="Messages\AlbumAddedMessageo.cs" />
     <Compile Include="Messages\AlbumsDeletedMessage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
     <Compile Include="Messages\PlaylistDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
     <Compile Include="Messages\SelectedLibraryChangedMessage.cs" />
-    <Compile Include="Messages\AlbumAddedMessage.cs" />
+    <Compile Include="Messages\AlbumPlayedStateChangedMessage.cs" />
     <Compile Include="Messages\SongPlayedMessage.cs" />
     <Compile Include="Messages\TagDeletedMessage.cs" />
     <Compile Include="Messages\TagDetailsChangedMessage.cs" />

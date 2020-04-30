@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Android.Content;
+using Android.Content.Res;
+using Android.Graphics;
 using Android.Views;
 using Android.Widget;
 
@@ -18,6 +20,7 @@ namespace DBTest
 		public ArtistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Artist> provider, IAdapterActionHandler actionHandler ) :
 			base( context, parentView, provider, ArtistsAdapterModel.BaseModel, actionHandler )
 		{
+			albumColour = context.Resources.GetColor( Resource.Color.colorArtistAlbum );
 		}
 
 		/// <summary>
@@ -102,8 +105,21 @@ namespace DBTest
 					convertView = inflator.Inflate( Resource.Layout.artists_album_layout, null );
 				}
 
-				// Set the album text.
-				convertView.FindViewById<TextView>( Resource.Id.albumName ).Text = ( ( ArtistAlbum )childObject ).Name;
+				// Set the album text and colour
+				TextView albumText = convertView.FindViewById<TextView>( Resource.Id.albumName );
+				ArtistAlbum artAlbum = ( ArtistAlbum )childObject;
+
+				// Text is the name of the album but colour depends on whether or not the associated album has been played 
+				albumText.Text = artAlbum.Name;
+
+				if ( artAlbum.Album.Played == true )
+				{
+					albumText.SetTextColor( Color.Gray );
+				}
+				else
+				{
+					albumText.SetTextColor( albumColour );
+				}
 			}
 			else
 			{
@@ -296,5 +312,10 @@ namespace DBTest
 		/// List of section names
 		/// </summary>
 		private string[] sections = null;
+
+		/// <summary>
+		/// The Colour used to display an album
+		/// </summary>
+		private Color albumColour;
 	}
 }

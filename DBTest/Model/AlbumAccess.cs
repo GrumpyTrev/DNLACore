@@ -51,7 +51,17 @@ namespace DBTest
 		/// </summary>
 		/// <param name="album"></param>
 		/// <returns></returns>
-		public static async Task UpdateAlbumAsync( Album album ) => await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( album );
+		public static async Task UpdateAlbumAsync( Album album, bool withChildren = true )
+		{
+			if ( withChildren == true )
+			{
+				await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( album );
+			}
+			else
+			{
+				await ConnectionDetailsModel.AsynchConnection.UpdateAsync( album );
+			}
+		}
 
 		/// <summary>
 		/// Delete the specifed Album

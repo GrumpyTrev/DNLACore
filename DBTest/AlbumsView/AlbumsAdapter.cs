@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Android.Content;
+using Android.Graphics;
 using Android.Views;
 using Android.Widget;
 
@@ -13,7 +14,7 @@ namespace DBTest
 	class AlbumsAdapter: ExpandableListAdapter< Album >, ISectionIndexer
 	{
 		/// <summary>
-		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
+		/// AlbumsAdapter constructor. Set up a long click listener and the group expander helper class
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
@@ -117,7 +118,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Derived classes must implement this method to provide a view for a child item
+		/// Derived classes must implement this method to provide a view for a group item
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="isExpanded"></param>
@@ -140,8 +141,24 @@ namespace DBTest
 
 			// Display the album and artist name
 			Album displayAlbum = Groups[ groupPosition ];
-			convertView.FindViewById<TextView>( Resource.Id.albumName ).Text = displayAlbum.Name;
-			convertView.FindViewById<TextView>( Resource.Id.artist ).Text = ( displayAlbum.ArtistName.Length > 0 ) ? displayAlbum.ArtistName : "Unknown";
+
+			TextView albumText = convertView.FindViewById<TextView>( Resource.Id.albumName );
+			TextView artistText = convertView.FindViewById<TextView>( Resource.Id.artist );
+
+			// If the album has been played then display these fields in grey text
+			if ( displayAlbum.Played == true )
+			{
+				albumText.SetTextColor( Color.Gray );
+				artistText.SetTextColor( Color.Gray );
+			}
+			else
+			{
+				albumText.SetTextColor( Color.Black );
+				artistText.SetTextColor( Color.Black );
+			}
+
+			albumText.Text = displayAlbum.Name;
+			artistText.Text = ( displayAlbum.ArtistName.Length > 0 ) ? displayAlbum.ArtistName : "Unknown";
 
 			return convertView;
 		}

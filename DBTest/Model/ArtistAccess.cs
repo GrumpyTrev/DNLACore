@@ -17,16 +17,15 @@ namespace DBTest
 
 		/// <summary>
 		/// Get the contents for the specified Artist
-		/// Get the collection of ArtistAlbums and then the songs from each of those
+		/// The ArtistAlbum entries have already been obtained so just get the Songs for them
 		/// </summary>
 		/// <param name="theArtist"></param>
 		public static async Task GetArtistContentsAsync( Artist theArtist )
 		{
-			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( theArtist );
-
 			foreach ( ArtistAlbum artistAlbum in theArtist.ArtistAlbums )
 			{
-				await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( artistAlbum );
+				artistAlbum.Songs =
+						await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.ArtistAlbumId == artistAlbum.Id ) ).ToListAsync();
 			}
 		}
 

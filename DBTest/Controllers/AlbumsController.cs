@@ -21,6 +21,7 @@ namespace DBTest
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
 			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
+			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
 		}
 
 		/// <summary>
@@ -37,6 +38,7 @@ namespace DBTest
 				// New data is required. At this point the albums are not filtered
 				AlbumsViewModel.LibraryId = libraryId;
 				AlbumsViewModel.UnfilteredAlbums = await AlbumAccess.GetAlbumDetailsAsync( AlbumsViewModel.LibraryId );
+
 				AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums;
 
 				// Sort the displayed albums to the order specified in the SortSelector
@@ -63,7 +65,7 @@ namespace DBTest
 		{
 			await AlbumAccess.GetAlbumContentsAsync( theAlbum );
 
-			// Sort the songs by track number
+			// Sort the songs by track number - UI thread
 			theAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 		}
 
@@ -93,17 +95,19 @@ namespace DBTest
 			// Assume the albums are going to be displayed in alphabetical order
 			AlbumsViewModel.SortSelector.CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.alphaAscending;
 
-			// If there is no filter then display the unfiltered data in the starting sort order
+			// If there is no filter then display the unfiltered data
 			if ( AlbumsViewModel.CurrentFilter == null )
 			{
 				AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums;
 			}
 			else
 			{
+				// All of this is in the UI thread
+
 				// First of all form a set of all the album identities in the selected filter
 				HashSet<int> albumIds = AlbumsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
 
-				// Now get all the albums that are tagged and in the correct library
+				// Now get all the albums that are tagged and in the current library
 				AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums.FindAll( album => albumIds.Contains( album.Id ) == true );
 
 				// If the TagOrder flag is set then set the sort order to Id order.
@@ -270,6 +274,26 @@ namespace DBTest
 			if ( ( AlbumsViewModel.CurrentFilter != null ) && ( AlbumsViewModel.CurrentFilter.Name == ( message as TagDeletedMessage ).DeletedTag.Name ) )
 			{
 				ApplyFilterAsync( null );
+			}
+		}
+
+		/// <summary>
+		/// Called when a AlbumPlayedStateChangedMessage had been received.
+		/// If this album is being displayed then inform the adapter of the data change
+		/// </summary>
+		/// <param name="message"></param>
+		private static void AlbumChanged( object message )
+		{
+			Album changedAlbum = ( message as AlbumPlayedStateChangedMessage ).AlbumChanged;
+
+			// Only process this if this album is in the library being displayed
+			if ( changedAlbum.LibraryId == AlbumsViewModel.LibraryId )
+			{
+				// Is this album being displayed
+				if ( AlbumsViewModel.Albums.Any( album => album.Id == changedAlbum.Id ) == true )
+				{
+					Reporter?.AlbumsDataAvailable();
+				}
 			}
 		}
 
