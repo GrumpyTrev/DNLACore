@@ -23,7 +23,20 @@ namespace DBTest
 		/// </summary>
 		public override void Hide()
 		{
-			if ( pleaseHideMe == true )
+		}
+
+		/// <summary>
+		/// Intercept the back key to hide the Media Controller
+		/// Only use the key up event. If the key down event is used to hide (or allow to be hidden) the controls then the up event
+		/// may still be processed by some other view
+		/// </summary>
+		/// <param name="keyEvent"></param>
+		/// <returns></returns>
+		public override bool DispatchKeyEvent( KeyEvent keyEvent )
+		{
+			bool handled = false;
+
+			if ( ( keyEvent.KeyCode == Keycode.Back ) && ( keyEvent.Action == KeyEventActions.Up ) )
 			{
 				// Hide the UI and record this in the model
 				Visibility = ViewStates.Gone;
@@ -32,56 +45,16 @@ namespace DBTest
 
 				PlaybackManagerModel.MediaControllerVisible = false;
 
-				pleaseHideMe = false;
+				// Don't pass this event on
+				handled = true;
 			}
-		}
 
-		/// <summary>
-		/// Intercept the back key to hide the Media Controller
-		/// </summary>
-		/// <param name="event"></param>
-		/// <returns></returns>
-		public override bool DispatchKeyEvent( KeyEvent @event )
-		{
-			/*
-						bool handled = false;
-
-						// Only trap the back key if the Media Controller is visible
-						if ( Visibility == ViewStates.Visible )
-						{
-							if ( @event.KeyCode == Keycode.Back )
-							{
-								base.Hide();
-
-								// Hide the UI and record this in the model
-								Visibility = ViewStates.Gone;
-
-								PlaybackManagerModel.MediaControllerVisible = false;
-
-								handled = true;
-							}
-						}
-
-						if ( handled == false )
-						{
-							handled = base.DispatchKeyEvent( @event );
-						}
-
-						return handled;
-				*/
-
-			// Only trap the back key if the Media Controller is visible
-			if ( Visibility == ViewStates.Visible )
+			if ( handled == false )
 			{
-				if ( @event.KeyCode == Keycode.Back )
-				{
-					pleaseHideMe = true;
-				}
+				handled = base.DispatchKeyEvent( keyEvent );
 			}
 
-			return base.DispatchKeyEvent( @event );
+			return handled;
 		}
-
-		private bool pleaseHideMe = false;
 	}
 }
