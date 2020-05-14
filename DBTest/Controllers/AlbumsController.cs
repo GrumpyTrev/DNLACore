@@ -38,6 +38,7 @@ namespace DBTest
 				// New data is required. At this point the albums are not filtered
 				AlbumsViewModel.LibraryId = libraryId;
 				AlbumsViewModel.UnfilteredAlbums = await AlbumAccess.GetAlbumDetailsAsync( AlbumsViewModel.LibraryId );
+				AlbumsViewModel.AlbumLookup = new Dictionary<int, Album>( AlbumsViewModel.UnfilteredAlbums.ToDictionary( alb => alb.Id ) );
 
 				AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums;
 

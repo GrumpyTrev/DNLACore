@@ -16,6 +16,7 @@ namespace DBTest
 			Albums.Clear();
 			AlphaIndex.Clear();
 			UnfilteredAlbums.Clear();
+			AlbumLookup.Clear();
 			LibraryId = -1;
 			ListViewState = null;
 			CurrentFilter = null;
@@ -37,6 +38,11 @@ namespace DBTest
 		/// Index into the list of Albums
 		/// </summary>
 		public static Dictionary<string, int> AlphaIndex { get; set; } = new Dictionary<string, int>();
+
+		/// <summary>
+		/// Lookup table for the unfiltered albums. Key is the album id.
+		/// </summary>
+		public static Dictionary<int, Album> AlbumLookup { get; set; } = new Dictionary<int, Album>();
 
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained

@@ -456,7 +456,9 @@ namespace DBTest
 				// Assume that the album does not need adding to the tag
 				bool addTag = false;
 
-				Album songAlbum = await AlbumAccess.GetAlbumAsync( ( message as SongPlayedMessage ).SongPlayed.AlbumId );
+				// If this song has just played then it's album will be in the current library and in the set of albums already available in the
+				// AlbumsViewModel. So get the associated object from there.
+				Album songAlbum = AlbumsViewModel.AlbumLookup[ ( message as SongPlayedMessage ).SongPlayed.AlbumId ];
 
 				// Determine if this album should be marked as having been played
 				if ( songAlbum.Played == false )
@@ -488,11 +490,8 @@ namespace DBTest
 				{
 					await AddAlbumToTagAsync( FilterManagementModel.JustPlayedTag, songAlbum );
 
-					// Report this filter change if the associated library is being displayed
-					if ( ConnectionDetailsModel.LibraryId == songAlbum.LibraryId )
-					{
-						new TagMembershipChangedMessage() { ChangedTags = new List<string>() { JustPlayedTagName } }.Send();
-					}
+					// Report this filter change
+					new TagMembershipChangedMessage() { ChangedTags = new List<string>() { JustPlayedTagName } }.Send();
 				}
 			}
 		}
