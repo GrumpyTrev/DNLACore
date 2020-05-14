@@ -317,6 +317,14 @@ namespace DBTest
 				scanLibrary.Artists.Add( songArtist );
 				await LibraryAccess.UpdateLibraryAsync( scanLibrary );
 			}
+			else
+			{
+				// Make sure that the Artist's children are available
+				if ( songArtist.ArtistAlbums == null )
+				{
+					await ArtistAccess.GetArtistChildrenAsync( songArtist );
+				}
+			}
 
 			return songArtist;
 		}

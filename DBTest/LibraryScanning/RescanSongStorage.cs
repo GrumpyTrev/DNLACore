@@ -36,8 +36,9 @@ namespace DBTest
 			if ( songLookup.TryGetValue( filepath, out Song matchedSong ) == true )
 			{
 				// Time from the FTP server always seem to be an hour out and is supposed to be in UTC
-				// Compare both times as is and then take 1 hour off the stored time
-				if ( ( matchedSong.ModifiedTime == modifiedTime ) || ( matchedSong.ModifiedTime.AddHours( -1 ) == modifiedTime ) )
+				// Compare both times as is and then take 1 hour off the stored time and then add 1 hour on
+				if ( ( matchedSong.ModifiedTime == modifiedTime ) || ( matchedSong.ModifiedTime.AddHours( -1 ) == modifiedTime ) ||
+					( matchedSong.ModifiedTime.AddHours( 1 ) == modifiedTime ) )
 				{
 					scanRequired = false;
 					matchedSong.ScanAction = Song.ScanActionType.Matched;
