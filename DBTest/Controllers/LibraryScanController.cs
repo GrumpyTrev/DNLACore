@@ -45,13 +45,12 @@ namespace DBTest
 						foreach ( Source source in sources )
 						{
 							// Add the songs from this source to a dictionary
-							Dictionary<string, Song> pathLookup = new Dictionary<string, Song>();
-							foreach ( Song songToAdd in source.Songs )
-							{
-								pathLookup.Add( songToAdd.Path, songToAdd );
-								songToAdd.ScanAction = Song.ScanActionType.NotMatched;
-							}
+							Dictionary<string, Song> pathLookup = new Dictionary<string, Song>( source.Songs.ToDictionary( song => song.Path ) );
 
+							// Reset the scan action for all Songs
+							source.Songs.ForEach( song => song.ScanAction = Song.ScanActionType.NotMatched );
+
+							// Use a RescanSongStorage instance to check for song changes
 							RescanSongStorage scanStorage = new RescanSongStorage( LibraryScanModel.LibraryBeingScanned, source, pathLookup );
 
 							// Check the source scanning method

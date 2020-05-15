@@ -291,45 +291,30 @@ namespace DBTest
 
 			bool createTables = false;
 
-				try
+			try
+			{
+				if ( createTables == true )
 				{
-					if ( createTables == true )
-					{
-						// Create the tables if they don't already exist
-						ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<Artist>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<Playlist>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<PlaylistItem>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
-						ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
-					}
-
-					// Check for a Playback record which will tell us the currently selected library
-					currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault().LibraryId;
-
-					// ONE OFF
-					// Set played flag in all albums that appear in the recently played tag
-					/*
-									Tag playedTag = ConnectionDetailsModel.SynchConnection.Table<Tag>()
-										.Where( tag => tag.Name == FilterManagementController.JustPlayedTagName ).First();
-
-									var taggedAlbums = ConnectionDetailsModel.SynchConnection.Table<TaggedAlbum>().Where( ta => ta.TagId == playedTag.Id );
-									foreach ( TaggedAlbum ta in taggedAlbums )
-									{
-										Album album = ConnectionDetailsModel.SynchConnection.Table<Album>().Where( alb => alb.Id == ta.AlbumId ).First();
-										album.Played = true;
-										ConnectionDetailsModel.SynchConnection.Update( album );
-									}
-					*/
+					// Create the tables if they don't already exist
+					ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Artist>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Playlist>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<PlaylistItem>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
 				}
-				catch ( SQLite.SQLiteException )
-				{
-				}
+
+				// Check for a Playback record which will tell us the currently selected library
+				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault().LibraryId;
+			}
+			catch ( SQLite.SQLiteException )
+			{
+			}
 
 			return currentLibraryId;
 		}
