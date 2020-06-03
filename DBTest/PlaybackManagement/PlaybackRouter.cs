@@ -97,16 +97,10 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when the media data has been received or updated
-		/// If the playlist songs have been replaced then treat this as a request to play the first of the songs
 		/// </summary>
 		/// <param name="songsReplaced"></param>
-		public async void MediaControlDataAvailable( bool songsReplaced )
+		public async void MediaControlDataAvailable()
 		{
-			if ( ( songsReplaced == true ) && ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
-			{
-				await PlaybackManagementController.SetSelectedSongAsync( 0 );
-			}
-
 			// Pass on the media data to all connections
 			localConnection.MediaControlDataAvailable();
 			remoteConnection.MediaControlDataAvailable();
@@ -116,47 +110,34 @@ namespace DBTest
 			{
 				SelectPlaybackDevice( null );
 			}
-
-			// If songs have been replaced then tell the selected connection to start playing the current song
-			if ( ( songsReplaced == true ) && ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
-			{
-				selectedConnection?.Play();
-			}
 		}
-
-		/// <summary>
-		/// Called when the Now Playing playlist is cleared.
-		/// Stop the selected controller playing
-		/// </summary>
-		public void SongsCleared() => selectedConnection?.Stop();
 
 		/// <summary>
 		/// Called when the selected song index has been changed via the UI
 		/// </summary>
-		/// <param name="oldIndex"></param>
-		public void SongSelected( int oldIndex )
+		public void SongSelected()
 		{
-			// Make sure the connections pass the index on to thier services
+			// Make sure the connections pass the index on to their services
 			localConnection.SongSelected();
 			remoteConnection.SongSelected();
 
-			// Has the index changed
-			if ( oldIndex != PlaybackManagerModel.CurrentSongIndex )
+			// If the new index is not set (-1) then tell the selected connection to stop playing
+			// If it is set to a valid value and it should be played then the PlayRequested method will be called 
+			if ( PlaybackManagerModel.CurrentSongIndex == -1 )
 			{
-				// If the new index is not set (-1) then tell the selected connection
-				if ( PlaybackManagerModel.CurrentSongIndex == -1 )
-				{
+				selectedConnection?.Stop();
+			}
+		}
+
+		/// <summary>
+		/// Called when a request has been received via the controller to play the currently selected song
+		/// </summary>
+		public void PlayRequested()
+		{
+			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
+			{
 					selectedConnection?.Stop();
-				}
-				else
-				{
-					// If the old index was valid then this is a change and should be treated as a request to start playing
-					if ( oldIndex != -1 )
-					{
-						selectedConnection?.Stop();
-						selectedConnection?.Play();
-					}
-				}
+					selectedConnection?.Play();
 			}
 		}
 

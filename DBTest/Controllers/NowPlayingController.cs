@@ -15,7 +15,6 @@ namespace DBTest
 		/// </summary>
 		static NowPlayingController()
 		{
-			// Don't register for the NowPlayingClearedMessage as the list is always refreshed when new songs are added
 			Mediator.RegisterPermanent( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
@@ -61,6 +60,12 @@ namespace DBTest
 		{
 			await PlaybackAccess.SetSelectedSongAsync( songIndex );
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
+
+			// Make sure the new song is played
+			if ( songIndex != -1 )
+			{
+				new PlayCurrentSongMessage().Send();
+			}
 		}
 
 		/// <summary>
@@ -95,7 +100,6 @@ namespace DBTest
 		private static void SongsAdded( object message )
 		{
 			// Force a total refresh  by clearing the previous results
-			// Hence no need to register for the playlist cleared message (this assumes that the 'added' always follows a 'cleared'????
 			NowPlayingViewModel.ClearModel();
 			GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 		}

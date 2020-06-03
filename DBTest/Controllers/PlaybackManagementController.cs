@@ -13,11 +13,11 @@ namespace DBTest
 		/// </summary>
 		static PlaybackManagementController()
 		{
-			Mediator.RegisterPermanent( SongsCleared, typeof( NowPlayingClearedMessage ) );
 			Mediator.RegisterPermanent( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( DeviceAvailable, typeof( PlaybackDeviceAvailableMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
+			Mediator.RegisterPermanent( PlayRequested, typeof( PlayCurrentSongMessage ) );
 		}
 
 		/// <summary>
@@ -26,7 +26,7 @@ namespace DBTest
 		/// Otherwise get the data from the database asynchronously
 		/// </summary>
 		/// <param name="libraryId"></param>
-		public static async void GetMediaControlDataAsync( int libraryId, bool songsReplaced = false )
+		public static async void GetMediaControlDataAsync( int libraryId )
 		{
 			// Check if the PlaylistGetMediaControlDataAsyncs details for the library have already been obtained
 			if ( ( PlaybackManagerModel.NowPlayingPlaylist == null ) || ( PlaybackManagerModel.LibraryId != libraryId ) )
@@ -45,7 +45,15 @@ namespace DBTest
 			}
 
 			// Publish this data
-			Reporter?.MediaControlDataAvailable( songsReplaced );
+			Reporter?.MediaControlDataAvailable();
+
+			// If a play request has been received whilst accessing this data then process it now
+			if ( playRequestPending == true )
+			{
+				playRequestPending = false;
+				Reporter?.PlayRequested();
+			}
+
 		}
 
 		/// <summary>
@@ -54,14 +62,12 @@ namespace DBTest
 		public static async Task SetSelectedSongAsync( int songIndex )
 		{
 			await PlaybackAccess.SetSelectedSongAsync( songIndex );
-			PlaybackManagerModel.CurrentSongIndex = songIndex;
-
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
 		}
 
 		/// <summary>
-		/// Called when a new song is being played.
-		/// Pass this on to the relevane controller, not this one
+		/// Called when a new song is being played by the service.
+		/// Pass this on to the relevant controller, not this one
 		/// </summary>
 		/// <param name="songPlayed"></param>
 		public static void SongPlayed( Song songPlayed )
@@ -76,25 +82,13 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SongSelected( object message )
 		{
-			// Only process this if the playlist has been read at least once
+			// Only process this if there is a valid playlist, otherwise just wait for the data to become available
 			if ( PlaybackManagerModel.NowPlayingPlaylist != null )
 			{
-				// Report the old index so that change logic can be applied
-				int oldIndex = PlaybackManagerModel.CurrentSongIndex;
+				// Update the selected song in the model and report the selection
 				PlaybackManagerModel.CurrentSongIndex = ( ( SongSelectedMessage )message ).ItemNo;
-				Reporter?.SongSelected( oldIndex );
+				Reporter?.SongSelected();
 			}
-		}
-
-		/// <summary>
-		/// Called when the NowPlayingClearedMessage is received
-		/// Clear the local model and inform the reporter 
-		/// </summary>
-		/// <param name="message"></param>
-		private static void SongsCleared( object message )
-		{
-			PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Clear();
-			Reporter?.SongsCleared();
 		}
 
 		/// <summary>
@@ -105,7 +99,7 @@ namespace DBTest
 		private static void SongsAdded( object message )
 		{
 			PlaybackManagerModel.NowPlayingPlaylist = null;
-			GetMediaControlDataAsync( PlaybackManagerModel.LibraryId, ( ( NowPlayingSongsAddedMessage )message ).SongsReplaced );
+			GetMediaControlDataAsync( PlaybackManagerModel.LibraryId );
 		}
 
 		/// <summary>
@@ -153,11 +147,27 @@ namespace DBTest
 			await SetSelectedSongAsync( -1 );
 
 			// Publish the data
-			Reporter?.SongsCleared();
-			Reporter?.MediaControlDataAvailable( false );
+			Reporter?.MediaControlDataAvailable();
 
 			// Reread the data
 			GetMediaControlDataAsync( PlaybackManagerModel.LibraryId );
+		}
+
+		/// <summary>
+		/// Called in response to the receipt of a PlayCurrentSongMessage
+		/// If we are in the middle of obtaining a new playing list then defer the request until the data is available
+		/// </summary>
+		private static void PlayRequested( object message )
+		{
+			// If there is a current song then report this request
+			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
+			{
+				Reporter?.PlayRequested();
+			}
+			else
+			{
+				playRequestPending = true;
+			}
 		}
 
 		/// <summary>
@@ -166,14 +176,19 @@ namespace DBTest
 		public static IReporter Reporter { private get; set; } = null;
 
 		/// <summary>
+		/// Keep track of when a play request is received whilst the data is being read in
+		/// </summary>
+		private static bool playRequestPending = false;
+
+		/// <summary>
 		/// The interface used to report back controller results
 		/// </summary>
 		public interface IReporter
 		{
-			void MediaControlDataAvailable( bool songsReplaced );
-			void SongSelected( int oldIndex );
-			void SongsCleared();
+			void MediaControlDataAvailable();
+			void SongSelected();
 			void SelectPlaybackDevice( Device oldSelectedDevice );
+			void PlayRequested();
 		}
 	}
 }

@@ -277,6 +277,12 @@ namespace DBTest
 					StartTimer();
 				}
 			}
+			else
+			{
+				// Failed to get the response - report this and try again when the timer expires
+				Logger.Error( "Failed to get PositionInfo" );
+				StartTimer();
+			}
 		}
 
 		private int TimeStringToMilliseconds( string timeString )

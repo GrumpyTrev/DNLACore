@@ -5,9 +5,5 @@
 	/// </summary>
 	class NowPlayingSongsAddedMessage: BaseMessage
 	{
-		/// <summary>
-		/// Indicate whether or not the playlist has been added to or replaced
-		/// </summary>
-		public bool SongsReplaced { get; set; } = false;
 	}
 }

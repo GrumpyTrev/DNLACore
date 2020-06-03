@@ -52,7 +52,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a song has been selected by the adapter
+		/// Called when a song has been selected by the user
 		/// Pass this change to the controller
 		/// </summary>
 		/// <param name="itemNo"></param>

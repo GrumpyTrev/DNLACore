@@ -117,6 +117,7 @@
     <Compile Include="LibraryScanning\SongStorage.cs" />
     <Compile Include="Messages\AlbumAddedMessageo.cs" />
     <Compile Include="Messages\AlbumsDeletedMessage.cs" />
+    <Compile Include="Messages\PlayCurrentSongMessage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
     <Compile Include="Messages\PlaylistDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
@@ -141,7 +142,6 @@
     <Compile Include="Mediation\Mediator.cs" />
     <Compile Include="Mediation\MultiDictionary.cs" />
     <Compile Include="Messages\BaseMessage.cs" />
-    <Compile Include="Messages\NowPlayingClearedMessage.cs" />
     <Compile Include="Messages\SongSelectedMessage.cs" />
     <Compile Include="Messages\PlaylistSongsAddedMessage.cs" />
     <Compile Include="Messages\NowPlayingSongsAddedMessage.cs" />
