@@ -12,10 +12,7 @@ namespace DBTest
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
-		public NowPlayingFragment()
-		{
-			ActionModeTitle = NoItemsSelectedText;
-		}
+		public NowPlayingFragment() => ActionModeTitle = NoItemsSelectedText;
 
 		/// <summary>
 		/// Add fragment specific menu items to the main toolbar
@@ -31,13 +28,10 @@ namespace DBTest
 
 		/// <summary>
 		/// Get all the PlaylistItem entries associated with the Now Playing playlist.
-		/// No group content required
+		/// No group content required. Just run an empty task to prevent compiler warnings
 		/// </summary>
 		/// <param name="thePlayList"></param>
-		public async Task ProvideGroupContentsAsync( PlaylistItem theItem)
-		{
-			await Task.Run( () => { } );
-		}
+		public async Task ProvideGroupContentsAsync( PlaylistItem theItem ) => await Task.Run( () => { } );
 
 		/// <summary>
 		/// Called when the Now Playing playlist has been read or updated
@@ -62,10 +56,7 @@ namespace DBTest
 		/// Called when song selection has been reported by the controller
 		/// Pass on the changes to the adapter
 		/// </summary>
-		public void SongSelected()
-		{
-			( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.SelectedSong );
-		}
+		public void SongSelected() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.SelectedSong );
 
 		/// <summary>
 		/// Called when the number of selected items (songs) has changed.
@@ -78,16 +69,17 @@ namespace DBTest
 			int itemsSelectedCount = itemSelected.Count();
 
 			// Update the Action Mode bar title
-			ActionModeTitle = ( itemsSelectedCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelected );
+			ActionModeTitle = ( itemsSelectedCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelectedCount );
 
 			// The delete command is enabled when one or more items are selected
 			deleteCommand.Visible = ( itemsSelectedCount > 0 );
 
 			// The move_up command is enabled if one or more items are selected and the first item is not selected
-			// The move_down command is enbaled if one or more items are selected and the last item is not selected
-			List<PlaylistItem> itemsInPlaylist = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems;
-			moveUpCommand.Visible = ( itemsSelectedCount > 0 ) && ( itemSelected.Any( list => ( list.Id == itemsInPlaylist.First().Id ) ) == false );
-			moveDownCommand.Visible = ( itemsSelectedCount > 0 ) && ( itemSelected.Any( list => ( list.Id == itemsInPlaylist.Last().Id ) ) == false );
+			// The move_down command is enabled if one or more items are selected and the last item is not selected
+			moveUpCommand.Visible = ( itemsSelectedCount > 0 ) && 
+				( itemSelected.Any( list => ( list.Id == NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.First().Id ) ) == false );
+			moveDownCommand.Visible = ( itemsSelectedCount > 0 ) && 
+				( itemSelected.Any( list => ( list.Id == NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Last().Id ) ) == false );
 
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();
@@ -129,10 +121,7 @@ namespace DBTest
 		/// Let derived classes determine whether or not the command bar should be shown
 		/// </summary>
 		/// <returns></returns>
-		protected override bool ShowCommandBar()
-		{
-			return deleteCommand.Visible || moveUpCommand.Visible || moveDownCommand.Visible;
-		}
+		protected override bool ShowCommandBar() => deleteCommand.Visible || moveUpCommand.Visible || moveDownCommand.Visible;
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -143,11 +132,6 @@ namespace DBTest
 		/// The resource used to create the ExpandedListView for this fragment
 		/// </summary>
 		protected override int ListViewLayout { get; } = Resource.Id.nowplayingList;
-
-		/// <summary>
-		/// Keep track of the number of items reported as selected
-		/// </summary>
-		private int itemsSelected = 0;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text
