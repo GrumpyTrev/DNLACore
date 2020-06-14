@@ -79,9 +79,13 @@ namespace DBTest
 		/// <param name="items"></param>
 		public static async void DeletePlaylistItemsAsync( Playlist thePlaylist, List< PlaylistItem > items )
 		{
-			// Delete the PlaylistItem items and then report that the playlist has changed
+			// Delete the PlaylistItem items
 			await PlaylistAccess.DeletePlaylistItemsAsync( thePlaylist, items );
 
+			// Adjust the track numbers
+			await BaseController.AdjustTrackNumbersAsync( thePlaylist );
+
+			// Report the change
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
 		}
 
@@ -113,7 +117,7 @@ namespace DBTest
 			thePlaylist.PlaylistItems.Insert( items.First().Track - 1, itemToMove );
 
 			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			await AdjustTrackNumbers( thePlaylist );
+			await BaseController.AdjustTrackNumbersAsync( thePlaylist );
 
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
 		}
@@ -131,7 +135,7 @@ namespace DBTest
 			thePlaylist.PlaylistItems.Insert( items.Last().Track - 1, itemToMove );
 
 			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			await AdjustTrackNumbers( thePlaylist );
+			await BaseController.AdjustTrackNumbersAsync( thePlaylist );
 
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
 		}
@@ -213,27 +217,6 @@ namespace DBTest
 				}
 			}
 		}
-
-		/// <summary>
-		/// Adjust the track numbers to match the indexex in the collection
-		/// </summary>
-		/// <param name="thePlaylist"></param>
-		private static async Task AdjustTrackNumbers( Playlist thePlaylist )
-		{
-			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			for ( int index = 0; index < thePlaylist.PlaylistItems.Count; ++index )
-			{
-				PlaylistItem itemToCheck = thePlaylist.PlaylistItems[ index ];
-				if ( itemToCheck.Track != ( index + 1 ) )
-				{
-					itemToCheck.Track = index + 1;
-
-					// Update the item in the model
-					await PlaylistAccess.UpdatePlaylistItemAsync( itemToCheck );
-				}
-			}
-		}
-
 
 		/// <summary>
 		/// Called when the PlaylistSongsAddedMessage is received

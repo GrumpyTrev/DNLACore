@@ -124,6 +124,19 @@ namespace DBTest
 		protected override bool ShowCommandBar() => deleteCommand.Visible || moveUpCommand.Visible || moveDownCommand.Visible;
 
 		/// <summary>
+		/// Called when a command bar command has been invoked
+		/// </summary>
+		/// <param name="button"></param>
+		protected override async void HandleCommand( int commandId )
+		{
+			if ( commandId == Resource.Id.delete )
+			{
+				NowPlayingController.DeleteNowPlayingItemsAsync( Adapter.SelectedItems.Values.OfType<PlaylistItem>().ToList() );
+				LeaveActionMode();
+			}
+		}
+
+		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
 		/// </summary>
 		protected override int Layout { get; } = Resource.Layout.nowplaying_fragment;

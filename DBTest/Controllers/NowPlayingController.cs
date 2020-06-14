@@ -56,13 +56,13 @@ namespace DBTest
 		/// Set the selected song in the database and raise the SongSelectedMessage
 		/// Don't update the model at this stage. Update it when the SongSelectedMessage is received
 		/// </summary>
-		public static async void SetSelectedSongAsync( int songIndex )
+		public static async void SetSelectedSongAsync( int songIndex, bool playSong = true )
 		{
 			await PlaybackAccess.SetSelectedSongAsync( songIndex );
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
 
-			// Make sure the new song is played
-			if ( songIndex != -1 )
+			// Make sure the new song is played if requested
+			if ( ( songIndex != -1 ) && ( playSong == true ) )
 			{
 				new PlayCurrentSongMessage().Send();
 			}
@@ -90,6 +90,44 @@ namespace DBTest
 
 			// Now make these songs the playlist
 			BaseController.AddSongsToNowPlayingListAsync( songs, true, NowPlayingViewModel.LibraryId );
+		}
+
+		/// <summary>
+		/// Called to delete one or more items from the Now Playing playlist.
+		/// We need to determine the affect that this deletion may have on the index of the currently playing song.
+		/// This can be done by examining the track numbers of the items to be deleted, the track number is the index + 1
+		/// </summary>
+		/// <param name="items"></param>
+		public static async void DeleteNowPlayingItemsAsync( List<PlaylistItem> items )
+		{
+			// Only carry out these checks if a song has been selected
+			if ( NowPlayingViewModel.SelectedSong != -1 )
+			{
+				// First check for the deletion of the currently playing song
+				if ( items.Any( item => ( item.Track == ( NowPlayingViewModel.SelectedSong + 1 ) ) ) == true )
+				{
+					// The currently playing song is going to be deleted. Set it to invalid
+					SetSelectedSongAsync( -1 );
+				}
+				else
+				{
+					// Count the number of items that are going to be deleted that appear before the currently playing song
+					int earlierTracks = items.Count( item => ( item.Track <= NowPlayingViewModel.SelectedSong ) );
+					if ( earlierTracks > 0 )
+					{
+						// Adjust the currently playing song by the number of items prior to it in the list that are being deleted
+						SetSelectedSongAsync( NowPlayingViewModel.SelectedSong - earlierTracks, false );
+					}
+				}
+			}
+
+			// Now delete the entries and report that the list has been updated
+			await PlaylistAccess.DeletePlaylistItemsAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
+
+			// Adjust the track numbers
+			await BaseController.AdjustTrackNumbersAsync( NowPlayingViewModel.NowPlayingPlaylist );
+
+			Reporter?.NowPlayingDataAvailable();
 		}
 
 		/// <summary>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -38,6 +39,26 @@ namespace DBTest
 
 				// Make sure the new song is played
 				new PlayCurrentSongMessage().Send();
+			}
+		}
+
+		/// <summary>
+		/// Adjust the track numbers to match the indexes in the collection
+		/// </summary>
+		/// <param name="thePlaylist"></param>
+		public static async Task AdjustTrackNumbersAsync( Playlist thePlaylist )
+		{
+			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
+			for ( int index = 0; index < thePlaylist.PlaylistItems.Count; ++index )
+			{
+				PlaylistItem itemToCheck = thePlaylist.PlaylistItems[ index ];
+				if ( itemToCheck.Track != ( index + 1 ) )
+				{
+					itemToCheck.Track = index + 1;
+
+					// Update the item in the model
+					await PlaylistAccess.UpdatePlaylistItemAsync( itemToCheck );
+				}
 			}
 		}
 	}
