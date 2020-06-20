@@ -65,14 +65,14 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the PlaylistsDataAvailableMessage is received
+		/// Called when the PlaylistsController has obtained or updated the playlists held in the model is received
 		/// Display the data held in the Playlists view model
 		/// </summary>
 		/// <param name="message"></param>
 		public void PlaylistsDataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists.ToList() );
 
 		/// <summary>
-		/// Called when the PlaylistSongsAddedMessage is received
+		/// Called when a specific playlist has been updated
 		/// Pass on the changes to the adpater
 		/// </summary>
 		/// <param name="message"></param>

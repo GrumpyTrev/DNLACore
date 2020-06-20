@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Android.Content;
 using Android.Graphics;
 using Android.Views;
@@ -78,6 +80,24 @@ namespace DBTest
 			}
 
 			return false;
+		}
+
+		/// <summary>
+		/// Called when the order of the songs in the playlist have changed
+		/// </summary>
+		/// <param name="list"></param>
+		public void PlaylistUpdated( List< PlaylistItem > newData )
+		{
+			Groups = newData;
+
+			// Make sure that this is a reordering, i.e. if action mode is still active.
+			if ( ActionMode == true )
+			{
+				// Form a collection of the playlist items and their tags and use it to update the selection tags
+				UpdateSelectionTags( Groups.Select( ( object value, int i ) => (value, FormGroupTag( i )) ) );
+			}
+
+			NotifyDataSetChanged();
 		}
 
 

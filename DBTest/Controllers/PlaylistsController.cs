@@ -111,13 +111,7 @@ namespace DBTest
 		/// <param name="items"></param>
 		public static async void MoveItemsDown( Playlist thePlaylist, List<PlaylistItem> items )
 		{
-			// There must be at least one PlayList entry beyond those that are selected. That entry needs to be moved to above the start of the selection
-			PlaylistItem itemToMove = thePlaylist.PlaylistItems[ items.Last().Track ];
-			thePlaylist.PlaylistItems.RemoveAt( items.Last().Track );
-			thePlaylist.PlaylistItems.Insert( items.First().Track - 1, itemToMove );
-
-			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			await BaseController.AdjustTrackNumbersAsync( thePlaylist );
+			await BaseController.MoveItemsDownAsync( thePlaylist, items );
 
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
 		}
@@ -129,13 +123,7 @@ namespace DBTest
 		/// <param name="items"></param>
 		public static async void MoveItemsUp( Playlist thePlaylist, List<PlaylistItem> items )
 		{
-			// There must be at least one PlayList entry above those that are selected. That entry needs to be moved to below the end of the selection
-			PlaylistItem itemToMove = thePlaylist.PlaylistItems[ items.First().Track - 2 ];
-			thePlaylist.PlaylistItems.RemoveAt( items.First().Track - 2 );
-			thePlaylist.PlaylistItems.Insert( items.Last().Track - 1, itemToMove );
-
-			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			await BaseController.AdjustTrackNumbersAsync( thePlaylist );
+			await BaseController.MoveItemsUpAsync( thePlaylist, items );
 
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
 		}

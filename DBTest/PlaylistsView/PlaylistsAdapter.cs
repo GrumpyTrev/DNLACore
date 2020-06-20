@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Android.Content;
 using Android.Views;
 using Android.Widget;
@@ -49,6 +50,13 @@ namespace DBTest
 
 			if ( groupPosition != -1 )
 			{
+				// If action mode is still active then this is most likely being called due to item repositioning.
+				if ( ActionMode == true )
+				{
+					// Form a collection of the playlist items and their tags and use it to update the selection tags
+					UpdateSelectionTags( Groups[ groupPosition ].PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
+				}
+
 				// Is this group expanded
 				if ( adapterModel.ExpandedGroups.Contains( groupPosition ) == true )
 				{

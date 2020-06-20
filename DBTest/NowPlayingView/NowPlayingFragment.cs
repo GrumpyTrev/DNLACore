@@ -46,6 +46,13 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when a the Now Playing playlist has been updated
+		/// Pass on the changes to the adpater
+		/// </summary>
+		/// <param name="message"></param>
+		public void PlaylistUpdated() => ( ( NowPlayingAdapter )Adapter ).PlaylistUpdated( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.ToList() );
+
+		/// <summary>
 		/// Called when a song has been selected by the user
 		/// Pass this change to the controller
 		/// </summary>
@@ -129,10 +136,19 @@ namespace DBTest
 		/// <param name="button"></param>
 		protected override async void HandleCommand( int commandId )
 		{
+			List<PlaylistItem> selectedItems = Adapter.SelectedItems.Values.OfType<PlaylistItem>().ToList();
 			if ( commandId == Resource.Id.delete )
 			{
-				NowPlayingController.DeleteNowPlayingItemsAsync( Adapter.SelectedItems.Values.OfType<PlaylistItem>().ToList() );
+				NowPlayingController.DeleteNowPlayingItemsAsync( selectedItems );
 				LeaveActionMode();
+			}
+			else if ( commandId == Resource.Id.move_up )
+			{
+				NowPlayingController.MoveItemsUpAsync( selectedItems );
+			}
+			else if ( commandId == Resource.Id.move_down )
+			{
+				NowPlayingController.MoveItemsDownAsync( selectedItems );
 			}
 		}
 

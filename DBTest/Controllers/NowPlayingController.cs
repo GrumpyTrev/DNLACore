@@ -100,35 +100,77 @@ namespace DBTest
 		/// <param name="items"></param>
 		public static async void DeleteNowPlayingItemsAsync( List<PlaylistItem> items )
 		{
+			// Record the currently selected song so its track number can be checked after the delete
+			PlaylistItem currentPlaylistItem = null;
+
+			// If the currently selected song is going to be deleted then invalidate it now
 			// Only carry out these checks if a song has been selected
 			if ( NowPlayingViewModel.SelectedSong != -1 )
 			{
-				// First check for the deletion of the currently playing song
+				// Check if the items to delete contains the currently selected song
 				if ( items.Any( item => ( item.Track == ( NowPlayingViewModel.SelectedSong + 1 ) ) ) == true )
 				{
-					// The currently playing song is going to be deleted. Set it to invalid
+					// The currently selected song is going to be deleted. Set it to invalid
 					SetSelectedSongAsync( -1 );
 				}
 				else
 				{
-					// Count the number of items that are going to be deleted that appear before the currently playing song
-					int earlierTracks = items.Count( item => ( item.Track <= NowPlayingViewModel.SelectedSong ) );
-					if ( earlierTracks > 0 )
-					{
-						// Adjust the currently playing song by the number of items prior to it in the list that are being deleted
-						SetSelectedSongAsync( NowPlayingViewModel.SelectedSong - earlierTracks, false );
-					}
+					// Save the current item
+					currentPlaylistItem = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.SelectedSong ];
 				}
 			}
 
-			// Now delete the entries and report that the list has been updated
+			// Delete the entries and report that the list has been updated
 			await PlaylistAccess.DeletePlaylistItemsAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
 
 			// Adjust the track numbers
 			await BaseController.AdjustTrackNumbersAsync( NowPlayingViewModel.NowPlayingPlaylist );
 
+			// Determine the index of the currently selected song from it's possibly new track number
+			AdjustSelectedSongIndex( currentPlaylistItem );
+
+			// Report
 			Reporter?.NowPlayingDataAvailable();
 		}
+
+		/// <summary>
+		/// Move a set of selected items down the Now Playing playlist and update the track numbers
+		/// </summary>
+		/// <param name="items"></param>
+		public static async void MoveItemsDownAsync( List<PlaylistItem> items )
+		{
+			// Record the currently selected song so its track number can be checked after the move
+			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null
+				: NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.SelectedSong ];
+
+			await BaseController.MoveItemsDownAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
+
+			// Now adjust the index of the selected song
+			AdjustSelectedSongIndex( currentPlaylistItem );
+
+			// Report that the playlist has been updated - don't use NowPlayingDataAvailable as that will clear the selections
+			Reporter?.PlaylistUpdated();
+		}
+
+		/// <summary>
+		/// Move a set of selected items up the Now Playing playlist and update the track numbers
+		/// </summary>
+		/// <param name="items"></param>
+		public static async void MoveItemsUpAsync( List<PlaylistItem> items )
+		{
+			// Record the currently selected song so its track number can be checked after the move
+			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null
+				: NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.SelectedSong ];
+
+			await BaseController.MoveItemsUpAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
+
+			// Now adjust the index of the selected song
+			AdjustSelectedSongIndex( currentPlaylistItem );
+
+			// Report that the playlist has been updated - don't use NowPlayingDataAvailable as that will clear the selections
+			Reporter?.PlaylistUpdated();
+		}
+
 
 		/// <summary>
 		/// Called when the NowPlayingSongsAddedMessage is received
@@ -166,6 +208,23 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Adjust the index of the currently selected song if it does not match the adjusted track number of the song
+		/// </summary>
+		/// <param name="selectedSong"></param>
+		private static void AdjustSelectedSongIndex( PlaylistItem selectedSong )
+		{
+			if ( selectedSong != null )
+			{
+				int newSelectedIndex = selectedSong.Track - 1;
+
+				if ( newSelectedIndex != NowPlayingViewModel.SelectedSong )
+				{
+					SetSelectedSongAsync( newSelectedIndex, false );
+				}
+			}
+		}
+
+		/// <summary>
 		/// The random number generator used to shuffle the list
 		/// </summary>
 		private static Random rng = new Random();
@@ -185,6 +244,7 @@ namespace DBTest
 		{
 			void NowPlayingDataAvailable();
 			void SongSelected();
+			void PlaylistUpdated();
 		}
 	}
 }
