@@ -22,7 +22,7 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when the filepath and modified time for a song have been determined
-		/// If it's a exisiting song with the same modified time then the song does not require any further scanning
+		/// If it's a existing song with the same modified time then the song does not require any further scanning
 		/// Otherwise let scanning continue
 		/// </summary>
 		/// <param name="filepath"></param>
@@ -48,6 +48,7 @@ namespace DBTest
 					// Song was found but has changed in some way
 					matchedSong.ScanAction = Song.ScanActionType.Differ;
 				}
+
 			}
 
 			return scanRequired;
@@ -65,12 +66,15 @@ namespace DBTest
 			// Lookup the path of this song in the dictionary
 			if ( ( songLookup.TryGetValue( song.SourcePath, out Song matchedSong ) == true ) && ( matchedSong.ScanAction == Song.ScanActionType.Differ ) )
 			{
-				// Get the associated ArtistAlbum and Album entries
-				ArtistAlbum artistAlbum = await ArtistAccess.GetArtistAlbumAsync( matchedSong.ArtistAlbumId );
-				Album album = await AlbumAccess.GetAlbumAsync( artistAlbum.AlbumId );
+				// Need to check whether the matched Artist or Album names have changed. If they have then treat this as a new song and mark
+				// the matched song for deletion
+				// Previously the artist name stored in the existing Album object was used to check for an artist naem change. Use the Artist record instead
+				// as the name in the Albm record may be "Various Artists" for instance.
+				ArtistAlbum matchedArtistAlbum = await ArtistAccess.GetArtistAlbumAsync( matchedSong.ArtistAlbumId );
+				Artist matchedArtist = await ArtistAccess.GetArtistAsync( matchedArtistAlbum.ArtistId );
 
 				// If the artist or album name has changed then treat this as a new song. Otherwise update the existing song in the library
-				if ( ( album.ArtistName.ToUpper() != song.ArtistName.ToUpper() ) || ( album.Name.ToUpper() != song.Tags.Album.ToUpper() ) )
+				if ( ( matchedArtist.Name.ToUpper() != song.ArtistName.ToUpper() ) || ( matchedArtistAlbum.Name.ToUpper() != song.Tags.Album.ToUpper() ) )
 				{
 					// Mark the existing song for deletion
 					matchedSong.ScanAction = Song.ScanActionType.NotMatched;
@@ -84,6 +88,29 @@ namespace DBTest
 					await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedSong );
 
 					needsAdding = false;
+
+					// Check if the year field on the album needs updating
+					// Don't update the Album if it is a 'various artists' album as the year is not applicable
+					Album matchedAlbum = await AlbumAccess.GetAlbumAsync( matchedArtistAlbum.AlbumId );
+
+					if ( matchedAlbum.ArtistName != SongStorage.VariousArtistsString )
+					{
+						// Update the stored year if it is different to the artist year and the artist year is defined.
+						// Log when a valid year is overwritten by different year
+						if ( matchedAlbum.Year != song.Year )
+						{
+							if ( song.Year != 0 )
+							{
+								if ( matchedAlbum.Year != 0 )
+								{
+									Logger.Log( string.Format( "Album year is {0} song year is {1}", matchedAlbum.Year, song.Year ) );
+								}
+
+								matchedAlbum.Year = song.Year;
+								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
+							}
+						}
+					}
 				}
 			}
 

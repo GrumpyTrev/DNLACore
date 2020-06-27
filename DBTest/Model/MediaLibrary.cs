@@ -162,6 +162,8 @@ namespace DBTest
 
 		public bool Played { get; set; } = false;
 
+		public int Year { get; set; } = 0;
+
 		/// <summary>
 		/// The rating is from 0 (bad) to 4 (bril)
 		/// </summary>

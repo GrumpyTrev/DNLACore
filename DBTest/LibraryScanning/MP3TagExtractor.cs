@@ -330,8 +330,8 @@ namespace DBTest
 		private static void ReadFrames( BinaryReader reader, int majorVersion, int maxPosition, MP3Tags tags )
 		{
 			// These are the tags that are currently being searched for
-			HashSet<string> requiredTags = ( majorVersion == 2 ) ? new HashSet<string>() { "TP1", "TP2", "TT2", "TAL", "TRK" } 
-					: new HashSet<string>() { "TPE1", "TPE2", "TIT2", "TALB", "TRCK" };
+			HashSet<string> requiredTags = ( majorVersion == 2 ) ? new HashSet<string>() { "TP1", "TP2", "TT2", "TAL", "TRK", "TYE" } 
+					: new HashSet<string>() { "TPE1", "TPE2", "TIT2", "TALB", "TRCK", "TYER" };
 
 			int nameSize = ( majorVersion == 2 ) ? 3 : 4;
 
@@ -390,6 +390,7 @@ namespace DBTest
 				tags.Title = GetStringTag( frames, "TT2" );
 				tags.Album = GetStringTag( frames, "TAL" );
 				tags.Track = GetStringTag( frames, "TRK" );
+				tags.Year = GetStringTag( frames, "TYE" );
 			}
 			else
 			{
@@ -398,6 +399,7 @@ namespace DBTest
 				tags.Title = GetStringTag( frames, "TIT2" );
 				tags.Album = GetStringTag( frames, "TALB" );
 				tags.Track = GetStringTag( frames, "TRCK" );
+				tags.Year = GetStringTag( frames, "TYER" );
 			}
 
 			//			Log.WriteLine( LogPriority.Debug, "MobileApp:ReadFrames", string.Format( "Artist: {0} Title: {1} Album: {2} Track: {3}", tags.Artist, tags.Title, tags.Album,
@@ -513,5 +515,6 @@ namespace DBTest
 		public string Track { get; set; } = "";
 		public string AlbumArtist { get; set; } = "";
 		public TimeSpan Length { get; set; } = new TimeSpan();
+		public string Year { get; set; } = "";
 	}
 }

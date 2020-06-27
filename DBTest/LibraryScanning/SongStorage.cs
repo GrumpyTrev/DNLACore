@@ -144,6 +144,21 @@ namespace DBTest
 				string[] artists = song.Tags.Artist.Split( '/' );
 				song.ArtistName = artists[ 0 ];
 			}
+
+			// Replace an empty Year with 0
+			if ( song.Tags.Year.Length == 0 )
+			{
+				song.Tags.Year = "0";
+			}
+
+			// Parse the year field to an integer year number
+			try
+			{
+				song.Year = Int32.Parse( song.Tags.Year );
+			}
+			catch ( Exception )
+			{
+			}
 		}
 
 		/// <summary>
@@ -183,7 +198,7 @@ namespace DBTest
 				// If there is an existing ArtistAlbum then use it as it will be for the correct Artist, i.e. not cleared above
 				if ( songArtistAlbum == null )
 				{
-					// Find an exisiting or create a new ArtistAlbum entry
+					// Find an existing or create a new ArtistAlbum entry
 					songArtistAlbum = await GetArtistAlbumToHoldSongsAsync( songArtist, songAlbum );
 				}
 
@@ -194,8 +209,8 @@ namespace DBTest
 				};
 				await ArtistAccess.AddSongAsync( songToAdd );
 
-				Logger.Log( string.Format( "Artist: {0} Title: {1} Track: {2} Modified: {3} Length {4}", songScanned.Tags.Artist, songScanned.Tags.Title,
-					songScanned.Tags.Track, songScanned.Modified, songScanned.Length ) );
+				Logger.Log( string.Format( "Artist: {0} Title: {1} Track: {2} Modified: {3} Length {4} Year {5}", songScanned.Tags.Artist, songScanned.Tags.Title,
+					songScanned.Tags.Track, songScanned.Modified, songScanned.Length, songScanned.Year ) );
 
 				// Add to the Album
 				songAlbum.Songs.Add( songToAdd );
@@ -210,7 +225,20 @@ namespace DBTest
 					// The artist has already been stored - check if it is the same artist
 					if ( songAlbum.ArtistName != songArtist.Name )
 					{
-						songAlbum.ArtistName = "Various Artists";
+						songAlbum.ArtistName = VariousArtistsString;
+					}
+				}
+
+				// Update the album year if not already set and this song has a year set
+				if ( songAlbum.Year != songScanned.Year )
+				{
+					if ( songAlbum.Year == 0 )
+					{
+						songAlbum.Year = songScanned.Year;
+					}
+					else
+					{
+						Logger.Log( string.Format( "Album year is {0} song year is {1}", songAlbum.Year, songScanned.Year ) );
 					}
 				}
 
@@ -238,7 +266,7 @@ namespace DBTest
 		{
 			Album songAlbum = null;
 
-			string artistName = ( album.SingleArtist == true ) ? album.Songs[ 0 ].ArtistName : "Various Artists";
+			string artistName = ( album.SingleArtist == true ) ? album.Songs[ 0 ].ArtistName : VariousArtistsString;
 
 			// Check if the artist already exists in the library. The 'scanLibrary' can be used for this search as it is already fully populated with the 
 			// artists
@@ -363,6 +391,11 @@ namespace DBTest
 
 			return songArtistAlbum;
 		}
+
+		/// <summary>
+		/// The name given to the artist in albums when they contain songs from multiple artists
+		/// </summary>
+		public const string VariousArtistsString = "Various Artists";
 
 		/// <summary>
 		/// The Source to insert Songs into

@@ -14,7 +14,7 @@ namespace DBTest
 	class AlbumsAdapter: ExpandableListAdapter< Album >, ISectionIndexer
 	{
 		/// <summary>
-		/// AlbumsAdapter constructor. Set up a long click listener and the group expander helper class
+		/// AlbumsAdapter constructor
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
@@ -101,7 +101,7 @@ namespace DBTest
 				convertView = null;
 			}
 
-			// If no view supplied, or unuasable, then create a new one
+			// If no view supplied, or unusable, then create a new one
 			if ( convertView == null )
 			{
 				convertView = inflator.Inflate( Resource.Layout.albums_song_layout, null );
@@ -109,7 +109,7 @@ namespace DBTest
 
 			Song item = Groups[ groupPosition ].Songs[ childPosition ];
 
-			// Display the Tarck, Title and Duration
+			// Display the Track, Title and Duration
 			convertView.FindViewById<TextView>( Resource.Id.track ).Text = item.Track.ToString();
 			convertView.FindViewById<TextView>( Resource.Id.title ).Text = item.Title;
 			convertView.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( item.Length ).ToString( @"mm\:ss" );
@@ -139,26 +139,26 @@ namespace DBTest
 				convertView = inflator.Inflate( Resource.Layout.albums_album_layout, null );
 			}
 
-			// Display the album and artist name
+			// Display the album, artist name and album year
 			Album displayAlbum = Groups[ groupPosition ];
 
 			TextView albumText = convertView.FindViewById<TextView>( Resource.Id.albumName );
 			TextView artistText = convertView.FindViewById<TextView>( Resource.Id.artist );
+			TextView yearText = convertView.FindViewById<TextView>( Resource.Id.year );
 
-			// If the album has been played then display these fields in grey text
+			// If the album has been played then display the album text grey text
 			if ( displayAlbum.Played == true )
 			{
 				albumText.SetTextColor( Color.Gray );
-				artistText.SetTextColor( Color.Gray );
 			}
 			else
 			{
 				albumText.SetTextColor( Color.Black );
-				artistText.SetTextColor( Color.Black );
 			}
 
 			albumText.Text = displayAlbum.Name;
 			artistText.Text = ( displayAlbum.ArtistName.Length > 0 ) ? displayAlbum.ArtistName : "Unknown";
+			yearText.Text = ( displayAlbum.Year == 0 ) ? "" : displayAlbum.Year.ToString();
 
 			return convertView;
 		}
