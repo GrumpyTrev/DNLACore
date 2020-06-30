@@ -122,23 +122,22 @@ namespace DBTest
 						ArtistAlbum artistAlbum = await ArtistAccess.GetArtistAlbumAsync( id );
 						await ArtistAccess.DeleteArtistAlbumAsync( artistAlbum );
 
+						// Does the associated Artist have any other Albums
+						if ( ( await ArtistAccess.GetArtistAlbumsReferencingArtistAsync( artistAlbum.ArtistId ) ).Count == 0 )
+						{
+							// Delete the Artist
+							await ArtistAccess.DeleteArtistAsync( artistAlbum.ArtistId );
+						}
+
 						// Does any other ArtistAlbum reference the Album
 						if ( ( await ArtistAccess.GetArtistAlbumsReferencingAlbumAsync( artistAlbum.AlbumId ) ).Count == 0 )
 						{
 							// Not referenced by any ArtistAlbum. so delete it
 							await AlbumAccess.DeleteAlbumAsync( artistAlbum.AlbumId );
 							deletedAlbumIds.Add( artistAlbum.AlbumId );
-
-							// Does the associated Artist have any other Albums
-							if ( ( await ArtistAccess.GetArtistAlbumsReferencingArtistAsync( artistAlbum.ArtistId ) ).Count == 0 )
-							{
-								// Delete the Artist
-								await ArtistAccess.DeleteArtistAsync( artistAlbum.ArtistId );
-							}
 						}
 					}
 				}
-
 			} );
 
 			if ( deletedAlbumIds.Count > 0 )
