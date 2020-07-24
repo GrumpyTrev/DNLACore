@@ -248,7 +248,7 @@ namespace DBTest
 		/// Show or hide associated UI elements
 		/// </summary>
 		/// <param name="count"></param>
-		public void ExpandedGroupCountChanged( int count )
+		public virtual void ExpandedGroupCountChanged( int count )
 		{
 			expandedGroupCount = count;
 

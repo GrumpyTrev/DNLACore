@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DBTest
 {
@@ -49,8 +50,11 @@ namespace DBTest
 			// Temporary registrations first
 			if ( internalList.ContainsKey( messageType ) == true )
 			{
+				// Make a copy of the list of actions in case the callback modifies it
+				List < Action<object> > internalListCopy = new List<Action<object>> ( internalList[ messageType ] );
+
 				// Forward the message to all registered listeners
-				foreach ( Action<object> callback in internalList[ messageType ] )
+				foreach ( Action<object> callback in internalListCopy )
 				{
 					callback( message );
 				}
@@ -59,8 +63,11 @@ namespace DBTest
 			// Now permanent
 			if ( permanentList.ContainsKey( messageType ) == true )
 			{
+				// Make a copy of the list of actions in case the callback modifies it
+				List<Action<object>> permanentListCopy = new List<Action<object>>( permanentList[ messageType ] );
+
 				// Forward the message to all registered listeners
-				foreach ( Action<object> callback in permanentList[ messageType ] )
+				foreach ( Action<object> callback in permanentListCopy )
 				{
 					callback( message );
 				}

@@ -65,8 +65,8 @@
     <Compile Include="AlbumsView\AlbumsViewModel.cs" />
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
-    <Compile Include="AlbumsView\AlbumSortSelector.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
+    <Compile Include="BaseView\SortSelector.cs" />
     <Compile Include="CommonUI\CommandToolbar.cs" />
     <Compile Include="Controllers\AlbumsController.cs" />
     <Compile Include="Controllers\ArtistsController.cs" />
@@ -117,6 +117,7 @@
     <Compile Include="LibraryScanning\SongStorage.cs" />
     <Compile Include="Messages\AlbumAddedMessageo.cs" />
     <Compile Include="Messages\AlbumsDeletedMessage.cs" />
+    <Compile Include="Messages\AlbumDataAvailableMessage.cs" />
     <Compile Include="Messages\PlayCurrentSongMessage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
     <Compile Include="Messages\PlaylistDeletedMessage.cs" />
@@ -220,11 +221,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\artists_artist_layout.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\artists_album_layout.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
@@ -388,6 +384,23 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\duplicate.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\artists_album_group_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\toolbarButton.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\sort_by_year_ascending.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\sort_by_year_descending.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

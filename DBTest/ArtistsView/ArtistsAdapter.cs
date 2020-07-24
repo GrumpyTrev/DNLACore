@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Android.Content;
 using Android.Graphics;
 using Android.Views;
@@ -8,7 +8,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class ArtistsAdapter : ExpandableListAdapter<Artist>, ISectionIndexer
+	class ArtistsAdapter : ExpandableListAdapter<object>
 	{
 		/// <summary>
 		/// ArtistsAdapter constructor.
@@ -16,10 +16,9 @@ namespace DBTest
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public ArtistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Artist> provider, IAdapterActionHandler actionHandler ) :
+		public ArtistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<object> provider, IAdapterActionHandler actionHandler ) :
 			base( context, parentView, provider, ArtistsAdapterModel.BaseModel, actionHandler )
 		{
-			albumColour = context.Resources.GetColor( Resource.Color.colorArtistAlbum );
 		}
 
 		/// <summary>
@@ -27,53 +26,79 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].Contents.Count;
-
-		/// <summary>
-		/// Get the starting position for a section
-		/// </summary>
-		/// <param name="sectionIndex"></param>
-		/// <returns></returns>
-		public int GetPositionForSection( int sectionIndex ) => alphaIndexer[ sections[ sectionIndex ] ];
-
-		/// <summary>
-		/// Get the section that the specified position is in
-		/// </summary>
-		/// <param name="position"></param>
-		/// <returns></returns>
-		public int GetSectionForPosition( int position )
+		public override int GetChildrenCount( int groupPosition )
 		{
-			int index = 0;
-			bool positionFound = false;
+			int count = 0;
 
-			while ( ( positionFound == false ) && ( index < sections.Length ) )
+			// Only attempt to give a non-zero count if the group is an ArtistAlbum
+			if ( Groups[ groupPosition ] is ArtistAlbum artistAlbum )
 			{
-				positionFound = ( GetPositionForSection( index++ ) > position );
+				count = artistAlbum.Songs?.Count ?? 0;
 			}
 
-			return ( positionFound == true ) ? index -= 1 : 0;
+			return count;
 		}
 
 		/// <summary>
-		/// Return the names of all the sections
+		/// Override the base method in order to process Artist groups differently
 		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="clickedView"></param>
+		/// <param name="groupPosition"></param>
+		/// <param name="id"></param>
 		/// <returns></returns>
-		public Java.Lang.Object[] GetSections() => new Java.Util.ArrayList( alphaIndexer.Keys ).ToArray();
+		public override bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
+		{
+			bool retVal = true;
+
+			if ( Groups[ groupPosition ] is Artist artist )
+			{
+				// If the Artist group is collapsed then expand all the ArtistAlbum groups that are collapsed
+				// If the Artist group is expanded then collapse all the ArtistAlbum groups that are expanded
+				bool expandGroup = ( parent.IsGroupExpanded( groupPosition ) == false );
+
+				// Expand or collapse all of the ArtistAlbums associated with the Artist
+				for ( int albumIndex = 1; albumIndex <= artist.ArtistAlbums.Count; albumIndex++ )
+				{
+					if ( parent.IsGroupExpanded( groupPosition + albumIndex ) != expandGroup )
+					{
+						base.OnGroupClick( parent, clickedView, groupPosition + albumIndex, id );
+					}
+				}
+			}
+			else
+			{
+				retVal = base.OnGroupClick( parent, clickedView, groupPosition, id );
+			}
+
+			return retVal;
+		}
 
 		/// <summary>
-		/// Update the data and associated sections displayed by the list view
+		/// Create an index from the Groups data taking into account whether or not they are expanded
 		/// </summary>
-		/// <param name="newData"></param>
-		/// <param name="alphaIndex"></param>
-		public void SetData( List<Artist> newData, Dictionary<string, int> alphaIndex )
+		protected override void SetGroupIndex()
 		{
-			alphaIndexer = alphaIndex;
+			alphaIndexer.Clear();
 
-			// Save a sorted copy of the keys
+			if ( SortType == SortSelector.SortType.alphabetic )
+			{
+				// Work out the section indexes for the sorted data
+				int index = 0;
+				foreach ( object groupObject in Groups )
+				{
+					if ( groupObject is Artist artist )
+					{
+						// Remember to ignore leading 'The ' here as well
+						alphaIndexer.TryAdd( artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper(), index );
+					}
+
+					index++;
+				}
+			}
+
+			// Save a copy of the keys
 			sections = alphaIndexer.Keys.ToArray();
-			Array.Sort( sections );
-
-			SetData( newData );
 		}
 
 		/// <summary>
@@ -88,59 +113,17 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
-			// The child can be either a ArtistAlbum or a Song which use different layouts
-			object childObject = Groups[ groupPosition ].Contents[ childPosition ];
-			if ( ( childObject is ArtistAlbum ) == true )
+			// If no view is supplied, or the supplied view does not contain a song title field then create a new view
+			if ( convertView?.FindViewById<TextView>( Resource.Id.title ) == null )
 			{
-				// If the supplied view previously contained a Song then don't use it
-				if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.albumName ) == null ) )
-				{
-					convertView = null;
-				}
-
-				// If no view supplied, or unusable, then create a new one
-				if ( convertView == null )
-				{
-					convertView = inflator.Inflate( Resource.Layout.artists_album_layout, null );
-				}
-
-				// Set the album text and colour
-				TextView albumText = convertView.FindViewById<TextView>( Resource.Id.albumName );
-				ArtistAlbum artAlbum = ( ArtistAlbum )childObject;
-
-				// Text is the name of the album but colour depends on whether or not the associated album has been played 
-				albumText.Text = artAlbum.Name;
-
-				if ( artAlbum.Album.Played == true )
-				{
-					albumText.SetTextColor( Color.Gray );
-				}
-				else
-				{
-					albumText.SetTextColor( albumColour );
-				}
+				convertView = inflator.Inflate( Resource.Layout.artists_song_layout, null );
 			}
-			else
-			{
-				// If the supplied view previously contained an ArtistAlbum then don't use it
-				if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.title ) == null ) )
-				{
-					convertView = null;
-				}
 
-				// If no view supplied, or unuasable, then create a new one
-				if ( convertView == null )
-				{
-					convertView = inflator.Inflate( Resource.Layout.artists_song_layout, null );
-				}
-
-				Song songItem = ( Song )childObject;
-
-				// Display the Track number, Title and Duration
-				convertView.FindViewById<TextView>( Resource.Id.track ).Text = songItem.Track.ToString();
-				convertView.FindViewById<TextView>( Resource.Id.title ).Text = songItem.Title;
-				convertView.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
-			}
+			// Display the Track number, Title and Duration
+			Song songItem = ( Groups[ groupPosition ] as ArtistAlbum ).Songs[ childPosition ];
+			convertView.FindViewById<TextView>( Resource.Id.track ).Text = songItem.Track.ToString();
+			convertView.FindViewById<TextView>( Resource.Id.title ).Text = songItem.Title;
+			convertView.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
 
 			return convertView;
 		}
@@ -155,139 +138,117 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
-			// If the supplied view previously contained other than an Artits then don't use it
-			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.artistName ) == null ) )
+			// Display either an Artist or ArtistAlbum according to the type of the object
+			if ( Groups[ groupPosition ] is Artist )
 			{
-				convertView = null;
-			}
+				// If no view is supplied, or the supplied view previously contained other than an Artist then create a new view
+				if ( convertView?.FindViewById<TextView>( Resource.Id.artistName ) == null )
+				{
+					convertView = inflator.Inflate( Resource.Layout.artists_artist_layout, null );
+				}
 
-			// If no view supplied, or unusable, then create a new one
-			if ( convertView == null )
+				// Display the artist's name
+				convertView.FindViewById<TextView>( Resource.Id.artistName ).Text = ( Groups[ groupPosition ] as Artist ).Name;
+			}
+			else
 			{
-				convertView = inflator.Inflate( Resource.Layout.artists_artist_layout, null );
-			}
+				// Assuming here that it must be an ArtistAlbum
+				// If no view supplied, or the supplied view previously contained a Song then create a new view
+				if ( convertView?.FindViewById<TextView>( Resource.Id.albumName ) == null )
+				{
+					convertView = inflator.Inflate( Resource.Layout.artists_album_group_layout, null );
+				}
 
-			// Display the artist's name
-			convertView.FindViewById<TextView>( Resource.Id.artistName ).Text = Groups[ groupPosition ].Name;
+				// Set the album text and colour
+				TextView albumName = convertView.FindViewById<TextView>( Resource.Id.albumName );
+				TextView albumYear = convertView.FindViewById<TextView>( Resource.Id.albumYear );
+
+				// Save the default colours if not already done so
+				if ( ColoursInitialised == false )
+				{
+					albumNameColour = new Color( albumName.CurrentTextColor );
+					albumYearColour = new Color( albumYear.CurrentTextColor );
+					ColoursInitialised = true;
+				}
+
+				// A very nasty workaround here. If action mode is in effect then remove the AlignParentLeft from the album name.
+				// When the Checkbox is being shown then the album name can be positioned between the checkbox and the album year, 
+				// but when there is no checkbox this does not work and the name has to be aligned with the parent.
+				// This seems to be too complicated for static layout
+				( ( RelativeLayout.LayoutParams )albumName.LayoutParameters ).AddRule( LayoutRules.AlignParentLeft,
+					( ActionMode == true ) ? 0 : 1 );
+
+				ArtistAlbum artAlbum = Groups[ groupPosition ] as ArtistAlbum;
+
+				// Text is the name and year of the album but colour depends on whether or not the associated album has been played 
+				albumName.Text = artAlbum.Name;
+				albumYear.Text = ( artAlbum.Album.Year > 0 ) ? artAlbum.Album.Year.ToString() : " ";
+
+				albumName.SetTextColor( ( artAlbum.Album.Played == true ) ? Color.Gray : albumNameColour );
+				albumYear.SetTextColor( ( artAlbum.Album.Played == true ) ? Color.Gray : albumYearColour );
+			}
 
 			return convertView;
 		}
 
 		/// <summary>
-		/// Get the data item at teh specified position. If the childPosition is -1 then the group item is required
+		/// Get the data item at the specified position. If the childPosition is -1 then the group item is required
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition ) => 
-			( childPosition == 0xFFFF ) ? Groups[ groupPosition ] : Groups[ groupPosition ].Contents[ childPosition ];
+		protected override object GetItemAt( int groupPosition, int childPosition ) =>
+			( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : ( object )( Groups[ groupPosition ] as ArtistAlbum ).Songs[ childPosition ];
 
 		/// <summary>
-		/// The base implementation selects or deselects the containing group according to the state of its children
-		/// For the library things aren't so simple.
-		/// The children are made up of one or more ArtistAlbum items and their associated Song items
-		/// If the changed item is an ArtstAlbum then all of its child Song entries must be updated to reflect its state. If the ArtistAlbum is
-		/// being deselected then the Artist group may also need to be deselected. If the ArtistAlbum is being selected then all of the Artist's
-		/// child items need to be checked in case the Artist needs to be selected.
-		/// If the changed item is a Song and it is being deselected then its AlbumArtist may need to be deselected and the Artist may need to be 
-		/// deselected. If the Song is being selected then all the AlbumArtist's Songs need to be checked in case the AlbumArtist needs
-		/// to be selected, this also applies to the Artist group.
+		/// Called when a group has been selected or deselected to allow derived classes to perform their own processing
+		/// If an Artist has been selected then select all of its associated ArtistAlbum entries.
+		/// If an Artist has been deselected then deselect all of its associated ArtistAlbum entries.
+		/// If an ArtistAlbum has been selected then check if all the Artist's ArtistAlbum entries have been selected and if so select the Artist
+		/// If an ArtistAlbum has been deselected then deselect the Artist
 		/// </summary>
 		/// <param name="groupPosition"></param>
-		/// <param name="childPosition"></param>
 		/// <param name="selected"></param>
-		protected override bool UpdateGroupSelectionState( int groupPosition, int childPosition, bool selected )
+		protected override async Task<bool> GroupSelectionHasChanged( int groupPosition, bool selected )
 		{
-			// Keep track of whether the group selection state has changed
 			bool selectionChanged = false;
 
-			// Need to determine the position of the ArtistAlbum associated with the selected items and the number of Songs associated with it
-			int artistAlbumPosition = -1;
-
-			if ( ( Groups[ groupPosition ].Contents[ childPosition ] is ArtistAlbum ) == true )
+			if ( Groups[ groupPosition ] is Artist artist )
 			{
-				artistAlbumPosition = childPosition;
+				for ( int albumIndex = 1; albumIndex <= artist.ArtistAlbums.Count; ++albumIndex )
+				{
+					selectionChanged |= RecordItemSelection( FormGroupTag( groupPosition + albumIndex ), selected );
+					selectionChanged |= await SelectGroupContents( groupPosition + albumIndex, selected );
+				}
 			}
 			else
 			{
-				// Go back up the children until an ArtistAlbum is found
-				int childIndex = childPosition - 1;
-				while ( ( childIndex >= 0 ) && ( artistAlbumPosition == -1 ) )
+				// Need to find the position of the associated Artist and then determine if its selection state also needs changing
+				int artistPosition = groupPosition - 1;
+				while ( Groups[ artistPosition ] is ArtistAlbum )
 				{
-					if ( ( Groups[ groupPosition ].Contents[ childIndex ] is ArtistAlbum ) == true )
-					{
-						artistAlbumPosition = childIndex;
-					}
-					else
-					{
-						childIndex--;
-					}
-				}
-			}
-
-			// Has the ArtistAlbum been found
-			if ( artistAlbumPosition != -1 )
-			{
-				// Now find out how many Songs there are associated with this AlbumArtist. 
-				// This could be 0
-				bool nextArstistAlbumFound = false;
-				int childIndex = artistAlbumPosition + 1;
-				int songCount = 0;
-				while ( ( childIndex < Groups[ groupPosition ].Contents.Count ) && ( nextArstistAlbumFound == false ) )
-				{
-					if ( ( Groups[ groupPosition ].Contents[ childIndex ] is ArtistAlbum ) == true )
-					{
-						nextArstistAlbumFound = true;
-					}
-					else
-					{
-						songCount++;
-						childIndex++;
-					}
+					--artistPosition;
 				}
 
-				// Was the selected item an ArtistAlbum
-				if ( artistAlbumPosition == childPosition )
+				// We now have the position of the Artist, if the ArtistAlbum has been deselected then deselect the Artist as well
+				if ( selected == false )
 				{
-					// Select or deselect all of its children Songs
-					for ( childIndex = 1; childIndex <= songCount; childIndex++ )
-					{
-						selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, artistAlbumPosition + childIndex ), selected );
-					}
-
-					// Reflect these changes in the Artist's state
-					selectionChanged |= base.UpdateGroupSelectionState( groupPosition, 0xFFFF, selected );
+					selectionChanged |= RecordItemSelection( FormGroupTag( artistPosition ), false );
 				}
 				else
 				{
-					// If a Song is deselected then deselect the ArtistAlbum and Artist items
-					if ( selected == false )
+					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all selected then select the Artist as well
+					int artistAlbumCount = ( ( Artist )Groups[ artistPosition ] ).ArtistAlbums.Count;
+
+					int albumIndex = 1;
+					while ( ( albumIndex <= artistAlbumCount ) && ( IsItemSelected( FormGroupTag( artistPosition + albumIndex ) ) == true ) )
 					{
-						selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, artistAlbumPosition ), false );
-						selectionChanged |= RecordItemSelection( FormGroupTag( groupPosition ), false );
+						albumIndex++;
 					}
-					else
+
+					if ( albumIndex > artistAlbumCount )
 					{
-						// If all of the Songs items are now selected then select the ArtistAlbum as well
-						childIndex = 1;
-						bool allSelected = true;
-						while ( ( allSelected == true ) && ( childIndex <= songCount ) )
-						{
-							if ( IsItemSelected( FormChildTag( groupPosition, artistAlbumPosition + childIndex ) ) == false )
-							{
-								allSelected = false;
-							}
-
-							childIndex++;
-						}
-
-						if ( allSelected == true )
-						{
-							selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, artistAlbumPosition ), true );
-
-							// Reflect this change in the Artist's state
-							selectionChanged |= base.UpdateGroupSelectionState( groupPosition, 0xFFFF, true );
-						}
+						selectionChanged |= RecordItemSelection( FormGroupTag( artistPosition ), true );
 					}
 				}
 			}
@@ -296,25 +257,79 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when the collapse state of a group has changed.
+		/// If the group is an ArtistAlbum then check whether or not the parent Artist should be shown as expanded or collapsed
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="groupPosition"></param>
+		protected override void GroupCollapseStateChanged( ExpandableListView parent, int groupPosition )
+		{
+			if ( Groups[ groupPosition ] is ArtistAlbum artistAlbum )
+			{
+				// Find the Artist associated with this ArtistAlbum
+				int artistPosition = groupPosition - 1;
+				while ( Groups[ artistPosition ] is ArtistAlbum )
+				{
+					--artistPosition;
+				}
+
+				// If the ArtistAlbum is now expanded then check if all the other ArtistAlbums are also expanded
+				// If the ArtistAlbum is now collapsed then collapse the Artist
+				if ( parent.IsGroupExpanded( groupPosition ) == true )
+				{
+					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all selected then select the Artist as well
+					int artistAlbumCount = ( ( Artist )Groups[ artistPosition ] ).ArtistAlbums.Count;
+
+					int albumIndex = 1;
+					while ( ( albumIndex <= artistAlbumCount ) && ( parent.IsGroupExpanded( artistPosition + albumIndex ) == true ) )
+					{
+						albumIndex++;
+					}
+
+					if ( albumIndex > artistAlbumCount )
+					{
+						// Add this to the record of which groups are expanded
+						adapterModel.ExpandedGroups.Add( artistPosition );
+
+						// Now expand the group
+						parent.ExpandGroup( artistPosition );
+					}
+				}
+				else
+				{
+					// If the parent is expanded then collapse it
+					if ( parent.IsGroupExpanded( artistPosition ) == true )
+					{
+						adapterModel.ExpandedGroups.Remove( artistPosition );
+
+						// Now collapse the group
+						parent.CollapseGroup( artistPosition );
+					}
+				}
+			}
+		}
+
+
+		/// <summary>
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
 		/// If the item selected when going into Action Mode is not an Artist item then select it
 		/// </summary>
 		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag ) => ( IsGroupTag( tag ) == false );
+		protected override bool SelectLongClickedItem( int tag ) => ( IsGroupTag( tag ) == false ) || ( Groups[ GetGroupFromTag( tag ) ] is ArtistAlbum );
 
 		/// <summary>
-		/// Lookup table specifying the starting position for each section name
+		/// The Colour used to display the name of an album
 		/// </summary>
-		private Dictionary<string, int> alphaIndexer = null;
+		private Color albumNameColour;
 
 		/// <summary>
-		/// List of section names
+		/// The Colour used to display the album year
 		/// </summary>
-		private string[] sections = null;
+		private Color albumYearColour;
 
 		/// <summary>
-		/// The Colour used to display an album
+		/// Have the default album colours been initialised
 		/// </summary>
-		private Color albumColour;
+		private bool ColoursInitialised { get; set; } = false;
 	}
 }

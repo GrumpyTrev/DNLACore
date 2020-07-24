@@ -1,4 +1,5 @@
 ﻿using Android.Support.V7.App;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -30,7 +31,7 @@ namespace DBTest
 		/// Delegate used to report back the result of the filter selection
 		/// </summary>
 		/// <param name="newFilter"></param>
-		public delegate void FilterSelectionDelegate( Tag newFilter );
+		public delegate Task FilterSelectionDelegate( Tag newFilter );
 
 		/// <summary>
 		/// Context to use for building the selection dialogue

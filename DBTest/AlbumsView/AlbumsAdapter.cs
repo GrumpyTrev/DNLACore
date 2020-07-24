@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Android.Content;
 using Android.Graphics;
@@ -11,7 +10,7 @@ namespace DBTest
 	/// <summary>
 	/// The AlbumsAdapter class displays album and song data in an ExpandableListView
 	/// </summary>
-	class AlbumsAdapter: ExpandableListAdapter< Album >, ISectionIndexer
+	class AlbumsAdapter: ExpandableListAdapter< Album >
 	{
 		/// <summary>
 		/// AlbumsAdapter constructor
@@ -32,58 +31,6 @@ namespace DBTest
 		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].Songs?.Count ?? 0;
 
 		/// <summary>
-		/// Get the starting position for a section
-		/// </summary>
-		/// <param name="sectionIndex"></param>
-		/// <returns></returns>
-		public int GetPositionForSection( int sectionIndex ) => alphaIndexer[ sections[ sectionIndex ] ];
-
-		/// <summary>
-		/// Get the section that the specified position is in
-		/// </summary>
-		/// <param name="position"></param>
-		/// <returns></returns>
-		public int GetSectionForPosition( int position )
-		{
-			int prevSection = 0;
-			int index = 0;
-			bool positionFound = false;
-
-			while ( ( positionFound == false ) && ( index < sections.Length ) )
-			{
-				if ( GetPositionForSection( index ) > position )
-				{
-					positionFound = true;
-				}
-				else
-				{
-					prevSection = index++;
-				}
-			}
-
-			return prevSection;
-		}
-
-		/// <summary>
-		/// Return the names of all the sections
-		/// </summary>
-		/// <returns></returns>
-		public Java.Lang.Object[] GetSections() => new Java.Util.ArrayList( alphaIndexer.Keys ).ToArray();
-
-		/// <summary>
-		/// Update the data and associated sections displayed by the list view
-		/// </summary>
-		/// <param name="newData"></param>
-		/// <param name="alphaIndex"></param>
-		public void SetData( List<Album> newData, Dictionary<string, int> alphaIndex )
-		{
-			alphaIndexer = alphaIndex;
-			sections = alphaIndexer.Keys.ToArray();
-
-			SetData( newData );
-		}
-
-		/// <summary>
 		/// Provide a view containing song details at the specified position
 		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
 		/// </summary>
@@ -96,13 +43,7 @@ namespace DBTest
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
 			// If the supplied view previously contained an Album heading then don't use it
-			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.title ) == null ) )
-			{
-				convertView = null;
-			}
-
-			// If no view supplied, or unusable, then create a new one
-			if ( convertView == null )
+			if ( convertView?.FindViewById<TextView>( Resource.Id.title ) == null )
 			{
 				convertView = inflator.Inflate( Resource.Layout.albums_song_layout, null );
 			}
@@ -128,13 +69,7 @@ namespace DBTest
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
 			// If the supplied view previously contained other than an Album then don't use it
-			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.albumName ) == null ) )
-			{
-				convertView = null;
-			}
-
-			// If no view supplied, or unusable, then create a new one
-			if ( convertView == null )
+			if ( convertView?.FindViewById<TextView>( Resource.Id.albumName ) == null )
 			{
 				convertView = inflator.Inflate( Resource.Layout.albums_album_layout, null );
 			}
@@ -147,14 +82,7 @@ namespace DBTest
 			TextView yearText = convertView.FindViewById<TextView>( Resource.Id.year );
 
 			// If the album has been played then display the album text grey text
-			if ( displayAlbum.Played == true )
-			{
-				albumText.SetTextColor( Color.Gray );
-			}
-			else
-			{
-				albumText.SetTextColor( Color.Black );
-			}
+			albumText.SetTextColor( ( displayAlbum.Played == true ) ? Color.Gray : Color.Black );
 
 			albumText.Text = displayAlbum.Name;
 			artistText.Text = ( displayAlbum.ArtistName.Length > 0 ) ? displayAlbum.ArtistName : "Unknown";
@@ -180,13 +108,31 @@ namespace DBTest
 		protected override bool SelectLongClickedItem( int tag ) => true;
 
 		/// <summary>
-		/// Lookup table specifying the starting position for each section name
+		/// Create an index from the Groups data taking into account whether or not they are expanded
 		/// </summary>
-		private Dictionary<string, int> alphaIndexer = null;
+		protected override void SetGroupIndex()
+		{
+			alphaIndexer.Clear();
 
-		/// <summary>
-		/// List of section names
-		/// </summary>
-		private string[] sections = null;
+			if ( ( SortType == SortSelector.SortType.alphabetic ) || ( SortType == SortSelector.SortType.year ) )
+			{
+				// Work out the section indexes for the sorted data
+				int index = 0;
+				foreach ( Album album in Groups )
+				{
+					if ( SortType == SortSelector.SortType.alphabetic )
+					{
+						alphaIndexer.TryAdd( album.Name.RemoveThe().Substring( 0, 1 ).ToUpper(), index++ );
+					}
+					else
+					{
+						alphaIndexer.TryAdd( album.Year.ToString(), index++ );
+					}
+				}
+			}
+
+			// Save a copy of the keys
+			sections = alphaIndexer.Keys.ToArray();
+		}
 	}
 }

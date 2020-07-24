@@ -4,10 +4,12 @@ using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
 using Android.Support.V7.App;
+using System;
 
 namespace DBTest
 {
-	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>, AlbumsController.IReporter
+	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>, AlbumsController.IReporter, 
+		SortSelector.ISortReporter
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -23,39 +25,9 @@ namespace DBTest
 		{
 			inflater.Inflate( Resource.Menu.menu_albums, menu );
 
-			sortItem = menu.FindItem( Resource.Id.sort );
-			sortItem?.SetIcon( AlbumsViewModel.SortSelector.SelectedResource );
+			AlbumsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
 
 			base.OnCreateOptionsMenu( menu, inflater );
-		}
-
-		/// <summary>
-		/// Called when a menu item has been selected
-		/// </summary>
-		/// <param name="item"></param>
-		/// <returns></returns>
-		public override bool OnOptionsItemSelected( IMenuItem item )
-		{
-			bool handled = false;
-
-			if ( item.ItemId == Resource.Id.sort )
-			{
-				// Select the next sort order
-				AlbumsViewModel.SortSelector.SelectNext();
-
-				// Display the next sort option
-				sortItem.SetIcon( AlbumsViewModel.SortSelector.SelectedResource );
-
-				// Redisplay the data with the new sort applied
-				AlbumsController.SortDataAsync( true );
-			}
-
-			if ( handled == false )
-			{
-				handled = base.OnOptionsItemSelected( item );
-			}
-
-			return handled;
 		}
 
 		/// <summary>
@@ -87,7 +59,7 @@ namespace DBTest
 			Activity.RunOnUiThread( () => 
 			{
 				// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-				( ( AlbumsAdapter )Adapter ).SetData( AlbumsViewModel.Albums.ToList(), new Dictionary<string, int>( AlbumsViewModel.AlphaIndex ) );
+				Adapter.SetData( AlbumsViewModel.Albums.ToList(), AlbumsViewModel.SortSelector.ActiveSortType );
 
 				if ( AlbumsViewModel.ListViewState != null )
 				{
@@ -100,6 +72,9 @@ namespace DBTest
 
 				// Update the icon as well
 				SetFilterIcon();
+
+				// Display the current sort order
+				AlbumsViewModel.SortSelector.DisplaySortIcon();
 			} );
 		}
 
@@ -121,6 +96,11 @@ namespace DBTest
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();
 		}
+
+		/// <summary>
+		/// Called when the sort selector has changes the sort order
+		/// </summary>
+		public void SortOrderChanged() => AlbumsController.SortDataAsync( true );
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -198,6 +178,9 @@ namespace DBTest
 			// Remove this object from the controller
 			AlbumsController.Reporter = null;
 
+			// Remove this object from the sort selector
+			AlbumsViewModel.SortSelector.Reporter = null;
+
 			// Save the scroll position 
 			AlbumsViewModel.ListViewState = ListView.OnSaveInstanceState();
 		}
@@ -245,7 +228,7 @@ namespace DBTest
 		/// The delegate used to apply a filter change
 		/// </summary>
 		/// <returns></returns>
-		protected override FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => AlbumsController.ApplyFilterAsync;
+		protected override FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => AlbumsController.ApplyFilterDelegateAsync;
 
 		/// <summary>
 		/// Command handlers
@@ -258,10 +241,5 @@ namespace DBTest
 		/// </summary>
 		private const string NoItemsSelectedText = "Select songs";
 		private const string ItemsSelectedText = "{0} selected";
-
-		/// <summary>
-		/// The sort menu item that is used to control the sort order of the displayed albums
-		/// </summary>
-		private IMenuItem sortItem = null;
 	}
 }

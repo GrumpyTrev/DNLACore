@@ -115,33 +115,10 @@ namespace DBTest
 		public List<ArtistAlbum> ArtistAlbums { get; set; }
 
 		/// <summary>
-		/// Once all the ArtistAlbums have been read this list is used to hold all the ArtistAlbum and Song entries
-		/// in a single list
-		/// </summary>
-		[Ignore]
-		public List<object> Contents { get; } = new List<object>();
-
-		/// <summary>
 		/// Indicates when all the details for the Artist have been read
 		/// </summary>
 		[Ignore]
 		public bool DetailsRead { get; set; } = false;
-
-		/// <summary>
-		/// Add the ArtistAlbum and Song entries associated with this artist to a single list
-		/// </summary>
-		/// <param name="albumIds"></param>
-		public void EnumerateContents( HashSet<int> albumIds )
-		{
-			foreach ( ArtistAlbum album in ArtistAlbums )
-			{
-				if ( ( albumIds == null ) || ( albumIds.Contains( album.AlbumId ) == true ) )
-				{
-					Contents.Add( album );
-					Contents.AddRange( album.Songs );
-				}
-			}
-		}
 	}
 
 	[Table( "Album" )]
@@ -189,6 +166,12 @@ namespace DBTest
 
 		[OneToMany]
 		public List<Song> Songs { get; set; }
+
+		/// <summary>
+		/// This entry is not in the database but needs to be accessed when an ArtistAlbum is selected
+		/// </summary>
+		[Ignore]
+		public Artist Artist { get; set; }
 	}
 
 	[Table( "PlayList" )]

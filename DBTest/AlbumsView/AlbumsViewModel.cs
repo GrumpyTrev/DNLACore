@@ -14,14 +14,13 @@ namespace DBTest
 		public static void ClearModel()
 		{
 			Albums.Clear();
-			AlphaIndex.Clear();
 			UnfilteredAlbums.Clear();
 			AlbumLookup.Clear();
 			LibraryId = -1;
 			ListViewState = null;
 			CurrentFilter = null;
-			SortSelector.CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.alphaAscending;
 			DataValid = false;
+			AlbumDataAvailable = false;
 		}
 
 		/// <summary>
@@ -33,11 +32,6 @@ namespace DBTest
 		/// The list of albums that has been obtained from the database before any sorting or filtering
 		/// </summary>
 		public static List<Album> UnfilteredAlbums { get; set; } = new List<Album>();
-
-		/// <summary>
-		/// Index into the list of Albums
-		/// </summary>
-		public static Dictionary<string, int> AlphaIndex { get; set; } = new Dictionary<string, int>();
 
 		/// <summary>
 		/// Lookup table for the unfiltered albums. Key is the album id.
@@ -67,11 +61,16 @@ namespace DBTest
 		/// <summary>
 		/// Class used to select the album sort order
 		/// </summary>
-		public static AlbumSortSelector SortSelector { get; } = new AlbumSortSelector();
+		public static SortSelector SortSelector { get; } = new SortSelector();
 
 		/// <summary>
 		/// Indicates whether or not the data held by the class is valid
 		/// </summary>
 		public static bool DataValid { get; set; } = false;
+
+		/// <summary>
+		/// Indicates that the basic Album data is availabel to other views
+		/// </summary>
+		public static bool AlbumDataAvailable { get; set; } = false;
 	}
 }

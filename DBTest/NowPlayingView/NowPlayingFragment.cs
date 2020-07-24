@@ -40,7 +40,7 @@ namespace DBTest
 		/// <param name="message"></param>
 		public void NowPlayingDataAvailable()
 		{
-			Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.ToList() );
+			Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.ToList(), SortSelector.SortType.alphabetic );
 
 			( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.SelectedSong );
 		}

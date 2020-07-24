@@ -9,7 +9,7 @@ using Android.Widget;
 namespace DBTest
 {
 	public abstract class ExpandableListAdapter< T > : BaseExpandableListAdapter, AdapterView.IOnItemLongClickListener, 
-		ExpandableListView.IOnChildClickListener, ExpandableListView.IOnGroupClickListener
+		ExpandableListView.IOnChildClickListener, ExpandableListView.IOnGroupClickListener, ISectionIndexer
 	{
 		/// <summary>
 		/// ExpandableListAdapter constructor. Set up a long click listener and the group expander helper class
@@ -133,7 +133,7 @@ namespace DBTest
 		/// Update the data and associated sections displayed by the list view
 		/// </summary>
 		/// <param name="newData"></param>
-		public void SetData( List< T > newData )
+		public void SetData( List< T > newData, SortSelector.SortType sortType )
 		{
 			// If this is the first time data has been set then restore group expansions and the Action Mode.
 			// If data is being replaced then clear all state data related to the previous data
@@ -165,6 +165,10 @@ namespace DBTest
 				Groups = newData;
 				adapterModel.OnClear();
 			}
+
+			// Let the derived adapters initialise an group index
+			SortType = sortType;
+			SetGroupIndex();
 
 			NotifyDataSetChanged();
 		}
@@ -213,6 +217,9 @@ namespace DBTest
 			{
 				parentView.CollapseGroup( adapterModel.LastGroupOpened );
 				parentView.SetSelection( adapterModel.LastGroupOpened );
+
+				GroupCollapseStateChanged( parentView, adapterModel.LastGroupOpened );
+
 				adapterModel.ExpandedGroups.Remove( adapterModel.LastGroupOpened );
 				adapterModel.LastGroupOpened = -1;
 			}
@@ -230,6 +237,9 @@ namespace DBTest
 
 			// Report the new expanded count
 			contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
+
+			// Need to reset the index whenever a group is expanded or collapsed
+			SetGroupIndex();
 		}
 
 		/// <summary>
@@ -251,13 +261,13 @@ namespace DBTest
 		{
 			int tag = ( int )view.Tag;
 
-			// If action mode is not in efect then request it.
+			// If action mode is not in effect then request it.
 			// Otherwise ignore long presses
 			if ( ActionMode == false )
 			{
 				ActionMode = true;
 
-				// Let derived classes know that an
+				// Let derived classes control what happens in addition to just turning on action mode 
 				if ( SelectLongClickedItem( tag ) == true )
 				{
 					OnChildClick( parentView, view, GetGroupFromTag( tag ), GetChildFromTag( tag ), 0 );
@@ -287,7 +297,7 @@ namespace DBTest
 				selectionBox.Checked = !selectionBox.Checked;
 
 				// Raise a click event to do the rest of the processing
-				SelectionBoxClick( selectionBox, new EventArgs() );
+				SelectionBoxClickAsync( selectionBox, new EventArgs() );
 			}
 
 			return false;
@@ -309,6 +319,35 @@ namespace DBTest
 
 			return true;
 		}
+
+		/// <summary>
+		/// Get the starting position for a section
+		/// </summary>
+		/// <param name="sectionIndex"></param>
+		/// <returns></returns>
+		public int GetPositionForSection( int sectionIndex ) => alphaIndexer[ sections[ sectionIndex ] ];
+
+		/// <summary>
+		/// Get the section that the specified position is in
+		/// </summary>
+		/// <param name="position"></param>
+		/// <returns></returns>
+		public int GetSectionForPosition( int position )
+		{
+			int index = 0;
+			while ( ( index < sections.Length ) && ( GetPositionForSection( index ) <= position ) )
+			{
+				index++;
+			}
+
+			return ( index < sections.Length ) ? index : 0;
+		}
+
+		/// <summary>
+		/// Return the names of all the sections
+		/// </summary>
+		/// <returns></returns>
+		public Java.Lang.Object[] GetSections() => new Java.Util.ArrayList( alphaIndexer.Keys ).ToArray();
 
 		/// <summary>
 		/// Derived classes must implement this method to provide a view for a child item
@@ -340,6 +379,31 @@ namespace DBTest
 		protected abstract object GetItemAt( int groupPosition, int childPosition );
 
 		/// <summary>
+		/// Select or deselect all the child items associated with the specified group
+		/// Keep track of whether or not any items have changed - they should have but carry out the check anyway
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="selected"></param>
+		protected virtual async Task<bool> SelectGroupContents( int groupPosition, bool selected )
+		{
+			bool selectionChanged = false;
+
+			// If there are no child items associated with this group call the provider to get the children
+			if ( GetChildrenCount( groupPosition ) == 0 )
+			{
+				// Get the group contents 
+				await contentsProvider.ProvideGroupContentsAsync( Groups[ groupPosition ] );
+			}
+
+			for ( int childIndex = 0; childIndex < GetChildrenCount( groupPosition ); childIndex++ )
+			{
+				selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, childIndex ), selected );
+			}
+
+			return selectionChanged;
+		}
+
+		/// <summary>
 		/// The base implementation selects or deselects the containing group according to the state of its children
 		/// </summary>
 		/// <param name="groupPosition"></param>
@@ -359,18 +423,13 @@ namespace DBTest
 			{
 				// If all of the child items are now selected then select the group as well
 				int childIndex = 0;
-				bool allSelected = true;
-				while ( ( allSelected == true ) && ( childIndex < GetChildrenCount( groupPosition ) ) )
+				while ( ( childIndex < GetChildrenCount( groupPosition ) ) && ( IsItemSelected( FormChildTag( groupPosition, childIndex ) ) == true ) )
 				{
-					if ( IsItemSelected( FormChildTag( groupPosition, childIndex ) ) == false )
-					{
-						allSelected = false;
-					}
-
 					childIndex++;
 				}
 
-				if ( allSelected == true )
+				// If all the children have been iterated then they must all be selected
+				if ( childIndex == GetChildrenCount( groupPosition ) )
 				{
 					selectionChanged = RecordItemSelection( FormGroupTag( groupPosition ), true );
 				}
@@ -456,10 +515,32 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when a group has been selected or deselected to allow derived classes to perform their own processing
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="selected"></param>
+		protected virtual async Task<bool> GroupSelectionHasChanged( int groupPosition, bool selected ) => false;
+
+		/// <summary>
+		/// Called when the collapse state of a group has changed.
+		/// Does nothing in the base class
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="groupPosition"></param>
+		protected virtual void GroupCollapseStateChanged( ExpandableListView parent, int groupPosition )
+		{
+		}
+
+		/// <summary>
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
 		/// </summary>
 		/// <param name="tag"></param>
 		protected virtual bool SelectLongClickedItem( int tag ) => false;
+
+		/// <summary>
+		/// Overriden in derived classes to generate an index for the group
+		/// </summary>
+		protected virtual void SetGroupIndex() {}
 
 		/// <summary>
 		/// Form a tag for a group item
@@ -498,8 +579,8 @@ namespace DBTest
 		protected static int GetGroupFromTag( int tag ) => tag >> 16;
 
 		/// <summary>
-		/// Called to perform the actual group collase or expansion asynchronously
-		/// If a group/artist is being expanded then get its contents if not previously displayed
+		/// Called to perform the actual group collapse or expansion asynchronously
+		/// If a group is being expanded then get its contents if not previously displayed
 		/// Keep track of which groups have been expanded and the last group expanded
 		/// </summary>
 		/// <param name="parent"></param>
@@ -518,6 +599,8 @@ namespace DBTest
 				if ( GetChildrenCount( groupPosition ) != childCount )
 				{
 					// If the group is selected then select the new items
+					// N.B. This is not changing the selection state of the group so there is no need for derived classes
+					// to do any group selection processing
 					if ( IsItemSelected( FormGroupTag( groupPosition ) ) == true )
 					{
 						await SelectGroupContents( groupPosition, true );
@@ -542,8 +625,14 @@ namespace DBTest
 				parent.CollapseGroup( groupPosition );
 			}
 
+			// Let the derived classes process the group's new state
+			GroupCollapseStateChanged( parent, groupPosition );
+
 			// Report the new expanded count
 			contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
+
+			// Need to reset the index whenever a group is expanded or collapsed
+			SetGroupIndex();
 		}
 
 		/// <summary>
@@ -552,7 +641,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private async void SelectionBoxClick( object sender, EventArgs e )
+		private async void SelectionBoxClickAsync( object sender, EventArgs e )
 		{
 			int tag = ( int )( ( CheckBox )sender ).Tag;
 			int groupPosition = GetGroupFromTag( tag );
@@ -560,18 +649,30 @@ namespace DBTest
 			// Toggle the selection
 			RecordItemSelection( tag, !IsItemSelected( tag ) );
 
+			// Get the new selection state
+			bool selected = IsItemSelected( tag );
+
 			// Keep track of whether or not any other items are selected as this will require the NotifyDataSetChanged method to be called
 			bool selectionChanged = false;
 
 			// If this is a group item then select or deselect all of its children
 			if ( IsGroupTag( tag ) == true )
 			{
-				selectionChanged = await SelectGroupContents( groupPosition, IsItemSelected( tag ) );
+				selectionChanged = await SelectGroupContents( groupPosition, selected );
+
+				// Let derived classes carry out any extra processing required due to the selection or deselection of a group
+				selectionChanged |= await GroupSelectionHasChanged( groupPosition, selected );
 			}
 			else
 			{
 				// Determine how the selection or deselection of a child alters the selection state of the containing group
-				selectionChanged = UpdateGroupSelectionState( groupPosition, GetChildFromTag( tag ), IsItemSelected( tag ) );
+				selectionChanged = UpdateGroupSelectionState( groupPosition, GetChildFromTag( tag ), selected );
+
+				// If the group selection has changed then tell the derived classes
+				if ( selectionChanged == true )
+				{
+					selectionChanged |= await GroupSelectionHasChanged( groupPosition, selected );
+				}
 			}
 
 			if ( selectionChanged == true )
@@ -580,31 +681,6 @@ namespace DBTest
 			}
 
 			stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
-		}
-
-		/// <summary>
-		/// Select or deselect all the child items associated with the specified group
-		/// Keep track of whether or not any items have changed - they should have but carry out hte check anyway
-		/// </summary>
-		/// <param name="groupPosition"></param>
-		/// <param name="selected"></param>
-		private async Task<bool> SelectGroupContents( int groupPosition, bool selected )
-		{
-			bool selectionChanged = false;
-
-			// If there are no child items associated with this group call the provider to get the children
-			if ( GetChildrenCount( groupPosition ) == 0 )
-			{
-				// At the moment 
-				await contentsProvider.ProvideGroupContentsAsync( Groups[ groupPosition ] );
-			}
-
-			for ( int childIndex = 0; childIndex < GetChildrenCount( groupPosition ) ; childIndex++ )
-			{
-				selectionChanged |= RecordItemSelection( FormChildTag( groupPosition, childIndex ), selected );
-			}
-
-			return selectionChanged;
 		}
 
 		/// <summary>
@@ -628,8 +704,8 @@ namespace DBTest
 				selectionBox.Checked = IsItemSelected( tag );
 
 				// Trap checkbox clicks
-				selectionBox.Click -= SelectionBoxClick;
-				selectionBox.Click += SelectionBoxClick;
+				selectionBox.Click -= SelectionBoxClickAsync;
+				selectionBox.Click += SelectionBoxClickAsync;
 			}
 		}
 
@@ -657,6 +733,11 @@ namespace DBTest
 		protected List<T> Groups { get; set; } = new List<T>();
 
 		/// <summary>
+		/// The type of sorting applied to the data - used for indexing
+		/// </summary>
+		protected SortSelector.SortType SortType { get; set; } = SortSelector.SortType.alphabetic;
+
+		/// <summary>
 		/// Inflator used to create the item view 
 		/// </summary>
 		protected readonly LayoutInflater inflator = null;
@@ -674,11 +755,21 @@ namespace DBTest
 		/// <summary>
 		/// The parent ExpandableListView
 		/// </summary>
-		private readonly ExpandableListView parentView = null;
+		protected readonly ExpandableListView parentView = null;
 
 		/// <summary>
 		/// Interface used to report adapter state changes
 		/// </summary>
 		protected readonly IAdapterActionHandler stateChangeReporter = null;
+
+		/// <summary>
+		/// List of section names
+		/// </summary>
+		protected string[] sections = null;
+
+		/// <summary>
+		/// Lookup table specifying the starting position for each section name
+		/// </summary>
+		protected Dictionary<string, int> alphaIndexer = new Dictionary<string, int>();
 	}
 }

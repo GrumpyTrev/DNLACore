@@ -13,4 +13,10 @@
 		android:orderInCategory="1"
 		app:showAsAction="always"
 		android:title="Collapse"/>
-	</menu>
+	<item
+		android:id="@+id/sort"
+		android:icon="@drawable/sort_by_alpha_descending"
+		android:orderInCategory="1"
+		app:showAsAction="always"
+		android:title="Filter"/>
+</menu>

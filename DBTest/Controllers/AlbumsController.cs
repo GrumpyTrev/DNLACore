@@ -38,12 +38,12 @@ namespace DBTest
 				// New data is required. At this point the albums are not filtered
 				AlbumsViewModel.LibraryId = libraryId;
 				AlbumsViewModel.UnfilteredAlbums = await AlbumAccess.GetAlbumDetailsAsync( AlbumsViewModel.LibraryId );
-				AlbumsViewModel.AlbumLookup = new Dictionary<int, Album>( AlbumsViewModel.UnfilteredAlbums.ToDictionary( alb => alb.Id ) );
 
-				AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums;
+				// Prepare the unfiltered data for other views to use - no need to wait for this so long as the UnfilteredAlbums list is not altered
+				PrepareUnfilteredAlbumsForOtherViewsAsync();
 
-				// Sort the displayed albums to the order specified in the SortSelector
-				await SortDataAsync();
+				// Revert to no filter and sort the data
+				await ApplyFilterAsync( null, false );
 
 				// Get the list of current playlists
 				await GetPlayListNames();
@@ -66,7 +66,7 @@ namespace DBTest
 		{
 			await AlbumAccess.GetAlbumContentsAsync( theAlbum );
 
-			// Sort the songs by track number - UI thread
+			// Sort the songs by track number - UI thread but not many entries
 			theAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 		}
 
@@ -85,44 +85,60 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Wrapper around ApplyFilterAsync to match delegate signature
+		/// </summary>
+		/// <param name="newFilter"></param>
+		/// <returns></returns>
+		public static async Task ApplyFilterDelegateAsync( Tag newFilter ) => await ApplyFilterAsync( newFilter );
+
+		/// <summary>
 		/// Apply the new filter to the data being displayed
 		/// </summary>
 		/// <param name="newFilter"></param>
-		public static async void ApplyFilterAsync( Tag newFilter )
+		public static async Task ApplyFilterAsync( Tag newFilter, bool report = true )
 		{   
 			// Update the model
 			AlbumsViewModel.CurrentFilter = newFilter;
 
 			// Assume the albums are going to be displayed in alphabetical order
-			AlbumsViewModel.SortSelector.CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.alphaAscending;
+			AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.alphabetic );
+
+			// Make all sort orders available
+			AlbumsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
+					SortSelector.SortType.year } );
 
 			// If there is no filter then display the unfiltered data
 			if ( AlbumsViewModel.CurrentFilter == null )
 			{
-				AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums;
+				AlbumsViewModel.Albums = new List<Album>( AlbumsViewModel.UnfilteredAlbums );
+
 			}
 			else
 			{
-				// All of this is in the UI thread
-
-				// First of all form a set of all the album identities in the selected filter
-				HashSet<int> albumIds = AlbumsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
-
-				// Now get all the albums that are tagged and in the current library
-				AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums.FindAll( album => albumIds.Contains( album.Id ) == true );
-
-				// If the TagOrder flag is set then set the sort order to Id order.
-				if ( AlbumsViewModel.CurrentFilter.TagOrder == true )
+				await Task.Run( () =>
 				{
-					AlbumsViewModel.SortSelector.CurrentSortOrder = AlbumSortSelector.AlbumSortOrder.idDescending;
-				}
+					// First of all form a set of all the album identities in the selected filter
+					HashSet<int> albumIds = AlbumsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
+
+					// Now get all the albums that are tagged and in the current library
+					AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums.FindAll( album => albumIds.Contains( album.Id ) == true );
+
+					// If the TagOrder flag is set then set the sort order to Id order.
+					if ( AlbumsViewModel.CurrentFilter.TagOrder == true )
+					{
+						AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
+					}
+				} );
 			}
 
 			// Sort the displayed albums to the order specified in the SortSelector
 			await SortDataAsync();
 
 			// Publish the data
-			Reporter?.AlbumsDataAvailable();
+			if ( report == true )
+			{
+				Reporter?.AlbumsDataAvailable();
+			}
 		}
 
 		/// <summary>
@@ -133,47 +149,30 @@ namespace DBTest
 			// Do the sorting and indexing off the UI task
 			await Task.Run( () => 
 			{
-				AlbumsViewModel.AlphaIndex.Clear();
-
 				// Use the sort order stored in the model
-				AlbumSortSelector.AlbumSortOrder sortOrder = AlbumsViewModel.SortSelector.CurrentSortOrder;
+				SortSelector.SortOrder sortOrder = AlbumsViewModel.SortSelector.CurrentSortOrder;
 
 				switch ( sortOrder )
 				{
-					case AlbumSortSelector.AlbumSortOrder.alphaDescending:
-					case AlbumSortSelector.AlbumSortOrder.alphaAscending:
+					case SortSelector.SortOrder.alphaAscending:
 					{
-						if ( sortOrder == AlbumSortSelector.AlbumSortOrder.alphaAscending )
-						{
-							AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
-						}
-						else
-						{
-							AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ); } );
-						}
-
-						// Work out the section indexes for the sorted data
-						int index = 0;
-						foreach ( Album album in AlbumsViewModel.Albums )
-						{
-							string key = album.Name.RemoveThe().Substring( 0, 1 ).ToUpper();
-							if ( AlbumsViewModel.AlphaIndex.ContainsKey( key ) == false )
-							{
-								AlbumsViewModel.AlphaIndex[ key ] = index;
-							}
-							index++;
-						}
-
+						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
 						break;
 					}
 
-					case AlbumSortSelector.AlbumSortOrder.idAscending:
-					case AlbumSortSelector.AlbumSortOrder.idDescending:
+					case SortSelector.SortOrder.alphaDescending:
+					{
+						AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ); } );
+						break;
+					}
+
+					case SortSelector.SortOrder.idAscending:
+					case SortSelector.SortOrder.idDescending:
 					{
 						// If these entries are filtered then order them by the tag id rather than the album id
 						if ( AlbumsViewModel.CurrentFilter == null )
 						{
-							if ( sortOrder == AlbumSortSelector.AlbumSortOrder.idAscending )
+							if ( sortOrder == SortSelector.SortOrder.idAscending )
 							{
 								AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
 							}
@@ -188,7 +187,7 @@ namespace DBTest
 							// Form a list of all album ids in the same order as they are in the tag
 							List<int> albumIds = AlbumsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToList();
 
-							if ( sortOrder == AlbumSortSelector.AlbumSortOrder.idDescending )
+							if ( sortOrder == SortSelector.SortOrder.idDescending )
 							{
 								albumIds.Reverse();
 							}
@@ -196,6 +195,18 @@ namespace DBTest
 							// Order the albums by the album id list
 							AlbumsViewModel.Albums = AlbumsViewModel.Albums.OrderBy( album => albumIds.IndexOf( album.Id ) ).ToList();
 						}
+						break;
+					}
+
+					case SortSelector.SortOrder.yearAscending:
+					{
+						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Year.CompareTo( b.Year ); } );
+						break;
+					}
+
+					case SortSelector.SortOrder.yearDescending:
+					{
+						AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Year.CompareTo( a.Year ); } );
 						break;
 					}
 				}
@@ -206,6 +217,24 @@ namespace DBTest
 				// Publish the data
 				Reporter?.AlbumsDataAvailable();
 			}
+		}
+
+		/// <summary>
+		/// Prepare the unfiltered album data for other views to access
+		/// </summary>
+		/// <returns></returns>
+		private static async Task PrepareUnfilteredAlbumsForOtherViewsAsync()
+		{
+			// All this is doing is forming a hash table, but do it off the UI thread
+			await Task.Run( () =>
+			{
+				AlbumsViewModel.AlbumLookup = AlbumsViewModel.UnfilteredAlbums.ToDictionary( alb => alb.Id );
+
+				AlbumsViewModel.AlbumDataAvailable = true;
+			} );
+
+			// Other controllers user the album data so let them know its available
+			new AlbumDataAvailableMessage().Send();
 		}
 
 		/// <summary>

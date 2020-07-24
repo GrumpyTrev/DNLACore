@@ -7,7 +7,8 @@ using Android.Support.V7.App;
 
 namespace DBTest
 {
-	public class ArtistsFragment: PagedFragment<Artist>, ExpandableListAdapter<Artist>.IGroupContentsProvider<Artist>, ArtistsController.IReporter
+	public class ArtistsFragment: PagedFragment<object>, ExpandableListAdapter<object>.IGroupContentsProvider<object>, ArtistsController.IReporter, 
+		SortSelector.ISortReporter
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -26,6 +27,8 @@ namespace DBTest
 		{
 			inflater.Inflate( Resource.Menu.menu_artists, menu );
 
+			ArtistsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
+
 			base.OnCreateOptionsMenu( menu, inflater );
 		}
 
@@ -33,9 +36,18 @@ namespace DBTest
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public async Task ProvideGroupContentsAsync( Artist theArtist )
+		public async Task ProvideGroupContentsAsync( object theArtist )
 		{
-			await ArtistsController.GetArtistContentsAsync( theArtist );
+			// If the object is an ArtistAlbum then get its contents (songs )
+			// TO DO - regardless of whether an Artist or ArtistAlbum is selected, all the Artists contents are grabbed (already being done here?)
+			if ( theArtist is ArtistAlbum )
+			{
+				await ArtistsController.GetArtistContentsAsync( ( theArtist as ArtistAlbum ).Artist );
+			}
+			else
+			{
+				await ArtistsController.GetArtistContentsAsync( theArtist as Artist );
+			}
 		}
 
 		/// <summary>
@@ -56,7 +68,7 @@ namespace DBTest
 			Activity.RunOnUiThread( () => {
 
 				// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-				( ( ArtistsAdapter )Adapter ).SetData( ArtistsViewModel.Artists.ToList(), new Dictionary< string, int >( ArtistsViewModel.AlphaIndex ) );
+				Adapter.SetData( ArtistsViewModel.ArtistsAndAlbums.ToList(), ArtistsViewModel.SortSelector.ActiveSortType );
 
 				if ( ArtistsViewModel.ListViewState != null )
 				{
@@ -69,6 +81,9 @@ namespace DBTest
 
 				// Update the icon as well
 				SetFilterIcon();
+
+				// Display the current sort order
+				ArtistsViewModel.SortSelector.DisplaySortIcon();
 			} );
 		}
 
@@ -90,6 +105,23 @@ namespace DBTest
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();
 		}
+
+		/// <summary>
+		/// Called when the count of expanded groups has changed
+		/// Recalculate the index and report it to the adapter
+		/// </summary>
+		/// <param name="count"></param>
+		public override void ExpandedGroupCountChanged( int count )
+		{
+			base.ExpandedGroupCountChanged( count );
+
+
+		}
+
+		/// <summary>
+		/// Called when the sort selector has changed the sort order
+		/// </summary>
+		public void SortOrderChanged() => ArtistsController.SortArtistsAsync( true );
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
