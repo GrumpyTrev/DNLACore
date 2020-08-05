@@ -145,6 +145,16 @@ namespace DBTest
 		/// The rating is from 0 (bad) to 4 (bril)
 		/// </summary>
 		public int Rating { get; set; } = 2;
+
+		[ForeignKey( typeof( Genre ) )]
+		public int GenreId { get; set; }
+
+		/// <summary>
+		/// This entry is not in the database but is set when the album is read from the database
+		/// </summary>
+		[Ignore]
+		public string Genre { get; set; } = "";
+
 	}
 
 	[Table( "ArtistAlbum" ) ]
@@ -266,5 +276,17 @@ namespace DBTest
 
 		[ForeignKey( typeof( Tag ) )]
 		public int TagId { get; set; }
+	}
+
+	[Table( "Genre" )]
+	public class Genre
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		[OneToMany]
+		public List<Album> Albums { get; set; }
 	}
 }

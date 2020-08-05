@@ -551,6 +551,7 @@ namespace DBTest
 				}
 			}
 		}
+
 		/// <summary>
 		/// Definition of delegate to call when the set of applied tags has been determined
 		/// </summary>

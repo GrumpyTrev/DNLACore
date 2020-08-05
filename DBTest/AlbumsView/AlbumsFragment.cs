@@ -27,7 +27,45 @@ namespace DBTest
 
 			AlbumsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
 
+			// Find the 'show genre' submenu option so that the text can be changed
+			IMenuItem infoMenu = menu.FindItem( Resource.Id.info );
+			if ( infoMenu != null )
+			{
+				genresOption = infoMenu.SubMenu.FindItem( Resource.Id.genreOption );
+			}
+
+			SetGenresOptionText();
+			( ( AlbumsAdapter )Adapter ).ShowGenre( GenresShown );
+
 			base.OnCreateOptionsMenu( menu, inflater );
+		}
+
+		/// <summary>
+		/// Called when a menu item has been selected
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
+		public override bool OnOptionsItemSelected( IMenuItem item )
+		{
+			bool handled = false;
+
+			int id = item.ItemId;
+
+			if ( id == Resource.Id.genreOption )
+			{
+				GenresShown = !GenresShown;
+				SetGenresOptionText();
+				( ( AlbumsAdapter )Adapter ).ShowGenre( GenresShown );
+
+				handled = true;
+			}
+
+			if ( handled == false )
+			{
+				handled = base.OnOptionsItemSelected( item );
+			}
+
+			return handled;
 		}
 
 		/// <summary>
@@ -203,6 +241,14 @@ namespace DBTest
 		/// <returns></returns>
 		protected override bool ShowCommandBar() => ( songsSelected > 0 );
 
+		private void SetGenresOptionText()
+		{
+			if ( genresOption != null )
+			{
+				genresOption.SetTitle( GenresShown ? "Hide genres" : "Show genres" );
+			}
+		}
+
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
 		/// </summary>
@@ -217,6 +263,9 @@ namespace DBTest
 		/// Keep track of the number of songs reported as selected
 		/// </summary>
 		private int songsSelected = 0;
+
+		private bool GenresShown { get; set; } = false;
+		private IMenuItem genresOption = null;
 
 		/// <summary>
 		/// The base class does nothing special with the CurrentTag property.

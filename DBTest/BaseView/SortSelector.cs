@@ -21,6 +21,7 @@ namespace DBTest
 			SortPairings.Add( SortType.alphabetic, new SortPairing() { PairingName = "Alphabetic", Order1 = SortOrder.alphaAscending, Order2 = SortOrder.alphaDescending } );
 			SortPairings.Add( SortType.identity, new SortPairing() { PairingName = "Identity", Order1 = SortOrder.idDescending, Order2 = SortOrder.idAscending } );
 			SortPairings.Add( SortType.year, new SortPairing() { PairingName = "Year", Order1 = SortOrder.yearDescending, Order2 = SortOrder.yearAscending } );
+			SortPairings.Add( SortType.genre, new SortPairing() { PairingName = "Genre", Order1 = SortOrder.genreAscending, Order2 = SortOrder.genreDescending } );
 			SetActiveSortOrder( SortType.alphabetic );
 		}
 
@@ -55,12 +56,13 @@ namespace DBTest
 		/// <summary>
 		/// The enum used to select a sort order
 		/// </summary>
-		public enum SortOrder { alphaAscending = 0, alphaDescending = 1, idAscending = 2, idDescending = 3, yearAscending = 4, yearDescending = 5 };
+		public enum SortOrder { alphaAscending = 0, alphaDescending = 1, idAscending = 2, idDescending = 3, yearAscending = 4, yearDescending = 5,
+								genreAscending = 6, genreDescending = 7 };
 
 		/// <summary>
 		/// The enum identifying the types of sorting possible
 		/// </summary>
-		public enum SortType { alphabetic, identity, year };
+		public enum SortType { alphabetic, identity, year, genre };
 
 		/// <summary>
 		/// Select the next sort order
@@ -177,7 +179,7 @@ namespace DBTest
 		/// </summary>
 		private readonly int[] resources = new int[] { Resource.Drawable.sort_by_alpha_ascending, Resource.Drawable.sort_by_alpha_descending,
 			Resource.Drawable.sort_by_id_ascending, Resource.Drawable.sort_by_id_descending, Resource.Drawable.sort_by_year_ascending,
-			Resource.Drawable.sort_by_year_descending
+			Resource.Drawable.sort_by_year_descending, Resource.Drawable.sort_by_genre_ascending, Resource.Drawable.sort_by_genre_descending
 		};
 
 		/// <summary>

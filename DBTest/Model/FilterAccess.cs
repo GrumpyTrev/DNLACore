@@ -27,6 +27,35 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Get all the Genres in the database
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<List<Genre>> GetGenresAsync() => await ConnectionDetailsModel.AsynchConnection.Table<Genre>().ToListAsync();
+
+		/// <summary>
+		/// Get a Genre with the specified Name
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public static async Task<Genre> GetGenreByNameAsync( string name ) =>
+			await ConnectionDetailsModel.AsynchConnection.FindAsync<Genre>( gen => gen.Name == name );
+
+		/// <summary>
+		/// Get a Genre with the specified Id
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public static async Task<Genre> GetGenreByIdAsync( int id ) =>
+			await ConnectionDetailsModel.AsynchConnection.FindAsync<Genre>( gen => gen.Id == id );
+
+		/// <summary>
+		/// Add a new Genre to the collection 
+		/// </summary>
+		/// <param name="genreToAdd"></param>
+		/// <returns></returns>
+		public static async Task AddGenre( Genre genreToAdd ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( genreToAdd );
+
+		/// <summary>
 		/// Remove the specified TaggedAlbum  from the database
 		/// </summary>
 		/// <param name="taggedAlbum"></param>

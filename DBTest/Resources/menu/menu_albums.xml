@@ -19,4 +19,16 @@
 		android:orderInCategory="1"
 		app:showAsAction="always"
 		android:title="Filter"/>
+	<item
+		android:id="@+id/info"
+		android:icon="@drawable/info"
+		android:orderInCategory="1"
+		app:showAsAction="always"
+		android:title="Info">
+		<menu>
+			<item
+				android:id="@+id/genreOption"
+				android:title="Show genres" />
+		</menu>
+	</item>
 </menu>

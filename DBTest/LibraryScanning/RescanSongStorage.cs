@@ -42,6 +42,7 @@ namespace DBTest
 				{
 					scanRequired = false;
 					matchedSong.ScanAction = Song.ScanActionType.Matched;
+
 				}
 				else
 				{
@@ -49,6 +50,9 @@ namespace DBTest
 					matchedSong.ScanAction = Song.ScanActionType.Differ;
 				}
 
+				// TESTING - mark all existing files as scanRequired = true and differ
+				scanRequired = true;
+				matchedSong.ScanAction = Song.ScanActionType.Differ;
 			}
 
 			return scanRequired;
@@ -89,8 +93,8 @@ namespace DBTest
 
 					needsAdding = false;
 
-					// Check if the year field on the album needs updating
-					// Don't update the Album if it is a 'various artists' album as the year is not applicable
+					// Check if the year or genre fields on the album needs updating
+					// Don't update the Album if it is a 'various artists' album as the these fields is not applicable
 					Album matchedAlbum = await AlbumAccess.GetAlbumAsync( matchedArtistAlbum.AlbumId );
 
 					if ( matchedAlbum.ArtistName != SongStorage.VariousArtistsString )
@@ -108,6 +112,27 @@ namespace DBTest
 
 								matchedAlbum.Year = song.Year;
 								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
+							}
+						}
+
+						if ( song.Tags.Genre.Length > 0 )
+						{
+							// If this album has a genre id then get the associated genre record
+							Genre albumGenre = await FilterAccess.GetGenreByIdAsync( matchedAlbum.GenreId );
+
+							if ( ( albumGenre == null ) || ( albumGenre.Name != song.Tags.Genre ) )
+							{
+								// If this is a new genre then add it to the genres list.
+								albumGenre = await FilterAccess.GetGenreByNameAsync( song.Tags.Genre );
+								if ( albumGenre == null )
+								{
+									albumGenre = new Genre() { Name = song.Tags.Genre };
+									await FilterAccess.AddGenre( albumGenre );
+								}
+
+								matchedAlbum.GenreId = albumGenre.Id;
+								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
+
 							}
 						}
 					}

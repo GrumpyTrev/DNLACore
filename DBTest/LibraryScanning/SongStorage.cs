@@ -242,6 +242,29 @@ namespace DBTest
 					}
 				}
 
+				// Update the album genre.
+				if ( songAlbum.Genre != songScanned.Tags.Genre )
+				{
+					if ( songAlbum.Genre.Length == 0 )
+					{
+						// If this is a new genre then add it to the genres list.
+						// Set the genre name and id
+						songAlbum.Genre = songScanned.Tags.Genre;
+						Genre albumGenre = await FilterAccess.GetGenreByNameAsync( songAlbum.Genre );
+						if ( albumGenre == null )
+						{
+							albumGenre = new Genre() { Name = songAlbum.Genre };
+							await FilterAccess.AddGenre( albumGenre );
+						}
+
+						songAlbum.GenreId = albumGenre.Id;
+					}
+					else
+					{
+						Logger.Log( string.Format( "Album genre is {0} song genre is {1}", songAlbum.Genre, songScanned.Tags.Genre ) );
+					}
+				}
+
 				// Add to the source
 				sourceBeingScanned.Songs.Add( songToAdd );
 

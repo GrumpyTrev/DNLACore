@@ -130,6 +130,7 @@
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />
     <Compile Include="Model\AlbumAccess.cs" />
     <Compile Include="Model\FilterAccess.cs" />
+    <Compile Include="Model\Genres.cs" />
     <Compile Include="Model\LibraryAccess.cs" />
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />
     <Compile Include="PlaybackManagement\HttpServer.cs" />
@@ -401,6 +402,15 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\sort_by_year_descending.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\info.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\sort_by_genre_ascending.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\sort_by_genre_descending.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

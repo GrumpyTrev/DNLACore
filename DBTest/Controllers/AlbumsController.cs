@@ -42,6 +42,9 @@ namespace DBTest
 				// Prepare the unfiltered data for other views to use - no need to wait for this so long as the UnfilteredAlbums list is not altered
 				PrepareUnfilteredAlbumsForOtherViewsAsync();
 
+				// Populate the genre name from the id in the album
+				await PopulateAlbumGenresAsync();
+
 				// Revert to no filter and sort the data
 				await ApplyFilterAsync( null, false );
 
@@ -105,7 +108,7 @@ namespace DBTest
 
 			// Make all sort orders available
 			AlbumsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
-					SortSelector.SortType.year } );
+					SortSelector.SortType.year, SortSelector.SortType.genre } );
 
 			// If there is no filter then display the unfiltered data
 			if ( AlbumsViewModel.CurrentFilter == null )
@@ -209,6 +212,18 @@ namespace DBTest
 						AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Year.CompareTo( a.Year ); } );
 						break;
 					}
+
+					case SortSelector.SortOrder.genreAscending:
+					{
+						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Genre.CompareTo( b.Genre ); } );
+						break;
+					}
+
+					case SortSelector.SortOrder.genreDescending:
+					{
+						AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Genre.CompareTo( a.Genre ); } );
+						break;
+					}
 				}
 			} );
 
@@ -235,6 +250,21 @@ namespace DBTest
 
 			// Other controllers user the album data so let them know its available
 			new AlbumDataAvailableMessage().Send();
+		}
+
+		/// <summary>
+		/// Once the Albums have been read their genre id fields can be used to set their genre name values
+		/// </summary>
+		private static async Task PopulateAlbumGenresAsync()
+		{
+			// Do the linking of Album entries off the UI thread
+			await Task.Run( async () =>
+			{
+				foreach ( Album album in AlbumsViewModel.UnfilteredAlbums )
+				{
+					album.Genre = await Genres.GetGenreName( album.GenreId );
+				}
+			} );
 		}
 
 		/// <summary>

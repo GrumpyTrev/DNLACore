@@ -307,6 +307,7 @@ namespace DBTest
 					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Genre>();
 				}
 
 				// Check for a Playback record which will tell us the currently selected library

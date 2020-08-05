@@ -31,6 +31,16 @@ namespace DBTest
 		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].Songs?.Count ?? 0;
 
 		/// <summary>
+		/// Show or hide the genre information
+		/// </summary>
+		/// <param name="show"></param>
+		public void ShowGenre( bool show )
+		{
+			showGenre = show;
+			NotifyDataSetChanged();
+		}
+
+		/// <summary>
 		/// Provide a view containing song details at the specified position
 		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
 		/// </summary>
@@ -81,6 +91,19 @@ namespace DBTest
 			TextView artistText = convertView.FindViewById<TextView>( Resource.Id.artist );
 			TextView yearText = convertView.FindViewById<TextView>( Resource.Id.year );
 
+			// If genres are being displayed then show the genre layout and set the genre name
+			// Get the genre layout view so we can show or hide it
+			RelativeLayout genreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout );
+			if ( ( showGenre == true ) && ( displayAlbum.Genre.Length > 0 ) )
+			{
+				genreLayout.Visibility = ViewStates.Visible;
+				convertView.FindViewById<TextView>( Resource.Id.genre ).Text = displayAlbum.Genre;
+			}
+			else
+			{
+				genreLayout.Visibility = ViewStates.Gone;
+			}
+
 			// If the album has been played then display the album text grey text
 			albumText.SetTextColor( ( displayAlbum.Played == true ) ? Color.Gray : Color.Black );
 
@@ -114,7 +137,8 @@ namespace DBTest
 		{
 			alphaIndexer.Clear();
 
-			if ( ( SortType == SortSelector.SortType.alphabetic ) || ( SortType == SortSelector.SortType.year ) )
+			if ( ( SortType == SortSelector.SortType.alphabetic ) || ( SortType == SortSelector.SortType.year ) ||
+				 ( SortType == SortSelector.SortType.genre ) )
 			{
 				// Work out the section indexes for the sorted data
 				int index = 0;
@@ -124,15 +148,21 @@ namespace DBTest
 					{
 						alphaIndexer.TryAdd( album.Name.RemoveThe().Substring( 0, 1 ).ToUpper(), index++ );
 					}
-					else
+					else if ( SortType == SortSelector.SortType.year )
 					{
 						alphaIndexer.TryAdd( album.Year.ToString(), index++ );
 					}
+					else
+					{
+						alphaIndexer.TryAdd( album.Genre, index++ );
+					}
 				}
-			}
 
-			// Save a copy of the keys
-			sections = alphaIndexer.Keys.ToArray();
+				// Save a copy of the keys
+				sections = alphaIndexer.Keys.ToArray();
+			}
 		}
+
+		private bool showGenre = false;
 	}
 }
