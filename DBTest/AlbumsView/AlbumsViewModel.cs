@@ -14,8 +14,10 @@ namespace DBTest
 		public static void ClearModel()
 		{
 			Albums.Clear();
+			AllAlbums.Clear();
 			UnfilteredAlbums.Clear();
 			AlbumLookup.Clear();
+			AllAlbumLookup.Clear();
 			LibraryId = -1;
 			ListViewState = null;
 			CurrentFilter = null;
@@ -29,7 +31,12 @@ namespace DBTest
 		public static List<Album> Albums { get; set; } = new List<Album>();
 
 		/// <summary>
-		/// The list of albums that has been obtained from the database before any sorting or filtering
+		/// The list of all albums in storage ( required for the lookup table )
+		/// </summary>
+		public static List<Album> AllAlbums { get; set; } = new List<Album>();
+
+		/// <summary>
+		/// The list of albums for the current library that has been obtained from the database before any sorting or filtering
 		/// </summary>
 		public static List<Album> UnfilteredAlbums { get; set; } = new List<Album>();
 
@@ -37,6 +44,11 @@ namespace DBTest
 		/// Lookup table for the unfiltered albums. Key is the album id.
 		/// </summary>
 		public static Dictionary<int, Album> AlbumLookup { get; set; } = new Dictionary<int, Album>();
+
+		/// <summary>
+		/// Lookup table for all the albums. Key is the album id.
+		/// </summary>
+		public static Dictionary<int, Album> AllAlbumLookup { get; set; } = new Dictionary<int, Album>();
 
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained

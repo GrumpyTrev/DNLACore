@@ -141,8 +141,7 @@ namespace DBTest
 			else
 			{
 				// The artist tag may consist of multiple parts divided by a '/'.
-				string[] artists = song.Tags.Artist.Split( '/' );
-				song.ArtistName = artists[ 0 ];
+				song.ArtistName = song.Tags.Artist.Split( '/' )[ 0 ];
 			}
 
 			// Replace an empty Year with 0
@@ -159,6 +158,9 @@ namespace DBTest
 			catch ( Exception )
 			{
 			}
+
+			// The genre tag may consist of multiple parts divided by a ';'
+			song.Tags.Genre = song.Tags.Genre.Split( ';' )[ 0 ];
 		}
 
 		/// <summary>
@@ -243,26 +245,11 @@ namespace DBTest
 				}
 
 				// Update the album genre.
-				if ( songAlbum.Genre != songScanned.Tags.Genre )
+				// Only try updating if a genre is defined for the song
+				// If the album does not have a genre then get one for the song and store it in the album
+				if ( ( songScanned.Tags.Genre.Length > 0 ) && ( songAlbum.GenreId == 0 ) )
 				{
-					if ( songAlbum.Genre.Length == 0 )
-					{
-						// If this is a new genre then add it to the genres list.
-						// Set the genre name and id
-						songAlbum.Genre = songScanned.Tags.Genre;
-						Genre albumGenre = await FilterAccess.GetGenreByNameAsync( songAlbum.Genre );
-						if ( albumGenre == null )
-						{
-							albumGenre = new Genre() { Name = songAlbum.Genre };
-							await FilterAccess.AddGenre( albumGenre );
-						}
-
-						songAlbum.GenreId = albumGenre.Id;
-					}
-					else
-					{
-						Logger.Log( string.Format( "Album genre is {0} song genre is {1}", songAlbum.Genre, songScanned.Tags.Genre ) );
-					}
+					songAlbum.GenreId = ( await Genres.GetGenreByNameAsync( songScanned.Tags.Genre, true ) ).Id;
 				}
 
 				// Add to the source

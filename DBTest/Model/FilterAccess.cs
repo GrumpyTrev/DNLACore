@@ -14,39 +14,21 @@ namespace DBTest
 		/// Get all the Tags in the database with their children TaggedAlbums
 		/// NB This list is for the entire database. The Albums will generally be filtered by library id before being used.
 		/// </summary>
-		public static async Task<List<Tag>> GetTagsAsync()
-		{
-			// Get all the Tag records with their TaggedAlbums.
-			// Doing this manually rather that using the SQLite extenstion for efficiency
-			Dictionary<int, Tag> tags = ( await ConnectionDetailsModel.AsynchConnection.Table<Tag>().ToListAsync() ).ToDictionary( tag => tag.Id );
+		public static async Task<List<Tag>> GetTagsAsync() =>
+			await ConnectionDetailsModel.AsynchConnection.Table<Tag>().ToListAsync();
 
-			// Get all the TaggedAlbum entries and add them to their Tag entries
-			( await ConnectionDetailsModel.AsynchConnection.GetAllWithChildrenAsync<TaggedAlbum>() ).ForEach( ta => tags[ ta.TagId ].TaggedAlbums.Add( ta ) );
-
-			return tags.Values.ToList();
-		}
+		/// <summary>
+		/// Get all the TaggedAlbum entries in the database
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<List<TaggedAlbum>> GetTaggedAlbumsAsync() =>
+			await ConnectionDetailsModel.AsynchConnection.Table<TaggedAlbum>().ToListAsync();
 
 		/// <summary>
 		/// Get all the Genres in the database
 		/// </summary>
 		/// <returns></returns>
 		public static async Task<List<Genre>> GetGenresAsync() => await ConnectionDetailsModel.AsynchConnection.Table<Genre>().ToListAsync();
-
-		/// <summary>
-		/// Get a Genre with the specified Name
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public static async Task<Genre> GetGenreByNameAsync( string name ) =>
-			await ConnectionDetailsModel.AsynchConnection.FindAsync<Genre>( gen => gen.Name == name );
-
-		/// <summary>
-		/// Get a Genre with the specified Id
-		/// </summary>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		public static async Task<Genre> GetGenreByIdAsync( int id ) =>
-			await ConnectionDetailsModel.AsynchConnection.FindAsync<Genre>( gen => gen.Id == id );
 
 		/// <summary>
 		/// Add a new Genre to the collection 

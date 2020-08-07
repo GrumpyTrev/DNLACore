@@ -37,7 +37,8 @@ namespace DBTest
 			{
 				// New data is required. At this point the albums are not filtered
 				AlbumsViewModel.LibraryId = libraryId;
-				AlbumsViewModel.UnfilteredAlbums = await AlbumAccess.GetAlbumDetailsAsync( AlbumsViewModel.LibraryId );
+				AlbumsViewModel.AllAlbums = await AlbumAccess.GetAllAlbumsAsync();
+				AlbumsViewModel.UnfilteredAlbums = AlbumsViewModel.AllAlbums.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
 
 				// Prepare the unfiltered data for other views to use - no need to wait for this so long as the UnfilteredAlbums list is not altered
 				PrepareUnfilteredAlbumsForOtherViewsAsync();
@@ -244,10 +245,9 @@ namespace DBTest
 			await Task.Run( () =>
 			{
 				AlbumsViewModel.AlbumLookup = AlbumsViewModel.UnfilteredAlbums.ToDictionary( alb => alb.Id );
-
+				AlbumsViewModel.AllAlbumLookup = AlbumsViewModel.AllAlbums.ToDictionary( alb => alb.Id );
 				AlbumsViewModel.AlbumDataAvailable = true;
 			} );
-
 			// Other controllers user the album data so let them know its available
 			new AlbumDataAvailableMessage().Send();
 		}
@@ -262,7 +262,7 @@ namespace DBTest
 			{
 				foreach ( Album album in AlbumsViewModel.UnfilteredAlbums )
 				{
-					album.Genre = await Genres.GetGenreName( album.GenreId );
+					album.Genre = await Genres.GetGenreNameAsync( album.GenreId );
 				}
 			} );
 		}

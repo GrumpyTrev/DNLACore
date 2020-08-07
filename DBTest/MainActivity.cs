@@ -290,9 +290,16 @@ namespace DBTest
 			int currentLibraryId = -1;
 
 			bool createTables = false;
+			bool dropGenres = false;
 
 			try
 			{
+				if ( dropGenres == true )
+				{
+					ConnectionDetailsModel.SynchConnection.DropTable<Genre>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Genre>();
+				}
+
 				if ( createTables == true )
 				{
 					// Create the tables if they don't already exist

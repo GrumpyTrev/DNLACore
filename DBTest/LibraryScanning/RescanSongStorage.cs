@@ -42,7 +42,6 @@ namespace DBTest
 				{
 					scanRequired = false;
 					matchedSong.ScanAction = Song.ScanActionType.Matched;
-
 				}
 				else
 				{
@@ -118,21 +117,15 @@ namespace DBTest
 						if ( song.Tags.Genre.Length > 0 )
 						{
 							// If this album has a genre id then get the associated genre record
-							Genre albumGenre = await FilterAccess.GetGenreByIdAsync( matchedAlbum.GenreId );
+							Genre albumGenre = await Genres.GetGenreByIdAsync( matchedAlbum.GenreId );
 
 							if ( ( albumGenre == null ) || ( albumGenre.Name != song.Tags.Genre ) )
 							{
 								// If this is a new genre then add it to the genres list.
-								albumGenre = await FilterAccess.GetGenreByNameAsync( song.Tags.Genre );
-								if ( albumGenre == null )
-								{
-									albumGenre = new Genre() { Name = song.Tags.Genre };
-									await FilterAccess.AddGenre( albumGenre );
-								}
+								albumGenre = await Genres.GetGenreByNameAsync( song.Tags.Genre, true );
 
 								matchedAlbum.GenreId = albumGenre.Id;
 								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
-
 							}
 						}
 					}

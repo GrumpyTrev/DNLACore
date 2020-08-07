@@ -39,6 +39,19 @@ namespace DBTest
 
 				/// Get the current set of libraries as they'll be required for tag synchronisation
 				FilterManagementModel.Libraries = await LibraryAccess.GetLibrariesAsync();
+
+				// The Tags need to be linked to their TaggedAlbum entries which contain Albums, so wait
+				// until the Album data is available
+				if ( AlbumsViewModel.AlbumDataAvailable == true )
+				{
+					// Do the linking of TaggedAlbums off the UI thread
+					await LinkInTaggedAlbums();
+				}
+				else
+				{
+					// Register interest in the AlbumDataAvailableMessage
+					Mediator.RegisterPermanent( AlbumDataAvailable, typeof( AlbumDataAvailableMessage ) );
+				}
 			}
 		}
 
@@ -309,11 +322,57 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called during startup, or library change, when the album data is available
+		/// </summary>
+		/// <param name="message"></param>
+		private static async void AlbumDataAvailable( object message )
+		{
+			// Double check
+			if ( AlbumsViewModel.AlbumDataAvailable == true )
+			{
+				// No longer interested in the data becoming available
+				Mediator.Deregister( AlbumDataAvailable, typeof( AlbumDataAvailableMessage ) );
+
+				// Do the linking of TaggedAlbums off the UI thread
+				await LinkInTaggedAlbums();
+			}
+		}
+
+		/// <summary>
+		/// Link the TaggedAlbum entries to their Tags and set the Album entry in the TaggedAlbum  
+		/// </summary>
+		/// <returns></returns>
+		private static async Task LinkInTaggedAlbums()
+		{
+			await Task.Run( async () =>
+			{
+				List<TaggedAlbum> taggedAlbums = await FilterAccess.GetTaggedAlbumsAsync();
+
+				// Link these to their Tags
+				Dictionary<int, Tag> tagLookup = FilterManagementModel.Tags.ToDictionary( tag => tag.Id );
+				taggedAlbums.ForEach( ta => tagLookup[ ta.TagId ].TaggedAlbums.Add( ta ) );
+
+				//  And also add the Album to the TaggedAlbum entries
+				foreach ( TaggedAlbum tagged in taggedAlbums )
+				{
+					if ( AlbumsViewModel.AllAlbumLookup.ContainsKey( tagged.AlbumId ) == true )
+					{
+						tagged.Album = AlbumsViewModel.AllAlbumLookup[ tagged.AlbumId ];
+					}
+					else
+					{
+					}
+				}
+//				taggedAlbums.ForEach( ta => ta.Album = AlbumsViewModel.AllAlbumLookup[ ta.AlbumId ] );
+			} );
+		}
+
+		/// <summary>
 		/// Remove the TaggedAlbum associated with the album from the tag
 		/// </summary>
 		/// <param name="fromTag"></param>
 		/// <param name="albumId"></param>
-		private static async Task RemoveAlbumFromTagAsync( Tag fromTag, Album albumToRemove )
+			private static async Task RemoveAlbumFromTagAsync( Tag fromTag, Album albumToRemove )
 		{
 			// Check if the album is actually tagged
 			TaggedAlbum taggedAlbum = fromTag.TaggedAlbums.SingleOrDefault( tag => ( tag.AlbumId == albumToRemove.Id ) );
