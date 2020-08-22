@@ -117,7 +117,7 @@ namespace DBTest
 						if ( song.Tags.Genre.Length > 0 )
 						{
 							// If this album has a genre id then get the associated genre record
-							Genre albumGenre = await Genres.GetGenreByIdAsync( matchedAlbum.GenreId );
+							Genre albumGenre = Genres.GetGenreById( matchedAlbum.GenreId );
 
 							if ( ( albumGenre == null ) || ( albumGenre.Name != song.Tags.Genre ) )
 							{

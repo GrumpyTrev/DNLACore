@@ -10,12 +10,6 @@ namespace DBTest
 	static class AlbumAccess
 	{
 		/// <summary>
-		/// Get all the Albums associated with the library identity
-		/// </summary>
-		public static async Task<List<Album>> GetAlbumsAsync( int libraryId ) =>
-			await ConnectionDetailsModel.AsynchConnection.Table<Album>().Where( album => album.LibraryId == libraryId ).ToListAsync();
-
-		/// <summary>
 		/// Get all the Albums in the data base
 		/// </summary>
 		public static async Task<List<Album>> GetAllAlbumsAsync() => await ConnectionDetailsModel.AsynchConnection.Table<Album>().ToListAsync();

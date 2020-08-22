@@ -69,6 +69,12 @@ namespace DBTest
 		public static SortSelector SortSelector { get; } = new SortSelector();
 
 		/// <summary>
+		/// List of TagGroups containing currently selected Tags.
+		/// A TagGroup only needs to be stored here if some and not all of the tags are selected.
+		/// </summary>
+		public static List<TagGroup> TagGroups { get; set; } = new List<TagGroup>();
+
+		/// <summary>
 		/// Indicates whether or not the data held by the class is valid
 		/// </summary>
 		public static bool DataValid { get; set; } = false;

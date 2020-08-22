@@ -163,7 +163,7 @@ namespace DBTest
 
 					// Attempt to find matching songs for each PlaylistItem in the Playlist
 					// Need to access the songs via the Sources associated with the Library
-					List< Source > sources = await LibraryAccess.GetSourcesAsync( library.Id );
+					List< Source > sources = Sources.GetSourcesForLibrary( library.Id );
 
 					// Keep track of the matching songs
 					List<Song> songsToAdd = new List<Song>();

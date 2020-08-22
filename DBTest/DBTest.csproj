@@ -83,7 +83,9 @@
     <Compile Include="BaseView\ExpandableListAdapter.cs" />
     <Compile Include="BaseView\ExpandableListAdapterModel.cs" />
     <Compile Include="Controllers\PlaybackSelectionController.cs" />
+    <Compile Include="Controllers\StorageController.cs" />
     <Compile Include="FilterManagement\DeleteConfirmationDialogFragment.cs" />
+    <Compile Include="FilterManagement\FilterGroupAdapter.cs" />
     <Compile Include="FilterManagement\FilterManagementModel.cs" />
     <Compile Include="FilterManagement\FilterSelectionDialogFragment.cs" />
     <Compile Include="FilterManagement\TagApplicationDialogFragment.cs" />
@@ -91,6 +93,7 @@
     <Compile Include="FilterManagement\TagDeletor.cs" />
     <Compile Include="FilterManagement\TagEditor.cs" />
     <Compile Include="FilterManagement\TagEditorDialogFragment.cs" />
+    <Compile Include="FilterManagement\TagGroup.cs" />
     <Compile Include="FilterManagement\TagSelection.cs" />
     <Compile Include="FilterManagement\FilterSelection.cs" />
     <Compile Include="FilterManagement\TagDataAdapter.cs" />
@@ -117,7 +120,7 @@
     <Compile Include="LibraryScanning\SongStorage.cs" />
     <Compile Include="Messages\AlbumAddedMessageo.cs" />
     <Compile Include="Messages\AlbumsDeletedMessage.cs" />
-    <Compile Include="Messages\AlbumDataAvailableMessage.cs" />
+    <Compile Include="Messages\StorageDataAvailableMessage.cs" />
     <Compile Include="Messages\PlayCurrentSongMessage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
     <Compile Include="Messages\PlaylistDeletedMessage.cs" />
@@ -129,9 +132,11 @@
     <Compile Include="Messages\TagDetailsChangedMessage.cs" />
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />
     <Compile Include="Model\AlbumAccess.cs" />
+    <Compile Include="Model\Albums.cs" />
     <Compile Include="Model\FilterAccess.cs" />
     <Compile Include="Model\Genres.cs" />
     <Compile Include="Model\LibraryAccess.cs" />
+    <Compile Include="Model\Sources.cs" />
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />
     <Compile Include="PlaybackManagement\HttpServer.cs" />
     <Compile Include="PlaybackManagement\LocalPlaybackService.cs" />
@@ -411,6 +416,24 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\sort_by_genre_descending.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\filter_selection_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\filter_item.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\filter_group.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

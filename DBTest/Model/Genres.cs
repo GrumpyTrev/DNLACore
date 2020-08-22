@@ -11,15 +11,28 @@ namespace DBTest
 	static class Genres
 	{
 		/// <summary>
+		/// Get the Genres collection from storage
+		/// </summary>
+		/// <returns></returns>
+		public static async Task GetDataAsync()
+		{
+			if ( GenreCollection == null )
+			{
+				// Get the current set of genres and form the lookup tables
+				GenreCollection = await FilterAccess.GetGenresAsync();
+				IdLookup = GenreCollection.ToDictionary( gen => gen.Id );
+				NameLookup = GenreCollection.ToDictionary( gen => gen.Name );
+			}
+		}
+
+		/// <summary>
 		/// Return the name of the genre with the specified id. Return an empty string if no such id
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public static async Task<string> GetGenreNameAsync( int id )
+		public static string GetGenreName( int id )
 		{
 			string name = "";
-
-			await InitialiseCollectionAsync();
 
 			if ( IdLookup.TryGetValue( id, out Genre value ) == true )
 			{
@@ -34,11 +47,9 @@ namespace DBTest
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public static async Task<Genre> GetGenreByIdAsync( int id )
+		public static Genre GetGenreById( int id )
 		{
 			Genre genreFound = null;
-
-			await InitialiseCollectionAsync();
 
 			if ( IdLookup.TryGetValue( id, out Genre value ) == true )
 			{
@@ -57,8 +68,6 @@ namespace DBTest
 		public static async Task<Genre> GetGenreByNameAsync( string name, bool createIfNotFound = false )
 		{
 			Genre genreFound = null;
-
-			await InitialiseCollectionAsync();
 
 			if ( NameLookup.TryGetValue( name, out Genre value ) == true )
 			{
@@ -80,24 +89,9 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Read the Genre entries from storage if not already read
-		/// </summary>
-		/// <returns></returns>
-		private static async Task InitialiseCollectionAsync()
-		{
-			if ( GenreCollection == null )
-			{
-				// Get the current set of genres and form the lookup tables
-				GenreCollection = await FilterAccess.GetGenresAsync();
-				IdLookup = GenreCollection.ToDictionary( gen => gen.Id );
-				NameLookup = GenreCollection.ToDictionary( gen => gen.Name );
-			}
-		}
-
-		/// <summary>
 		/// The set of Genres currently held in storage
 		/// </summary>
-		private static List<Genre> GenreCollection { get; set; } = null;
+		public static List<Genre> GenreCollection { get; set; } = null;
 
 		/// <summary>
 		/// Dictionary to allow a Genre to be accessed by its Id

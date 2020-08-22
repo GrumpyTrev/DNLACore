@@ -1,4 +1,5 @@
 ﻿using Android.Support.V7.App;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DBTest
@@ -24,8 +25,8 @@ namespace DBTest
 		/// </summary>
 		/// <param name="currentFilter"></param>
 		/// <returns></returns>
-		public void SelectFilter( Tag currentFilter ) =>
-			FilterSelectionDialogFragment.ShowFragment( contextForDialogue.SupportFragmentManager, currentFilter, selectionDelegate );
+		public void SelectFilter( Tag currentFilter, List<TagGroup> tagGroups ) =>
+			FilterSelectionDialogFragment.ShowFragment( contextForDialogue.SupportFragmentManager, currentFilter, tagGroups, selectionDelegate );
 
 		/// <summary>
 		/// Delegate used to report back the result of the filter selection

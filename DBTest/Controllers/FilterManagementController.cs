@@ -42,16 +42,7 @@ namespace DBTest
 
 				// The Tags need to be linked to their TaggedAlbum entries which contain Albums, so wait
 				// until the Album data is available
-				if ( AlbumsViewModel.AlbumDataAvailable == true )
-				{
-					// Do the linking of TaggedAlbums off the UI thread
-					await LinkInTaggedAlbums();
-				}
-				else
-				{
-					// Register interest in the AlbumDataAvailableMessage
-					Mediator.RegisterPermanent( AlbumDataAvailable, typeof( AlbumDataAvailableMessage ) );
-				}
+				StorageController.RegisterInterestInDataAvailable( AlbumDataAvailable );
 			}
 		}
 
@@ -327,15 +318,11 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static async void AlbumDataAvailable( object message )
 		{
-			// Double check
-			if ( AlbumsViewModel.AlbumDataAvailable == true )
-			{
-				// No longer interested in the data becoming available
-				Mediator.Deregister( AlbumDataAvailable, typeof( AlbumDataAvailableMessage ) );
+			// Do the linking of TaggedAlbums off the UI thread
+			await LinkInTaggedAlbums();
 
-				// Do the linking of TaggedAlbums off the UI thread
-				await LinkInTaggedAlbums();
-			}
+			// Generate tags for all the genres
+			await FormGenreTagsAsync();
 		}
 
 		/// <summary>
@@ -355,15 +342,49 @@ namespace DBTest
 				//  And also add the Album to the TaggedAlbum entries
 				foreach ( TaggedAlbum tagged in taggedAlbums )
 				{
-					if ( AlbumsViewModel.AllAlbumLookup.ContainsKey( tagged.AlbumId ) == true )
-					{
-						tagged.Album = AlbumsViewModel.AllAlbumLookup[ tagged.AlbumId ];
-					}
-					else
+					tagged.Album = Albums.GetAlbumById( tagged.AlbumId );
+					if ( tagged.Album == null )
 					{
 					}
 				}
 //				taggedAlbums.ForEach( ta => ta.Album = AlbumsViewModel.AllAlbumLookup[ ta.AlbumId ] );
+			} );
+		}
+
+		/// <summary>
+		/// Form Tags and associated TaggedAlbum entries for each genre
+		/// </summary>
+		/// <returns></returns>
+		private static async Task FormGenreTagsAsync()
+		{
+			await Task.Run( () =>
+			{
+				// Create a TagGroup for genres and add it to the model
+				TagGroup genres = new TagGroup() { Name = "Genre" };
+
+				// Create a Tag for each Genre and add them to a lookup table indexed by genre id
+				Dictionary<int, Tag> tagLookup = new Dictionary<int, Tag>();
+				foreach ( Genre item in Genres.GenreCollection )
+				{
+					tagLookup[ item.Id ] = new Tag() { Name = item.Name, UserTag = false, ShortName = item.Name };
+				}
+
+				// Add a tag for unknown genre
+				tagLookup[ 0 ] = new Tag() { Name = "Unknown", UserTag = false, ShortName = "Unknown" };
+
+				// Now link in the albums using TaggedAlbum entries
+				foreach ( Album album in Albums.AlbumCollection )
+				{
+					Tag genreTag = tagLookup[ album.GenreId ];
+					genreTag.TaggedAlbums.Add( new TaggedAlbum() { Album = album, AlbumId = album.Id, TagIndex = genreTag.TaggedAlbums.Count } );
+				}
+
+				// Now unload the genre tags into a list. Ignore entries with no albums and sort
+				genres.Tags = tagLookup.Values.Where( ta => ta.TaggedAlbums.Count > 0 ).ToList();
+
+				genres.Tags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
+
+				FilterManagementModel.TagGroups.Add( genres );
 			} );
 		}
 
@@ -515,9 +536,8 @@ namespace DBTest
 				// Assume that the album does not need adding to the tag
 				bool addTag = false;
 
-				// If this song has just played then it's album will be in the current library and in the set of albums already available in the
-				// AlbumsViewModel. So get the associated object from there.
-				Album songAlbum = AlbumsViewModel.AlbumLookup[ ( message as SongPlayedMessage ).SongPlayed.AlbumId ];
+				// Get the Album from the Albums collection
+				Album songAlbum = Albums.GetAlbumById( ( message as SongPlayedMessage ).SongPlayed.AlbumId );
 
 				// Determine if this album should be marked as having been played
 				if ( songAlbum.Played == false )

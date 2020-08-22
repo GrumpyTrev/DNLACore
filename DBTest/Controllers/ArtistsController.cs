@@ -45,23 +45,8 @@ namespace DBTest
 				// Get the list of current playlists and extract the names to a list
 				await GetPlayListNames();
 
-				// Before the artists can be displayed the album data has to be incorporated.
-				if ( AlbumsViewModel.AlbumDataAvailable == true )
-				{
-					// Do the linking of ArtistAlbum entries off the UI thread
-					await PartiallyPopulateArtistsAsync();
-
-					// Apply the current filter and get the data ready for display 
-					await ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
-
-					// The data is now valid
-					ArtistsViewModel.DataValid = true;
-				}
-				else
-				{
-					// Register interest in the AlbumDataAvailableMessage
-					Mediator.RegisterPermanent( AlbumDataAvailable, typeof( AlbumDataAvailableMessage ) );
-				}
+				// Before the artists can be displayed the album data has to be incorporated. Access to this is controlled by the StorageController
+				StorageController.RegisterInterestInDataAvailable( AlbumDataAvailable );
 			}
 			else
 			{
@@ -122,38 +107,36 @@ namespace DBTest
 			// Update the model
 			ArtistsViewModel.CurrentFilter = newFilter;
 
-			// Assume the artists are going to be displayed in alphabetical order
-			ArtistsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.alphabetic );
-
 			// alphabetic and identity sorting are available to the user
 			ArtistsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity } );
 
-			// If there is no filter then display the unfiltered data 
-			if ( ArtistsViewModel.CurrentFilter == null )
+			// Check for no simple or group tag filters
+			if ( ( ArtistsViewModel.CurrentFilter == null ) && ( ArtistsViewModel.TagGroups.Count == 0 ) )
 			{
 				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists;
 			}
 			else
 			{
-				// All of this is in the UI thread
-
-				// Access artists that have albums that are tagged with the current tag
-				// For all TagAlbums in current tag get the ArtistAlbum (from the AlbumId) and the Artists 
-
-				// First of all form a list of all the album identities in the selected filter
-				HashSet<int> albumIds = ArtistsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
-
-				// Now get all the artist identities of the albums that are tagged
-				HashSet<int> artistIds = ArtistsViewModel.ArtistAlbums.FindAll( aa => albumIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).ToHashSet();
-
-				// Now get the Artists from the list of artist ids
-				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) == true ).ToList();
-
-				// If the TagOrder flag is set then set the sort order to Id order.
-				if ( ArtistsViewModel.CurrentFilter.TagOrder == true )
+				await Task.Run( () =>
 				{
-					ArtistsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
-				}
+					// Combine the simple and group tabs
+					List<TaggedAlbum> albumFilter = BaseController.CombineAlbumFilters( ArtistsViewModel.CurrentFilter, ArtistsViewModel.TagGroups );
+
+					// First of all form a list of all the album identities in the selected filter
+					HashSet<int> albumIds = albumFilter.Select( ta => ta.AlbumId ).ToHashSet();
+
+					// Now get all the artist identities of the albums that are tagged
+					HashSet<int> artistIds = ArtistsViewModel.ArtistAlbums.FindAll( aa => albumIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).ToHashSet();
+
+					// Now get the Artists from the list of artist ids
+					ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) == true ).ToList();
+
+					// If the TagOrder flag is set then set the sort order to Id order.
+					if ( ( ArtistsViewModel.CurrentFilter?.TagOrder ?? false ) == true )
+					{
+						ArtistsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
+					}
+				} );
 			}
 
 			// Sort the artists to the order specified in the SortSelector and publish the data
@@ -231,7 +214,8 @@ namespace DBTest
 				foreach ( ArtistAlbum artAlbum in allArtistAlbums )
 				{
 					// If this ArtistAlbum is associated with an Album in the current library then add it to the model and link it to the Artist
-					if ( AlbumsViewModel.AlbumLookup.TryGetValue( artAlbum.AlbumId, out Album associatedAlbum ) == true )
+					Album associatedAlbum = Albums.GetAlbumById( artAlbum.AlbumId );
+					if ( ( associatedAlbum != null ) && ( associatedAlbum.LibraryId == ArtistsViewModel.LibraryId ) )
 					{
 						// Store the Album in the ArtistAlbum
 						artAlbum.Album = associatedAlbum; ;
@@ -410,23 +394,15 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static async void AlbumDataAvailable( object message )
 		{
-			Logger.Log( "Received message" );
+			// Do the linking of ArtistAlbum entries off the UI thread
+			await PartiallyPopulateArtistsAsync();
 
-			// Double check
-			if ( AlbumsViewModel.AlbumDataAvailable == true )
-			{
-				// No longer interested in the data becoming available
-				Mediator.Deregister( AlbumDataAvailable, typeof( AlbumDataAvailableMessage ) );
+			// Apply the current filter and get the data ready for display 
+			await ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
 
-				// Do the linking of ArtistAlbum entries off the UI thread
-				await PartiallyPopulateArtistsAsync();
-
-				// Apply the current filter and get the data ready for display 
-				await ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
-
-				// The data is now valid
-				ArtistsViewModel.DataValid = true;
-			}
+			// The data is now valid
+			ArtistsViewModel.DataValid = true;
+			Reporter?.ArtistsDataAvailable();
 		}
 
 		/// <summary>

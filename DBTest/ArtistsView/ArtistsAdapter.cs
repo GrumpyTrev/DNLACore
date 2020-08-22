@@ -22,6 +22,16 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Show or hide the genre information
+		/// </summary>
+		/// <param name="show"></param>
+		public void ShowGenre( bool show )
+		{
+			showGenre = show;
+			NotifyDataSetChanged();
+		}
+
+		/// <summary>
 		/// Number of child items of selected group
 		/// </summary>
 		/// <param name="groupPosition"></param>
@@ -186,6 +196,19 @@ namespace DBTest
 
 				albumName.SetTextColor( ( artAlbum.Album.Played == true ) ? Color.Gray : albumNameColour );
 				albumYear.SetTextColor( ( artAlbum.Album.Played == true ) ? Color.Gray : albumYearColour );
+
+				// If genres are being displayed then show the genre layout and set the genre name
+				// Get the genre layout view so we can show or hide it
+				RelativeLayout genreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout );
+				if ( ( showGenre == true ) && ( artAlbum.Album.Genre.Length > 0 ) )
+				{
+					genreLayout.Visibility = ViewStates.Visible;
+					convertView.FindViewById<TextView>( Resource.Id.genre ).Text = artAlbum.Album.Genre;
+				}
+				else
+				{
+					genreLayout.Visibility = ViewStates.Gone;
+				}
 			}
 
 			return convertView;
@@ -331,5 +354,10 @@ namespace DBTest
 		/// Have the default album colours been initialised
 		/// </summary>
 		private bool ColoursInitialised { get; set; } = false;
+
+		/// <summary>
+		/// Is genre information to be displayed
+		/// </summary>
+		private bool showGenre = false;
 	}
 }

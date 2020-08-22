@@ -37,28 +37,18 @@ namespace DBTest
 			{
 				// New data is required. At this point the albums are not filtered
 				AlbumsViewModel.LibraryId = libraryId;
-				AlbumsViewModel.AllAlbums = await AlbumAccess.GetAllAlbumsAsync();
-				AlbumsViewModel.UnfilteredAlbums = AlbumsViewModel.AllAlbums.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
 
-				// Prepare the unfiltered data for other views to use - no need to wait for this so long as the UnfilteredAlbums list is not altered
-				PrepareUnfilteredAlbumsForOtherViewsAsync();
-
-				// Populate the genre name from the id in the album
-				await PopulateAlbumGenresAsync();
-
-				// Revert to no filter and sort the data
-				await ApplyFilterAsync( null, false );
-
-				// Get the list of current playlists
-				await GetPlayListNames();
-
-				AlbumsViewModel.DataValid = true;
+				// All Albums are read as part of the Albums collection. So wait until that is available and then carry out the rest of the 
+				// initialisation
+				StorageController.RegisterInterestInDataAvailable( AlbumDataAvailable );
 			}
-
-			// Publish the data
-			if ( AlbumsViewModel.DataValid == true )
+			else
 			{
-				Reporter?.AlbumsDataAvailable();
+				// Publish the data
+				if ( AlbumsViewModel.DataValid == true )
+				{
+					Reporter?.AlbumsDataAvailable();
+				}
 			}
 		}
 
@@ -104,31 +94,30 @@ namespace DBTest
 			// Update the model
 			AlbumsViewModel.CurrentFilter = newFilter;
 
-			// Assume the albums are going to be displayed in alphabetical order
-			AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.alphabetic );
-
 			// Make all sort orders available
 			AlbumsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
 					SortSelector.SortType.year, SortSelector.SortType.genre } );
 
-			// If there is no filter then display the unfiltered data
-			if ( AlbumsViewModel.CurrentFilter == null )
+			// Check for no simple or group tag filters
+			if ( ( AlbumsViewModel.CurrentFilter == null ) && ( AlbumsViewModel.TagGroups.Count == 0 ) )
 			{
 				AlbumsViewModel.Albums = new List<Album>( AlbumsViewModel.UnfilteredAlbums );
-
 			}
 			else
 			{
 				await Task.Run( () =>
 				{
+					// Combine the simple and group tabs
+					List< TaggedAlbum > albumFilter = BaseController.CombineAlbumFilters( AlbumsViewModel.CurrentFilter, AlbumsViewModel.TagGroups );
+
 					// First of all form a set of all the album identities in the selected filter
-					HashSet<int> albumIds = AlbumsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
+					HashSet<int> albumIds = albumFilter.Select( ta => ta.AlbumId ).ToHashSet();
 
 					// Now get all the albums that are tagged and in the current library
 					AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums.FindAll( album => albumIds.Contains( album.Id ) == true );
 
 					// If the TagOrder flag is set then set the sort order to Id order.
-					if ( AlbumsViewModel.CurrentFilter.TagOrder == true )
+					if ( ( AlbumsViewModel.CurrentFilter?.TagOrder??false ) == true )
 					{
 						AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
 					}
@@ -236,20 +225,25 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Prepare the unfiltered album data for other views to access
+		/// Called when the Album data has been read in from storage
 		/// </summary>
-		/// <returns></returns>
-		private static async Task PrepareUnfilteredAlbumsForOtherViewsAsync()
+		/// <param name="message"></param>
+		private static async void AlbumDataAvailable( object message )
 		{
-			// All this is doing is forming a hash table, but do it off the UI thread
-			await Task.Run( () =>
-			{
-				AlbumsViewModel.AlbumLookup = AlbumsViewModel.UnfilteredAlbums.ToDictionary( alb => alb.Id );
-				AlbumsViewModel.AllAlbumLookup = AlbumsViewModel.AllAlbums.ToDictionary( alb => alb.Id );
-				AlbumsViewModel.AlbumDataAvailable = true;
-			} );
-			// Other controllers user the album data so let them know its available
-			new AlbumDataAvailableMessage().Send();
+			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
+
+			// Populate the genre name from the id in the album
+			await PopulateAlbumGenresAsync();
+
+			// Revert to no filter and sort the data
+			await ApplyFilterAsync( null, false );
+
+			// Get the list of current playlists
+			await GetPlayListNames();
+
+			AlbumsViewModel.DataValid = true;
+
+			Reporter?.AlbumsDataAvailable();
 		}
 
 		/// <summary>
@@ -258,11 +252,11 @@ namespace DBTest
 		private static async Task PopulateAlbumGenresAsync()
 		{
 			// Do the linking of Album entries off the UI thread
-			await Task.Run( async () =>
+			await Task.Run( () =>
 			{
 				foreach ( Album album in AlbumsViewModel.UnfilteredAlbums )
 				{
-					album.Genre = await Genres.GetGenreNameAsync( album.GenreId );
+					album.Genre = Genres.GetGenreName( album.GenreId );
 				}
 			} );
 		}

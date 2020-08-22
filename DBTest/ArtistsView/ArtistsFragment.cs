@@ -77,7 +77,7 @@ namespace DBTest
 				}
 
 				// Indicate whether or not a filter has been applied
-				AppendToTabTitle( ( CurrentFilter == null ) ? "" : string.Format( "\r\n[{0}]", CurrentFilter.ShortName ) );
+				AppendToTabTitle();
 
 				// Update the icon as well
 				SetFilterIcon();
@@ -104,18 +104,6 @@ namespace DBTest
 
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();
-		}
-
-		/// <summary>
-		/// Called when the count of expanded groups has changed
-		/// Recalculate the index and report it to the adapter
-		/// </summary>
-		/// <param name="count"></param>
-		public override void ExpandedGroupCountChanged( int count )
-		{
-			base.ExpandedGroupCountChanged( count );
-
-
 		}
 
 		/// <summary>
@@ -232,9 +220,23 @@ namespace DBTest
 		protected override int ListViewLayout { get; } = Resource.Id.artistsList;
 
 		/// <summary>
+		/// Show or hide genres
+		/// </summary>
+		/// <param name="showGenre"></param>
+		protected override void ShowGenre( bool showGenre )
+		{
+			( ( ArtistsAdapter )Adapter ).ShowGenre( showGenre );
+		}
+
+		/// <summary>
 		/// Return the filter held by the model
 		/// </summary>
 		protected override Tag CurrentFilter => ArtistsViewModel.CurrentFilter;
+
+		/// <summary>
+		/// The current groups Tags applied to the albums
+		/// </summary>
+		protected override List<TagGroup> TagGroups => ArtistsViewModel.TagGroups;
 
 		/// <summary>
 		/// The delegate used to apply a filter change

@@ -41,7 +41,7 @@ namespace DBTest
 				PlaybackManagerModel.CurrentSongIndex = await PlaybackAccess.GetSelectedSongAsync();
 
 				// Get the sources associated with the library
-				PlaybackManagerModel.Sources = await LibraryAccess.GetSourcesAsync( PlaybackManagerModel.LibraryId );
+				PlaybackManagerModel.Sources = Sources.GetSourcesForLibrary( PlaybackManagerModel.LibraryId );
 			}
 
 			// Publish this data

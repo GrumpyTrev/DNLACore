@@ -163,6 +163,9 @@ namespace DBTest
 			}
 		}
 
+		/// <summary>
+		/// Is genre information to be displayed
+		/// </summary>
 		private bool showGenre = false;
 	}
 }

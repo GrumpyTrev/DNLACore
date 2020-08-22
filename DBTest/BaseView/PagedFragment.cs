@@ -95,6 +95,11 @@ namespace DBTest
 				// Set the menu icon according to whether or not any filtering is in effect
 				SetFilterIcon();
 			}
+
+			// Find the 'show genre' submenu option so that the text can be changed
+			genresOption = menu.FindItem( Resource.Id.info )?.SubMenu.FindItem( Resource.Id.genreOption ) ?? null;
+			SetGenresOptionText();
+			ShowGenre( GenresShown );
 		}
 
 		/// <summary>
@@ -116,7 +121,15 @@ namespace DBTest
 			}
 			else if ( id == Resource.Id.filter )
 			{
-				filterSelector.SelectFilter( CurrentFilter );
+				filterSelector.SelectFilter( CurrentFilter, TagGroups );
+			}
+			else if ( id == Resource.Id.genreOption )
+			{
+				GenresShown = !GenresShown;
+				SetGenresOptionText();
+				ShowGenre( GenresShown );
+
+				handled = true;
 			}
 
 			if ( handled == false )
@@ -340,10 +353,28 @@ namespace DBTest
 		protected virtual bool ShowCommandBar() => false;
 
 		/// <summary>
-		/// Append the specified string to the tab title fot thid frasgment
+		/// Append the specified string to the tab title for this frasgment
 		/// </summary>
-		/// <param name="append"></param>
-		protected void AppendToTabTitle( string append ) => FragmentTitles.AppendToTabTitle( append, this );
+		protected void AppendToTabTitle()
+		{
+			string appendString = "";
+
+			if ( ( CurrentFilter != null ) || ( TagGroups.Count > 0 ) )
+			{
+				appendString = ( CurrentFilter == null ) ? "\r\n" : string.Format( "\r\n[{0}]", CurrentFilter.ShortName );
+				TagGroups.ForEach( tg => appendString += string.Format( "[{0}]", tg.Name ) );
+			}
+
+			FragmentTitles.AppendToTabTitle( appendString, this );
+		}
+
+		/// <summary>
+		/// Base class method that can be overriden by derived classes to display or hide genre information
+		/// </summary>
+		/// <param name="showGenre"></param>
+		protected virtual void ShowGenre( bool showGenre )
+		{
+		}
 
 		/// <summary>
 		/// Set the filter icon according to whether or not filtering is in effect
@@ -382,6 +413,11 @@ namespace DBTest
 		protected virtual Tag CurrentFilter { get; } = null;
 
 		/// <summary>
+		/// The group Tags that are currently being applied by a derived class
+		/// </summary>
+		protected virtual List<TagGroup> TagGroups { get; } = new List<TagGroup>();
+
+		/// <summary>
 		/// The title to be shown on the action bar
 		/// </summary>
 		protected string ActionModeTitle
@@ -398,6 +434,11 @@ namespace DBTest
 				}
 			}
 		}
+
+		/// <summary>
+		/// Set the text for the show/hide genres menu option
+		/// </summary>
+		private void SetGenresOptionText() => genresOption?.SetTitle( GenresShown ? "Hide genres" : "Show genres" );
 
 		/// <summary>
 		/// The Action Mode instance
@@ -438,5 +479,15 @@ namespace DBTest
 		/// A FilterSelection instance to handle the selection a filter to be applied to the contents displayed by the fragment
 		/// </summary>
 		private FilterSelection filterSelector = null;
+
+		/// <summary>
+		/// Are genres being displayed for albums
+		/// </summary>
+		private bool GenresShown { get; set; } = false;
+
+		/// <summary>
+		/// The optional menu item for the hide/show genres option
+		/// </summary>
+		private IMenuItem genresOption = null;
 	}
 }

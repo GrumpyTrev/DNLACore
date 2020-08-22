@@ -10,24 +10,9 @@ namespace DBTest
 	static class LibraryAccess
 	{
 		/// <summary>
-		/// Get all the sources associated with the library
+		/// Get all the Sources in the data base
 		/// </summary>
-		public static async Task<List<Source>> GetSourcesAsync( int libraryId, bool withChildren = false )
-		{
-			List<Source> sources = null;
-
-			// Get all sources for the specified library
-			if ( withChildren == false )
-			{
-				sources = await ConnectionDetailsModel.AsynchConnection.Table<Source>().Where( d => ( d.LibraryId == libraryId ) ).ToListAsync();
-			}
-			else
-			{
-				sources = await ConnectionDetailsModel.AsynchConnection.GetAllWithChildrenAsync<Source>( d => ( d.LibraryId == libraryId ) );
-			}
-
-			return sources;
-		}
+		public static async Task<List<Source>> GetAllSourcesAsync() => await ConnectionDetailsModel.AsynchConnection.Table<Source>().ToListAsync();
 
 		/// <summary>
 		/// Get all the libraries from the database
@@ -108,7 +93,7 @@ namespace DBTest
 			}
 
 			// Delete all the songs in each of the sources associated with the library
-			List<Source> sources = await GetSourcesAsync( libId, false );
+			List<Source> sources = Sources.GetSourcesForLibrary( libId );
 			foreach ( Source source in sources )
 			{
 				List< Song > songs = await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( s => s.SourceId == source.Id ).ToListAsync();
