@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using SQLiteNetExtensionsAsync.Extensions;
 using System.Collections.Generic;
 
 namespace DBTest
@@ -26,17 +25,11 @@ namespace DBTest
 				.Where( album => ( album.LibraryId == libraryId ) && ( album.Name == albumName ) && ( album.ArtistName == artistName ) ).FirstOrDefaultAsync();
 
 		/// <summary>
-		/// Get the Album specified by the id
-		/// </summary>
-		/// <param name="albumId"></param>
-		/// <returns></returns>
-		public static async Task<Album> GetAlbumAsync( int albumId ) => await ConnectionDetailsModel.AsynchConnection.GetAsync<Album>( albumId );
-
-		/// <summary>
-		/// Get the contents for the specified Album
+		/// Get the songs for the specified Album
 		/// </summary>
 		/// <param name="theAlbum"></param>
-		public static async Task GetAlbumContentsAsync( Album theAlbum ) => await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( theAlbum );
+		public static async Task GetAlbumSongsAsync( Album theAlbum ) => theAlbum.Songs =
+			await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.AlbumId == theAlbum.Id ) ).ToListAsync();
 
 		/// <summary>
 		/// Insert a new Album in the database
@@ -50,24 +43,13 @@ namespace DBTest
 		/// </summary>
 		/// <param name="album"></param>
 		/// <returns></returns>
-		public static async Task UpdateAlbumAsync( Album album, bool withChildren = true )
-		{
-			if ( withChildren == true )
-			{
-				await ConnectionDetailsModel.AsynchConnection.UpdateWithChildrenAsync( album );
-			}
-			else
-			{
-				await ConnectionDetailsModel.AsynchConnection.UpdateAsync( album );
-			}
-		}
+		public static async Task UpdateAlbumAsync( Album album ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( album );
 
 		/// <summary>
 		/// Delete the specifed Album
 		/// </summary>
 		/// <param name="albumId"></param>
 		/// <returns></returns>
-		public static async Task DeleteAlbumAsync( int albumId ) =>
-			await ConnectionDetailsModel.AsynchConnection.DeleteAsync( await ConnectionDetailsModel.AsynchConnection.GetAsync<Album>( albumId ) );
+		public static async Task DeleteAlbumAsync( Album album ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( album );
 	}
 }

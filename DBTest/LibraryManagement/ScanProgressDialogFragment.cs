@@ -99,7 +99,7 @@ namespace DBTest
 					// If there have been any changes to the library, and it is the library currently being displayed then force a refresh
 					if ( ( LibraryScanModel.LibraryModified == true ) && ( LibraryBeingScanned.Id == ConnectionDetailsModel.LibraryId ) )
 					{
-						new SelectedLibraryChangedMessage() { SelectedLibrary = LibraryBeingScanned }.Send();
+						new SelectedLibraryChangedMessage() { SelectedLibrary = LibraryBeingScanned.Id }.Send();
 					}
 
 					NotificationDialogFragment.ShowFragment( Activity.SupportFragmentManager,

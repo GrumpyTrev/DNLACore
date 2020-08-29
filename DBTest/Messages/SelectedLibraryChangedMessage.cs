@@ -8,6 +8,6 @@
 		/// <summary>
 		/// The selected library
 		/// </summary>
-		public Library SelectedLibrary { get; set; } = null;
+		public int SelectedLibrary { get; set; } = 0;
 	}
 }

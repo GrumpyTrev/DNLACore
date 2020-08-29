@@ -432,7 +432,7 @@ namespace DBTest
 			if ( fromTag == FilterManagementModel.JustPlayedTag )
 			{
 				albumToClear.Played = false;
-				await AlbumAccess.UpdateAlbumAsync( albumToClear, false );
+				await AlbumAccess.UpdateAlbumAsync( albumToClear );
 
 				// Inform interested parties
 				new AlbumPlayedStateChangedMessage() { AlbumChanged = albumToClear }.Send();
@@ -497,7 +497,7 @@ namespace DBTest
 				if ( albumToAdd.Played == false )
 				{
 					albumToAdd.Played = true;
-					await AlbumAccess.UpdateAlbumAsync( albumToAdd, false );
+					await AlbumAccess.UpdateAlbumAsync( albumToAdd );
 
 					// Inform interested parties
 					new AlbumPlayedStateChangedMessage() { AlbumChanged = albumToAdd }.Send();
@@ -627,6 +627,39 @@ namespace DBTest
 				if ( tagModified == true )
 				{
 					new TagMembershipChangedMessage() { ChangedTags = new List<string>() { tag.Name } }.Send();
+				}
+			}
+
+			// Now remove these Albums from the group tags
+			foreach ( TagGroup group in FilterManagementModel.TagGroups )
+			{
+				bool groupModified = false;
+				List<Tag> removedTags = new List<Tag>();
+
+				foreach ( Tag tag in group.Tags )
+				{
+					foreach ( int albumId in deletedAlbumIds )
+					{
+						// If this tag contains the album then remove the TaggedAlbum item
+						TaggedAlbum taggedAlbum = tag.TaggedAlbums.SingleOrDefault( ta => ( ta.AlbumId == albumId ) );
+						if ( taggedAlbum != null )
+						{
+							tag.TaggedAlbums.Remove( taggedAlbum );
+							groupModified = true;
+						}
+					}
+
+					if ( tag.TaggedAlbums.Count == 0 )
+					{
+						removedTags.Add( tag );
+					}
+				}
+
+				if ( groupModified == true )
+				{
+					removedTags.ForEach( tag => group.Tags.Remove( tag ) );
+
+					new TagMembershipChangedMessage() { ChangedTags = new List<string>() { group.Name } }.Send();
 				}
 			}
 		}

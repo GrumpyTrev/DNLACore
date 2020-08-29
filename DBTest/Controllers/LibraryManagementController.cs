@@ -35,7 +35,7 @@
 			{
 				await PlaybackAccess.SetSelectedLibraryAsync( selectedLibrary );
 				ConnectionDetailsModel.LibraryId = selectedLibrary.Id;
-				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary }.Send();
+				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary.Id }.Send();
 			}
 		}
 

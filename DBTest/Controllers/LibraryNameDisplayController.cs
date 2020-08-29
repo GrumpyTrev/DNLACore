@@ -21,8 +21,8 @@
 		/// Report the library name back to the delegate
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object message ) => 
-			Reporter?.LibraryNameAvailable( ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Name );
+		private static async void SelectedLibraryChanged( object message ) => 
+			Reporter?.LibraryNameAvailable( await LibraryAccess.GetLibraryNameAsync( ( message as SelectedLibraryChangedMessage ).SelectedLibrary ) );
 
 		/// <summary>
 		/// The interface instance used to report back controller results

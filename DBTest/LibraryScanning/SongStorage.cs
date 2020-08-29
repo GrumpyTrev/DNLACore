@@ -16,11 +16,14 @@ namespace DBTest
 		/// </summary>
 		/// <param name="libraryToScan"></param>
 		/// <param name="sourceToScan"></param>
-		public SongStorage( Library libraryToScan, Source sourceToScan )
+		public SongStorage( int libraryToScan, Source sourceToScan )
 		{
 			scanLibrary = libraryToScan;
 			sourceBeingScanned = sourceToScan;
 			LibraryModified = false;
+
+			// Form a lookup table for Artists in this library
+			artistsInLibrary = Artists.ArtistCollection.Where( art => art.LibraryId == scanLibrary ).ToDictionary( art => art.Name.ToUpper() );
 		}
 
 		/// <summary>
@@ -186,12 +189,8 @@ namespace DBTest
 				// If there is no existing Artist entry or the current one if for the wrong Artist name then get or create a new one
 				if ( ( songArtist == null ) || ( songArtist.Name != songScanned.ArtistName ) )
 				{
-					// As this is a new Artist the old ArtistAlbum if there was one needs to be stored away.
-					if ( songArtistAlbum != null )
-					{
-						await ArtistAccess.UpdateArtistAlbumAsync( songArtistAlbum );
-						songArtistAlbum = null;
-					}
+					// As this is a new Artist the ArtistAlbum needs to be re-initialised.
+					songArtistAlbum = null;
 
 					// Find the Artist for this song
 					songArtist = await GetArtistToHoldSongsAsync( songScanned.ArtistName );
@@ -207,7 +206,8 @@ namespace DBTest
 				// Add the song to the database, the album and the album artist
 				Song songToAdd = new Song() {
 					Title = songScanned.Tags.Title, Track = songScanned.Track, Path = songScanned.SourcePath,
-					ModifiedTime = songScanned.Modified, Length = songScanned.Length
+					ModifiedTime = songScanned.Modified, Length = songScanned.Length, AlbumId = songAlbum.Id, ArtistAlbumId = songArtistAlbum.Id,
+					SourceId = sourceBeingScanned.Id
 				};
 				await ArtistAccess.AddSongAsync( songToAdd );
 
@@ -217,7 +217,7 @@ namespace DBTest
 				// Add to the Album
 				songAlbum.Songs.Add( songToAdd );
 
-				// Store the artist with the album
+				// Store the artist name with the album
 				if ( ( songAlbum.ArtistName == null ) || ( songAlbum.ArtistName.Length == 0 ) )
 				{
 					songAlbum.ArtistName = songArtist.Name;
@@ -232,16 +232,9 @@ namespace DBTest
 				}
 
 				// Update the album year if not already set and this song has a year set
-				if ( songAlbum.Year != songScanned.Year )
+				if ( ( songAlbum.Year != songScanned.Year ) && ( songAlbum.Year == 0 ) )
 				{
-					if ( songAlbum.Year == 0 )
-					{
-						songAlbum.Year = songScanned.Year;
-					}
-					else
-					{
-						Logger.Log( string.Format( "Album year is {0} song year is {1}", songAlbum.Year, songScanned.Year ) );
-					}
+					songAlbum.Year = songScanned.Year;
 				}
 
 				// Update the album genre.
@@ -258,11 +251,6 @@ namespace DBTest
 				// Add to the ArtistAlbum
 				songArtistAlbum.Songs.Add( songToAdd );
 			}
-
-			// Update the db with the song collections in the Album, Source and ArtistAlbum
-			await AlbumAccess.UpdateAlbumAsync( songAlbum );
-			await LibraryAccess.UpdateSourceAsync( sourceBeingScanned );
-			await ArtistAccess.UpdateArtistAlbumAsync( songArtistAlbum );
 		}
 
 		/// <summary>
@@ -278,35 +266,22 @@ namespace DBTest
 
 			string artistName = ( album.SingleArtist == true ) ? album.Songs[ 0 ].ArtistName : VariousArtistsString;
 
-			// Check if the artist already exists in the library. The 'scanLibrary' can be used for this search as it is already fully populated with the 
-			// artists
-			Artist songArtist = scanLibrary.Artists.SingleOrDefault( p => ( p.Name.ToUpper() == artistName.ToUpper() ) );
+			// Check if the artist already exists in the library. 
+			Artist songArtist = artistsInLibrary.GetValueOrDefault( artistName.ToUpper() );
 
 			// If the artist exists then check for existing album. The artist will hold ArtistAlbum entries rather than Album entries, but the ArtistAlbum entries
 			// have the same name as the albums. Cannot just use the album name as that may not be unique.
 			if ( songArtist != null )
 			{
-				// Make sure that the Artist's children are available
-				if ( songArtist.ArtistAlbums == null )
-				{
-					await ArtistAccess.GetArtistChildrenAsync( songArtist );
-				}
-
 				ArtistAlbum songArtistAlbum = songArtist.ArtistAlbums.SingleOrDefault( p => ( p.Name.ToUpper() == album.Songs[ 0 ].Tags.Album.ToUpper() ) );
 				if ( songArtistAlbum != null )
 				{
-					// The Album is a child of this ArtistAlbum so..
-					if ( songArtistAlbum.Album == null )
-					{
-						await ArtistAccess.GetArtistAlbumChildrenAsync( songArtistAlbum );
-					}
-
 					songAlbum = songArtistAlbum.Album;
 
 					// The rest of the code expects the Album to have its songs populated, so check here
 					if ( songAlbum.Songs == null )
 					{
-						await AlbumAccess.GetAlbumContentsAsync( songAlbum );
+						await AlbumAccess.GetAlbumSongsAsync( songAlbum );
 					}
 				}
 			}
@@ -316,12 +291,8 @@ namespace DBTest
 			// If no existing album create a new one
 			if ( songAlbum == null )
 			{
-				songAlbum = new Album() { Name = album.Name, Songs = new List<Song>() };
-				await AlbumAccess.AddAlbumAsync( songAlbum );
-
-				// Add to Library
-				scanLibrary.Albums.Add( songAlbum );
-				await LibraryAccess.UpdateLibraryAsync( scanLibrary );
+				songAlbum = new Album() { Name = album.Name, Songs = new List<Song>(), LibraryId = scanLibrary };
+				await Albums.AddAlbumAsync( songAlbum );
 
 				// Add this album to the Recently Added list
 				new AlbumAddedMessage() { AlbumAdded = songAlbum }.Send();
@@ -337,11 +308,9 @@ namespace DBTest
 		/// <returns></returns>
 		private async Task<Artist> GetArtistToHoldSongsAsync( string artistName )
 		{
-			Artist songArtist = null;
-
 			// Find the Artist for this song. The 'scanLibrary' can be used for this search as it is already fully populated with the 
 			// artists
-			songArtist = scanLibrary.Artists.SingleOrDefault( p => ( p.Name.ToUpper() == artistName.ToUpper() ) );
+			Artist songArtist = artistsInLibrary.GetValueOrDefault( artistName.ToUpper() );
 
 			Logger.Log( string.Format( "Artist: {0} {1}", artistName, ( songArtist != null ) ? "found" : "not found creating in db" ) );
 
@@ -349,19 +318,10 @@ namespace DBTest
 			{
 				// Create a new Artist and add it to the database
 				songArtist = new Artist() { Name = artistName, ArtistAlbums = new List<ArtistAlbum>() };
-				await ArtistAccess.AddArtistAsync( songArtist );
+				await Artists.AddArtistAsync( songArtist );
 
-				// Add it to the library
-				scanLibrary.Artists.Add( songArtist );
-				await LibraryAccess.UpdateLibraryAsync( scanLibrary );
-			}
-			else
-			{
-				// Make sure that the Artist's children are available
-				if ( songArtist.ArtistAlbums == null )
-				{
-					await ArtistAccess.GetArtistChildrenAsync( songArtist );
-				}
+				// Add it to the collection for this library only
+				artistsInLibrary[ songArtist.Name.ToUpper() ] = songArtist;
 			}
 
 			return songArtist;
@@ -385,18 +345,19 @@ namespace DBTest
 			if ( songArtistAlbum == null )
 			{
 				// Create a new ArtistAlbum and add it to the database and the Artist
-				songArtistAlbum = new ArtistAlbum() { Name = songAlbum.Name, Album = songAlbum, Songs = new List<Song>() };
-				await ArtistAccess.AddArtistAlbumAsync( songArtistAlbum );
+				songArtistAlbum = new ArtistAlbum() { Name = songAlbum.Name, Album = songAlbum, Songs = new List<Song>(), ArtistId = songArtist.Id,
+					 Artist = songArtist, AlbumId = songAlbum.Id };
+				await ArtistAlbums.AddArtistAlbumAsync( songArtistAlbum );
 
 				songArtist.ArtistAlbums.Add( songArtistAlbum );
-
-				// Update this relationship in the database
-				await ArtistAccess.UpdateArtistAsync( songArtist );
 			}
 			else
 			{
 				// Get the children of the existing ArtistAlbum
-				await ArtistAccess.GetArtistAlbumChildrenAsync( songArtistAlbum );
+				if ( songArtistAlbum.Songs == null )
+				{
+					await ArtistAccess.GetArtistAlbumSongsAsync( songArtistAlbum );
+				}
 			}
 
 			return songArtistAlbum;
@@ -415,7 +376,12 @@ namespace DBTest
 		/// <summary>
 		/// The Library to insert Artists and Albums into
 		/// </summary>
-		private Library scanLibrary = null;
+		private int scanLibrary = 0;
+
+		/// <summary>
+		/// The Artists in the Library being scanned
+		/// </summary>
+		private Dictionary< string, Artist > artistsInLibrary = null;
 	}
 
 	/// <summary>

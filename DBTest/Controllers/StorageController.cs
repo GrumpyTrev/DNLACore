@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -41,9 +43,46 @@ namespace DBTest
 			await Genres.GetDataAsync();
 			await Albums.GetDataAsync();
 			await Sources.GetDataAsync();
+			await Artists.GetDataAsync();
+			await ArtistAlbums.GetDataAsync();
+
+			// Carry out some one-of data linking
+			await PopulateArtistsAsync();
+
 			DataAvailable = true;
 			new StorageDataAvailableMessage().Send();
 		}
+
+		/// <summary>
+		/// Once the Artists have been read in their associated ArtistAlbums can be read as well and linked to them
+		/// The ArtistAlbums are required for filtering so they may as well be linked in at the same time
+		/// Get the Album associated with the ArtistAlbum as well so that only a single copy of the Albums is used
+		/// </summary>
+		private static async Task PopulateArtistsAsync()
+		{
+			// Do the linking of ArtistAlbum entries off the UI thread
+			await Task.Run( () =>
+			{
+				// Link the Albums from the AlbumModel to the ArtistAlbums and link the ArtistAlbums to their associated Artists. 
+				foreach ( ArtistAlbum artAlbum in ArtistAlbums.ArtistAlbumCollection )
+				{
+					// If this ArtistAlbum is associated with an Album (it should be) then link it to the Artist
+					Album associatedAlbum = Albums.GetAlbumById( artAlbum.AlbumId );
+					if ( associatedAlbum != null )
+					{
+						// Store the Album in the ArtistAlbum
+						artAlbum.Album = associatedAlbum; ;
+
+						// Save a reference to the Artist in the ArtistAlbum
+						artAlbum.Artist = Artists.GetArtistById( artAlbum.ArtistId );
+
+						// Add this ArtistAlbum to its Artist
+						artAlbum.Artist.ArtistAlbums.Add( artAlbum );
+					}
+				}
+			} );
+		}
+
 
 		/// <summary>
 		/// Is the managed storage available

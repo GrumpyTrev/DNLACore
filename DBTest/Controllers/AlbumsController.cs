@@ -58,7 +58,7 @@ namespace DBTest
 		/// <param name="theAlbum"></param>
 		public static async Task GetAlbumContentsAsync( Album theAlbum )
 		{
-			await AlbumAccess.GetAlbumContentsAsync( theAlbum );
+			await AlbumAccess.GetAlbumSongsAsync( theAlbum );
 
 			// Sort the songs by track number - UI thread but not many entries
 			theAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
@@ -277,7 +277,8 @@ namespace DBTest
 		private static void TagMembershipChanged( object message )
 		{
 			if ( ( AlbumsViewModel.CurrentFilter != null ) &&
-				( ( message as TagMembershipChangedMessage ).ChangedTags.Contains( AlbumsViewModel.CurrentFilter.Name ) == true ) )
+				 ( ( AlbumsViewModel.TagGroups.Count > 0 ) ||
+				   ( ( message as TagMembershipChangedMessage ).ChangedTags.Contains( AlbumsViewModel.CurrentFilter.Name ) == true ) ) )
 			{
 				ApplyFilterAsync( AlbumsViewModel.CurrentFilter );
 			}

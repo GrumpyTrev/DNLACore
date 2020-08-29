@@ -32,18 +32,6 @@ namespace DBTest
 		public int Id { get; set; }
 
 		public string Name { get; set; }
-
-		[OneToMany]
-		public List<Source> Sources { get; set; }
-
-		[OneToMany]
-		public List<Artist> Artists { get; set; }
-
-		[OneToMany]
-		public List<Album> Albums { get; set; }
-
-		[OneToMany]
-		public List<Playlist> PlayLists { get; set; }
 	}
 
 	[Table( "Source" )]
@@ -61,7 +49,7 @@ namespace DBTest
 		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
 
-		[OneToMany]
+		[Ignore]
 		public List<Song> Songs { get; set; }
 	}
 
@@ -111,8 +99,8 @@ namespace DBTest
 		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
 
-		[OneToMany]
-		public List<ArtistAlbum> ArtistAlbums { get; set; }
+		[Ignore]
+		public List<ArtistAlbum> ArtistAlbums { get; set; } = new List<ArtistAlbum>();
 
 		/// <summary>
 		/// Indicates when all the details for the Artist have been read
@@ -154,7 +142,6 @@ namespace DBTest
 		/// </summary>
 		[Ignore]
 		public string Genre { get; set; } = "";
-
 	}
 
 	[Table( "ArtistAlbum" ) ]

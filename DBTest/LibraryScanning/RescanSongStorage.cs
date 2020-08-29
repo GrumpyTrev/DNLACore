@@ -15,7 +15,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="libraryToScan"></param>
 		/// <param name="sourceToScan"></param>
-		public RescanSongStorage( Library libraryToScan, Source sourceToScan, Dictionary<string, Song> pathLookup ) : base ( libraryToScan, sourceToScan )
+		public RescanSongStorage( int libraryToScan, Source sourceToScan, Dictionary<string, Song> pathLookup ) : base ( libraryToScan, sourceToScan )
 		{
 			songLookup = pathLookup;
 		}
@@ -50,8 +50,8 @@ namespace DBTest
 				}
 
 				// TESTING - mark all existing files as scanRequired = true and differ
-				scanRequired = true;
-				matchedSong.ScanAction = Song.ScanActionType.Differ;
+//				scanRequired = true;
+//				matchedSong.ScanAction = Song.ScanActionType.Differ;
 			}
 
 			return scanRequired;
@@ -73,8 +73,8 @@ namespace DBTest
 				// the matched song for deletion
 				// Previously the artist name stored in the existing Album object was used to check for an artist naem change. Use the Artist record instead
 				// as the name in the Albm record may be "Various Artists" for instance.
-				ArtistAlbum matchedArtistAlbum = await ArtistAccess.GetArtistAlbumAsync( matchedSong.ArtistAlbumId );
-				Artist matchedArtist = await ArtistAccess.GetArtistAsync( matchedArtistAlbum.ArtistId );
+				ArtistAlbum matchedArtistAlbum = ArtistAlbums.GetArtistAlbumById( matchedSong.ArtistAlbumId );
+				Artist matchedArtist = Artists.GetArtistById( matchedArtistAlbum.ArtistId );
 
 				// If the artist or album name has changed then treat this as a new song. Otherwise update the existing song in the library
 				if ( ( matchedArtist.Name.ToUpper() != song.ArtistName.ToUpper() ) || ( matchedArtistAlbum.Name.ToUpper() != song.Tags.Album.ToUpper() ) )
@@ -94,7 +94,7 @@ namespace DBTest
 
 					// Check if the year or genre fields on the album needs updating
 					// Don't update the Album if it is a 'various artists' album as the these fields is not applicable
-					Album matchedAlbum = await AlbumAccess.GetAlbumAsync( matchedArtistAlbum.AlbumId );
+					Album matchedAlbum = Albums.GetAlbumById( matchedArtistAlbum.AlbumId );
 
 					if ( matchedAlbum.ArtistName != SongStorage.VariousArtistsString )
 					{

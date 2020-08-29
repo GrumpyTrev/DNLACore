@@ -132,6 +132,8 @@
     <Compile Include="Messages\TagDetailsChangedMessage.cs" />
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />
     <Compile Include="Model\AlbumAccess.cs" />
+    <Compile Include="Model\ArtistAlbums.cs" />
+    <Compile Include="Model\Artists.cs" />
     <Compile Include="Model\Albums.cs" />
     <Compile Include="Model\FilterAccess.cs" />
     <Compile Include="Model\Genres.cs" />

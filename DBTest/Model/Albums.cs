@@ -29,16 +29,29 @@ namespace DBTest
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public static Album GetAlbumById( int id )
+		public static Album GetAlbumById( int id ) => IdLookup.GetValueOrDefault( id );
+
+		/// <summary>
+		/// Add a new album to the storage and the local collections
+		/// </summary>
+		/// <param name="albumToAdd"></param>
+		public static async Task AddAlbumAsync( Album albumToAdd )
 		{
-			Album albumFound = null;
+			AlbumCollection.Add( albumToAdd );
+			IdLookup[ albumToAdd.Id ] = albumToAdd;
+			await AlbumAccess.AddAlbumAsync( albumToAdd );
+		}
 
-			if ( IdLookup.TryGetValue( id, out Album value ) == true )
-			{
-				albumFound = value;
-			}
-
-			return albumFound;
+		/// <summary>
+		/// Delete the specified Album from the storage and the collections
+		/// </summary>
+		/// <param name="albumToDelete"></param>
+		/// <returns></returns>
+		public static async Task DeleteAlbumAsync( Album albumToDelete )
+		{
+			await AlbumAccess.DeleteAlbumAsync( albumToDelete );
+			AlbumCollection.Remove( albumToDelete );
+			IdLookup.Remove( albumToDelete.Id );
 		}
 
 		/// <summary>

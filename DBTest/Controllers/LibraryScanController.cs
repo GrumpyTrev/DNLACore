@@ -36,9 +36,6 @@ namespace DBTest
 
 					await Task.Run( async () =>
 					{
-						// The part of the RescanSongStorage that is being used here expects the library's chldren to be read, so do that here
-						await LibraryAccess.GetLibraryChildrenAsync( LibraryScanModel.LibraryBeingScanned );
-
 						// Iterate all the sources associated with this library. Get the songs as well as we're going to need them below
 						List<Source> sources = await Sources.GetSourcesAndSongsForLibraryAsync( LibraryScanModel.LibraryBeingScanned.Id );
 
@@ -51,7 +48,7 @@ namespace DBTest
 							source.Songs.ForEach( song => song.ScanAction = Song.ScanActionType.NotMatched );
 
 							// Use a RescanSongStorage instance to check for song changes
-							RescanSongStorage scanStorage = new RescanSongStorage( LibraryScanModel.LibraryBeingScanned, source, pathLookup );
+							RescanSongStorage scanStorage = new RescanSongStorage( LibraryScanModel.LibraryBeingScanned.Id, source, pathLookup );
 
 							// Check the source scanning method
 							if ( source.ScanType == "FTP" )
@@ -115,25 +112,32 @@ namespace DBTest
 				// Check if any of these ArtistAlbum items are now empty and need deleting
 				foreach ( int id in artistAlbumIds )
 				{
+					// Refresh the contents of the ArtistAlbum
+					ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( id );
+					await ArtistAccess.GetArtistAlbumSongsAsync( artistAlbum );
+
 					// Check if this ArtistAlbum is being referenced by any songs
-					if ( ( await ArtistAccess.GetSongsReferencingArtistAlbumAsync( id ) ).Count == 0 )
+					if ( artistAlbum.Songs.Count == 0 )
 					{
 						// Delete the ArtistAlbum as it is no longer being referenced
-						ArtistAlbum artistAlbum = await ArtistAccess.GetArtistAlbumAsync( id );
-						await ArtistAccess.DeleteArtistAlbumAsync( artistAlbum );
+						await ArtistAlbums.DeleteArtistAlbumAsync( artistAlbum );
+
+						// Remove this ArtistAlbum from the Artist
+						Artist artist = Artists.GetArtistById( artistAlbum.ArtistId );
+						artist.ArtistAlbums.Remove( artistAlbum );
 
 						// Does the associated Artist have any other Albums
-						if ( ( await ArtistAccess.GetArtistAlbumsReferencingArtistAsync( artistAlbum.ArtistId ) ).Count == 0 )
+						if ( artist.ArtistAlbums.Count == 0 )
 						{
 							// Delete the Artist
-							await ArtistAccess.DeleteArtistAsync( artistAlbum.ArtistId );
+							await Artists.DeleteArtistAsync( artist );
 						}
 
 						// Does any other ArtistAlbum reference the Album
-						if ( ( await ArtistAccess.GetArtistAlbumsReferencingAlbumAsync( artistAlbum.AlbumId ) ).Count == 0 )
+						if ( ArtistAlbums.ArtistAlbumCollection.Any( art => art.AlbumId == artistAlbum.AlbumId ) == true )
 						{
 							// Not referenced by any ArtistAlbum. so delete it
-							await AlbumAccess.DeleteAlbumAsync( artistAlbum.AlbumId );
+							await Albums.DeleteAlbumAsync( artistAlbum.Album );
 							deletedAlbumIds.Add( artistAlbum.AlbumId );
 						}
 					}
@@ -147,7 +151,7 @@ namespace DBTest
 
 			if ( LibraryScanModel.LibraryBeingScanned.Id == ConnectionDetailsModel.LibraryId )
 			{
-				new SelectedLibraryChangedMessage() { SelectedLibrary = LibraryScanModel.LibraryBeingScanned }.Send();
+				new SelectedLibraryChangedMessage() { SelectedLibrary = LibraryScanModel.LibraryBeingScanned.Id }.Send();
 			}
 
 			DeleteInProgress = false;

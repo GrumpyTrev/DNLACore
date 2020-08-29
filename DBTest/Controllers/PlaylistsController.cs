@@ -182,8 +182,8 @@ namespace DBTest
 							int titleIndex = 0;
 							while ( ( matchingSong == null ) && ( titleIndex < matchingTitles.Count ) )
 							{
-								ArtistAlbum artistAlbum = await ArtistAccess.GetArtistAlbumAsync( matchingTitles[ titleIndex ].ArtistAlbumId );
-								Artist nameCheck = await ArtistAccess.GetArtistAsync( artistAlbum.ArtistId );
+								ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( matchingTitles[ titleIndex ].ArtistAlbumId );
+								Artist nameCheck = Artists.GetArtistById( artistAlbum.ArtistId );
 
 								// Correct name?
 								if ( nameCheck.Name == item.Artist.Name )

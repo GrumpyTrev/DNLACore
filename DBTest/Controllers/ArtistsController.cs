@@ -40,13 +40,13 @@ namespace DBTest
 
 				// New data is required
 				ArtistsViewModel.LibraryId = libraryId;
-				ArtistsViewModel.UnfilteredArtists = await ArtistAccess.GetArtistDetailsAsync( ArtistsViewModel.LibraryId );
 
 				// Get the list of current playlists and extract the names to a list
 				await GetPlayListNames();
 
-				// Before the artists can be displayed the album data has to be incorporated. Access to this is controlled by the StorageController
-				StorageController.RegisterInterestInDataAvailable( AlbumDataAvailable );
+				// All Artists are read as part of the storage data. So wait until that is available and then carry out the rest of the 
+				// initialisation
+				StorageController.RegisterInterestInDataAvailable( StorageDataAvailable );
 			}
 			else
 			{
@@ -70,7 +70,7 @@ namespace DBTest
 			if ( theArtist.DetailsRead == false )
 			{
 				// No get them
-				await ArtistAccess.GetArtistContentsAsync( theArtist );
+				await ArtistAccess.GetArtistSongsAsync( theArtist );
 
 				// Mark the details have been read
 				theArtist.DetailsRead = true;
@@ -126,7 +126,7 @@ namespace DBTest
 					HashSet<int> albumIds = albumFilter.Select( ta => ta.AlbumId ).ToHashSet();
 
 					// Now get all the artist identities of the albums that are tagged
-					HashSet<int> artistIds = ArtistsViewModel.ArtistAlbums.FindAll( aa => albumIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).ToHashSet();
+					HashSet<int> artistIds = ArtistAlbums.ArtistAlbumCollection.FindAll( aa => albumIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).ToHashSet();
 
 					// Now get the Artists from the list of artist ids
 					ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) == true ).ToList();
@@ -193,54 +193,14 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Once the Artists have been read in their associated ArtistAlbums can be read as well and linked to them
-		/// The ArtistAlbums are required for filtering so they may as well be linked in at the same time
-		/// Get the Album associated with the ArtistAlbum as well so that only a single copy of the Albums is used (that in the AlbumsViewModel)
+		/// Sort the ArtistAlbum entries in each Artist by the album year
 		/// </summary>
-		private static async Task PartiallyPopulateArtistsAsync()
+		private static async Task SortArtistAlbumsAsync()
 		{
-			// Do the linking of ArtistAlbum entries off the UI thread
-			await Task.Run( async () =>
+			await Task.Run( () =>
 			{
-				// Get all the ArtistAlbums. NB This is all the ArtistAlbums in the whole database not just the current library.
-				// The list that gets stored will be built as the Albums are resolved below
-				List<ArtistAlbum> allArtistAlbums = await ArtistAccess.GetArtistAlbumsAsync();
-				ArtistsViewModel.ArtistAlbums = new List<ArtistAlbum>();
-
-				// Link the Albums from the AlbumModel to the ArtistAlbums and link the ArtistAlbums to their associated Artists. 
-				// Need to access the Artists by their identities and the Albums by their identities
-				Dictionary<int, Artist> artistDictionary = ArtistsViewModel.UnfilteredArtists.ToDictionary( artist => artist.Id );
-
-				foreach ( ArtistAlbum artAlbum in allArtistAlbums )
-				{
-					// If this ArtistAlbum is associated with an Album in the current library then add it to the model and link it to the Artist
-					Album associatedAlbum = Albums.GetAlbumById( artAlbum.AlbumId );
-					if ( ( associatedAlbum != null ) && ( associatedAlbum.LibraryId == ArtistsViewModel.LibraryId ) )
-					{
-						// Store the Album in the ArtistAlbum
-						artAlbum.Album = associatedAlbum; ;
-
-						// This ArtistAlbum is in the current library so save it
-						ArtistsViewModel.ArtistAlbums.Add( artAlbum );
-
-						// Save a reference to the Artist in the ArtistAlbum
-						artAlbum.Artist = artistDictionary[ artAlbum.ArtistId ];
-
-						// Add this ArtistAlbum to its Artist
-						if ( artAlbum.Artist.ArtistAlbums == null )
-						{
-							artAlbum.Artist.ArtistAlbums = new List<ArtistAlbum>();
-						}
-
-						artAlbum.Artist.ArtistAlbums.Add( artAlbum );
-					}
-				}
-
 				// Sort the ArtistAlbum entries in each Artist by the album year
-				foreach ( Artist artist in ArtistsViewModel.UnfilteredArtists )
-				{
-					artist.ArtistAlbums.Sort( ( a, b ) => a.Album.Year.CompareTo( b.Album.Year ) );
-				}
+				ArtistsViewModel.UnfilteredArtists.ForEach( art => art.ArtistAlbums.Sort( ( a, b ) => a.Album.Year.CompareTo( b.Album.Year ) ) );
 			} );
 		}
 
@@ -292,7 +252,8 @@ namespace DBTest
 		private static void TagMembershipChanged( object message )
 		{
 			if ( ( ArtistsViewModel.CurrentFilter != null ) &&
-				( ( message as TagMembershipChangedMessage ).ChangedTags.Contains( ArtistsViewModel.CurrentFilter.Name ) == true ) )
+				 ( ( ArtistsViewModel.TagGroups.Count > 0 ) ||
+				   ( ( message as TagMembershipChangedMessage ).ChangedTags.Contains( ArtistsViewModel.CurrentFilter.Name ) == true ) ) )
 			{
 				ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
 			}
@@ -389,13 +350,15 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called during startup, or library change, when the album data is available
+		/// Called during startup, or library change, when the storage data is available
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void AlbumDataAvailable( object message )
+		private static async void StorageDataAvailable( object message )
 		{
-			// Do the linking of ArtistAlbum entries off the UI thread
-			await PartiallyPopulateArtistsAsync();
+			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
+
+			// Do the sorting of ArtistAlbum entries off the UI thread
+			await SortArtistAlbumsAsync();
 
 			// Apply the current filter and get the data ready for display 
 			await ApplyFilterAsync( ArtistsViewModel.CurrentFilter );

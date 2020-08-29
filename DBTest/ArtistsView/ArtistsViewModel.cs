@@ -39,11 +39,6 @@ namespace DBTest
 		public static List<object> ArtistsAndAlbums { get; set; } = new List<object>();
 
 		/// <summary>
-		/// THe list of all ArtistAlbum items
-		/// </summary>
-		public static List<ArtistAlbum> ArtistAlbums { get; set; } = new List<ArtistAlbum>();
-
-		/// <summary>
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
 		public static int LibraryId { get; set; } = -1;

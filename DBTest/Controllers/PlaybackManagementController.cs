@@ -140,7 +140,7 @@ namespace DBTest
 		private static async void SelectedLibraryChanged( object message )
 		{
 			// Set the new library
-			PlaybackManagerModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary.Id;
+			PlaybackManagerModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary;
 
 			// Clear the now playing data and reset the selected song
 			PlaybackManagerModel.NowPlayingPlaylist = null;
