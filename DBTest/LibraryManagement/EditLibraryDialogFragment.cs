@@ -3,9 +3,9 @@
 namespace DBTest
 {
 	/// <summary>
-	/// The ClearLibraryDialogFragment is used to allow the user to select a library to clear
+	/// The EditLibraryDialogFragment is used to allow the user to select a library to edit
 	/// </summary>
-	internal class ClearLibraryDialogFragment : SelectionBaseDialogFragment
+	internal class EditLibraryDialogFragment : SelectionBaseDialogFragment
 	{
 		/// <summary>
 		/// Show the dialogue
@@ -13,20 +13,20 @@ namespace DBTest
 		/// <param name="manager"></param>
 		public static void ShowFragment( FragmentManager manager )
 		{
-			new ClearLibraryDialogFragment().Show( manager, "fragment_library_clear" );
+			new EditLibraryDialogFragment().Show( manager, "fragment_library_edit" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public ClearLibraryDialogFragment()
+		public EditLibraryDialogFragment()
 		{
 		}
 
 		/// <summary>
 		/// The title for this dialogue
 		/// </summary>
-		protected override string Title { get => "Select library to clear"; }
+		protected override string Title { get => "Select library to edit"; }
 
 		/// <summary>
 		/// Carry out the action once a library has been selected
@@ -34,7 +34,6 @@ namespace DBTest
 		/// <param name="libraryToClear"></param>
 		protected override void LibrarySelected( Library library )
 		{
-			ClearConfirmationDialogFragment.ShowFragment( Activity.SupportFragmentManager, library );
 		}
 	}
 }

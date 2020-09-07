@@ -45,6 +45,7 @@ namespace DBTest
 			await Sources.GetDataAsync();
 			await Artists.GetDataAsync();
 			await ArtistAlbums.GetDataAsync();
+			await Libraries.GetDataAsync();
 
 			// Carry out some one-of data linking
 			await PopulateArtistsAsync();

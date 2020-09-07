@@ -44,12 +44,7 @@ namespace DBTest
 			}
 
 			// Initialise the rest of the ConnectionDetailsModel if required
-			if ( ConnectionDetailsModel.DatabasePath.Length == 0 )
-			{
-				// Save the database path and get the current library
-				ConnectionDetailsModel.DatabasePath = databasePath;
-				ConnectionDetailsModel.LibraryId = InitialiseDatabase();
-			}
+			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
 
 			// Start the tab view data access as early as possible.
 			// Satrt the Albums access first as the Artists needs the Albums info to be there
@@ -66,15 +61,6 @@ namespace DBTest
 
 			// Initialise the PlaybackSelectionManager
 			playbackSelector = new PlaybackSelectionManager( this );
-
-			// Initialise the LibraryScanner
-			libraryScanner = new LibraryScanner( this );
-
-			// Initialise the LibrarySelection
-			librarySelector = new LibrarySelection( this );
-
-			// Initialise the LibraryClear
-			libraryClearer = new LibraryClear( this );
 
 			// Initialise the tag command handlers
 			tagDeleteCommandHandler = new TagDeletor( this );
@@ -177,17 +163,22 @@ namespace DBTest
 			}
 			else if ( id == Resource.Id.scan_library )
 			{
-				libraryScanner.ScanSelection();
+				ScanLibraryDialogFragment.ShowFragment( SupportFragmentManager );
 				handled = true;
 			}
 			else if ( id == Resource.Id.select_library )
 			{
-				librarySelector.SelectLibrary();
+				SelectLibraryDialogFragment.ShowFragment( SupportFragmentManager );
 				handled = true;
 			}
 			else if ( id == Resource.Id.clear_library )
 			{
-				libraryClearer.SelectLibraryToClear();
+				ClearLibraryDialogFragment.ShowFragment( SupportFragmentManager );
+				handled = true;
+			}
+			else if ( id == Resource.Id.edit_library )
+			{
+				EditLibraryDialogFragment.ShowFragment( SupportFragmentManager );
 				handled = true;
 			}
 			else if ( id == Resource.Id.shuffle_now_playing )
@@ -275,7 +266,6 @@ namespace DBTest
 			}
 
 			// Some of the managers need to remove themselves from the scene
-			libraryScanner.ReleaseResources();
 			FragmentTitles.ParentActivity = null;
 			LibraryNameDisplayController.Reporter = null;
 
@@ -364,21 +354,6 @@ namespace DBTest
 		/// The PlaybackSelectionManager used to allow the user to select a playback device
 		/// </summary>
 		private PlaybackSelectionManager playbackSelector = null;
-
-		/// <summary>
-		/// The LibraryScanner class controls the rescanning of a library
-		/// </summary>
-		private LibraryScanner libraryScanner = null;
-
-		/// <summary>
-		/// The LibrarySelection class controls the selection of a library to be displayed
-		/// </summary>
-		private LibrarySelection librarySelector = null;
-
-		/// <summary>
-		/// The LibraryClear class controls the clearance of a library
-		/// </summary>
-		private LibraryClear libraryClearer = null;
 
 		/// <summary>
 		/// The one and only Http server used to serve local files to remote devices

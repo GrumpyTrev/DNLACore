@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using Android.App;
 using Android.Content;
@@ -14,7 +12,7 @@ namespace DBTest
 	/// <summary>
 	/// Select library dialogue based on DialogFragment to provide activity configuration support
 	/// </summary>
-	internal class SelectLibraryDialogFragment : DialogFragment
+	internal class SelectLibraryDialogFragment : SelectionBaseDialogFragment
 	{
 		/// <summary>
 		/// Show the dialogue
@@ -30,37 +28,22 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Create the dialogue	
+		/// The title for this dialogue
 		/// </summary>
-		/// <param name="savedInstanceState"></param>
-		/// <returns></returns>
-		public override Dialog OnCreateDialog( Bundle savedInstanceState )
-		{
-			// Get the names of the libraries to display and the index in thelist of the current library
-			List<string> libraryNames = LibraryManagementModel.Libraries.Select( lib => lib.Name ).ToList();
-			int currentLibraryIndex = LibraryManagementModel.Libraries.FindIndex( lib => ( lib.Id == ConnectionDetailsModel.LibraryId ) );
-
-			return new AlertDialog.Builder( Activity )
-				.SetTitle( "Select library to display" )
-				.SetSingleChoiceItems( libraryNames.ToArray(), currentLibraryIndex, delegate { } )
-				.SetPositiveButton( "Ok", ( EventHandler<DialogClickEventArgs> )null )
-				.SetNegativeButton( "Cancel", delegate { } )
-				.Create();
-		}
+		protected override string Title { get => "Select library to display"; }
 
 		/// <summary>
-		/// Install a handler for the Ok button that gets the selected item from the internal ListView
+		/// The index of the library to initially display selected
 		/// </summary>
-		public override void OnResume()
-		{
-			base.OnResume();
+		protected override int InitallySelectedLibraryIndex { get => Libraries.Index( ConnectionDetailsModel.LibraryId ); }
 
-			AlertDialog alert = ( AlertDialog )Dialog;
-			alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) =>
-			{
-				LibraryManagementController.SelectLibraryAsync( LibraryManagementModel.Libraries[ alert.ListView.CheckedItemPosition ] );
-				alert.Dismiss();
-			};
+		/// <summary>
+		/// Carry out the action once a library has been selected
+		/// </summary>
+		/// <param name="libraryToClear"></param>
+		protected override void LibrarySelected( Library library )
+		{
+			LibraryManagementController.SelectLibraryAsync( library );
 		}
 	}
 }

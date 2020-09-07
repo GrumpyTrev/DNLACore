@@ -37,9 +37,6 @@ namespace DBTest
 				FilterManagementModel.RecentlyAddedTag = FilterManagementModel.Tags.SingleOrDefault( tag => tag.Name == RecentlyAddedTagName );
 				FilterManagementModel.JustPlayedTag = FilterManagementModel.Tags.SingleOrDefault( tag => tag.Name == JustPlayedTagName );
 
-				/// Get the current set of libraries as they'll be required for tag synchronisation
-				FilterManagementModel.Libraries = await LibraryAccess.GetLibrariesAsync();
-
 				// The Tags need to be linked to their TaggedAlbum entries which contain Albums, so wait
 				// until the Album data is available
 				StorageController.RegisterInterestInDataAvailable( AlbumDataAvailable );
@@ -103,7 +100,7 @@ namespace DBTest
 					if ( ( updatedTag.MaxCount != -1 ) && ( ( existingTag.MaxCount == -1 ) || ( updatedTag.MaxCount < existingTag.MaxCount ) ) )
 					{
 						// Possibly need to reduce the number of tagged albums (for each library)
-						foreach ( Library lib in FilterManagementModel.Libraries )
+						foreach ( Library lib in Libraries.LibraryCollection )
 						{
 							// Get the count for this library 
 							int tagCount = existingTag.TaggedAlbums.Count( taggedAlbum => ( taggedAlbum.Album.LibraryId == lib.Id ) );
@@ -138,10 +135,10 @@ namespace DBTest
 							.Where( tagged => ( tagged.Album.Name == distinctAlbum.Name ) && ( tagged.Album.ArtistName == distinctAlbum.ArtistName ) )
 							.Select( tagged => tagged.Album ).ToList();
 
-						if ( matchingAlbums.Count != FilterManagementModel.Libraries.Count )
+						if ( matchingAlbums.Count != Libraries.LibraryCollection.Count )
 						{
 							// Need to work out which albums are missing and the check if that album is actually in its library
-							foreach ( Library library in FilterManagementModel.Libraries )
+							foreach ( Library library in Libraries.LibraryCollection )
 							{
 								if ( matchingAlbums.FindIndex( album => ( album.LibraryId == library.Id ) ) == -1 )
 								{
@@ -508,7 +505,7 @@ namespace DBTest
 			// Sychronise whether or not a new entry was added as we may need to reorder an existing tag item in other libraries
 			if ( ( dontSynchronise == false ) && ( toTag.Synchronise == true ) )
 			{
-				foreach ( Library library in FilterManagementModel.Libraries )
+				foreach ( Library library in Libraries.LibraryCollection )
 				{
 					if ( library.Id != albumToAdd.LibraryId )
 					{

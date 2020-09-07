@@ -10,11 +10,6 @@ namespace DBTest
 		public static List< Tag > Tags { get; internal set; } = null;
 
 		/// <summary>
-		/// The libraries
-		/// </summary>
-		public static List<Library> Libraries { get; internal set; } = null;
-
-		/// <summary>
 		/// The ste of all tag groups available for the user to choose from
 		/// </summary>
 		public static List<TagGroup> TagGroups { get; internal set; } = new List<TagGroup>();

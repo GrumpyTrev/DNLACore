@@ -53,6 +53,78 @@ namespace DBTest
 		public List<Song> Songs { get; set; }
 	}
 
+	[Table( "NewSource" )]
+	public class NewSource
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		/// <summary>
+		/// The name of this source for display purposes
+		/// </summary>
+		public string Name { get; set; }
+
+		/// <summary>
+		/// Access type - currently "Local" or "Remote"
+		/// </summary>
+		public string AccessType { get; set; }
+
+		/// <summary>
+		/// The IP address of the device where the music is stored
+		/// If left blank this indicates that the local IP address of the phone should be used
+		/// </summary>
+		public string IPAddress { get; set; }
+
+		/// <summary>
+		/// The location on the device where the songs can be found.
+		/// For local devices this will be the full name of the directory onn the device
+		/// For remote devices this will be the name that the device's HTTP server responds to
+		/// </summary>
+		public string FolderName { get; set; }
+
+		/// <summary>
+		/// The HTTP port number
+		/// </summary>
+		public int PortNo { get; set; }
+
+		/// <summary>
+		/// The source used when scanning - derived from above
+		/// For remote devices this is '{IPAddress}'
+		/// For local devices this is '/{FolderName}/'
+		/// </summary>
+		[Ignore]
+		public string ScanSource { get; set; }
+
+		/// <summary>
+		/// The type of access used for scanning - derived from above
+		/// For remote devices this will be 'FTP'
+		/// For local devices this will be 'Local'
+		/// </summary>
+		[Ignore]
+		public string ScanType { get; set; }
+
+		/// <summary>
+		/// The location used to access the songs when playing them locally
+		/// For remote devices this will be 'http://{IPAddress}:{PortNo}/{FolderName}'
+		/// For local devices this will be '/{FolderName}'
+		/// </summary>
+		[Ignore]
+		public string LocalAccess { get; set; }
+
+		/// <summary>
+		/// The location used to access the songs when playing them remotely
+		/// For both remote and local devices this will be 'http://{IPAddress}:{PortNo}/{FolderName}'
+		/// </summary>
+		[Ignore]
+		public string RemoteAccess { get; set; }
+
+		[ForeignKey( typeof( Library ) )]
+		public int LibraryId { get; set; }
+
+		[Ignore]
+		public List<Song> Songs { get; set; }
+	}
+
 	[Table( "Song" )]
 	public class Song
 	{

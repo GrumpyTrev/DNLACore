@@ -33,6 +33,9 @@
 				android:id="@+id/select_library"
 				android:title="Select library" />
 			<item
+				android:id="@+id/edit_library"
+				android:title="Edit library" />
+			<item
 				android:id="@+id/scan_library"
 				android:title="Scan library" />
 			<item

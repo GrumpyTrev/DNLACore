@@ -7,23 +7,6 @@
 	static class LibraryManagementController
 	{
 		/// <summary>
-		/// Get the Library data associated with the database
-		/// If the data has already been obtained then notify view immediately.
-		/// Otherwise get the data from the database asynchronously
-		/// </summary>
-		public static async void GetLibrariesAsync( IReporter reporter )
-		{
-			// Check if the Playlists details for the library have already been obtained
-			if ( LibraryManagementModel.Libraries == null )
-			{
-				LibraryManagementModel.Libraries = await LibraryAccess.GetLibrariesAsync();
-			}
-
-			// Let the Views know that Libraries data is available
-			reporter.LibraryDataAvailable();
-		}
-
-		/// <summary>
 		/// Update the selected libary in the database and the ConnectionDetailsModel.
 		/// Notify other controllers
 		/// </summary>
@@ -37,14 +20,6 @@
 				ConnectionDetailsModel.LibraryId = selectedLibrary.Id;
 				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary.Id }.Send();
 			}
-		}
-
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface IReporter
-		{
-			void LibraryDataAvailable();
 		}
 	}
 }
