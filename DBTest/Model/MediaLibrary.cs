@@ -40,25 +40,6 @@ namespace DBTest
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
 
-		public string Name { get; set; }
-		public string ScanSource { get; set; }
-		public string ScanType { get; set; }
-		public string LocalAccess { get; set; }
-		public string RemoteAccess { get; set; }
-
-		[ForeignKey( typeof( Library ) )]
-		public int LibraryId { get; set; }
-
-		[Ignore]
-		public List<Song> Songs { get; set; }
-	}
-
-	[Table( "NewSource" )]
-	public class NewSource
-	{
-		[PrimaryKey, AutoIncrement, Column( "_id" )]
-		public int Id { get; set; }
-
 		/// <summary>
 		/// The name of this source for display purposes
 		/// </summary>
@@ -77,7 +58,7 @@ namespace DBTest
 
 		/// <summary>
 		/// The location on the device where the songs can be found.
-		/// For local devices this will be the full name of the directory onn the device
+		/// For local devices this will be the full name of the directory on the device
 		/// For remote devices this will be the name that the device's HTTP server responds to
 		/// </summary>
 		public string FolderName { get; set; }

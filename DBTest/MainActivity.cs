@@ -281,6 +281,7 @@ namespace DBTest
 
 			bool createTables = false;
 			bool dropGenres = false;
+			bool changeSource = false;
 
 			try
 			{
@@ -288,6 +289,11 @@ namespace DBTest
 				{
 					ConnectionDetailsModel.SynchConnection.DropTable<Genre>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Genre>();
+				}
+
+				if ( changeSource == true )
+				{
+					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
 				}
 
 				if ( createTables == true )

@@ -22,19 +22,28 @@ namespace DBTest
 				// Get the current set of sources
 				SourceCollection = await LibraryAccess.GetAllSourcesAsync();
 
-				// Replace special placeholders with IP addresses
+				// Set the ScanSource, ScanType, LocalAccess and RemoteAccess fields. 
 				foreach ( Source source in SourceCollection )
 				{
-					if ( source.ScanType == "Local" )
+					if ( source.AccessType == "Local" )
 					{
-						source.LocalAccess = source.LocalAccess.Replace( "[*]", LocalIPAddress );
-						source.RemoteAccess = source.RemoteAccess.Replace( "[*]", LocalIPAddress );
-						source.ScanSource = source.ScanSource.Replace( "[*]", LocalIPAddress );
+						// If the IPAddress is blank then use the local IP address
+						if ( ( source.IPAddress == null ) || ( source.IPAddress.Length == 0 ) )
+						{
+							source.IPAddress = LocalIPAddress;
+						}
+
+						source.ScanSource = string.Format( "/{0}/", source.FolderName );
+						source.ScanType = "Local";
+						source.LocalAccess = string.Format( "/{0}", source.FolderName );
+						source.RemoteAccess = string.Format( "http://{0}:{1}/{2}", source.IPAddress, source.PortNo, source.FolderName );
 					}
-					else if ( source.ScanType == "FTP" )
+					else
 					{
-						source.LocalAccess = source.LocalAccess.Replace( "[s]", source.ScanSource );
-						source.RemoteAccess = source.RemoteAccess.Replace( "[s]", source.ScanSource );
+						source.ScanSource = source.IPAddress;
+						source.ScanType = "FTP";
+						source.LocalAccess = string.Format( "http://{0}:{1}/{2}", source.IPAddress, source.PortNo, source.FolderName );
+						source.RemoteAccess = string.Format( "http://{0}:{1}/{2}", source.IPAddress, source.PortNo, source.FolderName );
 					}
 				}
 			}

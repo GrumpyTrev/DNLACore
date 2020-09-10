@@ -34,6 +34,7 @@ namespace DBTest
 		/// <param name="libraryToClear"></param>
 		protected override void LibrarySelected( Library library )
 		{
+			SourceSelectionDialogFragment.ShowFragment( Activity.SupportFragmentManager, library );
 		}
 	}
 }

@@ -97,6 +97,7 @@
     <Compile Include="FilterManagement\TagSelection.cs" />
     <Compile Include="FilterManagement\FilterSelection.cs" />
     <Compile Include="FilterManagement\TagDataAdapter.cs" />
+    <Compile Include="LibraryManagement\SourceSelectionDialogFragment.cs" />
     <Compile Include="LibraryManagement\ClearConfirmationDialogFragment.cs" />
     <Compile Include="LibraryManagement\EditLibraryDialogFragment.cs" />
     <Compile Include="LibraryManagement\ClearLibraryDialogFragment.cs" />
