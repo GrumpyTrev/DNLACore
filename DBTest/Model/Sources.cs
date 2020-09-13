@@ -76,6 +76,22 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Update the specified source and save it to storaage
+		/// </summary>
+		/// <param name="sourceToUpdate"></param>
+		/// <param name="newSource"></param>
+		public static async Task UpdateSourceAsync( Source sourceToUpdate, Source newSource )
+		{
+			sourceToUpdate.Name = newSource.Name;
+			sourceToUpdate.FolderName = newSource.FolderName;
+			sourceToUpdate.IPAddress = newSource.IPAddress;
+			sourceToUpdate.PortNo = newSource.PortNo;
+			sourceToUpdate.AccessType = newSource.AccessType;
+
+			await LibraryAccess.UpdateSourceAsync( sourceToUpdate );
+		}
+
+		/// <summary>
 		/// The set of Albums currently held in storage
 		/// </summary>
 		public static List<Source> SourceCollection { get; set; } = null;

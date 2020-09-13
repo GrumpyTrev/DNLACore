@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp">
+    <TextView
+        android:text="Name:"
+        android:textSize="14sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp" />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:imeOptions="actionNext"
+        android:id="@+id/sourceName"
+        android:layout_marginTop="-10dp" />
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+		>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Access type:"
+        />
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/sourceLocal"
+            android:text="Local"
+		/>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/sourceRemote"
+            android:text="Remote"
+		/>
+    </RadioGroup>
+    <TextView
+        android:text="Folder:"
+        android:textSize="14sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:imeOptions="actionDone"
+        android:id="@+id/sourceFolder"
+        android:layout_marginTop="-10dp" />
+    <TextView
+        android:text="IP Address:"
+        android:textSize="14sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp" />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:imeOptions="actionDone"
+        android:id="@+id/sourceIPAddress"
+        android:layout_marginTop="-10dp" />
+    <TextView
+        android:text="Http port:"
+        android:textSize="14sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp" />
+    <EditText
+        android:inputType="number|numberSigned"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/sourcePort"
+        android:layout_marginTop="-10dp" />
+
+</LinearLayout>

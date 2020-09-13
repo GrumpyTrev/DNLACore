@@ -653,7 +653,7 @@ namespace DBTest
 			bool selected = IsItemSelected( tag );
 
 			// Keep track of whether or not any other items are selected as this will require the NotifyDataSetChanged method to be called
-			bool selectionChanged = false;
+			bool selectionChanged;
 
 			// If this is a group item then select or deselect all of its children
 			if ( IsGroupTag( tag ) == true )

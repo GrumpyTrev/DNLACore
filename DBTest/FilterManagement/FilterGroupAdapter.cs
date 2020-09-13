@@ -24,10 +24,9 @@ namespace DBTest
 			inflator = ( LayoutInflater )context.GetSystemService( Context.LayoutInflaterService );
 			tagCollection = tags;
 			currentlySelectedTagGroups = currentTagGroups;
-			parentView = view;
 			Reporter = reporter;
 
-			parentView.SetOnChildClickListener( this );
+			view.SetOnChildClickListener( this );
 
 			InitialiseSelectedItems();
 		}
@@ -326,13 +325,6 @@ namespace DBTest
 		private static int FormGroupTag( int groupPosition ) => ( groupPosition << 16 ) + 0xFFFF;
 
 		/// <summary>
-		/// Return the child number from a tag
-		/// </summary>
-		/// <param name="tag"></param>
-		/// <returns></returns>
-		private static int GetChildFromTag( int tag ) => ( tag & 0xFFFF );
-
-		/// <summary>
 		/// Does the tag represent a group
 		/// </summary>
 		/// <param name="tag"></param>
@@ -354,22 +346,17 @@ namespace DBTest
 		/// <summary>
 		/// The inflatore used to create the views
 		/// </summary>
-		private LayoutInflater inflator;
+		private readonly LayoutInflater inflator;
 
 		/// <summary>
 		/// The collection of TagGroup items to be displayed
 		/// </summary>
-		private List<TagGroup> tagCollection;
+		private readonly List<TagGroup> tagCollection;
 
 		/// <summary>
 		/// The collection of currently selected Tag/TagGroups
 		/// </summary>
-		private List<TagGroup> currentlySelectedTagGroups;
-
-		/// <summary>
-		/// The ExpandableListView where the data is displayed
-		/// </summary>
-		private ExpandableListView parentView;
+		private readonly List<TagGroup> currentlySelectedTagGroups;
 
 		/// <summary>
 		/// Keep track of which child items are selected.

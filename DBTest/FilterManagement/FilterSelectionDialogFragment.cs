@@ -45,19 +45,13 @@ namespace DBTest
 		/// </summary>
 		/// <param name="savedInstanceState"></param>
 		/// <returns></returns>
-		public override Dialog OnCreateDialog( Bundle savedInstanceState )
-		{
-			// Don't provide a handler for the OK button yet as it requires access to the created dialogue
-			// See OnResume
-			AlertDialog alert = new AlertDialog.Builder( Context )
+		public override Dialog OnCreateDialog( Bundle savedInstanceState ) =>
+			new AlertDialog.Builder( Context )
 				.SetTitle( "Apply filter" )
 				.SetView( Resource.Layout.filter_selection_dialogue_layout )
 				.SetPositiveButton( "OK", ( EventHandler<DialogClickEventArgs> )null )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Create();
-
-			return alert;
-		}
 
 		/// <summary>
 		/// Install a handler for the Ok button that gets the selected item from the internal ListView

@@ -97,6 +97,7 @@
     <Compile Include="FilterManagement\TagSelection.cs" />
     <Compile Include="FilterManagement\FilterSelection.cs" />
     <Compile Include="FilterManagement\TagDataAdapter.cs" />
+    <Compile Include="LibraryManagement\SourceDisplayAdapter.cs" />
     <Compile Include="LibraryManagement\SourceSelectionDialogFragment.cs" />
     <Compile Include="LibraryManagement\ClearConfirmationDialogFragment.cs" />
     <Compile Include="LibraryManagement\EditLibraryDialogFragment.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="LibraryManagement\ScanProgressDialogFragment.cs" />
     <Compile Include="LibraryManagement\SelectionBaseDialogFragment.cs" />
     <Compile Include="LibraryManagement\SelectLibraryDialogFragment.cs" />
+    <Compile Include="LibraryManagement\SourceEditDialogFragment.cs" />
     <Compile Include="LibraryScanning\FTPScanner.cs" />
     <Compile Include="BaseView\IAdapterActionHandler.cs" />
     <Compile Include="BaseView\IPageVisible.cs" />
@@ -437,7 +439,33 @@
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\source_display_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\source_item_layout.axml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\source_header_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\source_details_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\source_details_dialogue_layout.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
     Other similar extension points exist, see Microsoft.Common.targets.

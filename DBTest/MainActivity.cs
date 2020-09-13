@@ -364,7 +364,7 @@ namespace DBTest
 		/// <summary>
 		/// The one and only Http server used to serve local files to remote devices
 		/// </summary>
-		private static SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
+		private static readonly SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
 
 		/// <summary>
 		/// The handler for the tag deletion command
