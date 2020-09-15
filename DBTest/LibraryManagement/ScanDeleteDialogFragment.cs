@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
+using Java.Lang;
 using System;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
@@ -17,9 +18,20 @@ namespace DBTest
 		/// Show the dialogue prompting for unmatched songs to be deleted
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager )
+		public static bool ShowFragment( FragmentManager manager )
 		{
-			new ScanDeleteDialogFragment().Show( manager, "fragment_scan_delete" );
+			bool fragmentStarted = true;
+
+			try
+			{
+				new ScanDeleteDialogFragment().Show( manager, "fragment_scan_delete" );
+			}
+			catch ( IllegalStateException )
+			{
+				fragmentStarted = false;
+			}
+
+			return fragmentStarted;
 		}
 
 		/// <summary>

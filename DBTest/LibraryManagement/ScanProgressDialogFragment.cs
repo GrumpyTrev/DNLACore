@@ -1,7 +1,7 @@
-﻿using System;
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.OS;
+using System;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 using FragmentManager = Android.Support.V4.App.FragmentManager;
@@ -24,6 +24,9 @@ namespace DBTest
 
 			// Reset the controller at the start of the scan process
 			LibraryScanController.ResetController();
+
+			// Reset the delete pending
+			deletePending = false;
 
 			new ScanProgressDialogFragment().Show( manager, "fragment_scan_progress" );
 		}
@@ -55,11 +58,23 @@ namespace DBTest
 		{
 			base.OnResume();
 
-			// Install a handler for the cancel button so that a cancel can be scheduled rather than acted upon immediately
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) => { cancelScanRequested = true; };
+			// If the delete process failed last time and is now pending then try it again
+			if ( deletePending == true )
+			{
+				deletePending = false;
+				Dialog.Dismiss();
 
-			LibraryScanController.ScanReporter = this;
-			LibraryScanController.ScanLibraryAsynch( LibraryBeingScanned );
+				// Use the ScanDeleteDialogFragment to perform the deletion
+				ScanDeleteDialogFragment.ShowFragment( Activity.SupportFragmentManager );
+			}
+			else
+			{
+				// Install a handler for the cancel button so that a cancel can be scheduled rather than acted upon immediately
+				( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) => { cancelScanRequested = true; };
+
+				LibraryScanController.ScanReporter = this;
+				LibraryScanController.ScanLibraryAsynch( LibraryBeingScanned );
+			}
 		}
 
 		/// <summary>
@@ -85,17 +100,23 @@ namespace DBTest
 			// No idea which thread this has come from so make sure any UI stuff, like dismissing the dialogue, is done on the UI thread.
 			Activity.RunOnUiThread( () =>
 			{
-				// Dismiss the rescanning (progress) dialogue
-				Dialog.Dismiss();
-
 				// Check if any of the songs in the library have not been matched or have changed (only process if the scan was not cancelled)
 				if ( ( cancelScanRequested == false ) && ( LibraryScanModel.UnmatchedSongs.Count > 0 ) )
 				{
 					// Use the ScanDeleteDialogFragment to perform the deletion
-					ScanDeleteDialogFragment.ShowFragment( Activity.SupportFragmentManager );
+					if ( ScanDeleteDialogFragment.ShowFragment( Activity.SupportFragmentManager ) == true )
+					{
+						Dialog.Dismiss();
+					}
+					else
+					{
+						deletePending = true;
+					}
 				}
 				else
 				{
+					Dialog.Dismiss();
+
 					// If there have been any changes to the library, and it is the library currently being displayed then force a refresh
 					if ( ( LibraryScanModel.LibraryModified == true ) && ( LibraryBeingScanned.Id == ConnectionDetailsModel.LibraryId ) )
 					{
@@ -117,5 +138,10 @@ namespace DBTest
 		/// Has a cancel been requested
 		/// </summary>
 		private bool cancelScanRequested = false;
+
+		/// <summary>
+		/// The delete operation failed probably due to the app no longer being displayed
+		/// </summary>
+		private static bool deletePending = false;
 	}
 }
