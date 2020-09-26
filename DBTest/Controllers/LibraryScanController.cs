@@ -47,8 +47,8 @@ namespace DBTest
 							// Reset the scan action for all Songs
 							source.Songs.ForEach( song => song.ScanAction = Song.ScanActionType.NotMatched );
 
-							// Use a RescanSongStorage instance to check for song changes
-							RescanSongStorage scanStorage = new RescanSongStorage( LibraryScanModel.LibraryBeingScanned.Id, source, pathLookup );
+							// Use a SongStorage instance to check for song changes
+							SongStorage scanStorage = new SongStorage( LibraryScanModel.LibraryBeingScanned.Id, source, pathLookup );
 
 							// Check the source scanning method
 							if ( source.ScanType == "FTP" )
@@ -90,7 +90,7 @@ namespace DBTest
 		/// Delete the list of songs from the library
 		/// </summary>
 		/// <param name="songsToDelete"></param>
-		public static async Task DeleteSongsAsync()
+		public static async void DeleteSongsAsync()
 		{
 			// Prevent this from being executed twice
 			DeleteInProgress = true;
@@ -149,15 +149,54 @@ namespace DBTest
 				new AlbumsDeletedMessage() { DeletedAlbumIds = deletedAlbumIds }.Send();
 			}
 
-			if ( LibraryScanModel.LibraryBeingScanned.Id == ConnectionDetailsModel.LibraryId )
-			{
-				new SelectedLibraryChangedMessage() { SelectedLibrary = LibraryScanModel.LibraryBeingScanned.Id }.Send();
-			}
-
 			DeleteInProgress = false;
 			DeleteReporter?.DeleteFinished();
 		}
 
+		/// <summary>
+		/// Delete a single song from storage
+		/// </summary>
+		/// <param name="songToDelete"></param>
+		/// <returns></returns>
+		public static async Task DeleteSongAsync( Song songToDelete )
+		{
+			// Delete the song
+			await ArtistAccess.DeleteSongAsync( songToDelete );
+
+			// Delete all the PlaylistItems associated with the song 
+			await PlaylistAccess.DeletePlaylistItemsAsync( new List<int> { songToDelete.Id } );
+
+			// Check if the ArtistAlbum item is now empty and need deleting
+			// Refresh the contents of the ArtistAlbum
+			ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( songToDelete.ArtistAlbumId );
+			await ArtistAccess.GetArtistAlbumSongsAsync( artistAlbum );
+
+			// Check if this ArtistAlbum is being referenced by any songs
+			if ( artistAlbum.Songs.Count == 0 )
+			{
+				// Delete the ArtistAlbum as it is no longer being referenced
+				await ArtistAlbums.DeleteArtistAlbumAsync( artistAlbum );
+
+				// Remove this ArtistAlbum from the Artist
+				Artist artist = Artists.GetArtistById( artistAlbum.ArtistId );
+				artist.ArtistAlbums.Remove( artistAlbum );
+
+				// Does the associated Artist have any other Albums
+				if ( artist.ArtistAlbums.Count == 0 )
+				{
+					// Delete the Artist
+					await Artists.DeleteArtistAsync( artist );
+				}
+
+				// Does any other ArtistAlbum reference the Album
+				if ( ArtistAlbums.ArtistAlbumCollection.Any( art => art.AlbumId == artistAlbum.AlbumId ) == true )
+				{
+					// Not referenced by any ArtistAlbum. so delete it
+					await Albums.DeleteAlbumAsync( artistAlbum.Album );
+					new AlbumsDeletedMessage() { DeletedAlbumIds = new List<int> { artistAlbum.AlbumId } }.Send();
+				}
+			}
+		}
 
 		/// <summary>
 		/// Flag indicating whether or not the this controller is busy scanning a library
@@ -173,7 +212,7 @@ namespace DBTest
 		/// Delegate called by the scanners to check if the process has been cancelled
 		/// </summary>
 		/// <returns></returns>
-		private static bool CancelRequested() => ScanReporter?.CancelRequested() ?? false;
+		private static bool CancelRequested() => ScanReporter?.IsCancelRequested() ?? false;
 
 		/// <summary>
 		/// The interface instance used to report back controller results
@@ -187,7 +226,7 @@ namespace DBTest
 		{
 			void ScanFinished();
 
-			bool CancelRequested();
+			bool IsCancelRequested();
 		}
 
 		/// <summary>

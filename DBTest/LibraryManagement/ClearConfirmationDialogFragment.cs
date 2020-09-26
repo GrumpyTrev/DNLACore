@@ -15,10 +15,11 @@ namespace DBTest
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Library libraryToClear )
+		public static void ShowFragment( FragmentManager manager, string clearLibrary, ClearConfirmed callback )
 		{
-			// Save the library to clear so that it is available after a configuration change
-			LibraryToClear = libraryToClear;
+			// Save the parameters so that they are available after a configuration change
+			libraryToClear = clearLibrary;
+			reporter = callback;
 
 			new ClearConfirmationDialogFragment().Show( manager, "fragment_clear_confirmation" );
 		}
@@ -35,19 +36,25 @@ namespace DBTest
 		/// </summary>
 		/// <param name="savedInstanceState"></param>
 		/// <returns></returns>
-		public override Dialog OnCreateDialog( Bundle savedInstanceState ) => 
-			new AlertDialog.Builder( Activity )
-				.SetTitle( string.Format( "Are you sure you want to clear the {0} library", LibraryToClear.Name ) )
-				.SetPositiveButton( "Ok", delegate
-				{
-					ClearProgressDialogFragment.ShowFragment( Activity.SupportFragmentManager, LibraryToClear );
-				} )
+		public override Dialog OnCreateDialog( Bundle savedInstanceState ) => new AlertDialog.Builder( Activity )
+				.SetTitle( string.Format( "Are you sure you want to clear the {0} library", libraryToClear ) )
+				.SetPositiveButton( "Ok", delegate { reporter.Invoke(); } )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Create();
-			   
+
 		/// <summary>
 		/// The library to clear
 		/// </summary>
-		private static Library LibraryToClear { get; set; } = null;
+		private static string libraryToClear = "";
+
+		/// <summary>
+		/// The delegate used to report back the clear confirmation
+		/// </summary>
+		private static ClearConfirmed reporter = null;
+
+		/// <summary>
+		/// Delegate type used to report back the clear confirmation
+		/// </summary>
+		public delegate void ClearConfirmed();
 	}
 }

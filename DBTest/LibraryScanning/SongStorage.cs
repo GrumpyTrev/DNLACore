@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DBTest
@@ -9,17 +8,18 @@ namespace DBTest
 	/// <summary>
 	/// The SongStorage class is responsible for storing scanned songs and associated albums in the database
 	/// </summary>
-	class SongStorage : ISongStorage
+	class SongStorage
 	{
 		/// <summary>
 		/// Constructor specifying the library and source
 		/// </summary>
 		/// <param name="libraryToScan"></param>
 		/// <param name="sourceToScan"></param>
-		public SongStorage( int libraryToScan, Source sourceToScan )
+		public SongStorage( int libraryToScan, Source sourceToScan, Dictionary<string, Song> pathLookup )
 		{
 			scanLibrary = libraryToScan;
 			sourceBeingScanned = sourceToScan;
+			songLookup = pathLookup;
 			LibraryModified = false;
 
 			// Form a lookup table for Artists in this library
@@ -39,13 +39,13 @@ namespace DBTest
 			foreach ( ScannedSong song in songs )
 			{
 				// Replace empty tags etc.
-				NormaliseTags( song );
+				song.NormaliseTags();
 
 				// Is there a group for this album
 				if ( albumGroups.TryGetValue( song.Tags.Album, out ScannedAlbum album ) == false )
 				{
 					album = new ScannedAlbum() { Name = song.Tags.Album };
-					albumGroups[ song.Tags.Album ] = album;
+					albumGroups[ album.Name ] = album;
 				}
 
 				if ( await DoesSongRequireAdding( song ) == true )
@@ -75,95 +75,123 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Method overridden in derived classes to determine if the specified song requires scanning
-		/// </summary>
-		/// <param name="filepath"></param>
-		/// <param name="modifiedTime"></param>
-		/// <returns></returns>
-		public virtual bool DoesSongRequireScanning( string filepath, DateTime modifiedTime )
-		{
-			return true;
-		}
-
-		/// <summary>
-		/// Method overridden in derived classes to determine if the specified song actually does require adding to the library
-		/// </summary>
-		/// <param name="song"></param>
-		/// <returns></returns>
-		public virtual async Task <bool> DoesSongRequireAdding( ScannedSong song )
-		{
-			return true;
-		}
-
-		/// <summary>
 		/// Was the librray modified during the scan
 		/// </summary>
 		public bool LibraryModified { get; set; }
 
 		/// <summary>
-		/// Replace zero length tag files with standard replacements, parse the track number and the length
+		/// Called when the filepath and modified time for a song have been determined
+		/// If it's a existing song with the same modified time then the song does not require any further scanning
+		/// Otherwise let scanning continue
+		/// </summary>
+		/// <param name="filepath"></param>
+		/// <param name="modifiedTime"></param>
+		/// <returns></returns>
+		public bool DoesSongRequireScanning( string filepath, DateTime modifiedTime )
+		{
+			bool scanRequired = true;
+
+			// Lookup the path of this song in the dictionary
+			if ( songLookup.TryGetValue( filepath, out Song matchedSong ) == true )
+			{
+				// Time from the FTP server always seem to be an hour out and is supposed to be in UTC
+				// Compare both times as is and then take 1 hour off the stored time and then add 1 hour on
+				if ( ( matchedSong.ModifiedTime == modifiedTime ) || ( matchedSong.ModifiedTime.AddHours( -1 ) == modifiedTime ) ||
+					( matchedSong.ModifiedTime.AddHours( 1 ) == modifiedTime ) )
+				{
+					scanRequired = false;
+					matchedSong.ScanAction = Song.ScanActionType.Matched;
+				}
+				else
+				{
+					// Song was found but has changed in some way
+					matchedSong.ScanAction = Song.ScanActionType.Differ;
+				}
+
+				// REQUIRED TO INITIALLY GET GENRES STORED CORRECTLY
+				scanRequired = true;
+				matchedSong.ScanAction = Song.ScanActionType.Differ;
+			}
+
+			return scanRequired;
+		}
+
+		/// <summary>
+		/// Called to determine whether a song that has been scanned requires adding to the library, or just an exisiting entry updated
 		/// </summary>
 		/// <param name="song"></param>
-		private void NormaliseTags( ScannedSong song )
+		/// <returns></returns>
+		private async Task<bool> DoesSongRequireAdding( ScannedSong song )
 		{
-			// Replace an empty artist or album name
-			if ( song.Tags.Artist.Length == 0 )
+			bool needsAdding = true;
+
+			// Lookup the path of this song in the dictionary
+			if ( ( songLookup.TryGetValue( song.SourcePath, out Song matchedSong ) == true ) && ( matchedSong.ScanAction == Song.ScanActionType.Differ ) )
 			{
-				song.Tags.Artist = "<Unknown>";
+				// The library is about to be changed in some way so set the modified flag
+				LibraryModified = true;
+
+				// Need to check whether the matched Artist or Album names have changed. If they have then treat this as a new song and mark
+				// the matched song for deletion
+				ArtistAlbum matchedArtistAlbum = ArtistAlbums.GetArtistAlbumById( matchedSong.ArtistAlbumId );
+				Artist matchedArtist = Artists.GetArtistById( matchedArtistAlbum.ArtistId );
+
+				// If the artist or album name has changed then treat this as a new song. Otherwise update the existing song in the library
+				if ( ( matchedArtist.Name.ToUpper() != song.ArtistName.ToUpper() ) || ( matchedArtistAlbum.Name.ToUpper() != song.Tags.Album.ToUpper() ) )
+				{
+					// The existing song needs to be deleted now just in case the user decides not to delete unmatched entries at the end of the process.
+					// If the song is not deleted then there will be more than one associated with the same storgae location.
+					// This is much less complicated than trying to move the existing song to a new Artist or Album
+					await LibraryScanController.DeleteSongAsync( matchedSong );
+					matchedSong.ScanAction = Song.ScanActionType.Matched;
+				}
+				else
+				{
+					// No need to add a new song, update the existing one
+					needsAdding = false;
+
+					matchedSong.Length = song.Length;
+					matchedSong.ModifiedTime = song.Modified;
+					matchedSong.Title = song.Tags.Title;
+					matchedSong.Track = song.Track;
+					await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedSong );
+
+					// Check if the year or genre fields on the album needs updating
+					// Don't update the Album if it is a 'various artists' album as the these fields is not applicable
+					Album matchedAlbum = Albums.GetAlbumById( matchedArtistAlbum.AlbumId );
+
+					if ( matchedAlbum.ArtistName != SongStorage.VariousArtistsString )
+					{
+						// Update the stored year if it is different to the artist year and the artist year is defined.
+						// Log when a valid year is overwritten by different year
+						if ( matchedAlbum.Year != song.Year )
+						{
+							if ( song.Year != 0 )
+							{
+								matchedAlbum.Year = song.Year;
+								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
+							}
+						}
+
+						if ( song.Tags.Genre.Length > 0 )
+						{
+							// If this album has a genre id then get the associated genre record
+							Genre albumGenre = Genres.GetGenreById( matchedAlbum.GenreId );
+
+							if ( ( albumGenre == null ) || ( albumGenre.Name != song.Tags.Genre ) )
+							{
+								// If this is a new genre then add it to the genres list.
+								albumGenre = await Genres.GetGenreByNameAsync( song.Tags.Genre, true );
+
+								matchedAlbum.GenreId = albumGenre.Id;
+								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
+							}
+						}
+					}
+				}
 			}
 
-			if ( song.Tags.Album.Length == 0 )
-			{
-				song.Tags.Album = "<Unknown>";
-			}
-
-			// Replace an empty track with 0
-			if ( song.Tags.Track.Length == 0 )
-			{
-				song.Tags.Track = "0";
-			}
-
-			// Parse the track field to an integer track number
-			// Use leading digits only in case the format is n/m
-			try
-			{
-				song.Track = Int32.Parse( Regex.Match( song.Tags.Track, @"\d+" ).Value );
-			}
-			catch ( Exception )
-			{
-			}
-
-			// Convert from a TimeSpan to seconds
-			song.Length = ( int )song.Tags.Length.TotalSeconds;
-
-			// If there is an Album Artist tag then use it for the song name, otherwise use the Artist tag
-			if ( song.Tags.AlbumArtist.Length > 0 )
-			{
-				song.ArtistName = song.Tags.AlbumArtist;
-			}
-			else
-			{
-				// The artist tag may consist of multiple parts divided by a '/'.
-				song.ArtistName = song.Tags.Artist.Split( '/' )[ 0 ];
-			}
-
-			// Replace an empty Year with 0
-			if ( song.Tags.Year.Length == 0 )
-			{
-				song.Tags.Year = "0";
-			}
-
-			// Parse the year field to an integer year number
-			try
-			{
-				song.Year = Int32.Parse( song.Tags.Year );
-			}
-			catch ( Exception )
-			{
-			}
-
-			// The genre tag may consist of multiple parts divided by a ';'
-			song.Tags.Genre = song.Tags.Genre.Split( ';' )[ 0 ];
+			return needsAdding;
 		}
 
 		/// <summary>
@@ -172,6 +200,7 @@ namespace DBTest
 		/// <param name="album"></param>
 		private async Task StoreAlbumAsync( ScannedAlbum album )
 		{
+			// Set the modified flag
 			LibraryModified = true;
 
 			Logger.Log( string.Format( "Album: {0} Single artist: {1}", album.Name, album.SingleArtist ) );
@@ -382,30 +411,10 @@ namespace DBTest
 		/// The Artists in the Library being scanned
 		/// </summary>
 		private Dictionary< string, Artist > artistsInLibrary = null;
-	}
-
-	/// <summary>
-	/// Interface that all SongStorage type classes need to implement
-	/// </summary>
-	internal interface ISongStorage
-	{
-		/// <summary>
-		/// Method called when a group of songs from the same folder have been scanned in
-		/// </summary>
-		/// <param name="songs"></param>
-		Task SongsScanned( List<ScannedSong> songs );
 
 		/// <summary>
-		/// Method called when checking whether or not a song requires scanning (downloading)
+		/// Collection used to lookup esxisting songs
 		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="modifiedTime"></param>
-		/// <returns></returns>
-		bool DoesSongRequireScanning( string filepath, DateTime modifiedTime );
-
-		/// <summary>
-		/// Was the library scanned during the scanning operation
-		/// </summary>
-		bool LibraryModified { get; }
+		private Dictionary<string, Song> songLookup = null;
 	}
 }

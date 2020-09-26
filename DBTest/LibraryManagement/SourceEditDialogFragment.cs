@@ -21,10 +21,11 @@ namespace DBTest
 		/// Show the dialogue displaying the scan progress and start the scan
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Source sourceToEdit, IReporter reporter )
+		public static void ShowFragment( FragmentManager manager, Source sourceToEdit, SourceChanged callback )
 		{
+			// Save the parameters so that they are available after a configuration change
 			SourceEditDialogFragment.sourceToEdit = sourceToEdit;
-			changeReporter = reporter;
+			reporter = callback;
 
 			new SourceEditDialogFragment().Show( manager, "fragment_edit_source" );
 		}
@@ -64,14 +65,12 @@ namespace DBTest
 			}
 
 			// Create the AlertDialog with no Save handler (and no dismiss on Save)
-			AlertDialog alert = new AlertDialog.Builder( Activity )
+			return new AlertDialog.Builder( Activity )
 				.SetTitle( "Edit source" )
 				.SetView( editView )
 				.SetPositiveButton( "Save", ( EventHandler<DialogClickEventArgs> )null )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Create();
-
-			return alert;
 		}
 
 		/// <summary>
@@ -92,25 +91,8 @@ namespace DBTest
 					AccessType = ( localButton.Checked == true ) ? "Local" : "Remote"
 				};
 
-				// If nothing has changed then tell the user, otherwise carry out the save operation
-				if ( ( newSource.Name != sourceToEdit.Name ) || ( newSource.FolderName != sourceToEdit.FolderName ) ||
-					( newSource.PortNo != sourceToEdit.PortNo ) || ( newSource.IPAddress != sourceToEdit.IPAddress ) ||
-					( newSource.AccessType != sourceToEdit.AccessType ) )
-				{
-					// Something has changed so update the source
-					await Sources.UpdateSourceAsync( sourceToEdit, newSource );
-
-					// Dismiss the dialogue
-					Dialog.Dismiss();
-
-					// Report that a source has been updated
-					changeReporter?.OnSourceChanged();
-				}
-				else
-				{
-					// Nothing has changed
-					NotificationDialogFragment.ShowFragment( Activity.SupportFragmentManager, "No changes made to source" );
-				}
+				// Report back the old and new source records
+				reporter.Invoke( sourceToEdit, newSource, this );
 			};
 		}
 
@@ -120,9 +102,14 @@ namespace DBTest
 		private static Source sourceToEdit = null;
 
 		/// <summary>
-		/// Interface to report source changes
+		/// The delegate used to report back source changes
 		/// </summary>
-		private static IReporter changeReporter;
+		public delegate void SourceChanged( Source originalSource, Source newSource, SourceEditDialogFragment sourceEditDialog );
+
+		/// <summary>
+		/// Delegate to report source changes
+		/// </summary>
+		private static SourceChanged reporter = null;
 
 		/// <summary>
 		/// The dialogue fields updated by the user. These must be available outside of the OnCreateDialog method
@@ -134,12 +121,5 @@ namespace DBTest
 		private RadioButton remoteButton = null;
 		private EditText ipAddress = null;
 
-		/// <summary>
-		/// The interface used to report back source changes
-		/// </summary>
-		public interface IReporter
-		{
-			void OnSourceChanged();
-		}
 	}
 }

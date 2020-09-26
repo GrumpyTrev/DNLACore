@@ -13,7 +13,7 @@ namespace DBTest
 		/// Public constructor supplying the interface used to store scanned songs
 		/// </summary>
 		/// <param name="songInterface"></param>
-		public FTPScanner( ISongStorage songInterface )
+		public FTPScanner( SongStorage songInterface )
 		{
 			storageInterface = songInterface;
 		}
@@ -154,7 +154,7 @@ namespace DBTest
 		/// <summary>
 		/// The interface used to store scanned songs
 		/// </summary>
-		readonly ISongStorage storageInterface = null;
+		readonly SongStorage storageInterface = null;
 
 		/// <summary>
 		/// The header for all FTP requests, typically the ip address

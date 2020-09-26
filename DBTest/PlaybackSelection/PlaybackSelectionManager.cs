@@ -25,11 +25,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Show the device selection dialogue
-		/// </summary>
-		public void ShowSelection() => SelectDeviceDialogFragment.ShowFragment( manager );
-
-		/// <summary>
 		/// Called when the remote devices that support DNLA have been discovered
 		/// </summary>
 		/// <param name="message"></param>
@@ -46,7 +41,7 @@ namespace DBTest
 			if ( manager.FindFragmentByTag( RescanProgressDialogFragment.FragmentName ) is RescanProgressDialogFragment possibleDialogue )
 			{
 				possibleDialogue.Dismiss();
-				ShowSelection();
+				SelectDeviceDialogFragment.ShowFragment( manager ); 
 			}
 		}
 

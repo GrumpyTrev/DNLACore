@@ -76,7 +76,13 @@ namespace DBTest
 		/// Delete the specified list of songs from the database
 		/// </summary>
 		/// <param name="songsToDelete"></param>
-		public static async Task DeleteSongsAsync( List< Song > songsToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAllAsync( songsToDelete );
+		public static async Task DeleteSongsAsync( List<Song> songsToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAllAsync( songsToDelete );
+
+		/// <summary>
+		/// Delete the specified song from the database
+		/// </summary>
+		/// <param name="songToDelete"></param>
+		public static async Task DeleteSongAsync( Song songToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( songToDelete );
 
 		/// <summary>
 		/// Delete the specified ArtistAlbum entry

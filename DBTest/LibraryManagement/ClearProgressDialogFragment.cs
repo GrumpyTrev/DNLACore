@@ -10,7 +10,7 @@ using FragmentManager = Android.Support.V4.App.FragmentManager;
 namespace DBTest
 {
 	/// <summary>
-	/// Display a progress dialogue whilst clearing the specified dialogue
+	/// Display a progress dialogue whilst clearing the specified library
 	/// </summary>
 	internal class ClearProgressDialogFragment : DialogFragment
 	{
@@ -18,10 +18,11 @@ namespace DBTest
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Library libraryToClear )
+		public static void ShowFragment( FragmentManager manager, string libraryName, BindDialog callback )
 		{
-			// Save the library to clear so that it is available after a configuration change
-			LibraryToClear = libraryToClear;
+			// Save the parameters statically so that they are available after a configuration change
+			libraryToClear = libraryName;
+			binder = callback;
 
 			new ClearProgressDialogFragment().Show( manager, "fragment_clear_progress" );
 		}
@@ -38,61 +39,56 @@ namespace DBTest
 		/// </summary>
 		/// <param name="savedInstanceState"></param>
 		/// <returns></returns>
-		public override Dialog OnCreateDialog( Bundle savedInstanceState )
-		{
-			ClearLibraryAsync();
-
-			return new AlertDialog.Builder( Activity )
-				.SetTitle( string.Format( "Clearing library: {0}", LibraryToClear.Name ) )
+		public override Dialog OnCreateDialog( Bundle savedInstanceState ) => new AlertDialog.Builder( Activity )
+				.SetTitle( string.Format( "Clearing library: {0}", libraryToClear ) )
 				.SetPositiveButton( "Ok", delegate { } )
 				.SetCancelable( false )
 				.Create();
-		}
 
 		/// <summary>
-		/// Hide the OK button if the library is still being cleared
+		/// Bind this dialogue to its command handler.
+		/// The command handler will then update the dialogue's state
 		/// </summary>
 		public override void OnResume()
 		{
 			base.OnResume();
-
-			UpdateDialogueState();
+			binder.Invoke( this );
 		}
 
 		/// <summary>
-		/// Clear the selected library and then let the user know
+		/// Unbind this dialogue so that it can be garbage collected if required
 		/// </summary>
-		private async void ClearLibraryAsync()
+		public override void OnPause()
 		{
-			LibraryBeingCleared = true;
-			await LibraryAccess.ClearLibraryAsync( LibraryToClear );
-			LibraryBeingCleared = false;
-
-			UpdateDialogueState();
+			base.OnPause();
+			binder.Invoke( null );
 		}
 
 		/// <summary>
 		/// Update the state of the dialogue according to whether or not the library is still being cleared
 		/// </summary>
-		private void UpdateDialogueState()
+		public void UpdateDialogueState( bool clearFinished )
 		{
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Visibility =
-				( LibraryBeingCleared == true ) ? ViewStates.Invisible : ViewStates.Visible;
-
-			if ( LibraryBeingCleared == false )
+			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Enabled = clearFinished;
+			if ( clearFinished == true )
 			{
-				Dialog.SetTitle( string.Format( "Library: {0} cleared", LibraryToClear.Name ) );
+				Dialog.SetTitle( string.Format( "Library: {0} cleared", libraryToClear ) );
 			}
 		}
 
 		/// <summary>
-		/// The library to clear
+		/// The delegate used to report back the ClearProgressDialogFragment object
 		/// </summary>
-		private static Library LibraryToClear { get; set; } = null;
+		private static BindDialog binder = null;
 
 		/// <summary>
-		/// Is the library being cleared
+		/// Delegate type used to report back the ClearProgressDialogFragment object
 		/// </summary>
-		private static bool LibraryBeingCleared { get; set; } = false;
+		public delegate void BindDialog( ClearProgressDialogFragment dialogue );
+
+		/// <summary>
+		/// The name of the library to clear
+		/// </summary>
+		private static string libraryToClear = "";
 	}
 }

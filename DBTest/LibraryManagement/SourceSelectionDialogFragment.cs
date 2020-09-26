@@ -11,17 +11,18 @@ namespace DBTest
 	/// <summary>
 	/// Used to allow the user to select a library source to edit
 	/// </summary>
-	internal class SourceSelectionDialogFragment : DialogFragment, SourceDisplayAdapter.IReporter,
-		SourceEditDialogFragment.IReporter
+	internal class SourceSelectionDialogFragment : DialogFragment, SourceDisplayAdapter.IReporter
 	{
 		/// <summary>
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Library libraryToDisplay )
+		public static void ShowFragment( FragmentManager manager, Library displayLibrary, SourceSelected callback, BindDialog bindCallback )
 		{
-			// Save the library whose soures are being displayed
-			LibraryToDisplay = libraryToDisplay;
+			// Save the parameters so that they are available after a configuration change
+			libraryToDisplay = displayLibrary;
+			reporter = callback;
+			binder = bindCallback;
 
 			new SourceSelectionDialogFragment().Show( manager, "fragment_source_selection" );
 		}
@@ -46,43 +47,74 @@ namespace DBTest
 			// Create an adapter for the list view to display the main source details
 			// Keep a reference to the adapter so that we can refresh the data if a source is changed
 			ListView sourceView = layout.FindViewById<ListView>( Resource.Id.sourceList );
-			sourceAdapter = new SourceDisplayAdapter( Context, Sources.GetSourcesForLibrary( LibraryToDisplay.Id ), sourceView, this );
+			sourceAdapter = new SourceDisplayAdapter( Context, Sources.GetSourcesForLibrary( libraryToDisplay.Id ), sourceView, this );
 			sourceView.Adapter = sourceAdapter;
 
 			// Add a header to the ListView
 			sourceView.AddHeaderView( LayoutInflater.FromContext( Context ).Inflate( Resource.Layout.source_header_layout, null ) );
 
 			// Create the rest of the dialog
-			AlertDialog.Builder builder = new AlertDialog.Builder( Activity )
-				.SetTitle( string.Format( "Library {0}", LibraryToDisplay.Name ) )
+			return new AlertDialog.Builder( Activity )
+				.SetTitle( string.Format( "Library {0}", libraryToDisplay.Name ) )
 				.SetView( layout )
-				.SetPositiveButton( "Done", delegate { } );
-
-			return builder.Create();
+				.SetPositiveButton( "Done", delegate { } ).Create();
 		}
 
 		/// <summary>
-		/// Called whn an item has been selected to edit.
-		/// Display the SoureEditDialogFragment
+		/// Bind this dialogue to its command handler.
+		/// The command handler will then update the dialogue's state
+		/// </summary>
+		public override void OnResume()
+		{
+			base.OnResume();
+			binder.Invoke( this );
+		}
+
+		/// <summary>
+		/// Unbind this dialogue so that it can be garbage collected if required
+		/// </summary>
+		public override void OnPause()
+		{
+			base.OnPause();
+			binder.Invoke( null );
+		}
+
+		/// <summary>
+		/// Called when a source has been selected
+		/// Report the selection back to the command handler
 		/// </summary>
 		/// <param name="selectedSource"></param>
-		public void OnSourceSelected( Source selectedSource )
-		{
-			SourceEditDialogFragment.ShowFragment( Activity.SupportFragmentManager, selectedSource, this );
-		}
+		public void OnSourceSelected( Source selectedSource ) => reporter?.Invoke( selectedSource );
 
 		/// <summary>
-		/// Called when a source item has been changed. Display the changed data.
+		/// Called by the handler when a source item has been changed. Display the changed data.
 		/// </summary>
-		public void OnSourceChanged()
-		{
-			sourceAdapter.NotifyDataSetChanged();
-		}
+		public void OnSourceChanged() => sourceAdapter.NotifyDataSetChanged();
+
+		/// <summary>
+		/// Delegate type used to report back the selected source
+		/// </summary>
+		public delegate void SourceSelected( Source selectedSource );
+
+		/// <summary>
+		/// The delegate to call when a source has been selected for editing
+		/// </summary>
+		private static SourceSelected reporter = null;
+
+		/// <summary>
+		/// Delegate type used to report back the SourceSelectionDialogFragment object
+		/// </summary>
+		public delegate void BindDialog( SourceSelectionDialogFragment dialogue );
+
+		/// <summary>
+		/// The delegate used to report back the SourceSelectionDialogFragment object
+		/// </summary>
+		private static BindDialog binder = null;
 
 		/// <summary>
 		/// The library to display
 		/// </summary>
-		private static Library LibraryToDisplay { get; set; } = null;
+		private static Library libraryToDisplay = null;
 
 		/// <summary>
 		/// The Adapter showing the sources

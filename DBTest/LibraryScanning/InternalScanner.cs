@@ -11,7 +11,7 @@ namespace DBTest
 		/// Public constructor supplying the interface used to store scanned songs
 		/// </summary>
 		/// <param name="songInterface"></param>
-		public InternalScanner( ISongStorage songInterface )
+		public InternalScanner( SongStorage songInterface )
 		{
 			storageInterface = songInterface;
 		}
@@ -108,7 +108,7 @@ namespace DBTest
 		/// <summary>
 		/// The interface used to store scanned songs
 		/// </summary>
-		readonly ISongStorage storageInterface = null;
+		readonly SongStorage storageInterface = null;
 
 		/// <summary>
 		/// Keep a running count of the number of songs scanned

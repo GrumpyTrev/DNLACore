@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.Net;
 using Android.OS;
@@ -8,7 +7,6 @@ using Android.Support.V4.View;
 using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
-using SQLite;
 
 namespace DBTest
 {
@@ -33,25 +31,8 @@ namespace DBTest
 			// Set up logging
 			Logger.Reporter = this;
 
-			// Path to the locally stored database
-			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
-
-			// Check if the database connections are still there. They will be on an activity restart (configuration change)
-			if ( ConnectionDetailsModel.SynchConnection == null )
-			{
-				ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
-				ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath );
-			}
-
-			// Initialise the rest of the ConnectionDetailsModel if required
-			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
-
-			// Start the tab view data access as early as possible.
-			// Satrt the Albums access first as the Artists needs the Albums info to be there
-			AlbumsController.GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
-			ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
-			PlaylistsController.GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
-			NowPlayingController.GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
+			// Pass on the fragment manager to the CommandRouter
+			CommandRouter.Manager = SupportFragmentManager;
 
 			// Initialise the fragments showing the selected library
 			InitialiseFragments();
@@ -70,11 +51,8 @@ namespace DBTest
 			LibraryNameDisplayController.Reporter = this;
 			LibraryNameDisplayController.GetCurrentLibraryNameAsync();
 
-			// Make sure someone reads the available filters before they are needed
-			FilterManagementController.GetTagsAsync();
-
 			// Start the router and selector - via a Post so that any response comes back after the UI has been created
-			// This didn't work when placed in OnStart()
+			// This didn't work when placed in OnStart() or OnResume(). Not sure why.
 			view.Post( () => {
 				playbackRouter.StartRouter();
 				playbackSelector.StartSelection();
@@ -149,41 +127,15 @@ namespace DBTest
 
 			int id = item.ItemId;
 
-			// Check for the device selection option
-			if ( id == Resource.Id.select_playback_device )
+			// Let the CommandRouter have first go
+			if ( CommandRouter.HandleCommand( id ) == true )
 			{
-				playbackSelector.ShowSelection();
 				handled = true;
 			}
 			// Check for the show media UI option
 			else if ( id == Resource.Id.show_media_controls )
 			{
 				playbackRouter.PlaybackControlsVisible = true;
-				handled = true;
-			}
-			else if ( id == Resource.Id.scan_library )
-			{
-				ScanLibraryDialogFragment.ShowFragment( SupportFragmentManager );
-				handled = true;
-			}
-			else if ( id == Resource.Id.select_library )
-			{
-				SelectLibraryDialogFragment.ShowFragment( SupportFragmentManager );
-				handled = true;
-			}
-			else if ( id == Resource.Id.clear_library )
-			{
-				ClearLibraryDialogFragment.ShowFragment( SupportFragmentManager );
-				handled = true;
-			}
-			else if ( id == Resource.Id.edit_library )
-			{
-				EditLibraryDialogFragment.ShowFragment( SupportFragmentManager );
-				handled = true;
-			}
-			else if ( id == Resource.Id.shuffle_now_playing )
-			{
-				NowPlayingController.ShuffleNowPlayingList();
 				handled = true;
 			}
 			else if ( tagEditCommandHandler.OnOptionsItemSelected( id, item.TitleFormatted.ToString() ) == true )
@@ -253,74 +205,11 @@ namespace DBTest
 			// Stop any media playback
 			playbackRouter.StopRouter( ( IsFinishing == true ) );
 
-			// If the activity is being permanently destroyed get rid of the synchronous and asynchronous connections
-			if ( IsFinishing == true )
-			{
-				ConnectionDetailsModel.SynchConnection.Dispose();
-				ConnectionDetailsModel.SynchConnection = null;
-
-				SQLite.SQLiteAsyncConnection.ResetPool();
-				ConnectionDetailsModel.AsynchConnection = null;
-
-				localServer.Stop();
-			}
-
 			// Some of the managers need to remove themselves from the scene
 			FragmentTitles.ParentActivity = null;
 			LibraryNameDisplayController.Reporter = null;
 
 			base.OnDestroy();
-		}
-
-		/// <summary>
-		/// Make sure that the database exists and extract the current library
-		/// </summary>
-		private int InitialiseDatabase()
-		{
-			int currentLibraryId = -1;
-
-			bool createTables = false;
-			bool dropGenres = false;
-			bool changeSource = false;
-
-			try
-			{
-				if ( dropGenres == true )
-				{
-					ConnectionDetailsModel.SynchConnection.DropTable<Genre>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Genre>();
-				}
-
-				if ( changeSource == true )
-				{
-					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
-				}
-
-				if ( createTables == true )
-				{
-					// Create the tables if they don't already exist
-					ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Artist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Playlist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<PlaylistItem>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Genre>();
-				}
-
-				// Check for a Playback record which will tell us the currently selected library
-				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault().LibraryId;
-			}
-			catch ( SQLite.SQLiteException )
-			{
-			}
-
-			return currentLibraryId;
 		}
 
 		/// <summary>
@@ -360,11 +249,6 @@ namespace DBTest
 		/// The PlaybackSelectionManager used to allow the user to select a playback device
 		/// </summary>
 		private PlaybackSelectionManager playbackSelector = null;
-
-		/// <summary>
-		/// The one and only Http server used to serve local files to remote devices
-		/// </summary>
-		private static readonly SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
 
 		/// <summary>
 		/// The handler for the tag deletion command
