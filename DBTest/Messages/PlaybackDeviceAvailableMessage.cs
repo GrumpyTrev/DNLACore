@@ -5,6 +5,6 @@
 	/// </summary>
 	class PlaybackDeviceAvailableMessage : BaseMessage
 	{
-		public Device SelectedDevice { get; set; }
+		public PlaybackDevice SelectedDevice { get; set; }
 	}
 }

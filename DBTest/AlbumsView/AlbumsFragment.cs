@@ -97,10 +97,13 @@ namespace DBTest
 			CommandBar.Visibility = ShowCommandBar();
 		}
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		/// <summary>
 		/// Called when the sort selector has changes the sort order
+		/// No need to wait for this to finish. Albums display will be refreshed when it is complete
 		/// </summary>
 		public void SortOrderChanged() => AlbumsController.SortDataAsync( true );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 		/// <summary>
 		/// Action to be performed after the main view has been created

@@ -17,7 +17,7 @@
 		/// Called when a library has been selected.
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
-		public void LibrarySelected( Library selectedLibrary ) => LibraryManagementController.SelectLibraryAsync( selectedLibrary );
+		public void LibrarySelected( Library selectedLibrary ) => LibraryManagementController.SelectLibrary( selectedLibrary );
 
 		/// <summary>
 		/// The command identity associated with this handler

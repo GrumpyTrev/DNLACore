@@ -38,7 +38,7 @@ namespace DBTest
 				PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 
 				// Get the selected song
-				PlaybackManagerModel.CurrentSongIndex = await PlaybackAccess.GetSelectedSongAsync();
+				PlaybackManagerModel.CurrentSongIndex = PlaybackDetails.SongIndex;
 
 				// Get the sources associated with the library
 				PlaybackManagerModel.Sources = Sources.GetSourcesForLibrary( PlaybackManagerModel.LibraryId );
@@ -59,9 +59,9 @@ namespace DBTest
 		/// <summary>
 		/// Set the selected song in the database and raise the SongSelectedMessage
 		/// </summary>
-		public static async Task SetSelectedSongAsync( int songIndex )
+		public static void SetSelectedSong( int songIndex )
 		{
-			await PlaybackAccess.SetSelectedSongAsync( songIndex );
+			PlaybackDetails.SongIndex = songIndex;
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
 		}
 
@@ -109,11 +109,21 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void DeviceAvailable( object message )
 		{
-			Device newDevice = ( message as PlaybackDeviceAvailableMessage ).SelectedDevice;
-			Device oldDevice = PlaybackManagerModel.AvailableDevice;
+			PlaybackDevice newDevice = ( message as PlaybackDeviceAvailableMessage ).SelectedDevice;
+			PlaybackDevice oldDevice = PlaybackManagerModel.AvailableDevice;
 
+			// Check for no new device
+			if ( newDevice == null )
+			{
+				// If there was an exisiting availabel device then repoprt this change
+				if ( oldDevice != null )
+				{
+					PlaybackManagerModel.AvailableDevice = null;
+					Reporter?.SelectPlaybackDevice( oldDevice );
+				}
+			}
 			// If there was no available device then save the new device and report the change
-			if ( oldDevice == null )
+			else if ( oldDevice == null )
 			{
 				PlaybackManagerModel.AvailableDevice = newDevice;
 				Reporter?.SelectPlaybackDevice( oldDevice );
@@ -137,14 +147,14 @@ namespace DBTest
 		/// Clear the current data and the filter and then reload
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void SelectedLibraryChanged( object message )
+		private static void SelectedLibraryChanged( object message )
 		{
 			// Set the new library
 			PlaybackManagerModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary;
 
 			// Clear the now playing data and reset the selected song
 			PlaybackManagerModel.NowPlayingPlaylist = null;
-			await SetSelectedSongAsync( -1 );
+			SetSelectedSong( -1 );
 
 			// Publish the data
 			Reporter?.MediaControlDataAvailable();
@@ -187,7 +197,7 @@ namespace DBTest
 		{
 			void MediaControlDataAvailable();
 			void SongSelected();
-			void SelectPlaybackDevice( Device oldSelectedDevice );
+			void SelectPlaybackDevice( PlaybackDevice oldSelectedDevice );
 			void PlayRequested();
 		}
 	}

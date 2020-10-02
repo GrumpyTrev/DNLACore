@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Android.App;
 using Android.OS;
 using Android.Runtime;
@@ -21,7 +19,28 @@ namespace DBTest
 		/// <param name="transfer"></param>
 		public MainApp( IntPtr handle, JniHandleOwnership transfer ) : base( handle, transfer )
 		{
+			instance = this;
+
 			RegisterActivityLifecycleCallbacks( this );
+
+			playbackCapabilities = new PlaybackCapabilities( Context );
+		}
+
+		/// Add the specified interface to the callback colletion
+		/// </summary>
+		/// <param name="callback"></param>
+		public static void RegisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback )
+		{
+			instance.playbackCapabilities.RegisterCallback( callback );
+		}
+
+		/// <summary>
+		/// Remove the specified inteferace from the callback collection
+		/// </summary>
+		/// <param name="callback"></param>
+		public static void UnregisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback )
+		{
+			instance.playbackCapabilities.UnregisterCallback( callback );
 		}
 
 		public void OnActivityCreated( Activity activity, Bundle savedInstanceState )
@@ -74,6 +93,7 @@ namespace DBTest
 
 			// Initialise the rest of the ConnectionDetailsModel if required
 			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
+
 			// Bind the command handlers to their command identities
 			CommandRouter.BindHandlers();
 
@@ -82,6 +102,7 @@ namespace DBTest
 			PlaylistsController.GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
 			NowPlayingController.GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 			FilterManagementController.GetTagsAsync();
+			PlaybackSelectionController.GetPlaybackDetails();
 
 			base.OnCreate();
 		}
@@ -137,11 +158,24 @@ namespace DBTest
 			return currentLibraryId;
 		}
 
+		/// <summary>
+		/// THe one and only MainApp
+		/// </summary>
+		private static MainApp instance = null;
+
+		/// <summary>
+		/// Keep track of whether or not the application is running in the foreground
+		/// </summary>
 		public static bool Foreground { get; private set; } = false;
 
 		/// <summary>
 		/// The one and only Http server used to serve local files to remote devices
 		/// </summary>
 		private static readonly SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
+
+		/// <summary>
+		/// The PlaybackCapabilities instance used to monitor the network and scan for DLNA devices
+		/// </summary>
+		private PlaybackCapabilities playbackCapabilities = null;
 	}
 }

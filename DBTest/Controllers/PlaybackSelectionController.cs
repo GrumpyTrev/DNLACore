@@ -1,104 +1,23 @@
-﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
-	/// The PlaybackSelectionController is the Controller for the RemotePlayback. It responds to RemotePlayback commands and maintains 
-	/// remoteplayback data in the PlaybackSelectionModel
+	/// The PlaybackSelectionController is maintains details of the selected device and available devices in the PlaybackSelectionModel 
 	/// </summary>
 	public static class PlaybackSelectionController
 	{
 		/// <summary>
-		/// Load up the discovered devices with the local device
+		/// Static constructor
 		/// </summary>
 		static PlaybackSelectionController()
 		{
-			InitialiseDiscoveredDevices();
 		}
 
 		/// <summary>
-		/// Send out a multicast discovery request and await replies.
-		/// Parse the reply to determine the ipaddress and port of the discovered device
+		/// Get the playback details
 		/// </summary>
-		public static async void DiscoverDevicesAsync()
+		public static void GetPlaybackDetails()
 		{
-			// Only start discovering device if no remote devices have already been discovered (remember the collection always include the local device)
-			if ( PlaybackSelectionModel.RemoteDevices.DeviceCollection.Count == 1 )
-			{
-				// Before discovering remote devices get the last selected device from the database and if it was the
-				// local device then report that device as available for playback
-				await ReportLocalSelectedDeviceAsync();
-
-				// Encode the discovery request
-				Byte[] sendBytes = Encoding.UTF8.GetBytes( string.Format( SearchRequest, MulticastIP, MulticastPort, 3 ) );
-
-				try
-				{
-					// Send the discovery a few times in case its is missed
-					for ( int loopCount = 1; loopCount < AttemptLimit; loopCount++ )
-					{
-						using ( UdpClient client = new UdpClient() )
-						{
-							// Send the discovery request
-							await client.SendAsync( sendBytes, sendBytes.Length, new IPEndPoint( IPAddress.Parse( MulticastIP ), MulticastPort ) );
-
-							// Loop receiving replies until the reply times out
-							bool timedOut = false;
-							while ( timedOut == false )
-							{
-								// Need a token to cancel the timer if a reply is received
-								CancellationTokenSource token = new CancellationTokenSource();
-
-								// Use delay and receive tasks
-								Task waitTask = Task.Delay( 2000, token.Token );
-								Task<UdpReceiveResult> receiveTask = client.ReceiveAsync();
-
-								// Wait for one of the tasks to finish
-								Task finishedTask = await Task.WhenAny( receiveTask, waitTask );
-
-								// If data has been received then process the data
-								if ( finishedTask == receiveTask )
-								{
-									UdpReceiveResult result = await receiveTask;
-
-									// Extract the location of the server by extracting the IP address and port 
-									ExtractDeviceLocation( Encoding.UTF8.GetString( result.Buffer, 0, result.Buffer.Length ) );
-
-									// Cancel the timer
-									token.Cancel();
-								}
-								else
-								{
-									// Get out of the loop and close the socket
-									timedOut = true;
-									client.Close();
-								}
-							}
-						}
-					}
-				}
-				catch ( SocketException exception )
-				{
-					Logger.Error( $"Error in device discovery {exception.Message}" );
-				}
-			}
-
-			Reporter?.DiscoveryFinished();
-		}
-
-		/// <summary>
-		/// Clear the device list and scan again
-		/// </summary>
-		public static void ReDiscoverDevices()
-		{
-			InitialiseDiscoveredDevices();
-			DiscoverDevicesAsync();
+			StorageController.RegisterInterestInDataAvailable( PlaybackDataAvailable );
 		}
 
 		/// <summary>
@@ -106,58 +25,51 @@ namespace DBTest
 		/// Save it in the model and report it
 		/// </summary>
 		/// <param name="deviceName"></param>
-		public static async void SetSelectedPlaybackAsync( string deviceName )
+		public static void SetSelectedPlayback( string deviceName )
 		{
-			Device selectedDevice = PlaybackSelectionModel.RemoteDevices.FindDevice( deviceName );
+			PlaybackDevice selectedDevice = PlaybackSelectionModel.RemoteDevices.FindDevice( deviceName );
 			if ( selectedDevice != null )
 			{
 				PlaybackSelectionModel.SelectedDevice = selectedDevice;
 				PlaybackSelectionModel.SelectedDeviceName = selectedDevice.FriendlyName;
-				await PlaybackAccess.SetPlaybackDeviceAsync( PlaybackSelectionModel.SelectedDeviceName );
+				PlaybackDetails.PlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
 
 				new PlaybackDeviceAvailableMessage() { SelectedDevice = PlaybackSelectionModel.SelectedDevice }.Send();
 			}
 		}
 
 		/// <summary>
-		/// This method is called when a rescan has been requested by the user
-		/// Pass this back to the selection manager
+		/// Called when the Playback details have been read in from storage
 		/// </summary>
-		public static void RescanRequested()
+		/// <param name="message"></param>
+		private static void PlaybackDataAvailable( object message )
 		{
-			Reporter?.RescanRequested();
-		}
+			// Initialise the locally held devices collection to hold the 'local' device
+			PlaybackSelectionModel.RemoteDevices.AddDevice( new PlaybackDevice() { CanPlayMedia = PlaybackDevice.CanPlayMediaType.Yes, IsLocal = true,
+				FriendlyName = "Local playback" } );
 
-		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public static IReporter Reporter { private get; set; } = null;
+			// If the selected device is the 'local' device then report that it is available
+			ReportLocalSelectedDevice();
 
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface IReporter
-		{
-			void PlaybackSelectionDataAvailable();
-			void DiscoveryFinished();
-			void RescanRequested();
+			// Register interest in the availability of remote devices
+			MainApp.RegisterPlaybackCapabilityCallback( deviceCallback );
 		}
 
 		/// <summary>
 		/// Get the selected device from the database and if its the local device report is as available
 		/// </summary>
-		private static async Task ReportLocalSelectedDeviceAsync()
+		private static void ReportLocalSelectedDevice()
 		{
-			Device localDevice = PlaybackSelectionModel.RemoteDevices.DeviceCollection[ 0 ];
+			PlaybackDevice localDevice = PlaybackSelectionModel.RemoteDevices.DeviceCollection[ 0 ];
 
-			// Use the PlaybackAccess class to retrieve the last selected device
-			PlaybackSelectionModel.SelectedDeviceName = await PlaybackAccess.GetPlaybackDeviceAsync();
+			// Use the PlaybackDetails class to retrieve the last selected device
+			PlaybackSelectionModel.SelectedDeviceName = PlaybackDetails.PlaybackDeviceName;
 
 			if ( PlaybackSelectionModel.SelectedDeviceName.Length == 0 )
 			{
 				// No device selected. Select the local device
 				PlaybackSelectionModel.SelectedDeviceName = localDevice.FriendlyName;
-				await PlaybackAccess.SetPlaybackDeviceAsync( PlaybackSelectionModel.SelectedDeviceName );
+				PlaybackDetails.PlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
 			}
 
 			// If the selected device is the local device then report it as available
@@ -169,126 +81,92 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get the list of services supported by the device and check if one is the AVTransport service that indicates that the device
-		/// suppports media playback
+		/// Called when a new remote media device has been detected
 		/// </summary>
-		/// <param name="targetDevice"></param>
-		private static async void GetTransportServiceAsync( Device targetDevice )
+		/// <param name="device"></param>
+		private static void NewDeviceDetected( PlaybackDevice device )
 		{
-			string request = DlnaRequestHelper.MakeRequest( "GET", targetDevice.DescriptionURL, "", targetDevice.IPAddress, targetDevice.Port, "" );
-			string response = await DlnaRequestHelper.SendRequest( targetDevice, request );
-
-			Logger.Log( request );
-			Logger.Log( response );
-
-			// Get the response code from the response string
-			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
+			// Add this device to the model
+			if ( PlaybackSelectionModel.RemoteDevices.AddDevice( device ) == true )
 			{
-				// Look for the transport service and save its Url
-				Match transportMatch = Regex.Match( response, @"AVTransport:1[\s\S]*?<controlURL>(.*)<\/controlURL>" );
-				if ( transportMatch.Success == true )
+				// If this device is the currently selected device then report it as available
+				if ( device.FriendlyName == PlaybackSelectionModel.SelectedDeviceName )
 				{
-					targetDevice.CanPlayMedia = true;
-					targetDevice.PlayUrl = transportMatch.Groups[ 1 ].Value;
-
-					// Remove leading '/' from the Url
-					if ( targetDevice.PlayUrl[ 0 ] == '/' )
-					{
-						targetDevice.PlayUrl = targetDevice.PlayUrl.Substring( 1 );
-					}
-
-					Logger.Log( string.Format( "Can Play Media IP {0}:{1} Url {2}", targetDevice.IPAddress, targetDevice.Port, 
-						targetDevice.DescriptionURL ) );
-
-					// Get the device's friendly name for display purposes
-					Match friendlyMatch = Regex.Match( response, @"<friendlyName>(.*)</friendlyName>" );
-					if ( friendlyMatch.Success == true )
-					{
-						targetDevice.FriendlyName = friendlyMatch.Groups[ 1 ].Value;
-					}
-					else
-					{
-						targetDevice.FriendlyName = targetDevice.PlayUrl;
-					}
-
-					// Add this device to the model and inform the reporter
-					PlaybackSelectionModel.RemoteDevices.AddDevice( targetDevice );
-					Reporter?.PlaybackSelectionDataAvailable();
-
-					// If this device is the currently selected device then report it as available
-					if ( targetDevice.FriendlyName == PlaybackSelectionModel.SelectedDeviceName )
-					{
-						PlaybackSelectionModel.SelectedDevice = targetDevice;
-						new PlaybackDeviceAvailableMessage() { SelectedDevice = targetDevice }.Send();
-					}
+					PlaybackSelectionModel.SelectedDevice = device;
+					new PlaybackDeviceAvailableMessage() { SelectedDevice = device }.Send();
 				}
+
+				// Report that the Playback Devices have changed
+				new PlaybackDevicesChangedMessage().Send();
 			}
 		}
 
 		/// <summary>
-		/// Clear the Remote devices list and add the always present internal device
+		/// Called when a previously available device is no longer available
 		/// </summary>
-		private static void InitialiseDiscoveredDevices()
+		/// <param name="device"></param>
+		private static void DeviceNotAvailable( PlaybackDevice device )
 		{
-			CandidateDevices.DeviceCollection.Clear();
-			PlaybackSelectionModel.RemoteDevices.DeviceCollection.Clear();
-			PlaybackSelectionModel.RemoteDevices.AddDevice( new Device() { CanPlayMedia = true, IsLocal = true, FriendlyName = "Local playback" } );
-		}
-
-		/// <summary>
-		/// Extract the IP address and port from a search response. If this is a newly discovered device then check it supports the transport service
-		/// </summary>
-		/// <param name="deviceResponse"></param>
-		private static void ExtractDeviceLocation( string deviceResponse )
-		{
-			// Extract the location of the server by extracting the IP address and port 
-			Match locationMatch = Regex.Match( deviceResponse, @"LOCATION: http:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})\/(\S+)" );
-			if ( locationMatch.Success == true )
+			// Remove this device from the model
+			if ( PlaybackSelectionModel.RemoteDevices.RemoveDevice( device ) == true )
 			{
-				Device newDevice = new Device() {
-					IPAddress = locationMatch.Groups[ 1 ].Value, DescriptionURL = locationMatch.Groups[ 3 ].Value,
-					Port = Int32.Parse( locationMatch.Groups[ 2 ].Value )
-				};
-
-				// Add this device to the candidate devices
-				if ( CandidateDevices.AddDevice( newDevice ) == true )
+				// If this device is currently selected then report that there is no selected device
+				if ( PlaybackSelectionModel.SelectedDevice == device )
 				{
-					Logger.Log( string.Format( "Discovered IP {0}:{1} Url {2}", newDevice.IPAddress, newDevice.Port,
-						newDevice.DescriptionURL ) );
-
-					GetTransportServiceAsync( newDevice );
+					PlaybackSelectionModel.SelectedDevice = null;
+					new PlaybackDeviceAvailableMessage() { SelectedDevice = null }.Send();
 				}
+
+				// Report that the Playback Devices have changed
+				new PlaybackDevicesChangedMessage().Send();
 			}
 		}
 
 		/// <summary>
-		/// The collection of devices that have been discovered but for which playback has not yet been verified
+		/// Implementation of the PlaybackCapabilities.IPlaybackCapabilitiesChanges interface
 		/// </summary>
-		private static Devices CandidateDevices { get; } = new Devices();
+		private class RemoteDeviceCallback : PlaybackCapabilities.IPlaybackCapabilitiesChanges
+		{
+			/// <summary>
+			/// Called to report the available devices - when registration is first made
+			/// </summary>
+			/// <param name="devices"></param>
+			public void AvailableDevices( PlaybackDevices devices )
+			{
+				devices.DeviceCollection.ForEach( device => PlaybackSelectionController.NewDeviceDetected( device ) );
+			}
+
+			/// <summary>
+			/// Called when one or more devices are no longer available
+			/// </summary>
+			/// <param name="devices"></param>
+			public void UnavailableDevices( PlaybackDevices devices )
+			{
+				devices.DeviceCollection.ForEach( device => PlaybackSelectionController.DeviceNotAvailable( device ) );
+			}
+
+			/// <summary>
+			/// Called when the wifi network state changes
+			/// NOT USED
+			/// </summary>
+			/// <param name="state"></param>
+			public void NetworkState( bool state )
+			{
+			}
+
+			/// <summary>
+			/// Called when a new DLNA device has been detected
+			/// </summary>
+			/// <param name="device"></param>
+			public void NewDeviceDetected( PlaybackDevice device )
+			{
+				PlaybackSelectionController.NewDeviceDetected( device );
+			}
+		}
 
 		/// <summary>
-		/// The number of times to send the discovery telegram
+		/// The single instance of the RemoteDeviceCallback class
 		/// </summary>
-		private const int AttemptLimit = 2;
-
-		/// <summary>
-		/// Advertisement multicast address
-		/// </summary>
-		private const string MulticastIP = "239.255.255.250";
-
-		/// <summary>
-		/// Advertisement multicast port
-		/// </summary>
-		private const int MulticastPort = 1900;
-
-		/// <summary>
-		/// Device search request
-		/// </summary>
-		private const string SearchRequest = "M-SEARCH * HTTP/1.1\r\nHOST: {0}:{1}\r\nMAN: \"ssdp:discover\"\r\nMX: {2}\r\nST: ssdp:all\r\n\r\n";
-
-		/// <summary>
-		/// Prefix for IP address in reply
-		/// </summary>
-		private const string locationId = "LOCATION: ";
+		private static readonly RemoteDeviceCallback deviceCallback = new RemoteDeviceCallback();
 	}
 }

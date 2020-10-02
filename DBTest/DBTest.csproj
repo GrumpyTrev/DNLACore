@@ -125,6 +125,7 @@
     <Compile Include="MainApp.cs" />
     <Compile Include="Messages\AlbumAddedMessageo.cs" />
     <Compile Include="Messages\AlbumsDeletedMessage.cs" />
+    <Compile Include="Messages\PlaybackDevicesChangedMessage.cs" />
     <Compile Include="Messages\StorageDataAvailableMessage.cs" />
     <Compile Include="Messages\PlayCurrentSongMessage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
@@ -144,11 +145,16 @@
     <Compile Include="Model\FilterAccess.cs" />
     <Compile Include="Model\Genres.cs" />
     <Compile Include="Model\LibraryAccess.cs" />
+    <Compile Include="Model\PlaybackDetails.cs" />
     <Compile Include="Model\Sources.cs" />
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />
+    <Compile Include="PlaybackManagement\DLNAScanner.cs" />
     <Compile Include="PlaybackManagement\HttpServer.cs" />
     <Compile Include="PlaybackManagement\LocalPlaybackService.cs" />
     <Compile Include="PlaybackManagement\MediaControlService.cs" />
+    <Compile Include="PlaybackManagement\PlaybackCapabilities.cs" />
+    <Compile Include="PlaybackManagement\PlaybackDevice.cs" />
+    <Compile Include="PlaybackManagement\PlaybackDevices.cs" />
     <Compile Include="PlaybackManagement\PlaybackRouter.cs" />
     <Compile Include="PlaybackManagement\RemotePlaybackService.cs" />
     <Compile Include="PlaybackManagement\MediaControllerNoHide.cs" />
@@ -167,8 +173,6 @@
     <Compile Include="NowPlayingView\NowPlayingFragment.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapterModel.cs" />
     <Compile Include="BaseView\PagedFragment.cs" />
-    <Compile Include="PlaybackSelection\PlaybackSelectionManager.cs" />
-    <Compile Include="PlaybackSelection\RescanProgressDialogFragment.cs" />
     <Compile Include="PlaybackSelection\SelectDeviceDialogFragment.cs" />
     <Compile Include="PlaylistsView\DuplicatePlaylistDialogFragment.cs" />
     <Compile Include="PlaylistsView\NewPlaylistNameDialogFragment.cs" />

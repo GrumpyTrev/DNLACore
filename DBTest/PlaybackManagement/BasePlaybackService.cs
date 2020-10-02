@@ -218,7 +218,7 @@ namespace DBTest
 		/// <summary>
 		/// Details of the playback device
 		/// </summary>
-		public Device PlaybackDevice { get; set; } = null;
+		public PlaybackDevice PlaybackDevice { get; set; } = null;
 
 		/// <summary>
 		/// The instance used to report back significant events

@@ -80,7 +80,7 @@ namespace DBTest
 		{
 			base.OnResume();
 
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Click += async ( sender, args ) => {
+			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) => {
 
 				Source newSource = new Source()
 				{

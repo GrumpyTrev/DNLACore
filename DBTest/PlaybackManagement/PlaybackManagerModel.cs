@@ -30,7 +30,7 @@ namespace DBTest
 		/// <summary>
 		/// The details of the selected available playback device
 		/// </summary>
-		public static Device AvailableDevice { get; set; } = null;
+		public static PlaybackDevice AvailableDevice { get; set; } = null;
 
 		/// <summary>
 		/// Keep track of whether or not the Media Controller is being displayed

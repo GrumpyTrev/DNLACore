@@ -57,7 +57,7 @@ namespace DBTest
 		/// Pass this change to the controller
 		/// </summary>
 		/// <param name="itemNo"></param>
-		public void SongSelected( int itemNo ) => NowPlayingController.SetSelectedSongAsync( itemNo );
+		public void SongSelected( int itemNo ) => NowPlayingController.SetSelectedSong( itemNo );
 
 		/// <summary>
 		/// Called when song selection has been reported by the controller

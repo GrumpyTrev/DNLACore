@@ -10,6 +10,8 @@ namespace DBTest
 {
 	/// <summary>
 	/// The RemotePlaybackService is a service used to control the remote playing of music via a DLNA device
+	/// Remember that all DLNA requests are likely to be called from the UI thread, so do all DNLA work in a worker thread and
+	/// try and report back results on the original request thread.
 	/// </summary>
 	[Service]
 	public class RemotePlaybackService: BasePlaybackService
@@ -67,19 +69,18 @@ namespace DBTest
 		/// </summary>
 		public async override void Stop()
 		{
+			// Assume the DLMA request will complte and clear some state variables first
+			IsPlaying = false;
+			StopTimer();
+			ReleaseLock();
+
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Stop" );
 
 			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Stop",
 				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
 
-			string response = await DlnaRequestHelper.SendRequest( PlaybackDevice, request );
-
-			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
-			{
-				IsPlaying = false;
-				StopTimer();
-				ReleaseLock();
-			}
+			// Run off the calling thread
+			string response = await Task.Run( () =>	DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
 		}
 
 		/// <summary>
@@ -115,7 +116,8 @@ namespace DBTest
 			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Pause",
 				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
 
-			string response = await DlnaRequestHelper.SendRequest( PlaybackDevice, request );
+			// Run off the calling thread
+			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
 
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 			{
@@ -154,12 +156,13 @@ namespace DBTest
 		private async Task<bool> PrepareSong( string fileName, Song songToPlay )
 		{
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "SetAVTransportURI",
-				string.Format( "<CurrentURI>{0}</CurrentURI>\r\n<CurrentURIMetaData>{1}</CurrentURIMetaData>\r\n", fileName, Desc( fileName, songToPlay ) ) );
+				$"<CurrentURI>{fileName}</CurrentURI>\r\n<CurrentURIMetaData>{Desc( fileName, songToPlay )}</CurrentURIMetaData>\r\n" );
 
 			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl,
 				"urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI", PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
 
-			string response = await DlnaRequestHelper.SendRequest( PlaybackDevice, request );
+			// Run off the calling thread
+			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
 
 			return ( DlnaRequestHelper.GetResponseCode( response ) == 200 );
 		}
@@ -191,7 +194,8 @@ namespace DBTest
 			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Play",
 				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
 
-			string response = await DlnaRequestHelper.SendRequest( PlaybackDevice, request );
+			// Run off the calling thread
+			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
 
 			return ( DlnaRequestHelper.GetResponseCode( response ) == 200 );
 		}
@@ -207,16 +211,17 @@ namespace DBTest
 			StopTimer();
 
 			// Send the GetPositionInfo request and get the response
-			string response = await DlnaRequestHelper.SendRequest( PlaybackDevice, 
+			// Run off the calling thread
+			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice,
 				DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
-					PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo" ) ) );
+					PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo" ) ) ) );
 
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 			{
 				durationMilliseconds = TimeStringToMilliseconds( response.TrimStart( "<TrackDuration>" ).TrimAfter( "</TrackDuration>" ) );
 				positionMilliseconds = TimeStringToMilliseconds( response.TrimStart( "<RelTime>" ).TrimAfter( "</RelTime>" ) );
 
-				Logger.Log( string.Format( "Position: {0}, Duration {1}", positionMilliseconds, durationMilliseconds ) );
+				Logger.Log( $"Position: {positionMilliseconds}, Duration {durationMilliseconds}" );
 
 				// Assume the track has not finished
 				bool nextTrack = false;
@@ -274,17 +279,28 @@ namespace DBTest
 				}
 				else
 				{
-					StartTimer();
+					if ( IsPlaying == true )
+					{
+						StartTimer();
+					}
 				}
 			}
 			else
 			{
 				// Failed to get the response - report this and try again when the timer expires
 				Logger.Error( "Failed to get PositionInfo" );
-				StartTimer();
+				if ( IsPlaying == true )
+				{
+					StartTimer();
+				}
 			}
 		}
 
+		/// <summary>
+		/// Convert a time stored in the DLNA response to milliseconds
+		/// </summary>
+		/// <param name="timeString"></param>
+		/// <returns></returns>
 		private int TimeStringToMilliseconds( string timeString )
 		{
 			if ( timeString.Length < 8 )

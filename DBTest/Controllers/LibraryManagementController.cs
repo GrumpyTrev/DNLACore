@@ -11,12 +11,12 @@
 		/// Notify other controllers
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
-		public static async void SelectLibraryAsync( Library selectedLibrary )
+		public static void SelectLibrary( Library selectedLibrary )
 		{
 			// Only process this if the library has changed
 			if ( selectedLibrary.Id != ConnectionDetailsModel.LibraryId )
 			{
-				await PlaybackAccess.SetSelectedLibraryAsync( selectedLibrary );
+				PlaybackDetails.LibraryId = selectedLibrary.Id;
 				ConnectionDetailsModel.LibraryId = selectedLibrary.Id;
 				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary.Id }.Send();
 			}

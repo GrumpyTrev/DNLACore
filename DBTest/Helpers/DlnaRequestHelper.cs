@@ -71,7 +71,7 @@ namespace DBTest
 		/// <param name="targetDevice"></param>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		public static async Task<string> SendRequest( Device targetDevice, string request )
+		public static async Task<string> SendRequest( PlaybackDevice targetDevice, string request )
 		{
 			string response = "";
 

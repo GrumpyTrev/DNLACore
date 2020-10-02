@@ -40,7 +40,7 @@ namespace DBTest
 				NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 
 				// Get the selected song
-				NowPlayingViewModel.SelectedSong = await PlaybackAccess.GetSelectedSongAsync();
+				NowPlayingViewModel.SelectedSong = PlaybackDetails.SongIndex;
 
 				NowPlayingViewModel.DataValid = true;
 			}
@@ -56,9 +56,9 @@ namespace DBTest
 		/// Set the selected song in the database and raise the SongSelectedMessage
 		/// Don't update the model at this stage. Update it when the SongSelectedMessage is received
 		/// </summary>
-		public static async void SetSelectedSongAsync( int songIndex, bool playSong = true )
+		public static void SetSelectedSong( int songIndex, bool playSong = true )
 		{
-			await PlaybackAccess.SetSelectedSongAsync( songIndex );
+			PlaybackDetails.SongIndex = songIndex;
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
 
 			// Make sure the new song is played if requested
@@ -73,7 +73,7 @@ namespace DBTest
 		/// </summary>
 		public static void ShuffleNowPlayingList()
 		{
-			SetSelectedSongAsync( -1 );
+			SetSelectedSong( -1 );
 
 			// Extract the songs from the playlist and shuffle them
 			List<Song> songs = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Select( item => item.Song ).ToList();
@@ -111,7 +111,7 @@ namespace DBTest
 				if ( items.Any( item => ( item.Track == ( NowPlayingViewModel.SelectedSong + 1 ) ) ) == true )
 				{
 					// The currently selected song is going to be deleted. Set it to invalid
-					SetSelectedSongAsync( -1 );
+					SetSelectedSong( -1 );
 				}
 				else
 				{
@@ -219,7 +219,7 @@ namespace DBTest
 
 				if ( newSelectedIndex != NowPlayingViewModel.SelectedSong )
 				{
-					SetSelectedSongAsync( newSelectedIndex, false );
+					SetSelectedSong( newSelectedIndex, false );
 				}
 			}
 		}

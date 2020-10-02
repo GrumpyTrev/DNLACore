@@ -21,7 +21,7 @@ namespace DBTest
 			if ( clearFirst == true )
 			{
 				// Before clearing it reset the selected song index to stop the current song being played
-				await PlaybackAccess.SetSelectedSongAsync( -1 );
+				PlaybackDetails.SongIndex = -1;
 				new SongSelectedMessage() { ItemNo = -1 }.Send();
 
 				// Now clear the Now Playing list 
@@ -35,7 +35,7 @@ namespace DBTest
 			// If the list was cleared and there are now some items in the list select the first entry
 			if ( ( clearFirst == true ) & ( songsToAdd.Count > 0 ) )
 			{
-				await PlaybackAccess.SetSelectedSongAsync( 0 );
+				PlaybackDetails.SongIndex = 0;
 				new SongSelectedMessage() { ItemNo = 0 }.Send();
 
 				// Make sure the new song is played

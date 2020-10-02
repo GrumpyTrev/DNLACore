@@ -40,9 +40,6 @@ namespace DBTest
 			// Initialise the PlaybackRouter
 			playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
 
-			// Initialise the PlaybackSelectionManager
-			playbackSelector = new PlaybackSelectionManager( this );
-
 			// Initialise the tag command handlers
 			tagDeleteCommandHandler = new TagDeletor( this );
 			tagEditCommandHandler = new TagEditor( this );
@@ -55,7 +52,6 @@ namespace DBTest
 			// This didn't work when placed in OnStart() or OnResume(). Not sure why.
 			view.Post( () => {
 				playbackRouter.StartRouter();
-				playbackSelector.StartSelection();
 			} );
 
 			if ( Build.VERSION.SdkInt >= BuildVersionCodes.M )
@@ -244,11 +240,6 @@ namespace DBTest
 		/// The PlaybackRouter used to route playback commands to the selected device
 		/// </summary>
 		private PlaybackRouter playbackRouter = null;
-
-		/// <summary>
-		/// The PlaybackSelectionManager used to allow the user to select a playback device
-		/// </summary>
-		private PlaybackSelectionManager playbackSelector = null;
 
 		/// <summary>
 		/// The handler for the tag deletion command

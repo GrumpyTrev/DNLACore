@@ -146,39 +146,48 @@ namespace DBTest
 		/// Use the device details to switch connections
 		/// </summary>
 		/// <param name="oldSelectedDevice"></param>
-		public void SelectPlaybackDevice( Device oldSelectedDevice )
+		public void SelectPlaybackDevice( PlaybackDevice oldSelectedDevice )
 		{
-			if ( oldSelectedDevice != null )
+			contextForBinding.RunOnUiThread( () =>
 			{
-				// Deselect the old connection
-				selectedConnection?.DeselectController();
-			}
+				// Deselect the old connection if there was one
+				if ( oldSelectedDevice != null )
+				{
+					selectedConnection?.DeselectController();
+				}
 
-			if ( PlaybackManagerModel.AvailableDevice.IsLocal == true )
-			{
-				selectedConnection = localConnection;
-			}
-			else
-			{
-				selectedConnection = remoteConnection;
-			}
+				// If there is no new device then clear the selection and hide the media controller
+				if ( PlaybackManagerModel.AvailableDevice == null )
+				{
+					selectedConnection = null;
 
-			selectedConnection.SelectController();
+					if ( mediaController != null )
+					{
+						mediaController.Visibility = ViewStates.Gone;
+					}
+				}
+				else
+				{
+					selectedConnection = ( PlaybackManagerModel.AvailableDevice.IsLocal == true ) ? localConnection : remoteConnection;
 
-			if ( mediaController == null )
-			{
-				SetController();
-			}
+					selectedConnection.SelectController();
 
-			// Only show the Media Controller if it has not been previously hidden
-			if ( PlaybackManagerModel.MediaControllerVisible == true )
-			{
-				mediaController.Show();
-			}
-			else
-			{
-				mediaController.Visibility = ViewStates.Gone;
-			}
+					if ( mediaController == null )
+					{
+						SetController();
+					}
+
+					// Only show the Media Controller if it has not been previously hidden
+					if ( PlaybackManagerModel.MediaControllerVisible == true )
+					{
+						mediaController.Show();
+					}
+					else
+					{
+						mediaController.Visibility = ViewStates.Gone;
+					}
+				}
+			} );
 		}
 
 		/// <summary>
@@ -228,12 +237,12 @@ namespace DBTest
 		/// <summary>
 		/// Start or resume playback
 		/// </summary>
-		public async void Start()
+		public void Start()
 		{
 			// If no song is currently selected and there is a song available then select it
 			if ( ( PlaybackManagerModel.CurrentSongIndex == -1 ) && ( ( PlaybackManagerModel.NowPlayingPlaylist?.PlaylistItems.Count ?? 0 ) > 0 ) )
 			{
-				await PlaybackManagementController.SetSelectedSongAsync( 0 );
+				PlaybackManagementController.SetSelectedSong( 0 );
 			}
 
 			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
@@ -247,7 +256,7 @@ namespace DBTest
 		/// Pass this on to the controller
 		/// </summary>
 		public void SongIndexChanged( int songIndex ) => 
-			contextForBinding.RunOnUiThread( async () => { await PlaybackManagementController.SetSelectedSongAsync( songIndex ); } );
+			contextForBinding.RunOnUiThread( () => { PlaybackManagementController.SetSelectedSong( songIndex ); } );
 
 		/// <summary>
 		/// Called when a new song is being played. Pass this on to the controller
