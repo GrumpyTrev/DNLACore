@@ -32,6 +32,7 @@ namespace DBTest
 		/// </summary>
 		public ScanProgressDialogFragment()
 		{
+			Cancelable = false;
 		}
 
 		/// <summary>
@@ -43,7 +44,6 @@ namespace DBTest
 		public override Dialog OnCreateDialog( Bundle savedInstanceState ) =>
 			new AlertDialog.Builder( Context )
 				.SetTitle( string.Format( "Scanning library: {0}", libraryName ) )
-				.SetCancelable( false )
 				.SetNegativeButton( "Cancel", ( EventHandler<DialogClickEventArgs> )null )
 				.Create();
 

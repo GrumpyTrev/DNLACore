@@ -8,7 +8,7 @@
 		/// <summary>
 		/// Constructor - register interest in Playback Device changes
 		/// </summary>
-		public SelectDeviceCommandHandler() => Mediator.RegisterPermanent( PlaybackDevicesChanged, typeof( PlaybackDevicesChangedMessage ) );
+		public SelectDeviceCommandHandler() => Mediator.RegisterPermanent( PlaybackDevicesChanged, typeof( PlaybackModelChangedMessage ) );
 
 		/// <summary>
 		/// Called to handle the command. Show the device selection dialogue

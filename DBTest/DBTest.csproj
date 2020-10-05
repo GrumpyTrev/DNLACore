@@ -66,6 +66,7 @@
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
+    <Compile Include="BaseView\PlaybackMonitor.cs" />
     <Compile Include="BaseView\SortSelector.cs" />
     <Compile Include="CommandHandlers\ShuffleNowPlayingCommandHandler.cs" />
     <Compile Include="CommandHandlers\SelectDeviceCommandHandler.cs" />
@@ -125,7 +126,7 @@
     <Compile Include="MainApp.cs" />
     <Compile Include="Messages\AlbumAddedMessageo.cs" />
     <Compile Include="Messages\AlbumsDeletedMessage.cs" />
-    <Compile Include="Messages\PlaybackDevicesChangedMessage.cs" />
+    <Compile Include="Messages\PlaybackModelChangedMessage.cs" />
     <Compile Include="Messages\StorageDataAvailableMessage.cs" />
     <Compile Include="Messages\PlayCurrentSongMessage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
@@ -473,6 +474,21 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\source_details_dialogue_layout.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\local_playback_no_wifi.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\local_playback_wifi.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\remote_playback_na_wifi.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\remote_playback_no_wifi.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\remote_playback_wifi.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -20,7 +20,7 @@
 			// If the ScanProgressDialogFragment is available then we can proceed with the next stage of the process
 			if ( scanProgressDialog != null )
 			{
-				scanProgressDialog.Dialog.Dismiss();
+				scanProgressDialog.Dismiss();
 
 				// Check if any of the songs in the library have not been matched or have changed (only process if the scan was not cancelled)
 				if ( ( cancelHasBeenRequested == false ) && ( LibraryScanModel.UnmatchedSongs.Count > 0 ) )
@@ -57,7 +57,7 @@
 			// If the ScanDeleteDialogFragment is available then we can proceed with the next stage of the process
 			if ( scanDeleteDialog != null )
 			{
-				scanDeleteDialog.Dialog.Dismiss();
+				scanDeleteDialog.Dismiss();
 
 				// Let the user know that the process has finished
 				NotificationDialogFragment.ShowFragment( CommandRouter.Manager,

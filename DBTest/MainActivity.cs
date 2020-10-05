@@ -78,6 +78,9 @@ namespace DBTest
 			repeatOffMenu = menu.FindItem( Resource.Id.action_repeat_off );
 			repeatOffMenu.SetVisible( PlaybackManagerModel.RepeatOn );
 
+			// Bind to any process wide command handler or monitors that require a menu item
+			MainApp.BindToPlaybackMonitor( menu );
+
 			return true;
 		}
 
@@ -204,6 +207,9 @@ namespace DBTest
 			// Some of the managers need to remove themselves from the scene
 			FragmentTitles.ParentActivity = null;
 			LibraryNameDisplayController.Reporter = null;
+
+			// Unbind from any process wide command handler or monitors that require a menu item
+			MainApp.BindToPlaybackMonitor( null );
 
 			base.OnDestroy();
 		}

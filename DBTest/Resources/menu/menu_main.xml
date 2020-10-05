@@ -8,6 +8,12 @@
 		app:showAsAction="always"
 		android:title="Repeat off"/>
 	<item
+		android:id="@+id/playback_info"
+		android:icon="@drawable/local_playback_no_wifi"
+		android:orderInCategory="1"
+		app:showAsAction="always"
+		android:title="Filter"/>
+	<item
 		android:title="Playback"
 		app:showAsAction="never" >
 		<menu>

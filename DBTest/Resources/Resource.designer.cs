@@ -2245,26 +2245,26 @@ namespace DBTest
 			// aapt resource value: 0x7f020055
 			public const int avd_hide_password = 2130837589;
 			
-			// aapt resource value: 0x7f020084
-			public const int avd_hide_password_1 = 2130837636;
+			// aapt resource value: 0x7f020089
+			public const int avd_hide_password_1 = 2130837641;
 			
-			// aapt resource value: 0x7f020085
-			public const int avd_hide_password_2 = 2130837637;
+			// aapt resource value: 0x7f02008a
+			public const int avd_hide_password_2 = 2130837642;
 			
-			// aapt resource value: 0x7f020086
-			public const int avd_hide_password_3 = 2130837638;
+			// aapt resource value: 0x7f02008b
+			public const int avd_hide_password_3 = 2130837643;
 			
 			// aapt resource value: 0x7f020056
 			public const int avd_show_password = 2130837590;
 			
-			// aapt resource value: 0x7f020087
-			public const int avd_show_password_1 = 2130837639;
+			// aapt resource value: 0x7f02008c
+			public const int avd_show_password_1 = 2130837644;
 			
-			// aapt resource value: 0x7f020088
-			public const int avd_show_password_2 = 2130837640;
+			// aapt resource value: 0x7f02008d
+			public const int avd_show_password_2 = 2130837645;
 			
-			// aapt resource value: 0x7f020089
-			public const int avd_show_password_3 = 2130837641;
+			// aapt resource value: 0x7f02008e
+			public const int avd_show_password_3 = 2130837646;
 			
 			// aapt resource value: 0x7f020057
 			public const int collapse = 2130837591;
@@ -2306,100 +2306,115 @@ namespace DBTest
 			public const int info = 2130837603;
 			
 			// aapt resource value: 0x7f020064
-			public const int move_down = 2130837604;
+			public const int local_playback_no_wifi = 2130837604;
 			
 			// aapt resource value: 0x7f020065
-			public const int move_up = 2130837605;
+			public const int local_playback_wifi = 2130837605;
 			
 			// aapt resource value: 0x7f020066
-			public const int navigation_empty_icon = 2130837606;
+			public const int move_down = 2130837606;
 			
 			// aapt resource value: 0x7f020067
-			public const int new_playlist = 2130837607;
+			public const int move_up = 2130837607;
 			
 			// aapt resource value: 0x7f020068
-			public const int notification_action_background = 2130837608;
+			public const int navigation_empty_icon = 2130837608;
 			
 			// aapt resource value: 0x7f020069
-			public const int notification_bg = 2130837609;
+			public const int new_playlist = 2130837609;
 			
 			// aapt resource value: 0x7f02006a
-			public const int notification_bg_low = 2130837610;
+			public const int notification_action_background = 2130837610;
 			
 			// aapt resource value: 0x7f02006b
-			public const int notification_bg_low_normal = 2130837611;
+			public const int notification_bg = 2130837611;
 			
 			// aapt resource value: 0x7f02006c
-			public const int notification_bg_low_pressed = 2130837612;
+			public const int notification_bg_low = 2130837612;
 			
 			// aapt resource value: 0x7f02006d
-			public const int notification_bg_normal = 2130837613;
+			public const int notification_bg_low_normal = 2130837613;
 			
 			// aapt resource value: 0x7f02006e
-			public const int notification_bg_normal_pressed = 2130837614;
+			public const int notification_bg_low_pressed = 2130837614;
 			
 			// aapt resource value: 0x7f02006f
-			public const int notification_icon_background = 2130837615;
-			
-			// aapt resource value: 0x7f020082
-			public const int notification_template_icon_bg = 2130837634;
-			
-			// aapt resource value: 0x7f020083
-			public const int notification_template_icon_low_bg = 2130837635;
+			public const int notification_bg_normal = 2130837615;
 			
 			// aapt resource value: 0x7f020070
-			public const int notification_tile_bg = 2130837616;
+			public const int notification_bg_normal_pressed = 2130837616;
 			
 			// aapt resource value: 0x7f020071
-			public const int notify_panel_notification_icon_bg = 2130837617;
+			public const int notification_icon_background = 2130837617;
+			
+			// aapt resource value: 0x7f020087
+			public const int notification_template_icon_bg = 2130837639;
+			
+			// aapt resource value: 0x7f020088
+			public const int notification_template_icon_low_bg = 2130837640;
 			
 			// aapt resource value: 0x7f020072
-			public const int play_now = 2130837618;
+			public const int notification_tile_bg = 2130837618;
 			
 			// aapt resource value: 0x7f020073
-			public const int playlist = 2130837619;
+			public const int notify_panel_notification_icon_bg = 2130837619;
 			
 			// aapt resource value: 0x7f020074
-			public const int rename = 2130837620;
+			public const int play_now = 2130837620;
 			
 			// aapt resource value: 0x7f020075
-			public const int repeat = 2130837621;
+			public const int playlist = 2130837621;
 			
 			// aapt resource value: 0x7f020076
-			public const int select = 2130837622;
+			public const int remote_playback_na_wifi = 2130837622;
 			
 			// aapt resource value: 0x7f020077
-			public const int sort_by_alpha_ascending = 2130837623;
+			public const int remote_playback_no_wifi = 2130837623;
 			
 			// aapt resource value: 0x7f020078
-			public const int sort_by_alpha_descending = 2130837624;
+			public const int remote_playback_wifi = 2130837624;
 			
 			// aapt resource value: 0x7f020079
-			public const int sort_by_genre_ascending = 2130837625;
+			public const int rename = 2130837625;
 			
 			// aapt resource value: 0x7f02007a
-			public const int sort_by_genre_descending = 2130837626;
+			public const int repeat = 2130837626;
 			
 			// aapt resource value: 0x7f02007b
-			public const int sort_by_id_ascending = 2130837627;
+			public const int select = 2130837627;
 			
 			// aapt resource value: 0x7f02007c
-			public const int sort_by_id_descending = 2130837628;
+			public const int sort_by_alpha_ascending = 2130837628;
 			
 			// aapt resource value: 0x7f02007d
-			public const int sort_by_year_ascending = 2130837629;
+			public const int sort_by_alpha_descending = 2130837629;
 			
 			// aapt resource value: 0x7f02007e
-			public const int sort_by_year_descending = 2130837630;
+			public const int sort_by_genre_ascending = 2130837630;
 			
 			// aapt resource value: 0x7f02007f
-			public const int tag = 2130837631;
+			public const int sort_by_genre_descending = 2130837631;
 			
 			// aapt resource value: 0x7f020080
-			public const int tooltip_frame_dark = 2130837632;
+			public const int sort_by_id_ascending = 2130837632;
 			
 			// aapt resource value: 0x7f020081
-			public const int tooltip_frame_light = 2130837633;
+			public const int sort_by_id_descending = 2130837633;
+			
+			// aapt resource value: 0x7f020082
+			public const int sort_by_year_ascending = 2130837634;
+			
+			// aapt resource value: 0x7f020083
+			public const int sort_by_year_descending = 2130837635;
+			
+			// aapt resource value: 0x7f020084
+			public const int tag = 2130837636;
+			
+			// aapt resource value: 0x7f020085
+			public const int tooltip_frame_dark = 2130837637;
+			
+			// aapt resource value: 0x7f020086
+			public const int tooltip_frame_light = 2130837638;
 			
 			static Drawable()
 			{
@@ -2504,8 +2519,8 @@ namespace DBTest
 			// aapt resource value: 0x7f080027
 			public const int add = 2131230759;
 			
-			// aapt resource value: 0x7f0800ee
-			public const int add_tag = 2131230958;
+			// aapt resource value: 0x7f0800ef
+			public const int add_tag = 2131230959;
 			
 			// aapt resource value: 0x7f080098
 			public const int add_to_playlist = 2131230872;
@@ -2582,8 +2597,8 @@ namespace DBTest
 			// aapt resource value: 0x7f0800bd
 			public const int chronometer = 2131230909;
 			
-			// aapt resource value: 0x7f0800ed
-			public const int clear_library = 2131230957;
+			// aapt resource value: 0x7f0800ee
+			public const int clear_library = 2131230958;
 			
 			// aapt resource value: 0x7f08004e
 			public const int clip_horizontal = 2131230798;
@@ -2618,11 +2633,11 @@ namespace DBTest
 			// aapt resource value: 0x7f0800c5
 			public const int delete = 2131230917;
 			
-			// aapt resource value: 0x7f0800f1
-			public const int delete_tag = 2131230961;
-			
 			// aapt resource value: 0x7f0800f2
-			public const int delete_tag_submenu = 2131230962;
+			public const int delete_tag = 2131230962;
+			
+			// aapt resource value: 0x7f0800f3
+			public const int delete_tag_submenu = 2131230963;
 			
 			// aapt resource value: 0x7f0800a4
 			public const int design_bottom_sheet = 2131230884;
@@ -2648,14 +2663,14 @@ namespace DBTest
 			// aapt resource value: 0x7f080091
 			public const int duration = 2131230865;
 			
-			// aapt resource value: 0x7f0800eb
-			public const int edit_library = 2131230955;
+			// aapt resource value: 0x7f0800ec
+			public const int edit_library = 2131230956;
 			
 			// aapt resource value: 0x7f08007e
 			public const int edit_query = 2131230846;
 			
-			// aapt resource value: 0x7f0800ef
-			public const int edit_tag = 2131230959;
+			// aapt resource value: 0x7f0800f0
+			public const int edit_tag = 2131230960;
 			
 			// aapt resource value: 0x7f080030
 			public const int end = 2131230768;
@@ -2807,8 +2822,8 @@ namespace DBTest
 			// aapt resource value: 0x7f08003b
 			public const int never = 2131230779;
 			
-			// aapt resource value: 0x7f0800f3
-			public const int new_playlist = 2131230963;
+			// aapt resource value: 0x7f0800f4
+			public const int new_playlist = 2131230964;
 			
 			// aapt resource value: 0x7f080022
 			public const int none = 2131230754;
@@ -2846,6 +2861,9 @@ namespace DBTest
 			// aapt resource value: 0x7f08009a
 			public const int play_now = 2131230874;
 			
+			// aapt resource value: 0x7f0800e6
+			public const int playback_info = 2131230950;
+			
 			// aapt resource value: 0x7f0800c9
 			public const int playlistsList = 2131230921;
 			
@@ -2861,11 +2879,11 @@ namespace DBTest
 			// aapt resource value: 0x7f0800cb
 			public const int rename = 2131230923;
 			
-			// aapt resource value: 0x7f0800f0
-			public const int rename_tag_submenu = 2131230960;
+			// aapt resource value: 0x7f0800f1
+			public const int rename_tag_submenu = 2131230961;
 			
-			// aapt resource value: 0x7f0800e6
-			public const int repeat_on_off = 2131230950;
+			// aapt resource value: 0x7f0800e7
+			public const int repeat_on_off = 2131230951;
 			
 			// aapt resource value: 0x7f08004a
 			public const int right = 2131230794;
@@ -2885,8 +2903,8 @@ namespace DBTest
 			// aapt resource value: 0x7f08000e
 			public const int save_scale_type = 2131230734;
 			
-			// aapt resource value: 0x7f0800ec
-			public const int scan_library = 2131230956;
+			// aapt resource value: 0x7f0800ed
+			public const int scan_library = 2131230957;
 			
 			// aapt resource value: 0x7f080029
 			public const int screen = 2131230761;
@@ -2939,11 +2957,11 @@ namespace DBTest
 			// aapt resource value: 0x7f08008a
 			public const int select_dialog_listview = 2131230858;
 			
-			// aapt resource value: 0x7f0800ea
-			public const int select_library = 2131230954;
+			// aapt resource value: 0x7f0800eb
+			public const int select_library = 2131230955;
 			
-			// aapt resource value: 0x7f0800e8
-			public const int select_playback_device = 2131230952;
+			// aapt resource value: 0x7f0800e9
+			public const int select_playback_device = 2131230953;
 			
 			// aapt resource value: 0x7f080074
 			public const int shortcut = 2131230836;
@@ -2957,11 +2975,11 @@ namespace DBTest
 			// aapt resource value: 0x7f080025
 			public const int showTitle = 2131230757;
 			
-			// aapt resource value: 0x7f0800e7
-			public const int show_media_controls = 2131230951;
+			// aapt resource value: 0x7f0800e8
+			public const int show_media_controls = 2131230952;
 			
-			// aapt resource value: 0x7f0800e9
-			public const int shuffle_now_playing = 2131230953;
+			// aapt resource value: 0x7f0800ea
+			public const int shuffle_now_playing = 2131230954;
 			
 			// aapt resource value: 0x7f0800af
 			public const int simpleTags = 2131230895;
@@ -2983,9 +3001,6 @@ namespace DBTest
 			
 			// aapt resource value: 0x7f0800e3
 			public const int sort = 2131230947;
-			
-			// aapt resource value: 0x7f0800dd
-			public const int sortSpecial = 2131230941;
 			
 			// aapt resource value: 0x7f0800cf
 			public const int sourceFolder = 2131230927;
@@ -3091,6 +3106,9 @@ namespace DBTest
 			
 			// aapt resource value: 0x7f0800dc
 			public const int toolbar = 2131230940;
+			
+			// aapt resource value: 0x7f0800dd
+			public const int toolbarSpecialButton = 2131230941;
 			
 			// aapt resource value: 0x7f08003e
 			public const int top = 2131230782;

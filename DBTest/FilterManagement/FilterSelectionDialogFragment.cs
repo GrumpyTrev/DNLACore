@@ -101,7 +101,7 @@ namespace DBTest
 					SelectionDelegate?.Invoke( newTag );
 				}
 
-				alert.Dismiss();
+				Dismiss();
 			};
 		}
 

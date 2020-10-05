@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The PlaybackSelectionModel holds the remote devices and associated data obtained by the PlaybackSelectionController
@@ -24,5 +21,15 @@ namespace DBTest
 		/// At start up this device may not actually be available, so the SelectedDevice entry may not itself be set
 		/// </summary>
 		public static string SelectedDeviceName { get; set; } = "";
+
+		/// <summary>
+		/// The state of the wi-fi network 
+		/// </summary>
+		public static bool WifiAvailable { get; set; } = false;
+
+		/// <summary>
+		/// The name of the one and only local device
+		/// </summary>
+		public const string LocalDeviceName = "Local playback";
 	}
 }

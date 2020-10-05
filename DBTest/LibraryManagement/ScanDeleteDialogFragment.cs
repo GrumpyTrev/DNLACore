@@ -80,7 +80,7 @@ namespace DBTest
 
 				alert.GetButton( ( int )DialogButtonType.Positive ).Enabled = false;
 				alert.GetButton( ( int )DialogButtonType.Negative ).Enabled = false;
-				alert.SetCancelable( false );
+				Cancelable = false;
 			}
 		}
 

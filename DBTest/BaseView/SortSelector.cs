@@ -31,7 +31,7 @@ namespace DBTest
 		/// <param name="item"></param>
 		public void BindToMenu( IMenuItem item, Context context, ISortReporter callback )
 		{
-			boundMenuItem = item;
+			IMenuItem boundMenuItem = item;
 
 			// Allow a null item to be passed in which case nothing is bound
 			if ( boundMenuItem != null )
@@ -40,18 +40,23 @@ namespace DBTest
 				Reporter = callback;
 
 				boundMenuItem.SetActionView( Resource.Layout.toolbarButton );
+				imageButton = boundMenuItem.ActionView.FindViewById<AppCompatImageButton>( Resource.Id.toolbarSpecialButton );
 				boundMenuItem.ActionView.SetOnClickListener( new ClickHandler() { OnClickAction = () => { SortAction(); } } );
 				boundMenuItem.ActionView.SetOnLongClickListener( new LongClickHandler() { OnClickAction = () => { return LongSortAction(); } } );
 
 				DisplaySortIcon();
 			}
+			else
+			{
+				imageButton = null;
+			}
+
 		}
 
 		/// <summary>
 		/// Display the sort icon associated with the current sort order
 		/// </summary>
-		public void DisplaySortIcon() => 
-			boundMenuItem?.ActionView.FindViewById<AppCompatImageButton>( Resource.Id.sortSpecial ).SetImageResource( SelectedResource );
+		public void DisplaySortIcon() => imageButton?.SetImageResource( SelectedResource );
 
 		/// <summary>
 		/// The enum used to select a sort order
@@ -130,7 +135,7 @@ namespace DBTest
 		private bool LongSortAction()
 		{
 			// Create a Popup menu containing the sort options
-			PopupMenu playlistsMenu = new PopupMenu( popupContext, boundMenuItem.ActionView.FindViewById<AppCompatImageButton>( Resource.Id.sortSpecial ) );
+			PopupMenu playlistsMenu = new PopupMenu( popupContext, imageButton );
 
 			// Need some way of associating the selected menu item with the pairing type
 			Dictionary<IMenuItem, SortType> pairingTypeLookup = new Dictionary<IMenuItem, SortType>();
@@ -193,9 +198,9 @@ namespace DBTest
 		private SortPairing ActiveSortOrder { get; set; }
 
 		/// <summary>
-		/// The menu item that this selector its bound to
+		/// The button (icon) item that this monitor is bound to
 		/// </summary>
-		private IMenuItem boundMenuItem = null;
+		private AppCompatImageButton imageButton = null;
 
 		/// <summary>
 		/// The Context to use when creating the popup menu

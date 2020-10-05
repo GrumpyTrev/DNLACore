@@ -61,7 +61,7 @@ namespace DBTest
 						}
 
 						// Dismiss the dialogue
-						Dialog.Dismiss();
+						Dismiss();
 					} ) )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Create(); ;

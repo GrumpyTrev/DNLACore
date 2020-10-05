@@ -57,7 +57,7 @@
 				sourceSelectionDialog?.OnSourceChanged();
 
 				// Dismiss the dialogue
-				sourceEditDialog.Dialog.Dismiss();
+				sourceEditDialog.Dismiss();
 			}
 			else
 			{

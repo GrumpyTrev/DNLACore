@@ -114,7 +114,7 @@ namespace DBTest
 			AlbumsController.Reporter = this;
 
 			// Get the data
-			AlbumsController.GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
+			AlbumsController.GetAlbums( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>

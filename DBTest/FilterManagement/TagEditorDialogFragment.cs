@@ -143,7 +143,7 @@ namespace DBTest
 			if ( updateOk == true )
 			{
 				// Update was OK, dismiss this dialogue
-				Dialog.Dismiss();
+				Dismiss();
 			}
 			else
 			{

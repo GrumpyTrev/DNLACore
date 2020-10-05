@@ -82,7 +82,7 @@ namespace DBTest
 					InputMethodManager imm = ( InputMethodManager )Context.GetSystemService( Context.InputMethodService );
 					imm.HideSoftInputFromWindow( playListName.WindowToken, 0 );
 
-					alert.Dismiss();
+					Dismiss();
 				}
 
 				// Display an error message if the playlist name is not valid. Do not dismiss the dialog
@@ -99,7 +99,7 @@ namespace DBTest
 				InputMethodManager imm = ( InputMethodManager )Context.GetSystemService( Context.InputMethodService );
 				imm.HideSoftInputFromWindow( playListName.WindowToken, 0 );
 
-				alert.Dismiss();
+				Dismiss();
 			};
 		}
 

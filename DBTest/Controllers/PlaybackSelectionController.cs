@@ -35,6 +35,9 @@
 				PlaybackDetails.PlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
 
 				new PlaybackDeviceAvailableMessage() { SelectedDevice = PlaybackSelectionModel.SelectedDevice }.Send();
+
+				// Report that the Playback Selection model have changed
+				new PlaybackModelChangedMessage().Send();
 			}
 		}
 
@@ -46,7 +49,8 @@
 		{
 			// Initialise the locally held devices collection to hold the 'local' device
 			PlaybackSelectionModel.RemoteDevices.AddDevice( new PlaybackDevice() { CanPlayMedia = PlaybackDevice.CanPlayMediaType.Yes, IsLocal = true,
-				FriendlyName = "Local playback" } );
+				FriendlyName = PlaybackSelectionModel.LocalDeviceName
+			} );
 
 			// If the selected device is the 'local' device then report that it is available
 			ReportLocalSelectedDevice();
@@ -78,6 +82,9 @@
 				PlaybackSelectionModel.SelectedDevice = localDevice;
 				new PlaybackDeviceAvailableMessage() { SelectedDevice = localDevice }.Send();
 			}
+
+			// Report that the Playback Selection model have changed
+			new PlaybackModelChangedMessage().Send();
 		}
 
 		/// <summary>
@@ -96,8 +103,8 @@
 					new PlaybackDeviceAvailableMessage() { SelectedDevice = device }.Send();
 				}
 
-				// Report that the Playback Devices have changed
-				new PlaybackDevicesChangedMessage().Send();
+				// Report that the Playback Selection model have changed
+				new PlaybackModelChangedMessage().Send();
 			}
 		}
 
@@ -117,9 +124,21 @@
 					new PlaybackDeviceAvailableMessage() { SelectedDevice = null }.Send();
 				}
 
-				// Report that the Playback Devices have changed
-				new PlaybackDevicesChangedMessage().Send();
+				// Report that the Playback Selection model have changed
+				new PlaybackModelChangedMessage().Send();
 			}
+		}
+
+		/// <summary>
+		/// Called when the wifi network state changes
+		/// </summary>
+		/// <param name="state"></param>
+		private static void NetworkState( bool state )
+		{
+			PlaybackSelectionModel.WifiAvailable = state;
+
+			// Report that the Playback Selection model have changed
+			new PlaybackModelChangedMessage().Send();
 		}
 
 		/// <summary>
@@ -147,11 +166,11 @@
 
 			/// <summary>
 			/// Called when the wifi network state changes
-			/// NOT USED
 			/// </summary>
 			/// <param name="state"></param>
 			public void NetworkState( bool state )
 			{
+				PlaybackSelectionController.NetworkState( state );
 			}
 
 			/// <summary>
@@ -168,5 +187,7 @@
 		/// The single instance of the RemoteDeviceCallback class
 		/// </summary>
 		private static readonly RemoteDeviceCallback deviceCallback = new RemoteDeviceCallback();
+
+
 	}
 }

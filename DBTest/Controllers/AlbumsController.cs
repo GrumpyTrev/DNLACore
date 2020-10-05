@@ -30,7 +30,7 @@ namespace DBTest
 		/// Otherwise get the data from the database asynchronously
 		/// </summary>
 		/// <param name="libraryId"></param>
-		public static async void GetAlbumsAsync( int libraryId )
+		public static void GetAlbums( int libraryId )
 		{
 			// Check if the Album details for the library have already been obtained
 			if ( AlbumsViewModel.LibraryId != libraryId )
@@ -298,7 +298,7 @@ namespace DBTest
 			Reporter?.AlbumsDataAvailable();
 
 			// Reread the data
-			GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
+			GetAlbums( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>

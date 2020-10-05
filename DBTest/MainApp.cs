@@ -3,6 +3,7 @@ using System.IO;
 using Android.App;
 using Android.OS;
 using Android.Runtime;
+using Android.Views;
 using SQLite;
 using static Android.App.Application;
 
@@ -24,24 +25,34 @@ namespace DBTest
 			RegisterActivityLifecycleCallbacks( this );
 
 			playbackCapabilities = new PlaybackCapabilities( Context );
+
+			playbackMonitoring = new PlaybackMonitor();
 		}
 
 		/// Add the specified interface to the callback colletion
 		/// </summary>
 		/// <param name="callback"></param>
-		public static void RegisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback )
-		{
+		public static void RegisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback ) => 
 			instance.playbackCapabilities.RegisterCallback( callback );
-		}
 
 		/// <summary>
 		/// Remove the specified inteferace from the callback collection
 		/// </summary>
 		/// <param name="callback"></param>
-		public static void UnregisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback )
-		{
+		public static void UnregisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback ) => 
 			instance.playbackCapabilities.UnregisterCallback( callback );
-		}
+
+		/// <summary>
+		/// Bind the playback monitor to the specified menu
+		/// </summary>
+		/// <param name="menu"></param>
+		public static void BindToPlaybackMonitor( IMenu menu ) => instance.playbackMonitoring.BindToMenu( menu );
+
+		/// <summary>
+		/// Unbind the playback monitor from the specified menu
+		/// </summary>
+		/// <param name="menu"></param>
+		public static void UnbindFromPlaybackMonitor() => instance.playbackMonitoring.BindToMenu( null );
 
 		public void OnActivityCreated( Activity activity, Bundle savedInstanceState )
 		{
@@ -97,7 +108,7 @@ namespace DBTest
 			// Bind the command handlers to their command identities
 			CommandRouter.BindHandlers();
 
-			AlbumsController.GetAlbumsAsync( ConnectionDetailsModel.LibraryId );
+			AlbumsController.GetAlbums( ConnectionDetailsModel.LibraryId );
 			ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
 			PlaylistsController.GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
 			NowPlayingController.GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
@@ -177,5 +188,10 @@ namespace DBTest
 		/// The PlaybackCapabilities instance used to monitor the network and scan for DLNA devices
 		/// </summary>
 		private PlaybackCapabilities playbackCapabilities = null;
+
+		/// <summary>
+		/// The PlaybackMonitor instance used to monitor the state of the playback system
+		/// </summary>
+		private PlaybackMonitor playbackMonitoring = null;
 	}
 }

@@ -32,6 +32,7 @@ namespace DBTest
 		/// </summary>
 		public ClearProgressDialogFragment()
 		{
+			Cancelable = false;
 		}
 
 		/// <summary>
@@ -42,7 +43,6 @@ namespace DBTest
 		public override Dialog OnCreateDialog( Bundle savedInstanceState ) => new AlertDialog.Builder( Activity )
 				.SetTitle( string.Format( "Clearing library: {0}", libraryToClear ) )
 				.SetPositiveButton( "Ok", delegate { } )
-				.SetCancelable( false )
 				.Create();
 
 		/// <summary>
