@@ -164,9 +164,28 @@ namespace DBTest
 		/// <param name="songSource"></param>
 		/// <param name="songPath"></param>
 		/// <returns></returns>
-		protected string FormSourceName( Source songSource, string songPath, bool local ) => 
-			( local == true ) ? Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) ) :
-				Path.Combine( songSource.RemoteAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
+		protected string FormSourceName( Source songSource, string songPath, bool local )
+		{
+			string sourceName = "";
+			if ( local == true )
+			{
+				// Need to escape the path if it is held remotely
+				if ( songSource.ScanType == "FTP" )
+				{
+					sourceName = Path.Combine( songSource.LocalAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
+				}
+				else
+				{
+					sourceName = Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) );
+				}
+			}
+			else
+			{
+				sourceName = Path.Combine( songSource.RemoteAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
+			}
+
+			return sourceName;
+		}
 
 		/// <summary>
 		/// Report that the current song is being played

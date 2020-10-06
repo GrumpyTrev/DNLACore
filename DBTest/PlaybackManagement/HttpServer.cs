@@ -130,14 +130,14 @@ namespace DBTest
 		/// <param name="context"></param>
 		private void Process( HttpListenerContext context )
 		{
-
 			HttpListenerRequest request = context.Request;
 
-			string filename = Path.Combine( rootDirectory, request.Url.LocalPath );
+			// Use the original path, but remove any http header
+			string httpHeader = $"{request.Url.Scheme}://{request.Url.Authority}";
+			string filename = Path.Combine( rootDirectory, request.Url.OriginalString.Replace( httpHeader, "" ) );
 
-			Logger.Log( string.Format( "Server request - Length: {0}  Content type: {1} Method: {2} KeepAlive: {3} RawUrl: {4} ServiceName: {5} Url: {6}", 
-				request.ContentLength64, request.ContentType,
-				request.HttpMethod, request.KeepAlive, request.RawUrl, request.ServiceName, request.Url.OriginalString ) );
+			Logger.Log( $"Server request - Length: {request.ContentLength64} Content type: {request.ContentType} Method: {request.HttpMethod} KeepAlive: " +
+				$"{request.KeepAlive} RawUrl: {request.RawUrl} ServiceName: {request.ServiceName} Url: {request.Url.OriginalString}" );
 
 			if ( ( request.HttpMethod == "HEAD" ) || ( request.HttpMethod == "GET" ) )
 			{
