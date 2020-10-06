@@ -99,10 +99,12 @@ namespace DBTest
 
 			PlaybackDevices justScannedDevices = await scanner.DiscoverDevicesAsync( DeviceDiscovered );
 
-			// Are there any devices in the collection held by this class that are no longer available
+			// Are there any devices in the collection held by this class that have not been scanned this time and have missed a number of
+			// consecutive scans
 			PlaybackDevices missingDevices = new PlaybackDevices 
 			{
-				DeviceCollection = devices.DeviceCollection.Where( dev => ( justScannedDevices.FindDevice( dev ) == null ) ).ToList()
+				DeviceCollection = devices.DeviceCollection.Where( 
+					dev => ( ( justScannedDevices.FindDevice( dev ) == null ) && ( ++dev.CommunicationFailureCount == PlaybackDevice.CommunicationFailureLimit ) ) ).ToList()
 			};
 
 			// Remove the missing devices from the collection

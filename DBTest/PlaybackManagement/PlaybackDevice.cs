@@ -78,5 +78,15 @@
 		/// Is this the local (phone) playback device.
 		/// </summary>
 		public bool IsLocal { get; set; } = false;
+
+		/// <summary>
+		/// The number of consecutive DLNA scans that this device has not been reported 
+		/// </summary>
+		public int CommunicationFailureCount { get; set; } = 0;
+
+		/// <summary>
+		/// The number of consecutive communication failure (scans) before declaring the device as not available
+		/// </summary>
+		public const int CommunicationFailureLimit = 3;
 	}
 }

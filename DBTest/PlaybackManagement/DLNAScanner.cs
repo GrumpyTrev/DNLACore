@@ -83,6 +83,7 @@ namespace DBTest
 									if ( existingDevice != null )
 									{
 										justScannedDevices.AddDevice( existingDevice );
+										existingDevice.CommunicationFailureCount = 0;
 
 										// If this device supports the transport service then report it
 										if ( existingDevice.CanPlayMedia == PlaybackDevice.CanPlayMediaType.Yes )
@@ -95,6 +96,7 @@ namespace DBTest
 										// This is a new device, add it to the scanned devices and determine if it supports the transport service
 										scannedDevices.AddDevice( newDevice );
 										justScannedDevices.AddDevice( newDevice );
+										newDevice.CommunicationFailureCount = 0;
 
 										GetTransportServiceAsync( newDevice );
 									}
