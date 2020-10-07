@@ -34,9 +34,9 @@
 			android:layout_height="wrap_content"
 			android:text="Year"
 			android:textColor="@color/colorAlbumYear"
+			android:textSize="15dp"
 			android:layout_alignParentRight="true"
 			android:layout_marginRight="10dp"
-			android:layout_marginTop="0dp" 
 			android:gravity="right"
 			android:maxLines="1" 
 		/>
@@ -46,15 +46,28 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:id="@+id/genreLayout">
-        <TextView
-            android:id="@+id/genre"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="-5dp"
-            android:text="Genre"
-            android:textColor="@color/colorAlbumArtist"
-            android:gravity="right" 
+		<TextView
+			android:id="@+id/genre"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Genre"
+			android:layout_marginLeft="40dp"
+			android:textColor="@color/colorAlbumGenre"
+			android:textSize="15dp"
+			android:layout_marginTop="-5dp" 
+		/>
+		<TextView
+			android:id="@+id/albumGenreYear"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Year"
+			android:textColor="@color/colorAlbumYear"
+			android:textSize="15dp"
+			android:layout_alignParentRight="true"
+			android:layout_marginRight="10dp"
+			android:gravity="right"
+			android:maxLines="1" 
+			android:layout_marginTop="-5dp" 
 		/>
 	</RelativeLayout>
 </LinearLayout>

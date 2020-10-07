@@ -87,29 +87,49 @@ namespace DBTest
 			// Display the album, artist name and album year
 			Album displayAlbum = Groups[ groupPosition ];
 
-			TextView albumText = convertView.FindViewById<TextView>( Resource.Id.albumName );
+			// Set the album text and colour
+			TextView albumName = convertView.FindViewById<TextView>( Resource.Id.albumName );
+			albumName.Text = displayAlbum.Name;
+
+			// Save the default colour if not already done so
+			if ( albumNameColour == Color.Fuchsia )
+			{
+				albumNameColour = new Color( albumName.CurrentTextColor );
+			}
+
+			// If the album has been played then display the album text grey text
+			albumName.SetTextColor( ( displayAlbum.Played == true ) ? Color.Black : albumNameColour );
+
+			// Set the artist name
 			TextView artistText = convertView.FindViewById<TextView>( Resource.Id.artist );
+			artistText.Text = ( displayAlbum.ArtistName.Length > 0 ) ? displayAlbum.ArtistName : "Unknown";
+
+			// And the year
 			TextView yearText = convertView.FindViewById<TextView>( Resource.Id.year );
+			yearText.Text = ( displayAlbum.Year == 0 ) ? "" : displayAlbum.Year.ToString();
 
 			// If genres are being displayed then show the genre layout and set the genre name
 			// Get the genre layout view so we can show or hide it
 			RelativeLayout genreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout );
 			if ( ( showGenre == true ) && ( displayAlbum.Genre.Length > 0 ) )
 			{
+				// When genres are displayed the genre and year are displayed on their own line. So hide the year field that sit on the album anme line
 				genreLayout.Visibility = ViewStates.Visible;
-				convertView.FindViewById<TextView>( Resource.Id.genre ).Text = displayAlbum.Genre;
+				yearText.Visibility = ViewStates.Gone;
+
+				// Display the genre name. Alter the left margin according to whether the checkbox id being displayed ( ActonMode on)
+				TextView genreView = convertView.FindViewById<TextView>( Resource.Id.genre );
+				genreView.Text = displayAlbum.Genre;
+
+				// Set the year
+				convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ).Text = yearText.Text;
 			}
 			else
 			{
+				// Hide the seperate genre line and make sure the year field is shown on the album name line
 				genreLayout.Visibility = ViewStates.Gone;
+				yearText.Visibility = ViewStates.Visible;
 			}
-
-			// If the album has been played then display the album text grey text
-			albumText.SetTextColor( ( displayAlbum.Played == true ) ? Color.Gray : Color.Black );
-
-			albumText.Text = displayAlbum.Name;
-			artistText.Text = ( displayAlbum.ArtistName.Length > 0 ) ? displayAlbum.ArtistName : "Unknown";
-			yearText.Text = ( displayAlbum.Year == 0 ) ? "" : displayAlbum.Year.ToString();
 
 			return convertView;
 		}
@@ -162,6 +182,12 @@ namespace DBTest
 				sections = alphaIndexer.Keys.ToArray();
 			}
 		}
+
+
+		/// <summary>
+		/// The Colour used to display the name of an album. Initialised to a colour we're never going to use
+		/// </summary>
+		private Color albumNameColour = new Color( Color.Fuchsia );
 
 		/// <summary>
 		/// Is genre information to be displayed

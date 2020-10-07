@@ -3,7 +3,8 @@
     <color name="colorPrimary">#fff59d</color>
     <color name="colorPrimaryDark">#cacc5d</color>
     <color name="colorAccent">#ff9100</color>
-	<color name="colorArtistAlbum">#ff1a237e</color>
+	<color name="colorArtistAlbum">#E65100</color>
 	<color name="colorAlbumArtist">#ff9e9e9e</color>
 	<color name="colorAlbumYear">#ff9e9e9e</color>
+	<color name="colorAlbumGenre">#ff9e9e9e</color>
 </resources>

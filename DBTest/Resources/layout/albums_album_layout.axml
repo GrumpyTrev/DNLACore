@@ -19,13 +19,12 @@
 			android:layout_marginTop="-2dp" />
 		<TextView
 			android:id="@+id/albumName"
-			android:layout_width="fill_parent"
+			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="Album"
-			android:textStyle="bold"
+			android:textColor="@color/colorArtistAlbum"
 			android:layout_marginLeft="30dp"
-			android:layout_toRightOf="@+id/checkBox"
-			android:textSize="20dp" />
+			android:layout_toRightOf="@+id/checkBox" />
 	</RelativeLayout>
 	<RelativeLayout
 		android:orientation="vertical"
@@ -33,12 +32,11 @@
 		android:layout_height="wrap_content">
 		<TextView
 			android:id="@+id/artist"
-			android:layout_width="fill_parent"
+			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_marginLeft="30dp"
 			android:layout_marginTop="-5dp" 
 			android:text="Artist"
-			android:layout_toLeftOf="@+id/duration"
 			android:textColor="@color/colorAlbumArtist"
 		/>
 		<TextView
@@ -47,6 +45,7 @@
 			android:layout_height="wrap_content"
 			android:text="Year"
 			android:textColor="@color/colorAlbumYear"
+			android:textSize="15dp"
 			android:layout_alignParentRight="true"
 			android:layout_marginRight="10dp"
 			android:layout_marginTop="-5dp" 
@@ -59,15 +58,28 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:id="@+id/genreLayout">
-        <TextView
-            android:id="@+id/genre"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="-5dp"
-            android:text="Genre"
-            android:textColor="@color/colorAlbumArtist"
-            android:gravity="right" 
+		<TextView
+			android:id="@+id/genre"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Genre"
+			android:layout_marginLeft="30dp"
+			android:textColor="@color/colorAlbumGenre"
+			android:textSize="15dp"
+			android:layout_marginTop="-5dp" 
+		/>
+		<TextView
+			android:id="@+id/albumGenreYear"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Year"
+			android:textColor="@color/colorAlbumYear"
+			android:textSize="15dp"
+			android:layout_alignParentRight="true"
+			android:layout_marginRight="10dp"
+			android:gravity="right"
+			android:layout_marginTop="-5dp" 
+			android:maxLines="1" 
 		/>
 	</RelativeLayout>
 </LinearLayout>

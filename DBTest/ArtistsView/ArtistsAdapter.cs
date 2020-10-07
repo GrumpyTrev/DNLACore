@@ -171,43 +171,49 @@ namespace DBTest
 
 				// Set the album text and colour
 				TextView albumName = convertView.FindViewById<TextView>( Resource.Id.albumName );
-				TextView albumYear = convertView.FindViewById<TextView>( Resource.Id.albumYear );
 
-				// Save the default colours if not already done so
-				if ( ColoursInitialised == false )
+				// Save the default colour if not already done so
+				if ( albumNameColour == Color.Fuchsia )
 				{
 					albumNameColour = new Color( albumName.CurrentTextColor );
-					albumYearColour = new Color( albumYear.CurrentTextColor );
-					ColoursInitialised = true;
 				}
+
+				// Text is the name and year of the album but colour depends on whether or not the associated album has been played 
+				ArtistAlbum artAlbum = Groups[ groupPosition ] as ArtistAlbum;
+				albumName.Text = artAlbum.Name;
+				albumName.SetTextColor( ( artAlbum.Album.Played == true ) ? Color.Black : albumNameColour );
 
 				// A very nasty workaround here. If action mode is in effect then remove the AlignParentLeft from the album name.
 				// When the Checkbox is being shown then the album name can be positioned between the checkbox and the album year, 
 				// but when there is no checkbox this does not work and the name has to be aligned with the parent.
 				// This seems to be too complicated for static layout
-				( ( RelativeLayout.LayoutParams )albumName.LayoutParameters ).AddRule( LayoutRules.AlignParentLeft,
-					( ActionMode == true ) ? 0 : 1 );
+				( ( RelativeLayout.LayoutParams )albumName.LayoutParameters ).AddRule( LayoutRules.AlignParentLeft,	( ActionMode == true ) ? 0 : 1 );
 
-				ArtistAlbum artAlbum = Groups[ groupPosition ] as ArtistAlbum;
-
-				// Text is the name and year of the album but colour depends on whether or not the associated album has been played 
-				albumName.Text = artAlbum.Name;
+				// Set the year test
+				TextView albumYear = convertView.FindViewById<TextView>( Resource.Id.albumYear );
 				albumYear.Text = ( artAlbum.Album.Year > 0 ) ? artAlbum.Album.Year.ToString() : " ";
-
-				albumName.SetTextColor( ( artAlbum.Album.Played == true ) ? Color.Gray : albumNameColour );
-				albumYear.SetTextColor( ( artAlbum.Album.Played == true ) ? Color.Gray : albumYearColour );
 
 				// If genres are being displayed then show the genre layout and set the genre name
 				// Get the genre layout view so we can show or hide it
 				RelativeLayout genreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout );
 				if ( ( showGenre == true ) && ( artAlbum.Album.Genre.Length > 0 ) )
 				{
+					// When genres are displayed the genre and year are displayed on their own line. So hide the year field that sit on the album anme line
 					genreLayout.Visibility = ViewStates.Visible;
-					convertView.FindViewById<TextView>( Resource.Id.genre ).Text = artAlbum.Album.Genre;
+					albumYear.Visibility = ViewStates.Gone;
+
+					// Display the genre name. Alter the left margin according to whether the checkbox id being displayed ( ActonMode on)
+					TextView genreView = convertView.FindViewById<TextView>( Resource.Id.genre );
+					genreView.Text = artAlbum.Album.Genre;
+
+					// Set the year
+					convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ).Text = albumYear.Text;
 				}
 				else
 				{
+					// Hide the seperate genre line and make sure the year field is shown on the album name line
 					genreLayout.Visibility = ViewStates.Gone;
+					albumYear.Visibility = ViewStates.Visible;
 				}
 			}
 
@@ -341,19 +347,9 @@ namespace DBTest
 		protected override bool SelectLongClickedItem( int tag ) => ( IsGroupTag( tag ) == false ) || ( Groups[ GetGroupFromTag( tag ) ] is ArtistAlbum );
 
 		/// <summary>
-		/// The Colour used to display the name of an album
+		/// The Colour used to display the name of an album. Initialised to a colour we're never going to use
 		/// </summary>
-		private Color albumNameColour;
-
-		/// <summary>
-		/// The Colour used to display the album year
-		/// </summary>
-		private Color albumYearColour;
-
-		/// <summary>
-		/// Have the default album colours been initialised
-		/// </summary>
-		private bool ColoursInitialised { get; set; } = false;
+		private Color albumNameColour = new Color( Color.Fuchsia );
 
 		/// <summary>
 		/// Is genre information to be displayed
