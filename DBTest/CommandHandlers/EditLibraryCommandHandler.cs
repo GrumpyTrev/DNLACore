@@ -43,7 +43,7 @@
 		/// </summary>
 		/// <param name="originalSource"></param>
 		/// <param name="newSource"></param>
-		private async void SourceChanged( Source originalSource, Source newSource, SourceEditDialogFragment sourceEditDialog )
+		private void SourceChanged( Source originalSource, Source newSource, SourceEditDialogFragment sourceEditDialog )
 		{
 			// If nothing has changed then tell the user, otherwise carry out the save operation
 			if ( ( newSource.Name != originalSource.Name ) || ( newSource.FolderName != originalSource.FolderName ) ||
@@ -51,7 +51,7 @@
 				( newSource.AccessType != originalSource.AccessType ) )
 			{
 				// Something has changed so update the source
-				await Sources.UpdateSourceAsync( originalSource, newSource );
+				Sources.UpdateSource( originalSource, newSource );
 
 				// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
 				sourceSelectionDialog?.OnSourceChanged();

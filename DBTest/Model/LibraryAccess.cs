@@ -81,7 +81,6 @@ namespace DBTest
 		/// Update the specified source
 		/// </summary>
 		/// <param name="sourceToUpdate"></param>
-		public static async Task UpdateSourceAsync( Source sourceToUpdate ) =>
-			await ConnectionDetailsModel.AsynchConnection.UpdateAsync( sourceToUpdate );
+		public static async void UpdateSourceAsync( Source sourceToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( sourceToUpdate );
 	}
 }

@@ -41,7 +41,7 @@ namespace DBTest
 		/// Remove the specified TaggedAlbum  from the database
 		/// </summary>
 		/// <param name="taggedAlbum"></param>
-		public static async Task DeleteTaggedAlbumAsync( TaggedAlbum taggedAlbum ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( taggedAlbum );
+		public static async void DeleteTaggedAlbumAsync( TaggedAlbum taggedAlbum ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( taggedAlbum );
 
 		/// <summary>
 		/// Update the database with any changes to this Tag
@@ -67,6 +67,6 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tagToDelete"></param>
 		/// <returns></returns>
-		public static async Task DeleteTagAsync( Tag tagToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( tagToDelete );
+		public static async void DeleteTagAsync( Tag tagToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( tagToDelete );
 	}
 }

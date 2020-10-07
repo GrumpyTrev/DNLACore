@@ -99,7 +99,7 @@ namespace DBTest
 		/// Called when the media data has been received or updated
 		/// </summary>
 		/// <param name="songsReplaced"></param>
-		public async void MediaControlDataAvailable()
+		public void MediaControlDataAvailable()
 		{
 			// Pass on the media data to all connections
 			localConnection.MediaControlDataAvailable();

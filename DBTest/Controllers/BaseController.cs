@@ -48,7 +48,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static async Task MoveItemsDownAsync( Playlist thePlaylist, List<PlaylistItem> items )
+		public static void MoveItemsDown( Playlist thePlaylist, List<PlaylistItem> items )
 		{
 			// There must be at least one PlayList entry beyond those that are selected. That entry needs to be moved to above the start of the selection
 			PlaylistItem itemToMove = thePlaylist.PlaylistItems[ items.Last().Track ];
@@ -56,7 +56,7 @@ namespace DBTest
 			thePlaylist.PlaylistItems.Insert( items.First().Track - 1, itemToMove );
 
 			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			await AdjustTrackNumbersAsync( thePlaylist );
+			AdjustTrackNumbers( thePlaylist );
 		}
 
 		/// <summary>
@@ -64,7 +64,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static async Task MoveItemsUpAsync( Playlist thePlaylist, List<PlaylistItem> items )
+		public static void MoveItemsUp( Playlist thePlaylist, List<PlaylistItem> items )
 		{
 			// There must be at least one PlayList entry above those that are selected. That entry needs to be moved to below the end of the selection
 			PlaylistItem itemToMove = thePlaylist.PlaylistItems[ items.First().Track - 2 ];
@@ -72,14 +72,14 @@ namespace DBTest
 			thePlaylist.PlaylistItems.Insert( items.Last().Track - 1, itemToMove );
 
 			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			await AdjustTrackNumbersAsync( thePlaylist );
+			AdjustTrackNumbers( thePlaylist );
 		}
 
 		/// <summary>
 		/// Adjust the track numbers to match the indexes in the collection
 		/// </summary>
 		/// <param name="thePlaylist"></param>
-		public static async Task AdjustTrackNumbersAsync( Playlist thePlaylist )
+		public static void AdjustTrackNumbers( Playlist thePlaylist )
 		{
 			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
 			for ( int index = 0; index < thePlaylist.PlaylistItems.Count; ++index )
@@ -89,8 +89,8 @@ namespace DBTest
 				{
 					itemToCheck.Track = index + 1;
 
-					// Update the item in the model
-					await PlaylistAccess.UpdatePlaylistItemAsync( itemToCheck );
+					// Update the item in the model. No need to wait for this.
+					PlaylistAccess.UpdatePlaylistItemAsync( itemToCheck );
 				}
 			}
 		}

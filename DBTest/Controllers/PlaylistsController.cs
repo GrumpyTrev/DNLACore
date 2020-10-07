@@ -77,13 +77,13 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static async void DeletePlaylistItemsAsync( Playlist thePlaylist, List< PlaylistItem > items )
+		public static void DeletePlaylistItems( Playlist thePlaylist, List< PlaylistItem > items )
 		{
-			// Delete the PlaylistItem items
-			await PlaylistAccess.DeletePlaylistItemsAsync( thePlaylist, items );
+			// Delete the PlaylistItem items. No need to wait for this
+			PlaylistAccess.DeletePlaylistItemsAsync( thePlaylist, items );
 
 			// Adjust the track numbers
-			await BaseController.AdjustTrackNumbersAsync( thePlaylist );
+			BaseController.AdjustTrackNumbers( thePlaylist );
 
 			// Report the change
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
@@ -109,9 +109,9 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static async void MoveItemsDown( Playlist thePlaylist, List<PlaylistItem> items )
+		public static void MoveItemsDown( Playlist thePlaylist, List<PlaylistItem> items )
 		{
-			await BaseController.MoveItemsDownAsync( thePlaylist, items );
+			BaseController.MoveItemsDown( thePlaylist, items );
 
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
 		}
@@ -121,9 +121,9 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static async void MoveItemsUp( Playlist thePlaylist, List<PlaylistItem> items )
+		public static void MoveItemsUp( Playlist thePlaylist, List<PlaylistItem> items )
 		{
-			await BaseController.MoveItemsUpAsync( thePlaylist, items );
+			BaseController.MoveItemsUp( thePlaylist, items );
 
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
 		}

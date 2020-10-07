@@ -98,7 +98,7 @@ namespace DBTest
 		/// This can be done by examining the track numbers of the items to be deleted, the track number is the index + 1
 		/// </summary>
 		/// <param name="items"></param>
-		public static async void DeleteNowPlayingItemsAsync( List<PlaylistItem> items )
+		public static void DeleteNowPlayingItems( List<PlaylistItem> items )
 		{
 			// Record the currently selected song so its track number can be checked after the delete
 			PlaylistItem currentPlaylistItem = null;
@@ -121,10 +121,10 @@ namespace DBTest
 			}
 
 			// Delete the entries and report that the list has been updated
-			await PlaylistAccess.DeletePlaylistItemsAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
+			PlaylistAccess.DeletePlaylistItemsAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
 
 			// Adjust the track numbers
-			await BaseController.AdjustTrackNumbersAsync( NowPlayingViewModel.NowPlayingPlaylist );
+			BaseController.AdjustTrackNumbers( NowPlayingViewModel.NowPlayingPlaylist );
 
 			// Determine the index of the currently selected song from it's possibly new track number
 			AdjustSelectedSongIndex( currentPlaylistItem );
@@ -137,13 +137,13 @@ namespace DBTest
 		/// Move a set of selected items down the Now Playing playlist and update the track numbers
 		/// </summary>
 		/// <param name="items"></param>
-		public static async void MoveItemsDownAsync( List<PlaylistItem> items )
+		public static void MoveItemsDown( List<PlaylistItem> items )
 		{
 			// Record the currently selected song so its track number can be checked after the move
 			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null
 				: NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.SelectedSong ];
 
-			await BaseController.MoveItemsDownAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
+			BaseController.MoveItemsDown( NowPlayingViewModel.NowPlayingPlaylist, items );
 
 			// Now adjust the index of the selected song
 			AdjustSelectedSongIndex( currentPlaylistItem );
@@ -156,13 +156,13 @@ namespace DBTest
 		/// Move a set of selected items up the Now Playing playlist and update the track numbers
 		/// </summary>
 		/// <param name="items"></param>
-		public static async void MoveItemsUpAsync( List<PlaylistItem> items )
+		public static void MoveItemsUp( List<PlaylistItem> items )
 		{
 			// Record the currently selected song so its track number can be checked after the move
 			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null
 				: NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.SelectedSong ];
 
-			await BaseController.MoveItemsUpAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
+			BaseController.MoveItemsUp( NowPlayingViewModel.NowPlayingPlaylist, items );
 
 			// Now adjust the index of the selected song
 			AdjustSelectedSongIndex( currentPlaylistItem );

@@ -17,6 +17,6 @@ namespace DBTest
 		/// <summary>
 		/// Save the Playback record in the database
 		/// </summary>
-		public static async Task UpdatePlaybackAsync( Playback playbackRecord ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( playbackRecord );
+		public static async void UpdatePlaybackAsync( Playback playbackRecord ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( playbackRecord );
 	}
 }

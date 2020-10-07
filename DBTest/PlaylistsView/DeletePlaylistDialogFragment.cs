@@ -46,7 +46,7 @@ namespace DBTest
 					} )
 				.SetNegativeButton( "No", delegate {
 					// Just delete the songs. They will all be in the selected playlist
-					PlaylistsController.DeletePlaylistItemsAsync( PlaylistToDelete, SongsToDelete );
+					PlaylistsController.DeletePlaylistItems( PlaylistToDelete, SongsToDelete );
 				} )
 				.Create();
 

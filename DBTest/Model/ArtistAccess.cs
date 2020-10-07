@@ -89,13 +89,13 @@ namespace DBTest
 		/// </summary>
 		/// <param name="albumToDelete"></param>
 		/// <returns></returns>
-		public static async Task DeleteArtistAlbumAsync( ArtistAlbum albumToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( albumToDelete );
+		public static async void DeleteArtistAlbumAsync( ArtistAlbum albumToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( albumToDelete );
 
 		/// <summary>
 		/// Delete the specified Artist
 		/// </summary>
 		/// <param name="artistId"></param>
 		/// <returns></returns>
-		public static async Task DeleteArtistAsync( Artist artist ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( artist );
+		public static async void DeleteArtistAsync( Artist artist ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( artist );
 	}
 }

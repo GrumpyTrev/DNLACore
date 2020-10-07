@@ -112,7 +112,8 @@ namespace DBTest
 
 								foreach ( TaggedAlbum album in albums )
 								{
-									await FilterAccess.DeleteTaggedAlbumAsync( album );
+									// No need to wait for the delete
+									FilterAccess.DeleteTaggedAlbumAsync( album );
 									existingTag.TaggedAlbums.Remove( album );
 								}
 							}
@@ -144,7 +145,7 @@ namespace DBTest
 								{
 									// No tag found for the album in the current library.
 									// Does the album/artist combination exist in the library
-									Album albumToTag = await AlbumAccess.GetAlbumInLibraryAsync( distinctAlbum.Name, distinctAlbum.ArtistName, library.Id );
+									Album albumToTag = Albums.GetAlbumInLibrary( distinctAlbum.Name, distinctAlbum.ArtistName, library.Id );
 									if ( albumToTag != null )
 									{
 										await AddAlbumToTagAsync( existingTag, albumToTag );
@@ -275,7 +276,7 @@ namespace DBTest
 						if ( appliedTag.Applied == AppliedTag.AppliedType.None )
 						{
 							// Remove the selected albums from this tag
-							selectedAlbums.ForEach( async selectedAlbum => await RemoveAlbumFromTagAsync( changedTag, selectedAlbum ) );
+							selectedAlbums.ForEach( selectedAlbum => RemoveAlbumFromTag( changedTag, selectedAlbum ) );
 						}
 						else if ( appliedTag.Applied == AppliedTag.AppliedType.All )
 						{
@@ -299,10 +300,13 @@ namespace DBTest
 		/// Delete the specified Tag 
 		/// </summary>
 		/// <param name="tagtoDelete"></param>
-		public static async void DeleteTagAsync( Tag tagToDelete )
+		public static void DeleteTag( Tag tagToDelete )
 		{
-			tagToDelete.TaggedAlbums.ForEach( async album => await FilterAccess.DeleteTaggedAlbumAsync( album ) );
-			await FilterAccess.DeleteTagAsync( tagToDelete );
+			// Delete all the TaggedAlbum entries in this Tag
+			tagToDelete.TaggedAlbums.ForEach( album => FilterAccess.DeleteTaggedAlbumAsync( album ) );
+
+			// Delete the Tag itself. No need to wasit for this
+			FilterAccess.DeleteTagAsync( tagToDelete );
 
 			FilterManagementModel.Tags.Remove( tagToDelete );
 
@@ -337,14 +341,7 @@ namespace DBTest
 				taggedAlbums.ForEach( ta => tagLookup[ ta.TagId ].TaggedAlbums.Add( ta ) );
 
 				//  And also add the Album to the TaggedAlbum entries
-				foreach ( TaggedAlbum tagged in taggedAlbums )
-				{
-					tagged.Album = Albums.GetAlbumById( tagged.AlbumId );
-					if ( tagged.Album == null )
-					{
-					}
-				}
-//				taggedAlbums.ForEach( ta => ta.Album = AlbumsViewModel.AllAlbumLookup[ ta.AlbumId ] );
+				taggedAlbums.ForEach( ta => ta.Album = Albums.GetAlbumById( ta.AlbumId ) );
 			} );
 		}
 
@@ -390,16 +387,17 @@ namespace DBTest
 		/// </summary>
 		/// <param name="fromTag"></param>
 		/// <param name="albumId"></param>
-			private static async Task RemoveAlbumFromTagAsync( Tag fromTag, Album albumToRemove )
+		private static void RemoveAlbumFromTag( Tag fromTag, Album albumToRemove )
 		{
 			// Check if the album is actually tagged
 			TaggedAlbum taggedAlbum = fromTag.TaggedAlbums.SingleOrDefault( tag => ( tag.AlbumId == albumToRemove.Id ) );
 			if ( taggedAlbum != null )
 			{
-				await FilterAccess.DeleteTaggedAlbumAsync( taggedAlbum );
+				// No need to wait for the delete
+				FilterAccess.DeleteTaggedAlbumAsync( taggedAlbum );
 				fromTag.TaggedAlbums.Remove( taggedAlbum );
 
-				await CheckForJustPlayedRemovalAsync( fromTag, albumToRemove );
+				CheckForJustPlayedRemoval( fromTag, albumToRemove );
 
 				// If this tag is synchronised across libraries then remove all instances of this album
 				if ( fromTag.Synchronise == true )
@@ -408,10 +406,11 @@ namespace DBTest
 						.Where( tag => ( tag.Album.Name == taggedAlbum.Album.Name ) && ( tag.Album.ArtistName == taggedAlbum.Album.ArtistName ) ).ToList();
 					foreach ( TaggedAlbum album in otherAlbums )
 					{
-						await FilterAccess.DeleteTaggedAlbumAsync( album );
+						// No need to wait for the delete
+						FilterAccess.DeleteTaggedAlbumAsync( album );
 						fromTag.TaggedAlbums.Remove( album );
 
-						await CheckForJustPlayedRemovalAsync( fromTag, album.Album );
+						CheckForJustPlayedRemoval( fromTag, album.Album );
 					}
 				}
 			}
@@ -423,13 +422,12 @@ namespace DBTest
 		/// <param name="fromTag"></param>
 		/// <param name="albumId"></param>
 		/// <returns></returns>
-		private static async Task CheckForJustPlayedRemovalAsync( Tag fromTag, Album albumToClear )
+		private static void CheckForJustPlayedRemoval( Tag fromTag, Album albumToClear )
 		{
 			// If this is the JustPlayed tag and the Played flag is set for the album then clear it
 			if ( fromTag == FilterManagementModel.JustPlayedTag )
 			{
-				albumToClear.Played = false;
-				await AlbumAccess.UpdateAlbumAsync( albumToClear );
+				Albums.SetPlayedFlag( albumToClear, false );
 
 				// Inform interested parties
 				new AlbumPlayedStateChangedMessage() { AlbumChanged = albumToClear }.Send();
@@ -454,7 +452,8 @@ namespace DBTest
 				// the existing entry will have to be removed and a new entry added at the end
 				if ( ( toTag.TagOrder == true ) && ( index < ( toTag.TaggedAlbums.Count - 1 ) ) )
 				{
-					await FilterAccess.DeleteTaggedAlbumAsync( toTag.TaggedAlbums[ index ] );
+					// No need to wait for the delete
+					FilterAccess.DeleteTaggedAlbumAsync( toTag.TaggedAlbums[ index ] );
 					toTag.TaggedAlbums.RemoveAt( index );
 				}
 				else
@@ -473,7 +472,8 @@ namespace DBTest
 					if ( toTag.TaggedAlbums.Count( taggedAlbum => ( taggedAlbum.Album.LibraryId == albumToAdd.LibraryId ) ) >= toTag.MaxCount )
 					{
 						// Remove the oldest entry, i.e. the first entry 
-						await FilterAccess.DeleteTaggedAlbumAsync( toTag.TaggedAlbums.First() );
+						// No need to wait for the delete
+						FilterAccess.DeleteTaggedAlbumAsync( toTag.TaggedAlbums.First() );
 						toTag.TaggedAlbums.RemoveAt( 0 );
 					}
 				}
@@ -493,8 +493,7 @@ namespace DBTest
 			{
 				if ( albumToAdd.Played == false )
 				{
-					albumToAdd.Played = true;
-					await AlbumAccess.UpdateAlbumAsync( albumToAdd );
+					Albums.SetPlayedFlag( albumToAdd, true );
 
 					// Inform interested parties
 					new AlbumPlayedStateChangedMessage() { AlbumChanged = albumToAdd }.Send();
@@ -510,7 +509,7 @@ namespace DBTest
 					if ( library.Id != albumToAdd.LibraryId )
 					{
 						// Access this Album from the library as it may not be already be available anywhere, as it is a different library
-						Album albumToSynch = await AlbumAccess.GetAlbumInLibraryAsync( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
+						Album albumToSynch = Albums.GetAlbumInLibrary( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
 						if ( albumToSynch != null )
 						{
 							await AddAlbumToTagAsync( toTag, albumToSynch, true );
@@ -599,7 +598,7 @@ namespace DBTest
 		/// Do not synchronise as this is due to a library scan and not the user removing albums from a tag
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void AlbumsDeleted( object message )
+		private static void AlbumsDeleted( object message )
 		{
 			// Get the list of albums and apply to each tag
 			List<int> deletedAlbumIds = ( message as AlbumsDeletedMessage ).DeletedAlbumIds;
@@ -615,7 +614,8 @@ namespace DBTest
 					TaggedAlbum taggedAlbum = tag.TaggedAlbums.SingleOrDefault( ta => ( ta.AlbumId == albumId ) );
 					if ( taggedAlbum != null )
 					{
-						await FilterAccess.DeleteTaggedAlbumAsync( taggedAlbum );
+						// No need to wait for the delete
+						FilterAccess.DeleteTaggedAlbumAsync( taggedAlbum );
 						tag.TaggedAlbums.Remove( taggedAlbum );
 						tagModified = true;
 					}

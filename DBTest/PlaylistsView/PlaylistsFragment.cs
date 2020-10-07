@@ -169,7 +169,7 @@ namespace DBTest
 				else if ( songsSelected.Count() > 0 )
 				{
 					// Deletion of songs from a playlist
-					PlaylistsController.DeletePlaylistItemsAsync( parentPlaylist, songsSelected );
+					PlaylistsController.DeletePlaylistItems( parentPlaylist, songsSelected );
 				}
 				else
 				{

@@ -39,6 +39,8 @@ namespace DBTest
 		{
 			ArtistCollection.Add( artistToAdd );
 			IdLookup[ artistToAdd.Id ] = artistToAdd;
+
+			// Need to wait for the Artist to be added so that its ID is availabel
 			await ArtistAccess.AddArtistAsync( artistToAdd );
 		}
 
@@ -47,9 +49,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="artistAlbumToDelete"></param>
 		/// <returns></returns>
-		public static async Task DeleteArtistAsync( Artist artistToDelete )
+		public static void DeleteArtist( Artist artistToDelete )
 		{
-			await ArtistAccess.DeleteArtistAsync( artistToDelete );
+			// No need to wait for the Artist to be removed from storage
+			ArtistAccess.DeleteArtistAsync( artistToDelete );
 			ArtistCollection.Remove( artistToDelete );
 			IdLookup.Remove( artistToDelete.Id );
 		}

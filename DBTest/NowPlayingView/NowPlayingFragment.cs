@@ -134,21 +134,21 @@ namespace DBTest
 		/// Called when a command bar command has been invoked
 		/// </summary>
 		/// <param name="button"></param>
-		protected override async void HandleCommand( int commandId )
+		protected override void HandleCommand( int commandId )
 		{
 			List<PlaylistItem> selectedItems = Adapter.SelectedItems.Values.OfType<PlaylistItem>().ToList();
 			if ( commandId == Resource.Id.delete )
 			{
-				NowPlayingController.DeleteNowPlayingItemsAsync( selectedItems );
+				NowPlayingController.DeleteNowPlayingItems( selectedItems );
 				LeaveActionMode();
 			}
 			else if ( commandId == Resource.Id.move_up )
 			{
-				NowPlayingController.MoveItemsUpAsync( selectedItems );
+				NowPlayingController.MoveItemsUp( selectedItems );
 			}
 			else if ( commandId == Resource.Id.move_down )
 			{
-				NowPlayingController.MoveItemsDownAsync( selectedItems );
+				NowPlayingController.MoveItemsDown( selectedItems );
 			}
 		}
 

@@ -44,7 +44,7 @@ namespace DBTest
 					Tag tagToDelete = FilterManagementController.GetTagFromName( Arguments.GetString( "tag", "" ) );
 					if ( tagToDelete != null )
 					{
-						FilterManagementController.DeleteTagAsync( tagToDelete );
+						FilterManagementController.DeleteTag( tagToDelete );
 					}
 				} )
 				.SetNegativeButton( "Cancel", delegate { } )

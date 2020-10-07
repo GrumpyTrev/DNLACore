@@ -80,7 +80,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sourceToUpdate"></param>
 		/// <param name="newSource"></param>
-		public static async Task UpdateSourceAsync( Source sourceToUpdate, Source newSource )
+		public static void UpdateSource( Source sourceToUpdate, Source newSource )
 		{
 			sourceToUpdate.Name = newSource.Name;
 			sourceToUpdate.FolderName = newSource.FolderName;
@@ -88,7 +88,8 @@ namespace DBTest
 			sourceToUpdate.PortNo = newSource.PortNo;
 			sourceToUpdate.AccessType = newSource.AccessType;
 
-			await LibraryAccess.UpdateSourceAsync( sourceToUpdate );
+			// No need to wait for this to be written to storage
+			LibraryAccess.UpdateSourceAsync( sourceToUpdate );
 		}
 
 		/// <summary>

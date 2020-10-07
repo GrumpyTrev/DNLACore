@@ -165,7 +165,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static async Task DeletePlaylistItemsAsync( Playlist thePlaylist, List<PlaylistItem> items )
+		public static async void DeletePlaylistItemsAsync( Playlist thePlaylist, List<PlaylistItem> items )
 		{
 			// Delete the PlaylistItem entries from the database and from the memory based playlist
 			foreach ( PlaylistItem item in items )
@@ -189,7 +189,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="itemToUpdate"></param>
 		/// <returns></returns>
-		public static async Task UpdatePlaylistItemAsync( PlaylistItem itemToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( itemToUpdate );
+		public static async void UpdatePlaylistItemAsync( PlaylistItem itemToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( itemToUpdate );
 
 		/// <summary>
 		/// Get a list of all the playlists in the database
@@ -202,7 +202,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songIds"></param>
 		/// <returns></returns>
-		public static async Task DeletePlaylistItemsAsync( List< int > songIds ) => await ConnectionDetailsModel.AsynchConnection.DeleteAllAsync(
+		public static async void DeletePlaylistItemsAsync( List< int > songIds ) => await ConnectionDetailsModel.AsynchConnection.DeleteAllAsync(
 			await ConnectionDetailsModel.AsynchConnection.Table<PlaylistItem>().Where( item => songIds.Contains( item.SongId ) ).ToListAsync() );
 	}
 };
