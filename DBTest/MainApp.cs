@@ -110,7 +110,7 @@ namespace DBTest
 
 			AlbumsController.GetAlbums( ConnectionDetailsModel.LibraryId );
 			ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
-			PlaylistsController.GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
+			PlaylistsController.GetPlaylists( ConnectionDetailsModel.LibraryId );
 			NowPlayingController.GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
 			FilterManagementController.GetTagsAsync();
 			PlaybackSelectionController.GetPlaybackDetails();

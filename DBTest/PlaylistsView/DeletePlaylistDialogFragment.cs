@@ -42,7 +42,7 @@ namespace DBTest
 				.SetTitle( "Do you want to delete the playlist" )
 				.SetPositiveButton( "Yes", delegate {
 						// Delete the single selected playlist and all of its contents
-						PlaylistsController.DeletePlaylistAsync( PlaylistToDelete );
+						PlaylistsController.DeletePlaylist( PlaylistToDelete );
 					} )
 				.SetNegativeButton( "No", delegate {
 					// Just delete the songs. They will all be in the selected playlist

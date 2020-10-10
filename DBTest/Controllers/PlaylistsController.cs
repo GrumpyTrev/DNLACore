@@ -15,24 +15,25 @@ namespace DBTest
 		/// </summary>
 		static PlaylistsController()
 		{
-			Mediator.RegisterPermanent( SongsAddedAsync, typeof( PlaylistSongsAddedMessage ) );
+			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 		}
 
 		/// <summary>
 		/// Get the Playlist data associated with the specified library
 		/// If the data has already been obtained then notify view immediately.
-		/// Otherwise get the data from the database asynchronously
+		/// Otherwise wait for the data to be made available
 		/// </summary>
 		/// <param name="libraryId"></param>
-		public static async void GetPlaylistsAsync( int libraryId )
+		public static void GetPlaylists( int libraryId )
 		{
 			// Check if the Playlists details for the library have already been obtained
 			if ( PlaylistsViewModel.LibraryId != libraryId )
 			{
 				PlaylistsViewModel.LibraryId = libraryId;
 
-				await RefreshModelData();
+				// All Playlists are read at startup. So wait until that is available and then carry out the rest of the initialisation
+				StorageController.RegisterInterestInDataAvailable( PlaylistDataAvailable );
 			}
 			else
 			{
@@ -50,7 +51,7 @@ namespace DBTest
 		/// <param name="thePlaylist"></param>
 		public static async Task GetPlaylistContentsAsync( Playlist thePlaylist )
 		{
-			await PlaylistAccess.GetPlaylistContentsWithArtistsAsync( thePlaylist );
+			await Playlists.GetPlaylistContentsAsync( thePlaylist );
 
 			// Sort the PlaylistItems by Track
 			thePlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
@@ -60,13 +61,13 @@ namespace DBTest
 		/// Delete the specified playlist and its contents
 		/// </summary>
 		/// <param name="thePlaylist"></param>
-		public static async void DeletePlaylistAsync( Playlist thePlaylist )
+		public static void DeletePlaylist( Playlist thePlaylist )
 		{
 			// Delete the playlist and then refresh the data held by the model
-			await PlaylistAccess.DeletePlaylistAsync( thePlaylist );
+			Playlists.DeletePlaylist( thePlaylist );
 
 			// Refresh the playlists held by the model and report the change
-			await RefreshModelData();
+			PlaylistDataAvailable();
 
 			// Let other controllers know
 			new PlaylistDeletedMessage().Send();
@@ -79,8 +80,8 @@ namespace DBTest
 		/// <param name="items"></param>
 		public static void DeletePlaylistItems( Playlist thePlaylist, List< PlaylistItem > items )
 		{
-			// Delete the PlaylistItem items. No need to wait for this
-			PlaylistAccess.DeletePlaylistItemsAsync( thePlaylist, items );
+			// Delete the PlaylistItem items.
+			Playlists.DeletePlaylistItems( thePlaylist, items );
 
 			// Adjust the track numbers
 			BaseController.AdjustTrackNumbers( thePlaylist );
@@ -93,12 +94,12 @@ namespace DBTest
 		/// Add a new playlist with the specified name to the current library
 		/// </summary>
 		/// <param name="playlistName"></param>
-		public static async void AddPlaylistAsync( string playlistName )
+		public static void AddPlaylist( string playlistName )
 		{
-			await PlaylistAccess.AddPlaylistAsync( playlistName, PlaylistsViewModel.LibraryId );
+			Playlists.AddPlaylist( new Playlist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId } );
 
 			// Refresh the playlists held by the model and report the change
-			await RefreshModelData();
+			PlaylistDataAvailable();
 
 			// Let other controllers know
 			new PlaylistAddedMessage().Send();
@@ -134,8 +135,8 @@ namespace DBTest
 		/// <param name="name"></param>
 		/// <param name="playListLibrary"></param>
 		/// <returns></returns>
-		public static async Task<bool> CheckForOtherPlaylistsAsync( string name, int playListLibrary ) =>
-			( await PlaylistAccess.GetAllPlaylists() ).Count( playlist => ( playlist.Name == name ) && ( playlist.LibraryId != playListLibrary ) ) > 0;
+		public static bool CheckForOtherPlaylists( string name, int playListLibrary ) =>
+			Playlists.PlaylistCollection.Exists( list => ( list.Name == name ) && ( list.LibraryId != playListLibrary ) );
 
 		/// <summary>
 		/// Duplicate a playlist in the other libraries
@@ -144,22 +145,22 @@ namespace DBTest
 		public static async void DuplicatePlaylistAsync( Playlist playlistToDuplicate )
 		{
 			// Duplicate the playlist in all libraries except the one it is in
-			List< Library > libraries = await LibraryAccess.GetLibrariesAsync();
-			foreach ( Library library in libraries )
+			foreach ( Library library in Libraries.LibraryCollection )
 			{
 				if ( library.Id != playlistToDuplicate.LibraryId )
 				{
 					// If a playlist with the same name already exists then delete its contents
-					Playlist existingPlaylist = ( await PlaylistAccess.GetPlaylistDetailsAsync( library.Id ) )
-						.Where( playlist => playlist.Name == playlistToDuplicate.Name ).SingleOrDefault();
+					Playlist existingPlaylist = Playlists.PlaylistCollection
+						.Where( playlist => ( playlist.Name == playlistToDuplicate.Name ) && ( playlist.LibraryId == library.Id ) ).SingleOrDefault();
 
 					if ( existingPlaylist != null )
 					{
-						await PlaylistAccess.DeletePlaylistAsync( existingPlaylist );
+						Playlists.DeletePlaylist( existingPlaylist );
 					}
 
 					// Now create a new playlist in the library with the same name
-					await PlaylistAccess.AddPlaylistAsync( playlistToDuplicate.Name, library.Id );
+					Playlist duplicatedPlaylist = new Playlist() { Name = playlistToDuplicate.Name, LibraryId = library.Id };
+					Playlists.AddPlaylist( duplicatedPlaylist );
 
 					// Attempt to find matching songs for each PlaylistItem in the Playlist
 					// Need to access the songs via the Sources associated with the Library
@@ -182,14 +183,17 @@ namespace DBTest
 							int titleIndex = 0;
 							while ( ( matchingSong == null ) && ( titleIndex < matchingTitles.Count ) )
 							{
-								ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( matchingTitles[ titleIndex ].ArtistAlbumId );
-								Artist nameCheck = Artists.GetArtistById( artistAlbum.ArtistId );
+								Artist nameCheck = Artists.GetArtistById( 
+									ArtistAlbums.GetArtistAlbumById( matchingTitles[ titleIndex ].ArtistAlbumId ).ArtistId );
 
 								// Correct name?
 								if ( nameCheck.Name == item.Artist.Name )
 								{
 									matchingSong = matchingTitles[ titleIndex ];
 									songsToAdd.Add( matchingSong );
+
+									// Make sure that the Artist us stored with the song
+									matchingSong.Artist = nameCheck;
 								}
 
 								titleIndex++;
@@ -200,7 +204,7 @@ namespace DBTest
 					if ( songsToAdd.Count > 0 )
 					{
 						// Add the songs to the new Playlist
-						await PlaylistAccess.AddSongsToPlaylistAsync( songsToAdd, playlistToDuplicate.Name, library.Id );
+						Playlists.AddSongsToPlaylistAsync( duplicatedPlaylist, songsToAdd );
 					}
 				}
 			}
@@ -208,30 +212,18 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when the PlaylistSongsAddedMessage is received
-		/// Make sure that the specified playlist contents are refreshed and let the view know
+		/// Let the view know
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void SongsAddedAsync( object message )
-		{
-			PlaylistSongsAddedMessage songsAddedMessage = message as PlaylistSongsAddedMessage;
-
-			// Get the playlist from the model (not the database) and refresh its contents.
-			// If it can't be found then do nothing - report an error?
-			Playlist addedToPlaylist = PlaylistsViewModel.Playlists.FirstOrDefault( d => ( d.Name == songsAddedMessage.PlaylistName ) );
-
-			if ( addedToPlaylist != null )
-			{
-				await GetPlaylistContentsAsync( addedToPlaylist );
-				Reporter?.PlaylistUpdated( songsAddedMessage.PlaylistName );
-			}
-		}
+		private static void SongsAdded( object message ) => 
+			Reporter?.PlaylistUpdated( ( ( PlaylistSongsAddedMessage )message ).PlaylistName );
 
 		/// <summary>
-		/// Refresh the model data held by the model
+		/// Called when the Playlist data is available to be displayed, or needs to be refreshed
 		/// </summary>
-		private static async Task RefreshModelData()
+		private static void PlaylistDataAvailable( object _ = null )
 		{
-			PlaylistsViewModel.Playlists = await PlaylistAccess.GetPlaylistDetailsAsync( PlaylistsViewModel.LibraryId );
+			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId );
 			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
 
 			PlaylistsViewModel.DataValid = true;
@@ -254,7 +246,7 @@ namespace DBTest
 			Reporter?.PlaylistsDataAvailable();
 
 			// Reread the data
-			GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
+			GetPlaylists( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>

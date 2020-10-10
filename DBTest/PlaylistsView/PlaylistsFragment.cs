@@ -174,7 +174,7 @@ namespace DBTest
 				else
 				{
 					// Deletion of a playlist with no songs
-					PlaylistsController.DeletePlaylistAsync( playlistSelected.First() );
+					PlaylistsController.DeletePlaylist( playlistSelected.First() );
 				}
 
 				LeaveActionMode();
@@ -191,7 +191,7 @@ namespace DBTest
 			{
 				// If the playlist already exists in other libraries then prompt for deletion
 				Playlist playlistToDuplicate = playlistSelected.First();
-				if ( await PlaylistsController.CheckForOtherPlaylistsAsync( playlistToDuplicate.Name, ConnectionDetailsModel.LibraryId ) == true )
+				if ( PlaylistsController.CheckForOtherPlaylists( playlistToDuplicate.Name, ConnectionDetailsModel.LibraryId ) == true )
 				{
 					DuplicatePlaylistDialogFragment.ShowFragment( Activity.SupportFragmentManager, playlistToDuplicate );
 				}
@@ -214,7 +214,7 @@ namespace DBTest
 			PlaylistsController.Reporter = this;
 
 			// Get the data
-			PlaylistsController.GetPlaylistsAsync( ConnectionDetailsModel.LibraryId );
+			PlaylistsController.GetPlaylists( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>

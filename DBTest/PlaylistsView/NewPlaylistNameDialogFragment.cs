@@ -76,7 +76,7 @@ namespace DBTest
 				}
 				else
 				{
-					PlaylistsController.AddPlaylistAsync( playListName.Text );
+					PlaylistsController.AddPlaylist( playListName.Text );
 
 					// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
 					InputMethodManager imm = ( InputMethodManager )Context.GetSystemService( Context.InputMethodService );

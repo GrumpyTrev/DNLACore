@@ -17,6 +17,20 @@ namespace DBTest
 				Where( d => ( ( d.LibraryId == libraryId ) ) && ( d.Name != NowPlayingController.NowPlayingPlaylistName ) ).ToListAsync();
 
 		/// <summary>
+		/// Get all the playlists in the database
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<List<Playlist>> GetAllPlaylistsAsync() =>
+			await ConnectionDetailsModel.AsynchConnection.Table<Playlist>().ToListAsync();
+
+		/// <summary>
+		/// Get the PlayListItem entries associated with the specified Playlist
+		/// </summary>
+		/// <param name="playlist"></param>
+		public static async Task GetPlaylistItems( Playlist playlist ) =>
+			await ConnectionDetailsModel.AsynchConnection.GetChildrenAsync( playlist );
+
+		/// <summary>
 		/// Get the songs in the Now Playing playlist associated with the library 
 		/// </summary>
 		public static async Task<Playlist> GetNowPlayingListAsync( int libraryId, bool withArtists = false )
@@ -145,44 +159,34 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <returns></returns>
-		public static async Task DeletePlaylistAsync( Playlist thePlaylist )
+		public static void DeletePlaylist( Playlist thePlaylist )
 		{
-			// Delete the PlaylistItem entries from the database
 			if ( thePlaylist.PlaylistItems != null )
 			{
-				foreach ( PlaylistItem item in thePlaylist.PlaylistItems )
-				{
-					await ConnectionDetailsModel.AsynchConnection.DeleteAsync( item );
-				}
+				// Delete the PlaylistItem entries from the database.
+				// No need to wait for this to finish
+				thePlaylist.PlaylistItems.ForEach( item => ConnectionDetailsModel.AsynchConnection.DeleteAsync( item ) );
 			}
 
-			// Now delete the playlist itself
-			await ConnectionDetailsModel.AsynchConnection.DeleteAsync( thePlaylist );
+			// Now delete the playlist itself. No need to wait for this to finish
+			ConnectionDetailsModel.AsynchConnection.DeleteAsync( thePlaylist );
 		}
 
 		/// <summary>
-		/// Delete the specified PlaylistItem items from its parent playlist
+		/// Delete the specified PlaylistItem items
 		/// </summary>
-		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static async void DeletePlaylistItemsAsync( Playlist thePlaylist, List<PlaylistItem> items )
-		{
-			// Delete the PlaylistItem entries from the database and from the memory based playlist
-			foreach ( PlaylistItem item in items )
-			{
-				await ConnectionDetailsModel.AsynchConnection.DeleteAsync( item );
-				thePlaylist.PlaylistItems.Remove( item );
-			}
-		}
+		public static void DeletePlaylistItems( List<PlaylistItem> items ) =>
+			items.ForEach( item => ConnectionDetailsModel.AsynchConnection.DeleteAsync( item ) );
 
 		/// <summary>
-		/// Add an empty playlist with the specified name to the specified library
+		/// Add the specified playlist to the database
 		/// </summary>
 		/// <param name="playlistName"></param>
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
-		public static async Task AddPlaylistAsync( string playlistName, int libraryId ) =>
-			await ConnectionDetailsModel.AsynchConnection.InsertAsync( new Playlist() { Name = playlistName, LibraryId = libraryId } );
+		public static void AddPlaylist( Playlist playlistToAdd ) => 
+			ConnectionDetailsModel.AsynchConnection.InsertAsync( playlistToAdd );
 
 		/// <summary>
 		/// Update a modified PlaylistItem
@@ -190,6 +194,13 @@ namespace DBTest
 		/// <param name="itemToUpdate"></param>
 		/// <returns></returns>
 		public static async void UpdatePlaylistItemAsync( PlaylistItem itemToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( itemToUpdate );
+
+		/// <summary>
+		/// Add a new PlaylistItem to the database. No need to wait for this to complete
+		/// </summary>
+		/// <param name="itemToAdd"></param>
+		public static void AddPlaylistItem( PlaylistItem itemToAdd ) =>
+			ConnectionDetailsModel.AsynchConnection.InsertAsync( itemToAdd );
 
 		/// <summary>
 		/// Get a list of all the playlists in the database

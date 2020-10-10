@@ -121,7 +121,7 @@ namespace DBTest
 			}
 
 			// Delete the entries and report that the list has been updated
-			PlaylistAccess.DeletePlaylistItemsAsync( NowPlayingViewModel.NowPlayingPlaylist, items );
+			PlaylistAccess.DeletePlaylistItems( NowPlayingViewModel.NowPlayingPlaylist, items );
 
 			// Adjust the track numbers
 			BaseController.AdjustTrackNumbers( NowPlayingViewModel.NowPlayingPlaylist );
