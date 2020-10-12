@@ -120,7 +120,7 @@ namespace DBTest
 			ArtistsController.Reporter = this;
 
 			// Get the data
-			ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
+			ArtistsController.GetArtists( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>
@@ -136,8 +136,8 @@ namespace DBTest
 		{
 			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
 			{
-				BaseController.AddSongsToNowPlayingListAsync( Adapter.SelectedItems.Values.OfType<Song>().ToList(),
-					( commandId == Resource.Id.play_now ), ArtistsViewModel.LibraryId );
+				BaseController.AddSongsToNowPlayingList( Adapter.SelectedItems.Values.OfType<Song>().ToList(),
+					( commandId == Resource.Id.play_now ) );
 				LeaveActionMode();
 			}
 			else if ( commandId == Resource.Id.add_to_playlist )
@@ -154,7 +154,7 @@ namespace DBTest
 					List<Song> selectedSongs = Adapter.SelectedItems.Values.OfType<Song>().ToList();
 
 					// Determine which Playlist has been selected and add the selected songs to the playlist
-					ArtistsController.AddSongsToPlaylistAsync( selectedSongs, args1.Item.TitleFormatted.ToString() );
+					ArtistsController.AddSongsToPlaylist( selectedSongs, args1.Item.TitleFormatted.ToString() );
 
 					LeaveActionMode();
 				};

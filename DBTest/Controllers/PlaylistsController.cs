@@ -49,12 +49,8 @@ namespace DBTest
 		/// Get the contents for the specified Playlist
 		/// </summary>
 		/// <param name="thePlaylist"></param>
-		public static async Task GetPlaylistContentsAsync( Playlist thePlaylist )
+		public static async Task GetPlaylistContentsAsync( Playlist _ )
 		{
-			await Playlists.GetPlaylistContentsAsync( thePlaylist );
-
-			// Sort the PlaylistItems by Track
-			thePlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 		}
 
 		/// <summary>
@@ -81,10 +77,10 @@ namespace DBTest
 		public static void DeletePlaylistItems( Playlist thePlaylist, List< PlaylistItem > items )
 		{
 			// Delete the PlaylistItem items.
-			Playlists.DeletePlaylistItems( thePlaylist, items );
+			thePlaylist.DeletePlaylistItems( items );
 
 			// Adjust the track numbers
-			BaseController.AdjustTrackNumbers( thePlaylist );
+			thePlaylist.AdjustTrackNumbers();
 
 			// Report the change
 			Reporter?.PlaylistUpdated( thePlaylist.Name );
@@ -192,7 +188,7 @@ namespace DBTest
 									matchingSong = matchingTitles[ titleIndex ];
 									songsToAdd.Add( matchingSong );
 
-									// Make sure that the Artist us stored with the song
+									// Make sure that the Artist is stored with the song
 									matchingSong.Artist = nameCheck;
 								}
 
@@ -203,8 +199,8 @@ namespace DBTest
 
 					if ( songsToAdd.Count > 0 )
 					{
-						// Add the songs to the new Playlist
-						Playlists.AddSongsToPlaylistAsync( duplicatedPlaylist, songsToAdd );
+						// Add the songs to the new Playlist. No need to wait for this
+						duplicatedPlaylist.AddSongs( songsToAdd );
 					}
 				}
 			}
@@ -223,7 +219,8 @@ namespace DBTest
 		/// </summary>
 		private static void PlaylistDataAvailable( object _ = null )
 		{
-			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId );
+			PlaylistsViewModel.Playlists = Playlists.PlaylistCollection.Where( play => ( play.LibraryId == PlaylistsViewModel.LibraryId ) &&
+			   ( play.Name != NowPlayingController.NowPlayingPlaylistName ) ).ToList();
 			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
 
 			PlaylistsViewModel.DataValid = true;

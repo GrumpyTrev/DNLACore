@@ -69,10 +69,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static async void AddSongsToPlaylistAsync( List<Song> songsToAdd, string playlistName )
+		public static void AddSongsToPlaylist( List<Song> songsToAdd, string playlistName )
 		{
 			// Carry out the common processing to add songs to a playlist
-			await PlaylistAccess.AddSongsToPlaylistAsync( songsToAdd, playlistName, AlbumsViewModel.LibraryId );
+			Playlists.GetPlaylist( playlistName, AlbumsViewModel.LibraryId ).AddSongs( songsToAdd );
 
 			// Publish this event
 			new PlaylistSongsAddedMessage() { PlaylistName = playlistName }.Send();
@@ -239,7 +239,7 @@ namespace DBTest
 			await ApplyFilterAsync( null, false );
 
 			// Get the list of current playlists
-			await GetPlayListNames();
+			GetPlayListNames();
 
 			AlbumsViewModel.DataValid = true;
 
@@ -266,7 +266,7 @@ namespace DBTest
 		/// Update the list of playlists held by the model
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void PlaylistAddedOrDeleted( object message ) => await GetPlayListNames();
+		private static void PlaylistAddedOrDeleted( object message ) => GetPlayListNames();
 
 		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
@@ -355,8 +355,8 @@ namespace DBTest
 		/// <summary>
 		/// Get the names of all the user playlists
 		/// </summary>
-		private static async Task GetPlayListNames() =>
-			AlbumsViewModel.PlaylistNames = ( await PlaylistAccess.GetPlaylistDetailsAsync( ArtistsViewModel.LibraryId ) ).Select( i => i.Name ).ToList();
+		private static void GetPlayListNames() =>
+			AlbumsViewModel.PlaylistNames = Playlists.GetPlaylistsForLibrary( AlbumsViewModel.LibraryId ).Select( list => list.Name).ToList();
 
 		/// <summary>
 		/// The interface instance used to report back controller results

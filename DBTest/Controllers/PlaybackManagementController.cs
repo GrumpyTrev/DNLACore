@@ -26,16 +26,15 @@ namespace DBTest
 		/// Otherwise get the data from the database asynchronously
 		/// </summary>
 		/// <param name="libraryId"></param>
-		public static async void GetMediaControlDataAsync( int libraryId )
+		public static void GetMediaControlData( int libraryId )
 		{
 			// Check if the PlaylistGetMediaControlDataAsyncs details for the library have already been obtained
 			if ( ( PlaybackManagerModel.NowPlayingPlaylist == null ) || ( PlaybackManagerModel.LibraryId != libraryId ) )
 			{
 				PlaybackManagerModel.LibraryId = libraryId;
-				PlaybackManagerModel.NowPlayingPlaylist = await PlaylistAccess.GetNowPlayingListAsync( PlaybackManagerModel.LibraryId, true );
 
-				// Sort the PlaylistItems by Track
-				PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+				// This is getting the same list as the NowPlayingController. So let it do any sorting.
+				PlaybackManagerModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( PlaybackManagerModel.LibraryId );
 
 				// Get the selected song
 				PlaybackManagerModel.CurrentSongIndex = PlaybackDetails.SongIndex;
@@ -53,7 +52,6 @@ namespace DBTest
 				playRequestPending = false;
 				Reporter?.PlayRequested();
 			}
-
 		}
 
 		/// <summary>
@@ -99,7 +97,7 @@ namespace DBTest
 		private static void SongsAdded( object message )
 		{
 			PlaybackManagerModel.NowPlayingPlaylist = null;
-			GetMediaControlDataAsync( PlaybackManagerModel.LibraryId );
+			GetMediaControlData( PlaybackManagerModel.LibraryId );
 		}
 
 		/// <summary>
@@ -160,7 +158,7 @@ namespace DBTest
 			Reporter?.MediaControlDataAvailable();
 
 			// Reread the data
-			GetMediaControlDataAsync( PlaybackManagerModel.LibraryId );
+			GetMediaControlData( PlaybackManagerModel.LibraryId );
 		}
 
 		/// <summary>

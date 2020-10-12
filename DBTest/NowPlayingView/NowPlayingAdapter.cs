@@ -179,7 +179,7 @@ namespace DBTest
 		/// <summary>
 		/// Interface used to handler adapter request and state changes
 		/// </summary>
-		private IActionHandler adapterHandler = null;
+		private readonly IActionHandler adapterHandler = null;
 
 		/// <summary>
 		/// The time when the last item was clicked

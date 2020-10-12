@@ -35,7 +35,7 @@ namespace DBTest
 		/// <returns></returns>
 		public override bool OnOptionsItemSelected( IMenuItem item )
 		{
-			bool handled = false;
+			bool handled;
 
 			// Check for a new playlist request
 			if ( item.ItemId == Resource.Id.new_playlist )
@@ -56,12 +56,9 @@ namespace DBTest
 		/// Get all the PlaylistItem entries associated with a specified Playlist.
 		/// </summary>
 		/// <param name="thePlayList"></param>
-		public async Task ProvideGroupContentsAsync( Playlist thePlayList )
+		public async Task ProvideGroupContentsAsync( Playlist _ )
 		{
-			if ( thePlayList.PlaylistItems == null )
-			{
-				await PlaylistsController.GetPlaylistContentsAsync( thePlayList );
-			}
+			// Playlist items are now read at startup. So this is no longer required
 		}
 
 		/// <summary>
@@ -144,7 +141,7 @@ namespace DBTest
 		/// Called when a command bar command has been invoked
 		/// </summary>
 		/// <param name="button"></param>
-		protected override async void HandleCommand( int commandId )
+		protected override void HandleCommand( int commandId )
 		{
 			List<PlaylistItem> songsSelected = Adapter.SelectedItems.Values.OfType<PlaylistItem>().ToList();
 			List<Playlist> playlistSelected = Adapter.SelectedItems.Values.OfType<Playlist>().ToList();
@@ -155,8 +152,7 @@ namespace DBTest
 
 			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
 			{
-				BaseController.AddSongsToNowPlayingListAsync( songsSelected.Select( song => song.Song ).ToList(), ( commandId == Resource.Id.play_now ),
-					PlaylistsViewModel.LibraryId );
+				BaseController.AddSongsToNowPlayingList( songsSelected.Select( song => song.Song ).ToList(), ( commandId == Resource.Id.play_now ) );
 				LeaveActionMode();
 			}
 			else if ( commandId == Resource.Id.delete )
@@ -271,33 +267,6 @@ namespace DBTest
 
 				ActionModeTitle = string.Format( ItemsSelectedText, playlistText, songsText );
 			}
-		}
-
-		/// <summary>
-		/// Determine if all of the selected songs are from the same playlist
-		/// </summary>
-		/// <param name="songsSelected"></param>
-		/// <returns></returns>
-		private bool SongsInSinglePlaylist( IEnumerable<PlaylistItem> songsSelected, out int playlistId )
-		{
-			// Traverse the selected songs and check that all of them are from the same playlist
-			bool samePlaylist = true;
-			playlistId = -1;
-			IEnumerator<PlaylistItem> songsToCheck = songsSelected.GetEnumerator();
-
-			while ( ( samePlaylist == true ) && ( songsToCheck.MoveNext() == true ) )
-			{
-				if ( playlistId == -1 )
-				{
-					playlistId = songsToCheck.Current.PlaylistId;
-				}
-				else
-				{
-					samePlaylist = ( playlistId == songsToCheck.Current.PlaylistId );
-				}
-			}
-
-			return samePlaylist;
 		}
 
 		/// <summary>

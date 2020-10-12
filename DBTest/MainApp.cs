@@ -109,9 +109,9 @@ namespace DBTest
 			CommandRouter.BindHandlers();
 
 			AlbumsController.GetAlbums( ConnectionDetailsModel.LibraryId );
-			ArtistsController.GetArtistsAsync( ConnectionDetailsModel.LibraryId );
+			ArtistsController.GetArtists( ConnectionDetailsModel.LibraryId );
 			PlaylistsController.GetPlaylists( ConnectionDetailsModel.LibraryId );
-			NowPlayingController.GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
+			NowPlayingController.GetNowPlayingList( ConnectionDetailsModel.LibraryId );
 			FilterManagementController.GetTagsAsync();
 			PlaybackSelectionController.GetPlaybackDetails();
 

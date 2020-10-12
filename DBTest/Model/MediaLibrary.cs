@@ -225,7 +225,7 @@ namespace DBTest
 	}
 
 	[Table( "PlayList" )]
-	public class Playlist
+	public partial class Playlist
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
@@ -240,7 +240,7 @@ namespace DBTest
 	}
 
 	[Table( "PlayListItem" )]
-	public class PlaylistItem
+	public partial class PlaylistItem
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }

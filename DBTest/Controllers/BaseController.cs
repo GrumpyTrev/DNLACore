@@ -15,7 +15,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static async void AddSongsToNowPlayingListAsync( List<Song> songsToAdd, bool clearFirst, int libraryId )
+		public static void AddSongsToNowPlayingList( List<Song> songsToAdd, bool clearFirst )
 		{
 			// Should the Now Playing playlist be cleared first
 			if ( clearFirst == true )
@@ -25,11 +25,11 @@ namespace DBTest
 				new SongSelectedMessage() { ItemNo = -1 }.Send();
 
 				// Now clear the Now Playing list 
-				await PlaylistAccess.ClearNowPlayingListAsync( libraryId );
+				NowPlayingViewModel.NowPlayingPlaylist.Clear();
 			}
 
 			// Carry out the common processing to add songs to a playlist
-			await PlaylistAccess.AddSongsToNowPlayingListAsync( songsToAdd, libraryId );
+			NowPlayingViewModel.NowPlayingPlaylist.AddSongs( songsToAdd );
 			new NowPlayingSongsAddedMessage().Send();
 
 			// If the list was cleared and there are now some items in the list select the first entry
@@ -56,7 +56,7 @@ namespace DBTest
 			thePlaylist.PlaylistItems.Insert( items.First().Track - 1, itemToMove );
 
 			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			AdjustTrackNumbers( thePlaylist );
+			thePlaylist.AdjustTrackNumbers();
 		}
 
 		/// <summary>
@@ -72,27 +72,7 @@ namespace DBTest
 			thePlaylist.PlaylistItems.Insert( items.Last().Track - 1, itemToMove );
 
 			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			AdjustTrackNumbers( thePlaylist );
-		}
-
-		/// <summary>
-		/// Adjust the track numbers to match the indexes in the collection
-		/// </summary>
-		/// <param name="thePlaylist"></param>
-		public static void AdjustTrackNumbers( Playlist thePlaylist )
-		{
-			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			for ( int index = 0; index < thePlaylist.PlaylistItems.Count; ++index )
-			{
-				PlaylistItem itemToCheck = thePlaylist.PlaylistItems[ index ];
-				if ( itemToCheck.Track != ( index + 1 ) )
-				{
-					itemToCheck.Track = index + 1;
-
-					// Update the item in the model. No need to wait for this.
-					PlaylistAccess.UpdatePlaylistItemAsync( itemToCheck );
-				}
-			}
+			thePlaylist.AdjustTrackNumbers();
 		}
 
 		/// <summary>

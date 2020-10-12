@@ -106,7 +106,7 @@ namespace DBTest
 			NowPlayingController.Reporter = this;
 
 			// Get the data
-			NowPlayingController.GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
+			NowPlayingController.GetNowPlayingList( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>

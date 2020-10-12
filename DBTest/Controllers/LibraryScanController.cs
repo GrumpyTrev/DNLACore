@@ -104,7 +104,7 @@ namespace DBTest
 				await ArtistAccess.DeleteSongsAsync( LibraryScanModel.UnmatchedSongs );
 
 				// Delete all the PlaylistItems associated with the songs. No need to wait for this
-				PlaylistAccess.DeletePlaylistItemsAsync( LibraryScanModel.UnmatchedSongs.Select( song => song.Id ).ToList() );
+				Playlists.DeletePlaylistItems( LibraryScanModel.UnmatchedSongs.Select( song => song.Id ).ToList() );
 
 				// Form a distinct list of all the ArtistAlbum items referenced by the deleted songs
 				IEnumerable<int> artistAlbumIds = LibraryScanModel.UnmatchedSongs.Select( song => song.ArtistAlbumId ).Distinct();
@@ -164,7 +164,7 @@ namespace DBTest
 			await ArtistAccess.DeleteSongAsync( songToDelete );
 
 			// Delete all the PlaylistItems associated with the song. No need to wait for this
-			PlaylistAccess.DeletePlaylistItemsAsync( new List<int> { songToDelete.Id } );
+			Playlists.DeletePlaylistItems( new List<int> { songToDelete.Id } );
 
 			// Check if the ArtistAlbum item is now empty and need deleting
 			// Refresh the contents of the ArtistAlbum

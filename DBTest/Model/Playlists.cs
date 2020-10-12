@@ -18,8 +18,17 @@ namespace DBTest
 		{
 			if ( PlaylistCollection == null )
 			{
-				// Get the current set of albums and form the lookup tables
+				// Get the current set of Playlists
 				PlaylistCollection = await PlaylistAccess.GetAllPlaylistsAsync();
+
+				// Get all the content for the playlists
+				await Task.Run( async () =>
+				{
+					foreach ( Playlist playlist in PlaylistCollection )
+					{
+						await playlist.GetContentsAsync();
+					}
+				} );
 			}
 		}
 
@@ -33,36 +42,21 @@ namespace DBTest
 				( play.Name != NowPlayingController.NowPlayingPlaylistName ) ).ToList();
 
 		/// <summary>
-		/// Get the PlaylistItems and associated songs for the specified playlist
+		/// Get the Now Playing playlist for the specified library
 		/// </summary>
-		/// <param name="playlist"></param>
-		public static async Task GetPlaylistContentsAsync( Playlist playlist )
-		{
-			if ( playlist.PlaylistItems == null )
-			{
-				// Get the children PlaylistItems and then the Song entries for each of them
-				await PlaylistAccess.GetPlaylistItems( playlist );
+		/// <param name="libraryId"></param>
+		/// <returns></returns>
+		public static Playlist GetNowPlayingPlaylist( int libraryId ) =>
+			GetPlaylist( NowPlayingController.NowPlayingPlaylistName, libraryId );
 
-				// Keep track of the last accessed ArtistAlbumId and Artist
-				int lastArtistAlbumId = -1;
-				Artist lastArtist = null;
-
-				foreach ( PlaylistItem playList in playlist.PlaylistItems )
-				{
-					playList.Song = await SongAccess.GetSongAsync( playList.SongId );
-
-					playList.Artist = ( playList.Song.ArtistAlbumId == lastArtistAlbumId ) ? lastArtist
-						: Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playList.Song.ArtistAlbumId ).ArtistId );
-						
-					// Save these in case they are required next
-					lastArtistAlbumId = playList.Song.ArtistAlbumId;
-					lastArtist = playList.Artist;
-
-					// Now that the Artist is available save it in the Song
-					playList.Song.Artist = playList.Artist;
-				}
-			}
-		}
+		/// <summary>
+		/// Get a playlist given its name and library
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="libraryId"></param>
+		/// <returns></returns>
+		public static Playlist GetPlaylist( string name, int libraryId ) =>
+			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name == name ) ).FirstOrDefault();
 
 		/// <summary>
 		/// Delete the specified Playlist from the collections and from the storage
@@ -72,17 +66,6 @@ namespace DBTest
 		{
 			PlaylistCollection.Remove( playlistToDelete );
 			PlaylistAccess.DeletePlaylist( playlistToDelete );
-		}
-
-		/// <summary>
-		/// Delete the specified PlayListItems fromthe Playlist
-		/// </summary>
-		/// <param name="thePlaylist"></param>
-		/// <param name="items"></param>
-		public static void DeletePlaylistItems( Playlist thePlaylist, List<PlaylistItem> items )
-		{
-			items.ForEach( item => thePlaylist.PlaylistItems.Remove( item ) );
-			PlaylistAccess.DeletePlaylistItems( items );
 		}
 
 		/// <summary>
@@ -98,25 +81,15 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Add a list of songs to the specified playlist
+		/// Delete any PlaylistItem objects associated with the list of songs
 		/// </summary>
-		/// <param name="playlist"></param>
-		/// <param name="songs"></param>
-		public static async void AddSongsToPlaylistAsync( Playlist playlist, List<Song> songs )
+		/// <param name="songIds"></param>
+		/// <returns></returns>
+		public static void DeletePlaylistItems( List<int> songIds )
 		{
-			// First of all make sure that all of the playlist is in memeory
-			await GetPlaylistContentsAsync( playlist );
-
-			// For each song create a PlayListItem and add to the PlayList
-			foreach ( Song song in songs )
+			foreach ( Playlist playlist in PlaylistCollection )
 			{
-				PlaylistItem itemToAdd = new PlaylistItem() { Artist = song.Artist, 
-					PlaylistId = playlist.Id, Song = song, SongId = song.Id, 
-					Track = playlist.PlaylistItems.Count + 1 };
-
-				playlist.PlaylistItems.Add( itemToAdd );
-
-				PlaylistAccess.AddPlaylistItem( itemToAdd );
+				playlist.DeletePlaylistItems( playlist.PlaylistItems.Where( item => songIds.Contains( item.SongId ) == true ).ToList() );
 			}
 		}
 
@@ -124,5 +97,94 @@ namespace DBTest
 		/// The set of Playlists currently held in storage
 		/// </summary>
 		public static List<Playlist> PlaylistCollection { get; set; } = null;
+	}
+
+	/// <summary>
+	/// The Playlist class contains an ordered collection of songs wrapped up in 
+	/// PlaylistItems
+	/// </summary>
+	public partial class Playlist
+	{
+		/// <summary>
+		/// Get the PlaylistItems and associated songs for this playlist
+		/// </summary>
+		/// <param name="playlist"></param>
+		public async Task GetContentsAsync()
+		{
+			if ( PlaylistItems == null )
+			{
+				// Get the children PlaylistItems and then the Song entries for each of them
+				await PlaylistAccess.GetPlaylistItems( this );
+
+				foreach ( PlaylistItem playlistItem in PlaylistItems )
+				{
+					playlistItem.Song = await SongAccess.GetSongAsync( playlistItem.SongId );
+					playlistItem.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playlistItem.Song.ArtistAlbumId ).ArtistId );
+					playlistItem.Song.Artist = playlistItem.Artist;
+				}
+
+				PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+			}
+		}
+
+		/// <summary>
+		/// Delete the specified PlayListItems from the Playlist
+		/// </summary>
+		/// <param name="items"></param>
+		public void DeletePlaylistItems( List<PlaylistItem> items )
+		{
+			items.ForEach( item => PlaylistItems.Remove( item ) );
+			PlaylistAccess.DeletePlaylistItems( items );
+		}
+
+		/// <summary>
+		/// Clear the contents of the playlist
+		/// </summary>
+		/// <param name="playlistToClear"></param>
+		public void Clear() => DeletePlaylistItems( new List<PlaylistItem>( PlaylistItems ) );
+
+		/// <summary>
+		/// Add a list of songs to the playlist
+		/// </summary>
+		/// <param name="playlist"></param>
+		/// <param name="songs"></param>
+		public void AddSongs( List<Song> songs )
+		{
+			// For each song create a PlayListItem and add to the PlayList
+			foreach ( Song song in songs )
+			{
+				PlaylistItem itemToAdd = new PlaylistItem()
+				{
+					Artist = song.Artist,
+					PlaylistId = Id,
+					Song = song,
+					SongId = song.Id,
+					Track = PlaylistItems.Count + 1
+				};
+
+				PlaylistItems.Add( itemToAdd );
+				PlaylistAccess.AddPlaylistItem( itemToAdd );
+			}
+		}
+
+		/// <summary>
+		/// Adjust the track numbers to match the indexes in the collection
+		/// </summary>
+		/// <param name="thePlaylist"></param>
+		public void AdjustTrackNumbers()
+		{
+			// The track numbers in the PlaylistItems must be updated to match their index in the collection
+			for ( int index = 0; index < PlaylistItems.Count; ++index )
+			{
+				PlaylistItem itemToCheck = PlaylistItems[ index ];
+				if ( itemToCheck.Track != ( index + 1 ) )
+				{
+					itemToCheck.Track = index + 1;
+
+					// Update the item in the model. No need to wait for this.
+					PlaylistAccess.UpdatePlaylistItemAsync( itemToCheck );
+				}
+			}
+		}
 	}
 }

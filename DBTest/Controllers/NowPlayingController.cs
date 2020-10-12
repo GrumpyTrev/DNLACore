@@ -26,23 +26,15 @@ namespace DBTest
 		/// Otherwise get the data from the database asynchronously
 		/// </summary>
 		/// <param name="libraryId"></param>
-		public static async void GetNowPlayingListAsync( int libraryId )
+		public static void GetNowPlayingList( int libraryId )
 		{
 			// Check if the Playlists details for the library have already been obtained
 			if ( NowPlayingViewModel.LibraryId != libraryId )
 			{
 				NowPlayingViewModel.LibraryId = libraryId;
 
-				// Get the list witrh artists
-				NowPlayingViewModel.NowPlayingPlaylist = await PlaylistAccess.GetNowPlayingListAsync( NowPlayingViewModel.LibraryId, true );
-
-				// Sort the PlaylistItems by Track
-				NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
-
-				// Get the selected song
-				NowPlayingViewModel.SelectedSong = PlaybackDetails.SongIndex;
-
-				NowPlayingViewModel.DataValid = true;
+				// All Playlists are read at startup. So wait until that is available and then carry out the rest of the initialisation
+				StorageController.RegisterInterestInDataAvailable( PlaylistDataAvailable );
 			}
 
 			// Publish this data unless it is still being obtained
@@ -89,7 +81,7 @@ namespace DBTest
 			}
 
 			// Now make these songs the playlist
-			BaseController.AddSongsToNowPlayingListAsync( songs, true, NowPlayingViewModel.LibraryId );
+			BaseController.AddSongsToNowPlayingList( songs, true );
 		}
 
 		/// <summary>
@@ -121,10 +113,10 @@ namespace DBTest
 			}
 
 			// Delete the entries and report that the list has been updated
-			PlaylistAccess.DeletePlaylistItems( NowPlayingViewModel.NowPlayingPlaylist, items );
+			NowPlayingViewModel.NowPlayingPlaylist.DeletePlaylistItems( items );
 
 			// Adjust the track numbers
-			BaseController.AdjustTrackNumbers( NowPlayingViewModel.NowPlayingPlaylist );
+			NowPlayingViewModel.NowPlayingPlaylist.AdjustTrackNumbers();
 
 			// Determine the index of the currently selected song from it's possibly new track number
 			AdjustSelectedSongIndex( currentPlaylistItem );
@@ -171,6 +163,22 @@ namespace DBTest
 			Reporter?.PlaylistUpdated();
 		}
 
+		/// <summary>
+		/// Called when the Playlist data is available to be displayed, or needs to be refreshed
+		/// </summary>
+		private static void PlaylistDataAvailable( object _ = null )
+		{
+			// Get the NowPlaying playlist.
+			NowPlayingViewModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( NowPlayingViewModel.LibraryId );
+
+			// Get the selected song
+			NowPlayingViewModel.SelectedSong = PlaybackDetails.SongIndex;
+
+			NowPlayingViewModel.DataValid = true;
+
+			// Let the views know that Now Playing data is available
+			Reporter?.NowPlayingDataAvailable();
+		}
 
 		/// <summary>
 		/// Called when the NowPlayingSongsAddedMessage is received
@@ -181,7 +189,7 @@ namespace DBTest
 		{
 			// Force a total refresh  by clearing the previous results
 			NowPlayingViewModel.ClearModel();
-			GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
+			GetNowPlayingList( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>
@@ -204,7 +212,7 @@ namespace DBTest
 		{
 			// Clear the displayed data
 			NowPlayingViewModel.ClearModel();
-			GetNowPlayingListAsync( ConnectionDetailsModel.LibraryId );
+			GetNowPlayingList( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>
@@ -227,7 +235,7 @@ namespace DBTest
 		/// <summary>
 		/// The random number generator used to shuffle the list
 		/// </summary>
-		private static Random rng = new Random();
+		private static readonly Random rng = new Random();
 
 		/// <summary>
 		/// The name given to the Now Playing playlist

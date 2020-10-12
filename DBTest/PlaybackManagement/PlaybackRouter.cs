@@ -38,7 +38,7 @@ namespace DBTest
 
 			// Initialise the PlaybackManagementController and request the playlist and current song details
 			PlaybackManagementController.Reporter = this;
-			PlaybackManagementController.GetMediaControlDataAsync( ConnectionDetailsModel.LibraryId );
+			PlaybackManagementController.GetMediaControlData( ConnectionDetailsModel.LibraryId );
 
 			// Start the media control service
 			contextForBinding.StartService( new Intent( contextForBinding, typeof( MediaControlService ) ) );

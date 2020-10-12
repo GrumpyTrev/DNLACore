@@ -30,7 +30,7 @@ namespace DBTest
 		/// Otherwise get the data from the database asynchronously
 		/// </summary>
 		/// <param name="libraryId"></param>
-		public static async void GetArtistsAsync( int libraryId )
+		public static void GetArtists( int libraryId )
 		{
 			// Check if the Artist details for the library have already been obtained
 			if ( ArtistsViewModel.LibraryId != libraryId )
@@ -42,7 +42,7 @@ namespace DBTest
 				ArtistsViewModel.LibraryId = libraryId;
 
 				// Get the list of current playlists and extract the names to a list
-				await GetPlayListNames();
+				GetPlayListNames();
 
 				// All Artists are read as part of the storage data. So wait until that is available and then carry out the rest of the 
 				// initialisation
@@ -88,10 +88,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static async void AddSongsToPlaylistAsync( List<Song> songsToAdd, string playlistName )
+		public static void AddSongsToPlaylist( List<Song> songsToAdd, string playlistName )
 		{
 			// Carry out the common processing to add songs to a playlist
-			await PlaylistAccess.AddSongsToPlaylistAsync( songsToAdd, playlistName, ArtistsViewModel.LibraryId );
+			Playlists.GetPlaylist( playlistName, ArtistsViewModel.LibraryId ).AddSongs( songsToAdd );
 
 			// Publish this event
 			new PlaylistSongsAddedMessage() { PlaylistName = playlistName }.Send();
@@ -241,7 +241,7 @@ namespace DBTest
 		/// Update the list of playlists held by the model
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void PlaylistAddedOrDeleted( object message ) => await GetPlayListNames();
+		private static void PlaylistAddedOrDeleted( object message ) => GetPlayListNames();
 
 		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
@@ -273,7 +273,7 @@ namespace DBTest
 			Reporter?.ArtistsDataAvailable();
 
 			// Reread the data
-			GetArtistsAsync( ConnectionDetailsModel.LibraryId );
+			GetArtists( ConnectionDetailsModel.LibraryId );
 		}
 
 		/// <summary>
@@ -371,8 +371,8 @@ namespace DBTest
 		/// <summary>
 		/// Get the names of all the user playlists
 		/// </summary>
-		private static async Task GetPlayListNames() => 
-			ArtistsViewModel.PlaylistNames = ( await PlaylistAccess.GetPlaylistDetailsAsync( ArtistsViewModel.LibraryId ) ).Select( i => i.Name ).ToList();
+		private static void GetPlayListNames() => 
+			ArtistsViewModel.PlaylistNames = Playlists.GetPlaylistsForLibrary(ArtistsViewModel.LibraryId ).Select( list => list.Name).ToList();
 
 		/// <summary>
 		/// The interface instance used to report back controller results
