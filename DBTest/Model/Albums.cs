@@ -40,7 +40,7 @@ namespace DBTest
 			AlbumCollection.Add( albumToAdd );
 			IdLookup[ albumToAdd.Id ] = albumToAdd;
 
-			// Need to wait for the Album to be added to ensrure that its ID is available
+			// Need to wait for the Album to be added to ensure that its ID is available
 			await AlbumAccess.AddAlbumAsync( albumToAdd );
 		}
 
@@ -55,19 +55,6 @@ namespace DBTest
 			AlbumAccess.DeleteAlbumAsync( albumToDelete );
 			AlbumCollection.Remove( albumToDelete );
 			IdLookup.Remove( albumToDelete.Id );
-		}
-
-		/// <summary>
-		/// Set or clear the played falg in the specified Album
-		/// </summary>
-		/// <param name="albumToUpdate"></param>
-		/// <param name="newState"></param>
-		public static void SetPlayedFlag( Album albumToUpdate, bool newState )
-		{
-			albumToUpdate.Played = newState;
-
-			// No need to wait for the storage to complete
-			AlbumAccess.UpdateAlbumAsync( albumToUpdate );
 		}
 
 		/// <summary>

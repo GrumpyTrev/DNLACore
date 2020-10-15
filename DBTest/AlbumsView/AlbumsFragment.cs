@@ -84,14 +84,18 @@ namespace DBTest
 		/// </summary>
 		public override void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
 		{
-			// Determine the number of songs in the selected items
+			// Determine the number of songs and albums in the selected items
 			songsSelected = selectedItems.Values.OfType< Song >().Count();
+			int albumsSelected = selectedItems.Values.OfType<Album>().Count();
 
 			// Update the Action Mode bar title
 			ActionModeTitle = ( songsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, songsSelected );
 
 			// Show the tag command if any albums are selected
-			tagCommand.Visible = ( selectedItems.Values.OfType<Album>().Count() > 0 );
+			tagCommand.Visible = ( albumsSelected > 0 );
+
+			// Show the autoGen command if a single Album, or a single song is selected
+			autoGenCommand.Visible = ( albumsSelected == 1 ) || ( songsSelected == 1 );
 
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();
@@ -139,7 +143,8 @@ namespace DBTest
 				// Create a Popup menu containing the play list names and show it
 				PopupMenu playlistsMenu = new PopupMenu( Context, addToPlaylistCommand.BoundButton );
 
-				AlbumsViewModel.PlaylistNames.ForEach( name => playlistsMenu.Menu.Add( 0, Menu.None, 0, name ) );
+				int itemId = 0;
+				AlbumsViewModel.Playlists.ForEach( list => playlistsMenu.Menu.Add( 0, itemId++, 0, list.Name ) );
 
 				// When a menu item is clicked get the songs from the adapter and the playlist name from the selected item
 				// and pass them both to the ArtistsController
@@ -148,7 +153,7 @@ namespace DBTest
 					List<Song> selectedSongs = Adapter.SelectedItems.Values.OfType<Song>().ToList();
 
 					// Determine which Playlist has been selected and add the selected songs to the playlist
-					AlbumsController.AddSongsToPlaylist( selectedSongs, args1.Item.TitleFormatted.ToString() );
+					AlbumsController.AddSongsToPlaylist( selectedSongs, AlbumsViewModel.Playlists[ args1.Item.ItemId ] );
 
 					LeaveActionMode();
 				};
@@ -196,8 +201,9 @@ namespace DBTest
 			// Need to bind to the add_to_playlist command in order to anchor the playlist context menu
 			addToPlaylistCommand = commandBar.BindCommand( Resource.Id.add_to_playlist );
 
-			// Bind the tag command
+			// Bind the tag and autoGen commands as they require non-standard visibility logic
 			tagCommand = commandBar.BindCommand( Resource.Id.tag );
+			autoGenCommand = commandBar.BindCommand( Resource.Id.auto_gen );
 		}
 
 		/// <summary>
@@ -252,6 +258,7 @@ namespace DBTest
 		/// </summary>
 		private CommandBinder addToPlaylistCommand = null;
 		private CommandBinder tagCommand = null;
+		private CommandBinder autoGenCommand = null;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

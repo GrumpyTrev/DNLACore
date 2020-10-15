@@ -41,9 +41,6 @@ namespace DBTest
 				// New data is required
 				ArtistsViewModel.LibraryId = libraryId;
 
-				// Get the list of current playlists and extract the names to a list
-				GetPlayListNames();
-
 				// All Artists are read as part of the storage data. So wait until that is available and then carry out the rest of the 
 				// initialisation
 				StorageController.RegisterInterestInDataAvailable( StorageDataAvailable );
@@ -64,38 +61,14 @@ namespace DBTest
 		/// interact with the expanding UI.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public static async Task GetArtistContentsAsync( Artist theArtist )
-		{
-			// Have the contents been accessed before
-			if ( theArtist.DetailsRead == false )
-			{
-				// No get them
-				await ArtistAccess.GetArtistSongsAsync( theArtist );
-
-				// Mark the details have been read
-				theArtist.DetailsRead = true;
-
-				// Sort the songs by track number
-				foreach ( ArtistAlbum artistAlbum in theArtist.ArtistAlbums )
-				{
-					artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
-				}
-			}
-		}
+		public static async Task GetArtistContentsAsync( Artist theArtist ) => await theArtist.GetSongsAsync();
 
 		/// <summary>
 		/// Add a list of Songs to a specified playlist
 		/// </summary>
 		/// <param name="songsToAdd"></param>
-		/// <param name="clearFirst"></param>
-		public static void AddSongsToPlaylist( List<Song> songsToAdd, string playlistName )
-		{
-			// Carry out the common processing to add songs to a playlist
-			Playlists.GetPlaylist( playlistName, ArtistsViewModel.LibraryId ).AddSongs( songsToAdd );
-
-			// Publish this event
-			new PlaylistSongsAddedMessage() { PlaylistName = playlistName }.Send();
-		}
+		/// <param name="playlist"></param>
+		public static void AddSongsToPlaylist( List<Song> songsToAdd, Playlist playlist ) => playlist.AddSongs( songsToAdd );
 
 		/// <summary>
 		/// Apply the specified filter to the data being displayed
@@ -241,7 +214,8 @@ namespace DBTest
 		/// Update the list of playlists held by the model
 		/// </summary>
 		/// <param name="message"></param>
-		private static void PlaylistAddedOrDeleted( object message ) => GetPlayListNames();
+		private static void PlaylistAddedOrDeleted( object message ) => 
+			ArtistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( ArtistsViewModel.LibraryId );
 
 		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
@@ -309,9 +283,7 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when a AlbumPlayedStateChangedMessage had been received.
-		/// If this album is being displayed then inform the adapter of the data change.
-		/// To actually determine if the album is being displayed is not possible as we don't have access to that information here.
-		/// As an approximation, if any of the Artists that have been expanded contain the album then the adapter will be informed
+		/// If the album is in the library being displayed then refresh the display
 		/// </summary>
 		/// <param name="message"></param>
 		private static void AlbumChanged( object message )
@@ -322,30 +294,7 @@ namespace DBTest
 			// It may be in another library if this is being called as part of a library synchronisation process
 			if ( changedAlbum.LibraryId == ArtistsViewModel.LibraryId )
 			{
-				// Keep track of any changes that need to be displayed
-				bool anyChanges = false;
-
-				// Look in each Artist
-				List< Artist >.Enumerator enumerator = ArtistsViewModel.Artists.GetEnumerator();
-				while ( ( enumerator.MoveNext() == true ) && ( anyChanges == false ) )
-				{
-					// Only look in this artist if it has been expanded
-					if ( enumerator.Current.DetailsRead == true )
-					{
-						// Look for the changed album
-						ArtistAlbum artistAlbum = enumerator.Current.ArtistAlbums.Find( al => al.AlbumId == changedAlbum.Id );
-						if ( artistAlbum != null )
-						{
-							anyChanges = true;
-						}
-					}
-				}
-
-				// Report any changes
-				if ( anyChanges == true )
-				{
-					Reporter?.ArtistsDataAvailable();
-				}
+				Reporter?.ArtistsDataAvailable();
 			}
 		}
 
@@ -355,7 +304,11 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static async void StorageDataAvailable( object message )
 		{
+			// Get the Artists we are interested in
 			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
+
+			// Get the list of current playlists and extract the names to a list
+			ArtistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( ArtistsViewModel.LibraryId );
 
 			// Do the sorting of ArtistAlbum entries off the UI thread
 			await SortArtistAlbumsAsync();
@@ -367,12 +320,6 @@ namespace DBTest
 			ArtistsViewModel.DataValid = true;
 			Reporter?.ArtistsDataAvailable();
 		}
-
-		/// <summary>
-		/// Get the names of all the user playlists
-		/// </summary>
-		private static void GetPlayListNames() => 
-			ArtistsViewModel.PlaylistNames = Playlists.GetPlaylistsForLibrary(ArtistsViewModel.LibraryId ).Select( list => list.Name).ToList();
 
 		/// <summary>
 		/// The interface instance used to report back controller results

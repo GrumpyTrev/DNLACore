@@ -88,6 +88,9 @@ namespace DBTest
 			moveDownCommand.Visible = ( itemsSelectedCount > 0 ) && 
 				( itemSelected.Any( list => ( list.Id == NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Last().Id ) ) == false );
 
+			// Show the autoGen command if a single song is selected
+			autoGenCommand.Visible = ( itemsSelectedCount == 1 );
+
 			// Show the command bar if more than one item is selected
 			CommandBar.Visibility = ShowCommandBar();
 		}
@@ -122,13 +125,15 @@ namespace DBTest
 			deleteCommand = commandBar.BindCommand( Resource.Id.delete );
 			moveUpCommand = commandBar.BindCommand( Resource.Id.move_up );
 			moveDownCommand = commandBar.BindCommand( Resource.Id.move_down );
+			autoGenCommand = commandBar.BindCommand( Resource.Id.auto_gen );
 		}
 
 		/// <summary>
 		/// Let derived classes determine whether or not the command bar should be shown
 		/// </summary>
 		/// <returns></returns>
-		protected override bool ShowCommandBar() => deleteCommand.Visible || moveUpCommand.Visible || moveDownCommand.Visible;
+		protected override bool ShowCommandBar() => deleteCommand.Visible || moveUpCommand.Visible || moveDownCommand.Visible ||
+			autoGenCommand.Visible;
 
 		/// <summary>
 		/// Called when a command bar command has been invoked
@@ -174,5 +179,6 @@ namespace DBTest
 		private CommandBinder deleteCommand = null;
 		private CommandBinder moveUpCommand = null;
 		private CommandBinder moveDownCommand = null;
+		private CommandBinder autoGenCommand = null;
 	}
 }

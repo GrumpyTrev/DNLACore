@@ -17,8 +17,8 @@ namespace DBTest
 		/// Get the songs for the specified Album
 		/// </summary>
 		/// <param name="theAlbum"></param>
-		public static async Task GetAlbumSongsAsync( Album theAlbum ) => theAlbum.Songs =
-			await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.AlbumId == theAlbum.Id ) ).ToListAsync();
+		public static async Task< List< Song > > GetAlbumSongsAsync( int albumId ) => 
+			await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.AlbumId == albumId) ).ToListAsync();
 
 		/// <summary>
 		/// Insert a new Album in the database

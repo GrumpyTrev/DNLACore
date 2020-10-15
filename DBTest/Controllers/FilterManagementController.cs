@@ -417,7 +417,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// If this Tag is the Just Played tag then clear the Played flag in the album and broadcast this change
+		/// If this Tag is the Just Played tag then clear the Played flag in the album
 		/// </summary>
 		/// <param name="fromTag"></param>
 		/// <param name="albumId"></param>
@@ -427,10 +427,7 @@ namespace DBTest
 			// If this is the JustPlayed tag and the Played flag is set for the album then clear it
 			if ( fromTag == FilterManagementModel.JustPlayedTag )
 			{
-				Albums.SetPlayedFlag( albumToClear, false );
-
-				// Inform interested parties
-				new AlbumPlayedStateChangedMessage() { AlbumChanged = albumToClear }.Send();
+				albumToClear.SetPlayedFlag( false );
 			}
 		}
 
@@ -493,10 +490,7 @@ namespace DBTest
 			{
 				if ( albumToAdd.Played == false )
 				{
-					Albums.SetPlayedFlag( albumToAdd, true );
-
-					// Inform interested parties
-					new AlbumPlayedStateChangedMessage() { AlbumChanged = albumToAdd }.Send();
+					albumToAdd.SetPlayedFlag( true );
 				}
 			}
 

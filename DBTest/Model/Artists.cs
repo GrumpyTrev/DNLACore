@@ -18,7 +18,7 @@ namespace DBTest
 		{
 			if ( ArtistCollection == null )
 			{
-				// Get the current set of albums and form the lookup tables
+				// Get the current set of artists and form the lookup tables
 				ArtistCollection = await ArtistAccess.GetAllArtistsAsync();
 				IdLookup = ArtistCollection.ToDictionary( art => art.Id );
 			}
@@ -40,7 +40,7 @@ namespace DBTest
 			ArtistCollection.Add( artistToAdd );
 			IdLookup[ artistToAdd.Id ] = artistToAdd;
 
-			// Need to wait for the Artist to be added so that its ID is availabel
+			// Need to wait for the Artist to be added so that its Id is available
 			await ArtistAccess.AddArtistAsync( artistToAdd );
 		}
 

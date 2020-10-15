@@ -43,10 +43,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="list"></param>
 		/// <param name="songs"></param>
-		public void PlaylistUpdated( string playlistName )
+		public void PlaylistUpdated( Playlist playlist )
 		{
 			// Find the group holding the playlist
-			int groupPosition = Groups.FindIndex( p => p.Name == playlistName );
+			int groupPosition = Groups.IndexOf( playlist );
 
 			if ( groupPosition != -1 )
 			{

@@ -187,11 +187,11 @@ namespace DBTest
 		/// <summary>
 		/// The PlaybackCapabilities instance used to monitor the network and scan for DLNA devices
 		/// </summary>
-		private PlaybackCapabilities playbackCapabilities = null;
+		private readonly PlaybackCapabilities playbackCapabilities = null;
 
 		/// <summary>
 		/// The PlaybackMonitor instance used to monitor the state of the playback system
 		/// </summary>
-		private PlaybackMonitor playbackMonitoring = null;
+		private readonly PlaybackMonitor playbackMonitoring = null;
 	}
 }

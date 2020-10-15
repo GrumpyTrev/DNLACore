@@ -51,7 +51,7 @@
 				( newSource.AccessType != originalSource.AccessType ) )
 			{
 				// Something has changed so update the source
-				Sources.UpdateSource( originalSource, newSource );
+				originalSource.UpdateSource( newSource );
 
 				// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
 				sourceSelectionDialog?.OnSourceChanged();

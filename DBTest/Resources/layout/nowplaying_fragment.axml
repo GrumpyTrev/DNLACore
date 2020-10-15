@@ -21,6 +21,9 @@
 		app:theme="@style/AppTheme"
 		app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 	
+		<include android:id="@+id/auto_gen"
+			layout="@layout/bottom_button"/>
+
 		<include android:id="@+id/delete"
 			layout="@layout/bottom_button"/>
 		

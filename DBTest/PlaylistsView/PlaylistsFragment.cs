@@ -73,7 +73,7 @@ namespace DBTest
 		/// Pass on the changes to the adpater
 		/// </summary>
 		/// <param name="message"></param>
-		public void PlaylistUpdated( string playlistName ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlistName );
+		public void PlaylistUpdated( Playlist playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
 
 		/// <summary>
 		/// Called when the number of selected items has changed.
@@ -124,6 +124,9 @@ namespace DBTest
 
 			// The duplicate command is only available if a single playlist has been selected
 			duplicateCommand.Visible = ( playlistCount == 1 );
+
+			// Show the autoGen command if a single song is selected
+			autoGenCommand.Visible = ( songCount == 1 );
 
 			// Set the action bar title
 			SetActionBarTitle( songCount, playlistCount );
@@ -230,6 +233,7 @@ namespace DBTest
 			moveUpCommand = commandBar.BindCommand( Resource.Id.move_up );
 			moveDownCommand = commandBar.BindCommand( Resource.Id.move_down );
 			duplicateCommand = commandBar.BindCommand( Resource.Id.duplicate );
+			autoGenCommand = commandBar.BindCommand( Resource.Id.auto_gen );
 		}
 
 		/// <summary>
@@ -237,7 +241,7 @@ namespace DBTest
 		/// </summary>
 		/// <returns></returns>
 		protected override bool ShowCommandBar() => playNowCommand.Visible || addToQueueCommand.Visible || deleteCommand.Visible || moveUpCommand.Visible ||
-				moveDownCommand.Visible || editCommand.Visible || duplicateCommand.Visible;
+				moveDownCommand.Visible || editCommand.Visible || duplicateCommand.Visible || autoGenCommand.Visible;
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -285,5 +289,6 @@ namespace DBTest
 		private CommandBinder moveUpCommand = null;
 		private CommandBinder moveDownCommand = null;
 		private CommandBinder duplicateCommand = null;
+		private CommandBinder autoGenCommand = null;
 	}
 }

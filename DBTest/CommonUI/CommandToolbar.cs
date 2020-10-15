@@ -23,8 +23,7 @@ namespace DBTest
 				// Iterate through the children of this toolbar looking for ImageButton
 				for ( int index = 0; index < Toolbar.ChildCount; ++index )
 				{
-					AppCompatImageButton imageButton = Toolbar.GetChildAt( index ) as AppCompatImageButton;
-					if ( imageButton != null )
+					if ( Toolbar.GetChildAt( index ) is AppCompatImageButton imageButton )
 					{
 						// Get the name of the resource form the id and use it to form the name of the image resource
 						string[] packageSplit = Application.Context.Resources.GetResourceName( imageButton.Id ).Split( ':' );
@@ -111,7 +110,7 @@ namespace DBTest
 		/// <summary>
 		/// Collection of buttons indexed by id
 		/// </summary>
-		private Dictionary< int, AppCompatImageButton > Buttons = new Dictionary<int, AppCompatImageButton>();
+		private readonly Dictionary< int, AppCompatImageButton > Buttons = new Dictionary<int, AppCompatImageButton>();
 
 		/// <summary>
 		/// The delegate to call when a command has been invoked

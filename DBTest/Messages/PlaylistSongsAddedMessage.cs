@@ -8,6 +8,6 @@
 		/// <summary>
 		/// The playlist that the songs have been added to
 		/// </summary>
-		public string PlaylistName { get; set; } = "";
+		public Playlist Playlist { get; set; } = null;
 	}
 }

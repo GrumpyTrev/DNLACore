@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -46,14 +45,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get the contents for the specified Playlist
-		/// </summary>
-		/// <param name="thePlaylist"></param>
-		public static async Task GetPlaylistContentsAsync( Playlist _ )
-		{
-		}
-
-		/// <summary>
 		/// Delete the specified playlist and its contents
 		/// </summary>
 		/// <param name="thePlaylist"></param>
@@ -83,7 +74,7 @@ namespace DBTest
 			thePlaylist.AdjustTrackNumbers();
 
 			// Report the change
-			Reporter?.PlaylistUpdated( thePlaylist.Name );
+			Reporter?.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
@@ -108,9 +99,9 @@ namespace DBTest
 		/// <param name="items"></param>
 		public static void MoveItemsDown( Playlist thePlaylist, List<PlaylistItem> items )
 		{
-			BaseController.MoveItemsDown( thePlaylist, items );
+			thePlaylist.MoveItemsDown( items );
 
-			Reporter?.PlaylistUpdated( thePlaylist.Name );
+			Reporter?.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
@@ -120,9 +111,9 @@ namespace DBTest
 		/// <param name="items"></param>
 		public static void MoveItemsUp( Playlist thePlaylist, List<PlaylistItem> items )
 		{
-			BaseController.MoveItemsUp( thePlaylist, items );
+			thePlaylist.MoveItemsUp( items );
 
-			Reporter?.PlaylistUpdated( thePlaylist.Name );
+			Reporter?.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
@@ -173,7 +164,7 @@ namespace DBTest
 						while ( ( matchingSong == null ) && ( sourceIndex < sources.Count ) )
 						{
 							// Get a list of all the songs with matching Titles in the source
-							List<Song> matchingTitles = await ArtistAccess.GetMatchingSongAsync( item.Song.Title, sources[ sourceIndex++ ].Id );
+							List<Song> matchingTitles = await SongAccess.GetMatchingSongAsync( item.Song.Title, sources[ sourceIndex++ ].Id );
 
 							// Now for each song access the associated artist
 							int titleIndex = 0;
@@ -212,15 +203,14 @@ namespace DBTest
 		/// </summary>
 		/// <param name="message"></param>
 		private static void SongsAdded( object message ) => 
-			Reporter?.PlaylistUpdated( ( ( PlaylistSongsAddedMessage )message ).PlaylistName );
+			Reporter?.PlaylistUpdated( ( ( PlaylistSongsAddedMessage )message ).Playlist );
 
 		/// <summary>
 		/// Called when the Playlist data is available to be displayed, or needs to be refreshed
 		/// </summary>
 		private static void PlaylistDataAvailable( object _ = null )
 		{
-			PlaylistsViewModel.Playlists = Playlists.PlaylistCollection.Where( play => ( play.LibraryId == PlaylistsViewModel.LibraryId ) &&
-			   ( play.Name != NowPlayingController.NowPlayingPlaylistName ) ).ToList();
+			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId );
 			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
 
 			PlaylistsViewModel.DataValid = true;
@@ -257,7 +247,7 @@ namespace DBTest
 		public interface IReporter
 		{
 			void PlaylistsDataAvailable();
-			void PlaylistUpdated( string playlistName );
+			void PlaylistUpdated( Playlist playlist );
 		}
 	}
 }

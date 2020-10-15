@@ -33,6 +33,11 @@ namespace DBTest
 		public static PlaybackDevice AvailableDevice { get; set; } = null;
 
 		/// <summary>
+		/// Indicates whether or not the data held by the class is valid
+		/// </summary>
+		public static bool DataValid { get; set; } = false;
+
+		/// <summary>
 		/// Keep track of whether or not the Media Controller is being displayed
 		/// </summary>
 		public static bool MediaControllerVisible { get; set; } = true;

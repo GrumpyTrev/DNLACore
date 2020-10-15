@@ -34,8 +34,11 @@ namespace DBTest
 		public string Name { get; set; }
 	}
 
+	/// <summary>
+	/// The Source class specifies where a set of somngs can be found on a local or remote device
+	/// </summary>
 	[Table( "Source" )]
-	public class Source
+	public partial class Source
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
@@ -68,42 +71,8 @@ namespace DBTest
 		/// </summary>
 		public int PortNo { get; set; }
 
-		/// <summary>
-		/// The source used when scanning - derived from above
-		/// For remote devices this is '{IPAddress}'
-		/// For local devices this is '/{FolderName}/'
-		/// </summary>
-		[Ignore]
-		public string ScanSource { get; set; }
-
-		/// <summary>
-		/// The type of access used for scanning - derived from above
-		/// For remote devices this will be 'FTP'
-		/// For local devices this will be 'Local'
-		/// </summary>
-		[Ignore]
-		public string ScanType { get; set; }
-
-		/// <summary>
-		/// The location used to access the songs when playing them locally
-		/// For remote devices this will be 'http://{IPAddress}:{PortNo}/{FolderName}'
-		/// For local devices this will be '/{FolderName}'
-		/// </summary>
-		[Ignore]
-		public string LocalAccess { get; set; }
-
-		/// <summary>
-		/// The location used to access the songs when playing them remotely
-		/// For both remote and local devices this will be 'http://{IPAddress}:{PortNo}/{FolderName}'
-		/// </summary>
-		[Ignore]
-		public string RemoteAccess { get; set; }
-
 		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
-
-		[Ignore]
-		public List<Song> Songs { get; set; }
 	}
 
 	[Table( "Song" )]
@@ -142,7 +111,7 @@ namespace DBTest
 	}
 
 	[Table( "Artist" )]
-	public class Artist
+	public partial class Artist
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
@@ -151,19 +120,10 @@ namespace DBTest
 
 		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
-
-		[Ignore]
-		public List<ArtistAlbum> ArtistAlbums { get; set; } = new List<ArtistAlbum>();
-
-		/// <summary>
-		/// Indicates when all the details for the Artist have been read
-		/// </summary>
-		[Ignore]
-		public bool DetailsRead { get; set; } = false;
 	}
 
 	[Table( "Album" )]
-	public class Album
+	public partial class Album
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
@@ -172,9 +132,6 @@ namespace DBTest
 
 		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
-
-		[OneToMany]
-		public List<Song> Songs { get; set; }
 
 		public string ArtistName { get; set; }
 
@@ -234,9 +191,6 @@ namespace DBTest
 
 		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
-
-		[OneToMany]
-		public List<PlaylistItem> PlaylistItems { get; set; }
 	}
 
 	[Table( "PlayListItem" )]

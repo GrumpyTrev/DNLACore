@@ -13,7 +13,7 @@ namespace DBTest
 		/// </summary>
 		static PlaybackManagementController()
 		{
-			Mediator.RegisterPermanent( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
+			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( DeviceAvailable, typeof( PlaybackDeviceAvailableMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
@@ -33,17 +33,34 @@ namespace DBTest
 			{
 				PlaybackManagerModel.LibraryId = libraryId;
 
-				// This is getting the same list as the NowPlayingController. So let it do any sorting.
-				PlaybackManagerModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( PlaybackManagerModel.LibraryId );
-
-				// Get the selected song
-				PlaybackManagerModel.CurrentSongIndex = PlaybackDetails.SongIndex;
-
-				// Get the sources associated with the library
-				PlaybackManagerModel.Sources = Sources.GetSourcesForLibrary( PlaybackManagerModel.LibraryId );
+				// All Playlists are read at startup. So wait until that is available and then carry out the rest of the initialisation
+				StorageController.RegisterInterestInDataAvailable( PlaylistDataAvailable );
 			}
 
-			// Publish this data
+			// Publish this data unless it is still being obtained
+			if ( PlaybackManagerModel.DataValid == true )
+			{
+				Reporter?.MediaControlDataAvailable();
+			}
+		}
+
+		/// <summary>
+		/// Called when the Playlist data is available to be displayed
+		/// </summary>
+		private static void PlaylistDataAvailable( object _ = null )
+		{
+			// This is getting the same list as the NowPlayingController. So let it do any sorting.
+			PlaybackManagerModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( PlaybackManagerModel.LibraryId );
+
+			// Get the selected song
+			PlaybackManagerModel.CurrentSongIndex = PlaybackDetails.SongIndex;
+
+			// Get the sources associated with the library
+			PlaybackManagerModel.Sources = Sources.GetSourcesForLibrary( PlaybackManagerModel.LibraryId );
+
+			PlaybackManagerModel.DataValid = true;
+
+			// Let the views know that playback data is available
 			Reporter?.MediaControlDataAvailable();
 
 			// If a play request has been received whilst accessing this data then process it now
@@ -68,10 +85,7 @@ namespace DBTest
 		/// Pass this on to the relevant controller, not this one
 		/// </summary>
 		/// <param name="songPlayed"></param>
-		public static void SongPlayed( Song songPlayed )
-		{
-			new SongPlayedMessage() { SongPlayed = songPlayed }.Send();
-		}
+		public static void SongPlayed( Song songPlayed ) => new SongPlayedMessage() { SongPlayed = songPlayed }.Send();
 
 		/// <summary>
 		/// Called when the SongSelectedMessage is received
@@ -96,8 +110,11 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SongsAdded( object message )
 		{
-			PlaybackManagerModel.NowPlayingPlaylist = null;
-			GetMediaControlData( PlaybackManagerModel.LibraryId );
+			if ( ( ( PlaylistSongsAddedMessage )message ).Playlist == PlaybackManagerModel.NowPlayingPlaylist )
+			{
+				PlaybackManagerModel.NowPlayingPlaylist = null;
+				GetMediaControlData( PlaybackManagerModel.LibraryId );
+			}
 		}
 
 		/// <summary>

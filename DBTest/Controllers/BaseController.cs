@@ -30,7 +30,6 @@ namespace DBTest
 
 			// Carry out the common processing to add songs to a playlist
 			NowPlayingViewModel.NowPlayingPlaylist.AddSongs( songsToAdd );
-			new NowPlayingSongsAddedMessage().Send();
 
 			// If the list was cleared and there are now some items in the list select the first entry
 			if ( ( clearFirst == true ) & ( songsToAdd.Count > 0 ) )
@@ -41,38 +40,6 @@ namespace DBTest
 				// Make sure the new song is played
 				new PlayCurrentSongMessage().Send();
 			}
-		}
-
-		/// <summary>
-		/// Move a set of selected items down the specified playlist and update the track numbers
-		/// </summary>
-		/// <param name="thePlaylist"></param>
-		/// <param name="items"></param>
-		public static void MoveItemsDown( Playlist thePlaylist, List<PlaylistItem> items )
-		{
-			// There must be at least one PlayList entry beyond those that are selected. That entry needs to be moved to above the start of the selection
-			PlaylistItem itemToMove = thePlaylist.PlaylistItems[ items.Last().Track ];
-			thePlaylist.PlaylistItems.RemoveAt( items.Last().Track );
-			thePlaylist.PlaylistItems.Insert( items.First().Track - 1, itemToMove );
-
-			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			thePlaylist.AdjustTrackNumbers();
-		}
-
-		/// <summary>
-		/// Move a set of selected items up the specified playlist and update the track numbers
-		/// </summary>
-		/// <param name="thePlaylist"></param>
-		/// <param name="items"></param>
-		public static void MoveItemsUp( Playlist thePlaylist, List<PlaylistItem> items )
-		{
-			// There must be at least one PlayList entry above those that are selected. That entry needs to be moved to below the end of the selection
-			PlaylistItem itemToMove = thePlaylist.PlaylistItems[ items.First().Track - 2 ];
-			thePlaylist.PlaylistItems.RemoveAt( items.First().Track - 2 );
-			thePlaylist.PlaylistItems.Insert( items.Last().Track - 1, itemToMove );
-
-			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			thePlaylist.AdjustTrackNumbers();
 		}
 
 		/// <summary>

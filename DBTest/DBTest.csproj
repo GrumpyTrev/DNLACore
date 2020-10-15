@@ -93,6 +93,8 @@
     <Compile Include="BaseView\ExpandableListAdapterModel.cs" />
     <Compile Include="Controllers\PlaybackSelectionController.cs" />
     <Compile Include="Controllers\StorageController.cs" />
+    <Compile Include="DbAccess\ArtistAlbumAccess.cs" />
+    <Compile Include="DbAccess\SourceAccess.cs" />
     <Compile Include="FilterManagement\DeleteConfirmationDialogFragment.cs" />
     <Compile Include="FilterManagement\FilterGroupAdapter.cs" />
     <Compile Include="FilterManagement\FilterManagementModel.cs" />
@@ -138,17 +140,21 @@
     <Compile Include="Messages\TagDeletedMessage.cs" />
     <Compile Include="Messages\TagDetailsChangedMessage.cs" />
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />
-    <Compile Include="Model\AlbumAccess.cs" />
-    <Compile Include="Model\SongAccess.cs" />
+    <Compile Include="Model\Album.cs" />
+    <Compile Include="DbAccess\AlbumAccess.cs" />
+    <Compile Include="Model\Artist.cs" />
+    <Compile Include="Model\Playlist.cs" />
+    <Compile Include="DbAccess\SongAccess.cs" />
     <Compile Include="Model\Playlists.cs" />
     <Compile Include="Model\Libraries.cs" />
     <Compile Include="Model\ArtistAlbums.cs" />
     <Compile Include="Model\Artists.cs" />
     <Compile Include="Model\Albums.cs" />
-    <Compile Include="Model\FilterAccess.cs" />
+    <Compile Include="DbAccess\FilterAccess.cs" />
     <Compile Include="Model\Genres.cs" />
-    <Compile Include="Model\LibraryAccess.cs" />
+    <Compile Include="DbAccess\LibraryAccess.cs" />
     <Compile Include="Model\PlaybackDetails.cs" />
+    <Compile Include="Model\Source.cs" />
     <Compile Include="Model\Sources.cs" />
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />
     <Compile Include="PlaybackManagement\DLNAScanner.cs" />
@@ -168,10 +174,9 @@
     <Compile Include="Messages\BaseMessage.cs" />
     <Compile Include="Messages\SongSelectedMessage.cs" />
     <Compile Include="Messages\PlaylistSongsAddedMessage.cs" />
-    <Compile Include="Messages\NowPlayingSongsAddedMessage.cs" />
-    <Compile Include="Model\ArtistAccess.cs" />
-    <Compile Include="Model\PlaybackAccess.cs" />
-    <Compile Include="Model\PlaylistAccess.cs" />
+    <Compile Include="DbAccess\ArtistAccess.cs" />
+    <Compile Include="DbAccess\PlaybackAccess.cs" />
+    <Compile Include="DbAccess\PlaylistAccess.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapter.cs" />
     <Compile Include="NowPlayingView\NowPlayingFragment.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapterModel.cs" />
@@ -491,6 +496,9 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\remote_playback_wifi.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\auto_gen.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

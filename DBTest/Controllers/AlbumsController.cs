@@ -58,7 +58,7 @@ namespace DBTest
 		/// <param name="theAlbum"></param>
 		public static async Task GetAlbumContentsAsync( Album theAlbum )
 		{
-			await AlbumAccess.GetAlbumSongsAsync( theAlbum );
+			await theAlbum.GetSongsAsync();
 
 			// Sort the songs by track number - UI thread but not many entries
 			theAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
@@ -68,15 +68,8 @@ namespace DBTest
 		/// Add a list of Songs to a specified playlist
 		/// </summary>
 		/// <param name="songsToAdd"></param>
-		/// <param name="clearFirst"></param>
-		public static void AddSongsToPlaylist( List<Song> songsToAdd, string playlistName )
-		{
-			// Carry out the common processing to add songs to a playlist
-			Playlists.GetPlaylist( playlistName, AlbumsViewModel.LibraryId ).AddSongs( songsToAdd );
-
-			// Publish this event
-			new PlaylistSongsAddedMessage() { PlaylistName = playlistName }.Send();
-		}
+		/// <param name="playlist"></param>
+		public static void AddSongsToPlaylist( List<Song> songsToAdd, Playlist playlist ) => playlist.AddSongs( songsToAdd );
 
 		/// <summary>
 		/// Wrapper around ApplyFilterAsync to match delegate signature
@@ -239,7 +232,7 @@ namespace DBTest
 			await ApplyFilterAsync( null, false );
 
 			// Get the list of current playlists
-			GetPlayListNames();
+			GetPlayLists();
 
 			AlbumsViewModel.DataValid = true;
 
@@ -266,7 +259,7 @@ namespace DBTest
 		/// Update the list of playlists held by the model
 		/// </summary>
 		/// <param name="message"></param>
-		private static void PlaylistAddedOrDeleted( object message ) => GetPlayListNames();
+		private static void PlaylistAddedOrDeleted( object message ) => GetPlayLists();
 
 		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
@@ -353,10 +346,10 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get the names of all the user playlists
+		/// Get the user playlists
 		/// </summary>
-		private static void GetPlayListNames() =>
-			AlbumsViewModel.PlaylistNames = Playlists.GetPlaylistsForLibrary( AlbumsViewModel.LibraryId ).Select( list => list.Name).ToList();
+		private static void GetPlayLists() =>
+			AlbumsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( AlbumsViewModel.LibraryId );
 
 		/// <summary>
 		/// The interface instance used to report back controller results

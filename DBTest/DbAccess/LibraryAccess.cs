@@ -10,11 +10,6 @@ namespace DBTest
 	static class LibraryAccess
 	{
 		/// <summary>
-		/// Get all the Sources in the data base
-		/// </summary>
-		public static async Task<List<Source>> GetAllSourcesAsync() => await ConnectionDetailsModel.AsynchConnection.Table<Source>().ToListAsync();
-
-		/// <summary>
 		/// Get all the libraries from the database
 		/// </summary>
 		/// <returns></returns>
@@ -76,11 +71,5 @@ namespace DBTest
 				await ConnectionDetailsModel.AsynchConnection.DeleteAllAsync( songs );
 			}
 		}
-
-		/// <summary>
-		/// Update the specified source
-		/// </summary>
-		/// <param name="sourceToUpdate"></param>
-		public static async void UpdateSourceAsync( Source sourceToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( sourceToUpdate );
 	}
 }

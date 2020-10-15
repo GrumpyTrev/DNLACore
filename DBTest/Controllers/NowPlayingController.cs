@@ -15,7 +15,7 @@ namespace DBTest
 		/// </summary>
 		static NowPlayingController()
 		{
-			Mediator.RegisterPermanent( SongsAdded, typeof( NowPlayingSongsAddedMessage ) );
+			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 		}
@@ -135,7 +135,7 @@ namespace DBTest
 			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null
 				: NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.SelectedSong ];
 
-			BaseController.MoveItemsDown( NowPlayingViewModel.NowPlayingPlaylist, items );
+			NowPlayingViewModel.NowPlayingPlaylist.MoveItemsDown( items );
 
 			// Now adjust the index of the selected song
 			AdjustSelectedSongIndex( currentPlaylistItem );
@@ -154,7 +154,7 @@ namespace DBTest
 			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null
 				: NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.SelectedSong ];
 
-			BaseController.MoveItemsUp( NowPlayingViewModel.NowPlayingPlaylist, items );
+			NowPlayingViewModel.NowPlayingPlaylist.MoveItemsUp( items );
 
 			// Now adjust the index of the selected song
 			AdjustSelectedSongIndex( currentPlaylistItem );
@@ -187,9 +187,12 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SongsAdded( object message )
 		{
-			// Force a total refresh  by clearing the previous results
-			NowPlayingViewModel.ClearModel();
-			GetNowPlayingList( ConnectionDetailsModel.LibraryId );
+			if ( ( ( PlaylistSongsAddedMessage )message ).Playlist == NowPlayingViewModel.NowPlayingPlaylist )
+			{
+				// Force a total refresh  by clearing the previous results
+				NowPlayingViewModel.ClearModel();
+				GetNowPlayingList( ConnectionDetailsModel.LibraryId );
+			}
 		}
 
 		/// <summary>

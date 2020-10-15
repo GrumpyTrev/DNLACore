@@ -238,7 +238,7 @@ namespace DBTest
 					ModifiedTime = songScanned.Modified, Length = songScanned.Length, AlbumId = songAlbum.Id, ArtistAlbumId = songArtistAlbum.Id,
 					SourceId = sourceBeingScanned.Id
 				};
-				await ArtistAccess.AddSongAsync( songToAdd );
+				await SongAccess.AddSongAsync( songToAdd );
 
 				Logger.Log( string.Format( "Artist: {0} Title: {1} Track: {2} Modified: {3} Length {4} Year {5}", songScanned.Tags.Artist, songScanned.Tags.Title,
 					songScanned.Tags.Track, songScanned.Modified, songScanned.Length, songScanned.Year ) );
@@ -308,10 +308,7 @@ namespace DBTest
 					songAlbum = songArtistAlbum.Album;
 
 					// The rest of the code expects the Album to have its songs populated, so check here
-					if ( songAlbum.Songs == null )
-					{
-						await AlbumAccess.GetAlbumSongsAsync( songAlbum );
-					}
+					await songAlbum.GetSongsAsync();
 				}
 			}
 
@@ -385,7 +382,7 @@ namespace DBTest
 				// Get the children of the existing ArtistAlbum
 				if ( songArtistAlbum.Songs == null )
 				{
-					await ArtistAccess.GetArtistAlbumSongsAsync( songArtistAlbum );
+					await SongAccess.GetArtistAlbumSongsAsync( songArtistAlbum.Id );
 				}
 			}
 
@@ -400,21 +397,21 @@ namespace DBTest
 		/// <summary>
 		/// The Source to insert Songs into
 		/// </summary>
-		private Source sourceBeingScanned = null;
+		private readonly Source sourceBeingScanned = null;
 
 		/// <summary>
 		/// The Library to insert Artists and Albums into
 		/// </summary>
-		private int scanLibrary = 0;
+		private readonly int scanLibrary = 0;
 
 		/// <summary>
 		/// The Artists in the Library being scanned
 		/// </summary>
-		private Dictionary< string, Artist > artistsInLibrary = null;
+		private readonly Dictionary< string, Artist > artistsInLibrary = null;
 
 		/// <summary>
 		/// Collection used to lookup esxisting songs
 		/// </summary>
-		private Dictionary<string, Song> songLookup = null;
+		private readonly Dictionary<string, Song> songLookup = null;
 	}
 }
