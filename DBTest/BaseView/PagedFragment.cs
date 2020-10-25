@@ -4,6 +4,8 @@ using Android.Support.V4.App;
 using Android.Widget;
 using System.Collections.Generic;
 using Android.Support.V7.App;
+using Android.Support.V7.Widget;
+using System.Linq;
 
 namespace DBTest
 {
@@ -45,7 +47,10 @@ namespace DBTest
 			ListView.SetAdapter( Adapter );
 
 			// Create an CommandBar to encapsulate the bottom toolbar and its command buttons
-			CommandBar = new CommandBar( FragmentView, Resource.Id.bottomToolbar, BindCommands, HandleCommand );
+			CommandBar = new CommandBar( FragmentView, Resource.Id.bottomToolbar, HandleCommand );
+
+			// Link this fragement's post command action to the CommandHandlerCallback instance
+			commandCallback.Callback = LeaveActionMode;
 
 			// Sometimes the fragment is made visible before its views have been created.
 			// Any attempt to re-start action mode is delayed until now.
@@ -68,6 +73,7 @@ namespace DBTest
 		public sealed override void OnDestroyView()
 		{
 			FragmentView = null;
+			commandCallback.Callback = null;
 
 			// Allow derived fragments to release their own resources
 			ReleaseResources();
@@ -166,7 +172,7 @@ namespace DBTest
 			// Let the derived classed create any menus they require
 			OnSpecialisedCreateActionMode( mode, menu );
 
-			// Only show the command bar if the derived classes allow
+			// Should the command bar be shown
 			CommandBar.Visibility = ShowCommandBar();
 
 			return true;
@@ -292,9 +298,25 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when the selected items have changed
+		/// Update the visibility of any command bar buttons and pass on the objects to the derived classes
 		/// </summary>
 		/// <param name="selectedItems"></param>
-		public abstract void SelectedItemsChanged( SortedDictionary<int, object> selectedItems );
+		public void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
+		{
+			List<object> selectedObjects = selectedItems.Values.ToList();
+
+			CommandBar.DetermineButtonsVisibility( selectedObjects );
+			SelectedItemsChanged( selectedObjects );
+
+			// Show the command bar if any of the buttons are visible
+			CommandBar.Visibility = ShowCommandBar();
+		}
+
+		/// <summary>
+		/// Let the derived classes process changed selected objects
+		/// </summary>
+		/// <param name="selectedObjects"></param>
+		protected abstract void SelectedItemsChanged( List<object> selectedObjects );
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -329,16 +351,12 @@ namespace DBTest
 		protected virtual void ReleaseResources() { }
 
 		/// <summary>
-		/// Called to allow derived classes to bind to the command bar commands
-		/// </summary>
-		protected abstract void BindCommands( CommandBar commandBar );
-
-		/// <summary>
 		/// Call when a command bar command has been invoked
 		/// </summary>
 		/// <param name="button"></param>
 		/// <returns></returns>
-		protected virtual void HandleCommand( int commandId ) { }
+		protected virtual void HandleCommand( int commandId, AppCompatImageButton button ) => 
+			CommandRouter.HandleCommand( commandId, Adapter.SelectedItems.Values, commandCallback, button );
 
 		/// <summary>
 		/// The delegate used to apply a filter change
@@ -347,10 +365,10 @@ namespace DBTest
 		protected virtual FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => null;
 
 		/// <summary>
-		/// Let derived classes determine whether or not the bottom toolbar should be shown
+		/// Show the command bar if any of the command bar buttons are visible
 		/// </summary>
 		/// <returns></returns>
-		protected virtual bool ShowCommandBar() => false;
+		protected bool ShowCommandBar() => CommandBar.AnyButtonsVisible();
 
 		/// <summary>
 		/// Append the specified string to the tab title for this frasgment
@@ -489,5 +507,10 @@ namespace DBTest
 		/// The optional menu item for the hide/show genres option
 		/// </summary>
 		private IMenuItem genresOption = null;
+
+		/// <summary>
+		/// The CommandHandlerCallback containing the action to call after a command has been handled
+		/// </summary>
+		static private CommandRouter.CommandHandlerCallback commandCallback = new CommandRouter.CommandHandlerCallback();
 	}
 }

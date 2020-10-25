@@ -31,7 +31,11 @@ namespace DBTest
 		/// No group content required. Just run an empty task to prevent compiler warnings
 		/// </summary>
 		/// <param name="thePlayList"></param>
-		public async Task ProvideGroupContentsAsync( PlaylistItem theItem ) => await Task.Run( () => { } );
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+		public async Task ProvideGroupContentsAsync( PlaylistItem _ )
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+		{
+		}
 
 		/// <summary>
 		/// Called when the Now Playing playlist has been read or updated
@@ -69,7 +73,7 @@ namespace DBTest
 		/// Called when the number of selected items (songs) has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		public override void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
+		protected override void SelectedItemsChanged( List< object > selectedObjects )
 		{
 			// Determine the number of songs in the selected items
 			IEnumerable<PlaylistItem> itemSelected = selectedItems.Values.OfType< PlaylistItem>();
@@ -78,9 +82,6 @@ namespace DBTest
 			// Update the Action Mode bar title
 			ActionModeTitle = ( itemsSelectedCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelectedCount );
 
-			// The delete command is enabled when one or more items are selected
-			deleteCommand.Visible = ( itemsSelectedCount > 0 );
-
 			// The move_up command is enabled if one or more items are selected and the first item is not selected
 			// The move_down command is enabled if one or more items are selected and the last item is not selected
 			moveUpCommand.Visible = ( itemsSelectedCount > 0 ) && 
@@ -88,11 +89,6 @@ namespace DBTest
 			moveDownCommand.Visible = ( itemsSelectedCount > 0 ) && 
 				( itemSelected.Any( list => ( list.Id == NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Last().Id ) ) == false );
 
-			// Show the autoGen command if a single song is selected
-			autoGenCommand.Visible = ( itemsSelectedCount == 1 );
-
-			// Show the command bar if more than one item is selected
-			CommandBar.Visibility = ShowCommandBar();
 		}
 
 		/// <summary>
@@ -118,46 +114,6 @@ namespace DBTest
 		protected override void ReleaseResources() => NowPlayingController.Reporter = null;
 
 		/// <summary>
-		/// Called to allow derived classes to bind to the command bar commands
-		/// </summary>
-		protected override void BindCommands( CommandBar commandBar )
-		{
-			deleteCommand = commandBar.BindCommand( Resource.Id.delete );
-			moveUpCommand = commandBar.BindCommand( Resource.Id.move_up );
-			moveDownCommand = commandBar.BindCommand( Resource.Id.move_down );
-			autoGenCommand = commandBar.BindCommand( Resource.Id.auto_gen );
-		}
-
-		/// <summary>
-		/// Let derived classes determine whether or not the command bar should be shown
-		/// </summary>
-		/// <returns></returns>
-		protected override bool ShowCommandBar() => deleteCommand.Visible || moveUpCommand.Visible || moveDownCommand.Visible ||
-			autoGenCommand.Visible;
-
-		/// <summary>
-		/// Called when a command bar command has been invoked
-		/// </summary>
-		/// <param name="button"></param>
-		protected override void HandleCommand( int commandId )
-		{
-			List<PlaylistItem> selectedItems = Adapter.SelectedItems.Values.OfType<PlaylistItem>().ToList();
-			if ( commandId == Resource.Id.delete )
-			{
-				NowPlayingController.DeleteNowPlayingItems( selectedItems );
-				LeaveActionMode();
-			}
-			else if ( commandId == Resource.Id.move_up )
-			{
-				NowPlayingController.MoveItemsUp( selectedItems );
-			}
-			else if ( commandId == Resource.Id.move_down )
-			{
-				NowPlayingController.MoveItemsDown( selectedItems );
-			}
-		}
-
-		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
 		/// </summary>
 		protected override int Layout { get; } = Resource.Layout.nowplaying_fragment;
@@ -172,13 +128,5 @@ namespace DBTest
 		/// </summary>
 		private const string NoItemsSelectedText = "Select songs";
 		private const string ItemsSelectedText = "{0} selected";
-		
-		/// <summary>
-		/// Command handlers
-		/// </summary>
-		private CommandBinder deleteCommand = null;
-		private CommandBinder moveUpCommand = null;
-		private CommandBinder moveDownCommand = null;
-		private CommandBinder autoGenCommand = null;
 	}
 }

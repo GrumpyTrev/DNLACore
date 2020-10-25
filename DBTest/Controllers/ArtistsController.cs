@@ -15,8 +15,6 @@ namespace DBTest
 		/// </summary>
 		static ArtistsController()
 		{
-			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistDeletedMessage ) );
-			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistAddedMessage ) );
 			Mediator.RegisterPermanent( TagMembershipChanged, typeof( TagMembershipChangedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
@@ -210,14 +208,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a PlaylistDeletedMessage or PlaylistAddedMessage message has been received
-		/// Update the list of playlists held by the model
-		/// </summary>
-		/// <param name="message"></param>
-		private static void PlaylistAddedOrDeleted( object message ) => 
-			ArtistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( ArtistsViewModel.LibraryId );
-
-		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
 		/// If there is no filtering of if the tag being filtered on has not changed then no action is required.
 		/// Otherwise the data must be refreshed
@@ -306,9 +296,6 @@ namespace DBTest
 		{
 			// Get the Artists we are interested in
 			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
-
-			// Get the list of current playlists and extract the names to a list
-			ArtistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( ArtistsViewModel.LibraryId );
 
 			// Do the sorting of ArtistAlbum entries off the UI thread
 			await SortArtistAlbumsAsync();

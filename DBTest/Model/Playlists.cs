@@ -59,6 +59,13 @@ namespace DBTest
 			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name == name ) ).FirstOrDefault();
 
 		/// <summary>
+		/// Get a pl;aylist givent its identity
+		/// </summary>
+		/// <param name="playlistId"></param>
+		/// <returns></returns>
+		public static Playlist GetPlaylist( int playlistId ) => PlaylistCollection.Where( play => play.Id == playlistId ).FirstOrDefault();
+
+		/// <summary>
 		/// Delete the specified Playlist from the collections and from the storage
 		/// </summary>
 		/// <param name="playlistToDelete"></param>

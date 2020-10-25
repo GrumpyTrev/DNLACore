@@ -15,8 +15,6 @@ namespace DBTest
 		/// </summary>
 		static AlbumsController()
 		{
-			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistDeletedMessage ) );
-			Mediator.RegisterPermanent( PlaylistAddedOrDeleted, typeof( PlaylistAddedMessage ) );
 			Mediator.RegisterPermanent( TagMembershipChanged, typeof( TagMembershipChangedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
@@ -231,9 +229,6 @@ namespace DBTest
 			// Revert to no filter and sort the data
 			await ApplyFilterAsync( null, false );
 
-			// Get the list of current playlists
-			GetPlayLists();
-
 			AlbumsViewModel.DataValid = true;
 
 			Reporter?.AlbumsDataAvailable();
@@ -253,13 +248,6 @@ namespace DBTest
 				}
 			} );
 		}
-
-		/// <summary>
-		/// Called when a PlaylistDeletedMessage or PlaylistAddedMessage message has been received
-		/// Update the list of playlists held by the model
-		/// </summary>
-		/// <param name="message"></param>
-		private static void PlaylistAddedOrDeleted( object message ) => GetPlayLists();
 
 		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
@@ -344,12 +332,6 @@ namespace DBTest
 				}
 			}
 		}
-
-		/// <summary>
-		/// Get the user playlists
-		/// </summary>
-		private static void GetPlayLists() =>
-			AlbumsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( AlbumsViewModel.LibraryId );
 
 		/// <summary>
 		/// The interface instance used to report back controller results

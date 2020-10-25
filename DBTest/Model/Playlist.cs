@@ -38,9 +38,13 @@ namespace DBTest
 		/// Delete the specified PlayListItems from the Playlist
 		/// </summary>
 		/// <param name="items"></param>
-		public void DeletePlaylistItems( List<PlaylistItem> items )
+		public void DeletePlaylistItems( IEnumerable<PlaylistItem> items )
 		{
-			items.ForEach( item => PlaylistItems.Remove( item ) );
+			foreach ( PlaylistItem item in items )
+			{
+				PlaylistItems.Remove( item );
+			}
+
 			PlaylistAccess.DeletePlaylistItems( items );
 		}
 
@@ -55,11 +59,13 @@ namespace DBTest
 		/// </summary>
 		/// <param name="playlist"></param>
 		/// <param name="songs"></param>
-		public void AddSongs( List<Song> songs )
+		public void AddSongs( IEnumerable<Song> songs )
 		{
 			// For each song create a PlayListItem and add to the PlayList
 			foreach ( Song song in songs )
 			{
+				song.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( song.ArtistAlbumId ).ArtistId );
+
 				PlaylistItem itemToAdd = new PlaylistItem()
 				{
 					Artist = song.Artist,
@@ -80,7 +86,7 @@ namespace DBTest
 		/// Move a set of selected items down and update the track numbers
 		/// </summary>
 		/// <param name="items"></param>
-		public void MoveItemsDown( List<PlaylistItem> items )
+		public void MoveItemsDown( IEnumerable<PlaylistItem> items )
 		{
 			// There must be at least one PlayListItem entry beyond those that are selected. That entry needs to be moved to above the start of the selection
 			PlaylistItem itemToMove = PlaylistItems[ items.Last().Track ];
@@ -95,7 +101,7 @@ namespace DBTest
 		/// Move a set of selected items up and update the track numbers
 		/// </summary>
 		/// <param name="items"></param>
-		public void MoveItemsUp( List<PlaylistItem> items )
+		public void MoveItemsUp( IEnumerable<PlaylistItem> items )
 		{
 			// There must be at least one PlayListItem entry above those that are selected. That entry needs to be moved to below the end of the selection
 			PlaylistItem itemToMove = PlaylistItems[ items.First().Track - 2 ];

@@ -114,6 +114,7 @@ namespace DBTest
 			NowPlayingController.GetNowPlayingList( ConnectionDetailsModel.LibraryId );
 			FilterManagementController.GetTagsAsync();
 			PlaybackSelectionController.GetPlaybackDetails();
+			AutoplayController.GetAutoplays( ConnectionDetailsModel.LibraryId );
 
 			base.OnCreate();
 		}
@@ -128,6 +129,7 @@ namespace DBTest
 			bool createTables = false;
 			bool dropGenres = false;
 			bool changeSource = false;
+			bool addAutoplay = true;
 
 			try
 			{
@@ -140,6 +142,11 @@ namespace DBTest
 				if ( changeSource == true )
 				{
 					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
+				}
+
+				if ( addAutoplay == true )
+				{
+					ConnectionDetailsModel.SynchConnection.CreateTable<Autoplay>();
 				}
 
 				if ( createTables == true )

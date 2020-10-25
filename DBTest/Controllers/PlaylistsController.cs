@@ -65,7 +65,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static void DeletePlaylistItems( Playlist thePlaylist, List< PlaylistItem > items )
+		public static void DeletePlaylistItems( Playlist thePlaylist, IEnumerable< PlaylistItem > items )
 		{
 			// Delete the PlaylistItem items.
 			thePlaylist.DeletePlaylistItems( items );
@@ -93,11 +93,18 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Add a list of Songs to a specified playlist
+		/// </summary>
+		/// <param name="songsToAdd"></param>
+		/// <param name="playlist"></param>
+		public static void AddSongsToPlaylist( IEnumerable<Song> songsToAdd, Playlist playlist ) => playlist.AddSongs( songsToAdd );
+
+		/// <summary>
 		/// Move a set of selected items down the specified playlist and update the track numbers
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static void MoveItemsDown( Playlist thePlaylist, List<PlaylistItem> items )
+		public static void MoveItemsDown( Playlist thePlaylist, IEnumerable<PlaylistItem> items )
 		{
 			thePlaylist.MoveItemsDown( items );
 
@@ -109,7 +116,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static void MoveItemsUp( Playlist thePlaylist, List<PlaylistItem> items )
+		public static void MoveItemsUp( Playlist thePlaylist, IEnumerable<PlaylistItem> items )
 		{
 			thePlaylist.MoveItemsUp( items );
 

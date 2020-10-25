@@ -37,11 +37,6 @@ namespace DBTest
 		public static int LibraryId { get; set; } = -1;
 
 		/// <summary>
-		/// The playlists associated with the current library
-		/// </summary>
-		public static List<Playlist> Playlists { get; set; } = null;
-
-		/// <summary>
 		/// The scroll state of the list view
 		/// </summary>
 		public static IParcelable ListViewState { get; set; } = null;

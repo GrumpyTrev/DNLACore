@@ -218,7 +218,7 @@ namespace DBTest
 		/// whether the tag has been applied to none, all or some of the albums
 		/// </summary>
 		/// <param name="selectedAlbums"></param>
-		public static async void GetAppliedTagsAsync( List<Album> selectedAlbums, AppliedTagsDelegate tagsDelegate )
+		public static async void GetAppliedTagsAsync( IEnumerable<Album> selectedAlbums, AppliedTagsDelegate tagsDelegate )
 		{
 			List<AppliedTag> appliedTags = new List<AppliedTag>();
 
@@ -239,7 +239,7 @@ namespace DBTest
 
 					// Set the Applied value according to the taggedCount
 					appliedTag.Applied = ( taggedCount == 0 ) ? AppliedTag.AppliedType.None :
-						( ( taggedCount == selectedAlbums.Count ) ? AppliedTag.AppliedType.All : AppliedTag.AppliedType.Some );
+						( ( taggedCount == selectedAlbums.Count() ) ? AppliedTag.AppliedType.All : AppliedTag.AppliedType.Some );
 
 					// Keep track of the original value so that any changes can be processed
 					appliedTag.OriginalApplied = appliedTag.Applied;
@@ -257,7 +257,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="selectedAlbums"></param>
 		/// <param name="appliedTags"></param>
-		public static async void ApplyTagsAsync( List<Album> selectedAlbums, List<AppliedTag> appliedTags )
+		public static async void ApplyTagsAsync( IEnumerable<Album> selectedAlbums, List<AppliedTag> appliedTags )
 		{
 			// Keep track of which tags have been changed so that this can be sent to other controllers
 			List<string> changedTags = new List<string>();
@@ -276,12 +276,18 @@ namespace DBTest
 						if ( appliedTag.Applied == AppliedTag.AppliedType.None )
 						{
 							// Remove the selected albums from this tag
-							selectedAlbums.ForEach( selectedAlbum => RemoveAlbumFromTag( changedTag, selectedAlbum ) );
+							foreach ( Album selectedAlbum in selectedAlbums )
+							{
+								RemoveAlbumFromTag( changedTag, selectedAlbum );
+							}
 						}
 						else if ( appliedTag.Applied == AppliedTag.AppliedType.All )
 						{
 							// Add the selected albums to this tag
-							selectedAlbums.ForEach( async selectedAlbum => await AddAlbumToTagAsync( changedTag, selectedAlbum ) );
+							foreach ( Album selectedAlbum in selectedAlbums )
+							{
+								await AddAlbumToTagAsync( changedTag, selectedAlbum );
+							}
 						}
 
 						await FilterAccess.UpdateTagAsync( changedTag );

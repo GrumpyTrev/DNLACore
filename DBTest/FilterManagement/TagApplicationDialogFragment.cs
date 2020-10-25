@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 using Android.App;
 using Android.OS;
 using Android.Views;
@@ -19,11 +18,11 @@ namespace DBTest
 		/// Show the dialogue displaying the specified list of tags and the current tag
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, List<Album> selectedAlbums, TagSelection.TagSelectionDelegate selectionCallback )
+		public static void ShowFragment( FragmentManager manager, IEnumerable<Album> albums, TagsSelected selectionCallback )
 		{
-			// Save the albums and delegate statically so that they can be referenced follwoing a configuration change
-			SelectedAlbums = selectedAlbums;
-			SelectionCallback = selectionCallback;
+			// Save the albums and delegate statically so that they can be referenced following a configuration change
+			selectedAlbums = albums;
+			reporter = selectionCallback;
 
 			// Show the dialogue
 			new TagApplicationDialogFragment().Show( manager, "fragment_apply_tag" );
@@ -52,7 +51,7 @@ namespace DBTest
 			listView.Adapter = tagAdapter;
 
 			// Apply the selected albums to the tags and pass to the adapter
-			FilterManagementController.GetAppliedTagsAsync( SelectedAlbums, ( List<AppliedTag> appliedTags ) => { tagAdapter.SetData( appliedTags ); } );
+			FilterManagementController.GetAppliedTagsAsync( selectedAlbums, ( List<AppliedTag> appliedTags ) => { tagAdapter.SetData( appliedTags ); } );
 
 			// Create and display the dialogue
 			AlertDialog alert = new AlertDialog.Builder( Context )
@@ -61,7 +60,7 @@ namespace DBTest
 				.SetPositiveButton( "OK", delegate
 				{
 					// Convert the index back to a Tag and report back
-					SelectionCallback?.Invoke( tagAdapter.TagData );
+					reporter?.Invoke( tagAdapter.TagData );
 				} )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Create();
@@ -72,11 +71,16 @@ namespace DBTest
 		/// <summary>
 		/// The selected albums
 		/// </summary>
-		private static List<Album> SelectedAlbums { get; set; } = null;
+		private static IEnumerable<Album> selectedAlbums = null;
 
 		/// <summary>
 		/// The delegate to call to apply the tags
 		/// </summary>
-		private static TagSelection.TagSelectionDelegate SelectionCallback { get; set; } = null;
+		private static TagsSelected reporter = null;
+
+		/// <summary>
+		/// Delegate type used to report back the selected tags
+		/// </summary>
+		public delegate void TagsSelected( List<AppliedTag> appliedTags );
 	}
 }

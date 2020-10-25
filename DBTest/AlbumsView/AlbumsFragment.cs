@@ -3,8 +3,6 @@ using Android.Views;
 using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
-using Android.Support.V7.App;
-using System;
 
 namespace DBTest
 {
@@ -82,30 +80,20 @@ namespace DBTest
 		/// Called when the number of selected items (songs) has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		public override void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
+		protected override void SelectedItemsChanged( List<object> selectedObjects )
 		{
-			// Determine the number of songs and albums in the selected items
-			songsSelected = selectedItems.Values.OfType< Song >().Count();
-			int albumsSelected = selectedItems.Values.OfType<Album>().Count();
+			// Determine the number of songs in the selected items
+			int songsSelected = selectedObjects.OfType< Song >().Count();
 
 			// Update the Action Mode bar title
 			ActionModeTitle = ( songsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, songsSelected );
-
-			// Show the tag command if any albums are selected
-			tagCommand.Visible = ( albumsSelected > 0 );
-
-			// Show the autoGen command if a single Album, or a single song is selected
-			autoGenCommand.Visible = ( albumsSelected == 1 ) || ( songsSelected == 1 );
-
-			// Show the command bar if more than one item is selected
-			CommandBar.Visibility = ShowCommandBar();
 		}
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		/// <summary>
 		/// Called when the sort selector has changes the sort order
 		/// No need to wait for this to finish. Albums display will be refreshed when it is complete
 		/// </summary>
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		public void SortOrderChanged() => AlbumsController.SortDataAsync( true );
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
@@ -127,58 +115,6 @@ namespace DBTest
 		protected override void CreateAdapter( ExpandableListView listView ) => Adapter = new AlbumsAdapter( Context, listView, this, this );
 
 		/// <summary>
-		/// Called when a command bar command has been invoked
-		/// </summary>
-		/// <param name="button"></param>
-		protected override void HandleCommand( int commandId )
-		{
-			if ( ( commandId == Resource.Id.add_to_queue ) || ( commandId == Resource.Id.play_now ) )
-			{
-				BaseController.AddSongsToNowPlayingList( Adapter.SelectedItems.Values.OfType<Song>().ToList(),
-					( commandId == Resource.Id.play_now ) );
-				LeaveActionMode();
-			}
-			else if ( commandId == Resource.Id.add_to_playlist )
-			{
-				// Create a Popup menu containing the play list names and show it
-				PopupMenu playlistsMenu = new PopupMenu( Context, addToPlaylistCommand.BoundButton );
-
-				int itemId = 0;
-				AlbumsViewModel.Playlists.ForEach( list => playlistsMenu.Menu.Add( 0, itemId++, 0, list.Name ) );
-
-				// When a menu item is clicked get the songs from the adapter and the playlist name from the selected item
-				// and pass them both to the ArtistsController
-				playlistsMenu.MenuItemClick += ( sender1, args1 ) => {
-
-					List<Song> selectedSongs = Adapter.SelectedItems.Values.OfType<Song>().ToList();
-
-					// Determine which Playlist has been selected and add the selected songs to the playlist
-					AlbumsController.AddSongsToPlaylist( selectedSongs, AlbumsViewModel.Playlists[ args1.Item.ItemId ] );
-
-					LeaveActionMode();
-				};
-
-				playlistsMenu.Show();
-			}
-			else if ( commandId == Resource.Id.tag )
-			{
-				List<Album> selectedAlbums = Adapter.SelectedItems.Values.OfType<Album>().ToList();
-
-				// Create TagSelection dialogue and display it
-				TagSelection selectionDialogue = new TagSelection( ( AppCompatActivity )Activity, ( List<AppliedTag> appliedTags ) => 
-				{
-					// Apply the changes
-					FilterManagementController.ApplyTagsAsync( selectedAlbums, appliedTags );
-
-					// Leave action mode
-					LeaveActionMode();
-				} );
-
-				selectionDialogue.SelectFilter( selectedAlbums );
-			}
-		}
-
-		/// <summary>
 		/// Called to release any resources held by the fragment
 		/// </summary>
 		protected override void ReleaseResources()
@@ -194,25 +130,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called to allow derived classes to bind to the command bar commands
-		/// </summary>
-		protected override void BindCommands( CommandBar commandBar )
-		{
-			// Need to bind to the add_to_playlist command in order to anchor the playlist context menu
-			addToPlaylistCommand = commandBar.BindCommand( Resource.Id.add_to_playlist );
-
-			// Bind the tag and autoGen commands as they require non-standard visibility logic
-			tagCommand = commandBar.BindCommand( Resource.Id.tag );
-			autoGenCommand = commandBar.BindCommand( Resource.Id.auto_gen );
-		}
-
-		/// <summary>
-		/// Let derived classes determine whether or not the command bar should be shown
-		/// </summary>
-		/// <returns></returns>
-		protected override bool ShowCommandBar() => ( songsSelected > 0 );
-
-		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
 		/// </summary>
 		protected override int Layout { get; } = Resource.Layout.albums_fragment;
@@ -226,15 +143,7 @@ namespace DBTest
 		/// Show or hide genres
 		/// </summary>
 		/// <param name="showGenre"></param>
-		protected override void ShowGenre( bool showGenre )
-		{
-			( ( AlbumsAdapter )Adapter ).ShowGenre( showGenre );
-		}
-
-		/// <summary>
-		/// Keep track of the number of songs reported as selected
-		/// </summary>
-		private int songsSelected = 0;
+		protected override void ShowGenre( bool showGenre ) => ( ( AlbumsAdapter )Adapter ).ShowGenre( showGenre );
 
 		/// <summary>
 		/// The base class does nothing special with the CurrentTag property.
@@ -252,13 +161,6 @@ namespace DBTest
 		/// </summary>
 		/// <returns></returns>
 		protected override FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => AlbumsController.ApplyFilterDelegateAsync;
-
-		/// <summary>
-		/// Command handlers
-		/// </summary>
-		private CommandBinder addToPlaylistCommand = null;
-		private CommandBinder tagCommand = null;
-		private CommandBinder autoGenCommand = null;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

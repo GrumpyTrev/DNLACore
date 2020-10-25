@@ -64,10 +64,20 @@
     <Compile Include="AlbumsView\AlbumsAdapter.cs" />
     <Compile Include="AlbumsView\AlbumsViewModel.cs" />
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
+    <Compile Include="AutoplayManagement\AutoPlaylistConfiguration.cs" />
+    <Compile Include="AutoplayManagement\AutoplayModel.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
     <Compile Include="BaseView\PlaybackMonitor.cs" />
     <Compile Include="BaseView\SortSelector.cs" />
+    <Compile Include="CommandHandlers\AddSongsToNowPlayingListCommandHandler.cs" />
+    <Compile Include="CommandHandlers\DuplicatePlaylistCommandHandler.cs" />
+    <Compile Include="CommandHandlers\GenerateAutoPlaylistCommandHandler.cs" />
+    <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
+    <Compile Include="CommandHandlers\GroupedSelection.cs" />
+    <Compile Include="CommandHandlers\TagAlbumsCommandHandler.cs" />
+    <Compile Include="CommandHandlers\MoveItemsCommandHandler.cs" />
+    <Compile Include="CommandHandlers\DeletePlaylistItemsCommandHandler.cs" />
     <Compile Include="CommandHandlers\ShuffleNowPlayingCommandHandler.cs" />
     <Compile Include="CommandHandlers\SelectDeviceCommandHandler.cs" />
     <Compile Include="CommandHandlers\EditLibraryCommandHandler.cs" />
@@ -79,6 +89,7 @@
     <Compile Include="CommonUI\CommandToolbar.cs" />
     <Compile Include="Controllers\AlbumsController.cs" />
     <Compile Include="Controllers\ArtistsController.cs" />
+    <Compile Include="Controllers\AutoplayController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\FilterManagementController.cs" />
     <Compile Include="Controllers\LibraryNameDisplayController.cs" />
@@ -94,6 +105,7 @@
     <Compile Include="Controllers\PlaybackSelectionController.cs" />
     <Compile Include="Controllers\StorageController.cs" />
     <Compile Include="DbAccess\ArtistAlbumAccess.cs" />
+    <Compile Include="DbAccess\AutoplayAccess.cs" />
     <Compile Include="DbAccess\SourceAccess.cs" />
     <Compile Include="FilterManagement\DeleteConfirmationDialogFragment.cs" />
     <Compile Include="FilterManagement\FilterGroupAdapter.cs" />
@@ -105,7 +117,6 @@
     <Compile Include="FilterManagement\TagEditor.cs" />
     <Compile Include="FilterManagement\TagEditorDialogFragment.cs" />
     <Compile Include="FilterManagement\TagGroup.cs" />
-    <Compile Include="FilterManagement\TagSelection.cs" />
     <Compile Include="FilterManagement\FilterSelection.cs" />
     <Compile Include="FilterManagement\TagDataAdapter.cs" />
     <Compile Include="LibraryManagement\LibrarySelectionDialogFragment.cs" />
@@ -143,6 +154,8 @@
     <Compile Include="Model\Album.cs" />
     <Compile Include="DbAccess\AlbumAccess.cs" />
     <Compile Include="Model\Artist.cs" />
+    <Compile Include="Model\Autoplay.cs" />
+    <Compile Include="Model\Autoplays.cs" />
     <Compile Include="Model\Playlist.cs" />
     <Compile Include="DbAccess\SongAccess.cs" />
     <Compile Include="Model\Playlists.cs" />

@@ -90,7 +90,7 @@ namespace DBTest
 		/// This can be done by examining the track numbers of the items to be deleted, the track number is the index + 1
 		/// </summary>
 		/// <param name="items"></param>
-		public static void DeleteNowPlayingItems( List<PlaylistItem> items )
+		public static void DeleteNowPlayingItems( IEnumerable<PlaylistItem> items )
 		{
 			// Record the currently selected song so its track number can be checked after the delete
 			PlaylistItem currentPlaylistItem = null;
@@ -129,7 +129,7 @@ namespace DBTest
 		/// Move a set of selected items down the Now Playing playlist and update the track numbers
 		/// </summary>
 		/// <param name="items"></param>
-		public static void MoveItemsDown( List<PlaylistItem> items )
+		public static void MoveItemsDown( IEnumerable<PlaylistItem> items )
 		{
 			// Record the currently selected song so its track number can be checked after the move
 			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null
@@ -148,7 +148,7 @@ namespace DBTest
 		/// Move a set of selected items up the Now Playing playlist and update the track numbers
 		/// </summary>
 		/// <param name="items"></param>
-		public static void MoveItemsUp( List<PlaylistItem> items )
+		public static void MoveItemsUp( IEnumerable<PlaylistItem> items )
 		{
 			// Record the currently selected song so its track number can be checked after the move
 			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DBTest
@@ -48,6 +47,7 @@ namespace DBTest
 			await Libraries.GetDataAsync();
 			await PlaybackDetails.GetDataAsync();
 			await Playlists.GetDataAsync();
+			await Autoplays.GetDataAsync();
 
 			// Carry out some one-of data linking
 			await PopulateArtistsAsync();

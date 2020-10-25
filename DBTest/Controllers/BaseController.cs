@@ -15,7 +15,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static void AddSongsToNowPlayingList( List<Song> songsToAdd, bool clearFirst )
+		public static void AddSongsToNowPlayingList( IEnumerable<Song> songsToAdd, bool clearFirst )
 		{
 			// Should the Now Playing playlist be cleared first
 			if ( clearFirst == true )
@@ -32,7 +32,7 @@ namespace DBTest
 			NowPlayingViewModel.NowPlayingPlaylist.AddSongs( songsToAdd );
 
 			// If the list was cleared and there are now some items in the list select the first entry
-			if ( ( clearFirst == true ) & ( songsToAdd.Count > 0 ) )
+			if ( ( clearFirst == true ) & ( songsToAdd.Count() > 0 ) )
 			{
 				PlaybackDetails.SongIndex = 0;
 				new SongSelectedMessage() { ItemNo = 0 }.Send();

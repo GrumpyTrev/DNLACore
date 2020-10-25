@@ -10,7 +10,7 @@
 		/// </summary>
 		public static void ClearModel()
 		{
-			NowPlayingPlaylist.PlaylistItems.Clear();
+			NowPlayingPlaylist = null;
 			LibraryId = -1;
 			DataValid = false;
 		}

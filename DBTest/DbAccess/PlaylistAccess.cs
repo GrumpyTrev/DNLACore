@@ -42,8 +42,13 @@ namespace DBTest
 		/// Delete the specified PlaylistItem items
 		/// </summary>
 		/// <param name="items"></param>
-		public static void DeletePlaylistItems( List<PlaylistItem> items ) =>
-			items.ForEach( item => ConnectionDetailsModel.AsynchConnection.DeleteAsync( item ) );
+		public static void DeletePlaylistItems( IEnumerable<PlaylistItem> items )
+		{
+			foreach ( PlaylistItem item in items )
+			{
+				ConnectionDetailsModel.AsynchConnection.DeleteAsync( item );
+			}
+		}
 
 		/// <summary>
 		/// Add the specified playlist to the database

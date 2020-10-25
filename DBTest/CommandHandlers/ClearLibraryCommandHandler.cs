@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The ClearLibraryCommandHandler class is used to process a request to clear a library

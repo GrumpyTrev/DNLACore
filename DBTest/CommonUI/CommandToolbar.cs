@@ -2,6 +2,7 @@
 using Android.Support.V7.Widget;
 using Android.Views;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DBTest
 {
@@ -10,7 +11,7 @@ namespace DBTest
 	/// </summary>
 	public class CommandBar
 	{
-		public CommandBar( View parentView, int toolbarResource, BindCommandsDelegate bindDelegate, HandleCommandDelegate handleDelegate )
+		public CommandBar( View parentView, int toolbarResource, HandleCommandDelegate handleDelegate )
 		{
 			// Save the command handling delegate
 			commandDelegate = handleDelegate;
@@ -40,9 +41,6 @@ namespace DBTest
 
 				// Hide the toolbar initially
 				Toolbar.Visibility = ViewStates.Gone;
-
-				// Allow the command bar to be bound to
-				bindDelegate( this );
 			}
 		}
 
@@ -62,22 +60,27 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Create a CommandBinder for the specified button
+		/// Check if any of the button are currently visible
 		/// </summary>
-		/// <param name="buttonId"></param>
 		/// <returns></returns>
-		public CommandBinder BindCommand( int buttonId )
+		public bool AnyButtonsVisible() => Buttons.Values.Any( button => button.Visibility == ViewStates.Visible );
+
+		/// <summary>
+		/// Use the command handler associated with each button to determine if the button should be shown
+		/// </summary>
+		/// <param name="selectedObjects"></param>
+		public void DetermineButtonsVisibility( List<object> selectedObjects )
 		{
-			CommandBinder boundCommand = null;
-
-			if ( Buttons.ContainsKey( buttonId ) == true )
+			foreach ( KeyValuePair<int, AppCompatImageButton> buttonPair in Buttons )
 			{
-				AppCompatImageButton imageButton = Buttons[ buttonId ];
-
-				boundCommand = new CommandBinder( imageButton );
+				// Is there a command handler associated with this button
+				CommandHandler handler = CommandRouter.GetHandlerForCommand( buttonPair.Key );
+				if ( handler != null )
+				{
+					buttonPair.Value.Visibility = 
+						( handler.IsSelectionValidForCommand( new GroupedSelection( selectedObjects ), buttonPair.Key ) == true ) ? ViewStates.Visible : ViewStates.Gone;
+				}
 			}
-
-			return boundCommand;
 		}
 
 		/// <summary>
@@ -86,10 +89,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void ButtonClicked( object sender, System.EventArgs e )
-		{
-			commandDelegate( ( sender as AppCompatImageButton ).Id );
-		}
+		private void ButtonClicked( object sender, System.EventArgs e ) => commandDelegate( ( sender as AppCompatImageButton ).Id, sender as AppCompatImageButton );
 
 		/// <summary>
 		/// The actual toolbar
@@ -105,7 +105,7 @@ namespace DBTest
 		/// The delegate for reporting back command invocations
 		/// </summary>
 		/// <param name="commandId"></param>
-		public delegate void HandleCommandDelegate( int commandId );
+		public delegate void HandleCommandDelegate( int commandId, AppCompatImageButton button );
 
 		/// <summary>
 		/// Collection of buttons indexed by id
@@ -116,37 +116,5 @@ namespace DBTest
 		/// The delegate to call when a command has been invoked
 		/// </summary>
 		private readonly HandleCommandDelegate commandDelegate = null;
-	}
-
-	/// <summary>
-	/// The CommandBinder class is used to bind to an ImageButton so that it's visibility can be changed
-	/// </summary>
-	public class CommandBinder
-	{
-		public CommandBinder( AppCompatImageButton button )
-		{
-			BoundButton = button;
-		}
-		
-		/// <summary>
-		/// Show or hide the button
-		/// </summary>
-		public bool Visible
-		{
-			get
-			{
-				return ( BoundButton.Visibility == ViewStates.Visible );
-			}
-
-			set
-			{
-				BoundButton.Visibility = ( value == true ) ? ViewStates.Visible : ViewStates.Gone;
-			}
-		}
-
-		/// <summary>
-		/// The button bound to this command
-		/// </summary>
-		public AppCompatImageButton BoundButton { get; private set; }
 	}
 }

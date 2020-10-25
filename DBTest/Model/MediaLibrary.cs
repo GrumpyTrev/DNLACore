@@ -287,4 +287,18 @@ namespace DBTest
 		[OneToMany]
 		public List<Album> Albums { get; set; }
 	}
+
+	[Table( "Autoplay" )]
+	public partial class Autoplay
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Genres { get; set; }
+
+		public bool Active { get; set; }
+
+		[ForeignKey( typeof( Library ) )]
+		public int LibraryId { get; set; }
+	}
 }

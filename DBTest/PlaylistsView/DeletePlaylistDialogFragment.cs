@@ -16,11 +16,12 @@ namespace DBTest
 		/// Show an alert dialogue with the specified Title and a single OK button
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Playlist selectedPlaylist, List<PlaylistItem> songsSelected )
+		public static void ShowFragment( FragmentManager manager, Playlist selectedPlaylist, IEnumerable<PlaylistItem> songsSelected, DeleteSelected callback )
 		{
 			// Save the playlist and songs statically to survive a rotation.
-			PlaylistToDelete = selectedPlaylist;
-			SongsToDelete = songsSelected;
+			playlistToDelete = selectedPlaylist;
+			songsToDelete = songsSelected;
+			reporter = callback;
 
 			new DeletePlaylistDialogFragment().Show( manager, "fragment_delete_playlist_tag" );
 		}
@@ -41,23 +42,34 @@ namespace DBTest
 			new AlertDialog.Builder(Activity )
 				.SetTitle( "Do you want to delete the playlist" )
 				.SetPositiveButton( "Yes", delegate {
-						// Delete the single selected playlist and all of its contents
-						PlaylistsController.DeletePlaylist( PlaylistToDelete );
+					// Delete the single selected playlist and all of its contents
+					reporter?.Invoke( true );
 					} )
 				.SetNegativeButton( "No", delegate {
 					// Just delete the songs. They will all be in the selected playlist
-					PlaylistsController.DeletePlaylistItems( PlaylistToDelete, SongsToDelete );
+					reporter?.Invoke( false );
 				} )
 				.Create();
 
 		/// <summary>
 		/// The playlist to delete
 		/// </summary>
-		private static Playlist PlaylistToDelete { get; set; } = null;
+		private static Playlist playlistToDelete = null;
 
 		/// <summary>
 		/// The songs to delete
 		/// </summary>
-		private static List<PlaylistItem> SongsToDelete { get; set; } = null;
+		private static IEnumerable<PlaylistItem> songsToDelete = null;
+
+		/// <summary>
+		/// The delegate to call when the delete type has been selectef
+		/// </summary>
+		private static DeleteSelected reporter = null;
+
+		/// <summary>
+		/// Type of delegate to be called when the user has decided whether to delete the whole playlist or just its contents
+		/// </summary>
+		/// <param name="deletePlaylist"></param>
+		public delegate void DeleteSelected( bool deletePlaylist );
 	}
 }
