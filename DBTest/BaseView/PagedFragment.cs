@@ -87,6 +87,9 @@ namespace DBTest
 		/// <param name="inflater"></param>
 		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
 		{
+			// Inflate the menu for this fragment
+			inflater.Inflate( Menu, menu );
+
 			// Show or hide the collapse icon
 			collapseItem = menu.FindItem( Resource.Id.action_collapse );
 			collapseItem?.SetVisible( expandedGroupCount > 0 );
@@ -119,8 +122,13 @@ namespace DBTest
 
 			int id = item.ItemId;
 
+			// Let the main command router have a look first
+			if ( CommandRouter.HandleCommand( id ) == true )
+			{
+				handled = true;
+			}
 			// Pass on a collapse request to the adapter
-			if ( id == Resource.Id.action_collapse )
+			else if ( id == Resource.Id.action_collapse )
 			{
 				Adapter.OnCollapseRequest();
 				handled = true;
@@ -303,7 +311,7 @@ namespace DBTest
 		/// <param name="selectedItems"></param>
 		public void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
 		{
-			List<object> selectedObjects = selectedItems.Values.ToList();
+			GroupedSelection selectedObjects = new GroupedSelection( selectedItems.Values );
 
 			CommandBar.DetermineButtonsVisibility( selectedObjects );
 			SelectedItemsChanged( selectedObjects );
@@ -316,7 +324,7 @@ namespace DBTest
 		/// Let the derived classes process changed selected objects
 		/// </summary>
 		/// <param name="selectedObjects"></param>
-		protected abstract void SelectedItemsChanged( List<object> selectedObjects );
+		protected abstract void SelectedItemsChanged( GroupedSelection selectedObjects );
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -327,6 +335,11 @@ namespace DBTest
 		/// The resource used to create the ExpandedListView for this fragment
 		/// </summary>
 		protected abstract int ListViewLayout { get; }
+
+		/// <summary>
+		/// The menu resource for this fragment
+		/// </summary>
+		protected abstract int Menu { get; }
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment

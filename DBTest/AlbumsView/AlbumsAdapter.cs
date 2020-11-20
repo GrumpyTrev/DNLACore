@@ -41,6 +41,31 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// There is only one Child Type - the songs
+		/// </summary>
+		public override int ChildTypeCount => 1;
+
+		/// <summary>
+		/// As there is only one Child Type always return 0
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <returns></returns>
+		public override int GetChildType( int groupPosition, int childPosition ) => 0;
+
+		/// <summary>
+		/// There is one group type, the album
+		/// </summary>
+		public override int GroupTypeCount => 1;
+
+		/// <summary>
+		/// As there is only one group Type always return 0
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <returns></returns>
+		public override int GetGroupType( int groupPosition ) => 0;
+
+		/// <summary>
 		/// Provide a view containing song details at the specified position
 		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
 		/// </summary>
@@ -52,20 +77,40 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
-			// If the supplied view previously contained an Album heading then don't use it
-			if ( convertView?.FindViewById<TextView>( Resource.Id.title ) == null )
+			// If the supplied view is null then create one
+			if ( convertView == null )
 			{
 				convertView = inflator.Inflate( Resource.Layout.albums_song_layout, null );
+				convertView.Tag = new SongViewHolder()
+				{
+					SelectionBox = GetSelectionBox( convertView ),
+					Track = convertView.FindViewById<TextView>( Resource.Id.track ),
+					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
+					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
+				};
 			}
 
-			Song item = Groups[ groupPosition ].Songs[ childPosition ];
-
-			// Display the Track, Title and Duration
-			convertView.FindViewById<TextView>( Resource.Id.track ).Text = item.Track.ToString();
-			convertView.FindViewById<TextView>( Resource.Id.title ).Text = item.Title;
-			convertView.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( item.Length ).ToString( @"mm\:ss" );
+			// Display the Track number, Title and Duration
+			( ( SongViewHolder )convertView.Tag ).DisplaySong( Groups[ groupPosition ].Songs[ childPosition ] );
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// View holder for the child Song items
+		/// </summary>
+		private class SongViewHolder : ExpandableListViewHolder
+		{
+			public void DisplaySong( Song song )
+			{
+				Track.Text = song.Track.ToString();
+				Title.Text = song.Title;
+				Duration.Text = TimeSpan.FromSeconds( song.Length ).ToString( @"mm\:ss" );
+			}
+
+			public TextView Track { get; set; }
+			public TextView Title { get; set; }
+			public TextView Duration { get; set; }
 		}
 
 		/// <summary>
@@ -78,60 +123,83 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
-			// If the supplied view previously contained other than an Album then don't use it
-			if ( convertView?.FindViewById<TextView>( Resource.Id.albumName ) == null )
+			// If the supplied view is null then create one
+			if ( convertView == null )
 			{
 				convertView = inflator.Inflate( Resource.Layout.albums_album_layout, null );
+				convertView.Tag = new AlbumViewHolder()
+				{
+					SelectionBox = GetSelectionBox( convertView ),
+					AlbumName = convertView.FindViewById<TextView>( Resource.Id.albumName ),
+					ArtistName = convertView.FindViewById<TextView>( Resource.Id.artist ),
+					Year = convertView.FindViewById<TextView>( Resource.Id.year ),
+					Genre = convertView.FindViewById<TextView>( Resource.Id.genre ),
+					GenreYear = convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ),
+					GenreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout )
+				};
 			}
 
-			// Display the album, artist name and album year
-			Album displayAlbum = Groups[ groupPosition ];
-
-			// Set the album text and colour
-			TextView albumName = convertView.FindViewById<TextView>( Resource.Id.albumName );
-			albumName.Text = displayAlbum.Name;
-
-			// Save the default colour if not already done so
-			if ( albumNameColour == Color.Fuchsia )
-			{
-				albumNameColour = new Color( albumName.CurrentTextColor );
-			}
-
-			// If the album has been played then display the album text grey text
-			albumName.SetTextColor( ( displayAlbum.Played == true ) ? Color.Black : albumNameColour );
-
-			// Set the artist name
-			TextView artistText = convertView.FindViewById<TextView>( Resource.Id.artist );
-			artistText.Text = ( displayAlbum.ArtistName.Length > 0 ) ? displayAlbum.ArtistName : "Unknown";
-
-			// And the year
-			TextView yearText = convertView.FindViewById<TextView>( Resource.Id.year );
-			yearText.Text = ( displayAlbum.Year == 0 ) ? "" : displayAlbum.Year.ToString();
-
-			// If genres are being displayed then show the genre layout and set the genre name
-			// Get the genre layout view so we can show or hide it
-			RelativeLayout genreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout );
-			if ( ( showGenre == true ) && ( displayAlbum.Genre.Length > 0 ) )
-			{
-				// When genres are displayed the genre and year are displayed on their own line. So hide the year field that sit on the album anme line
-				genreLayout.Visibility = ViewStates.Visible;
-				yearText.Visibility = ViewStates.Gone;
-
-				// Display the genre name. Alter the left margin according to whether the checkbox id being displayed ( ActonMode on)
-				TextView genreView = convertView.FindViewById<TextView>( Resource.Id.genre );
-				genreView.Text = displayAlbum.Genre;
-
-				// Set the year
-				convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ).Text = yearText.Text;
-			}
-			else
-			{
-				// Hide the seperate genre line and make sure the year field is shown on the album name line
-				genreLayout.Visibility = ViewStates.Gone;
-				yearText.Visibility = ViewStates.Visible;
-			}
+			// Display the album
+			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( Groups[ groupPosition ], ActionMode, showGenre );
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// View holder for the group Album items
+		/// </summary>
+		private class AlbumViewHolder : ExpandableListViewHolder
+		{
+			public void DisplayAlbum( Album album, bool actionMode, bool showGenre )
+			{
+				// Save the default colour if not already done so
+				if ( albumNameColour == Color.Fuchsia )
+				{
+					albumNameColour = new Color( AlbumName.CurrentTextColor );
+				}
+
+				AlbumName.Text = album.Name;
+				AlbumName.SetTextColor( ( album.Played == true ) ? Color.Black : albumNameColour );
+
+				ArtistName.Text = ( album.ArtistName.Length > 0 ) ? album.ArtistName : "Unknown";
+
+				// Set the year text
+				string yearText = ( album.Year > 0 ) ? album.Year.ToString() : " ";
+
+				// If genres are being displayed then show the genre layout and set the genre name
+				// Get the genre layout view so we can show or hide it
+				if ( ( showGenre == true ) && ( album.Genre.Length > 0 ) )
+				{
+					// When genres are displayed the genre and year are displayed on their own line. So hide the year field that sit on the album anme line
+					GenreLayout.Visibility = ViewStates.Visible;
+					Year.Visibility = ViewStates.Gone;
+
+					// Display the genre name. Alter the left margin according to whether the checkbox id being displayed ( ActonMode on)
+					Genre.Text = album.Genre;
+
+					// Set the year
+					GenreYear.Text = yearText;
+				}
+				else
+				{
+					// Hide the seperate genre line and make sure the year field is shown on the album name line
+					GenreLayout.Visibility = ViewStates.Gone;
+					Year.Visibility = ViewStates.Visible;
+					Year.Text = yearText;
+				}
+			}
+
+			public TextView AlbumName { get; set; }
+			public TextView ArtistName { get; set; }
+			public TextView Year { get; set; }
+			public TextView GenreYear { get; set; }
+			public TextView Genre { get; set; }
+			public RelativeLayout GenreLayout { get; set; }
+
+			/// <summary>
+			/// The Colour used to display the name of an album. Initialised to a colour we're never going to use
+			/// </summary>
+			private static Color albumNameColour = new Color( Color.Fuchsia );
 		}
 
 		/// <summary>
@@ -182,12 +250,6 @@ namespace DBTest
 				sections = alphaIndexer.Keys.ToArray();
 			}
 		}
-
-
-		/// <summary>
-		/// The Colour used to display the name of an album. Initialised to a colour we're never going to use
-		/// </summary>
-		private Color albumNameColour = new Color( Color.Fuchsia );
 
 		/// <summary>
 		/// Is genre information to be displayed

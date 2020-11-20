@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -8,8 +7,56 @@ namespace DBTest
 	/// The BaseController is the Controller for common actions carried out by the Base View component
 	/// Actions can only be carried out here if they do not require any model data to be accessed.
 	/// </summary>
-	static class BaseController
+	class BaseController
 	{
+		protected bool dataValid = false;
+
+		protected virtual void GetData()
+		{
+			// Make sure that this data is not returned until all of it is available
+			dataValid = false;
+
+			// Wait until all relevant data has been read
+			StorageController.RegisterInterestInDataAvailable( StorageDataAvailable );
+		}
+
+		protected virtual void StorageDataAvailable( object _ = null )
+		{
+			// The data is now valid
+			dataValid = true;
+			Reporter?.DataAvailable();
+		}
+
+		/// <summary>
+		/// The interface instance used to report back controller results
+		/// </summary>
+		public IReporter Reporter
+		{
+			protected get => reporter;
+			set
+			{
+				// Save the interface and report back the data if available
+				reporter = value;
+				if ( dataValid == true )
+				{
+					Reporter?.DataAvailable();
+				}
+			}
+		}
+
+		/// <summary>
+		/// The interface instance
+		/// </summary>
+		private IReporter reporter = null;
+
+		/// <summary>
+		/// The interface used to report back controller results
+		/// </summary>
+		public interface IReporter
+		{
+			void DataAvailable();
+		}
+
 		/// <summary>
 		/// Add a list of Songs to the Now Playing list
 		/// </summary>
@@ -43,12 +90,12 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Combine the specified simpe Tag and groups of tags together to provide a set of TaggedAlbums to be applied
+		/// Combine the specified simple Tag and groups of tags together to provide a set of AlbumIds to be applied
 		/// </summary>
 		/// <param name="simpleTag"></param>
 		/// <param name="groupTags"></param>
 		/// <returns></returns>
-		public static List<TaggedAlbum> CombineAlbumFilters( Tag simpleTag, List< TagGroup > groupTags )
+		public static HashSet<int> CombineAlbumFilters( Tag simpleTag, List< TagGroup > groupTags )
 		{
 			// If any group tags have been selected combine their selected TaggedAlbum items together
 			List<TaggedAlbum> albumsInFilter = new List<TaggedAlbum>();
@@ -58,10 +105,10 @@ namespace DBTest
 
 			if ( groupTags.Count > 0 )
 			{
-				for ( int groupIndex = 0; ( noMatchingAlbums == false ) && ( groupIndex < groupTags.Count ); ++groupIndex )
+				foreach ( TagGroup group in groupTags )
 				{
-					List<TaggedAlbum> groupAlbums = new List<TaggedAlbum>();
-					groupTags[ groupIndex ].Tags.ForEach( ta => groupAlbums.AddRange( ta.TaggedAlbums ) );
+					// Get the TaggedAlbum entries from all the Tags in this group
+					List<TaggedAlbum> groupAlbums = group.Tags.SelectMany( ta => ta.TaggedAlbums ).Distinct().ToList();
 
 					// If this is the first group then simply copy its albums to the collection being accumulated
 					if ( albumsInFilter.Count == 0 )
@@ -72,9 +119,10 @@ namespace DBTest
 					{
 						// AND together the albums already accumulated with the albums in this group
 						albumsInFilter = albumsInFilter.Intersect( groupAlbums ).ToList();
-						noMatchingAlbums = ( albumsInFilter.Count == 0 );
 					}
 				}
+
+				noMatchingAlbums = ( albumsInFilter.Count == 0 );
 			}
 
 			if ( noMatchingAlbums == false )
@@ -94,7 +142,7 @@ namespace DBTest
 				}
 			}
 
-			return albumsInFilter;
+			return albumsInFilter.Select( ta => ta.AlbumId ).ToHashSet();
 		}
 	}
 }

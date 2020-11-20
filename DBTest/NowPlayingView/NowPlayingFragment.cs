@@ -1,30 +1,16 @@
-﻿using Android.Views;
-using Android.Widget;
-using System.Collections.Generic;
+﻿using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace DBTest
 {
 	public class NowPlayingFragment: PagedFragment< PlaylistItem >, ExpandableListAdapter<PlaylistItem>.IGroupContentsProvider<PlaylistItem>, 
-		NowPlayingController.IReporter, NowPlayingAdapter.IActionHandler
+		NowPlayingController.INowPlayingReporter, NowPlayingAdapter.IActionHandler
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
 		public NowPlayingFragment() => ActionModeTitle = NoItemsSelectedText;
-
-		/// <summary>
-		/// Add fragment specific menu items to the main toolbar
-		/// </summary>
-		/// <param name="menu"></param>
-		/// <param name="inflater"></param>
-		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
-		{
-			inflater.Inflate( Resource.Menu.menu_nowplaying, menu );
-
-			base.OnCreateOptionsMenu( menu, inflater );
-		}
 
 		/// <summary>
 		/// Get all the PlaylistItem entries associated with the Now Playing playlist.
@@ -42,7 +28,7 @@ namespace DBTest
 		/// Display the data held in the Now Playing view model
 		/// </summary>
 		/// <param name="message"></param>
-		public void NowPlayingDataAvailable()
+		public void DataAvailable()
 		{
 			Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.ToList(), SortSelector.SortType.alphabetic );
 
@@ -73,23 +59,8 @@ namespace DBTest
 		/// Called when the number of selected items (songs) has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		protected override void SelectedItemsChanged( List< object > selectedObjects )
-		{
-			// Determine the number of songs in the selected items
-			IEnumerable<PlaylistItem> itemSelected = selectedItems.Values.OfType< PlaylistItem>();
-			int itemsSelectedCount = itemSelected.Count();
-
-			// Update the Action Mode bar title
-			ActionModeTitle = ( itemsSelectedCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, itemsSelectedCount );
-
-			// The move_up command is enabled if one or more items are selected and the first item is not selected
-			// The move_down command is enabled if one or more items are selected and the last item is not selected
-			moveUpCommand.Visible = ( itemsSelectedCount > 0 ) && 
-				( itemSelected.Any( list => ( list.Id == NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.First().Id ) ) == false );
-			moveDownCommand.Visible = ( itemsSelectedCount > 0 ) && 
-				( itemSelected.Any( list => ( list.Id == NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Last().Id ) ) == false );
-
-		}
+		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
+			ActionModeTitle = ( selectedObjects.PlaylistItemsCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.PlaylistItemsCount );
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment
@@ -98,20 +69,14 @@ namespace DBTest
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
+		/// Initialise the NowPlayingController
 		/// </summary>
-		protected override void PostViewCreateAction()
-		{
-			// Initialise the NowPlayingController
-			NowPlayingController.Reporter = this;
-
-			// Get the data
-			NowPlayingController.GetNowPlayingList( ConnectionDetailsModel.LibraryId );
-		}
+		protected override void PostViewCreateAction() => NowPlayingController.DataReporter = this;
 
 		/// <summary>
 		/// Called to release any resources held by the fragment
 		/// </summary>
-		protected override void ReleaseResources() => NowPlayingController.Reporter = null;
+		protected override void ReleaseResources() => NowPlayingController.DataReporter = null;
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -122,6 +87,11 @@ namespace DBTest
 		/// The resource used to create the ExpandedListView for this fragment
 		/// </summary>
 		protected override int ListViewLayout { get; } = Resource.Id.nowplayingList;
+
+		/// <summary>
+		/// The menu resource for this fragment
+		/// </summary>
+		protected override int Menu { get; } = Resource.Menu.menu_nowplaying;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

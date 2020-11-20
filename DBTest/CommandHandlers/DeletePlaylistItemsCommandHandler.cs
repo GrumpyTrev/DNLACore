@@ -16,10 +16,7 @@ namespace DBTest
 		public override void HandleCommand( int commandIdentity )
 		{
 			// If this is a Now Playing command then the parent of the first selected song will have the NowPlayingPlaylistName
-			// Get the parent playlist of the first song
-			Playlist parentPlaylist = ( selectedObjects.PlaylistItems.Count() == 0 ) ? null : Playlists.GetPlaylist( selectedObjects.PlaylistItems.First().PlaylistId );
-
-			if ( ( parentPlaylist != null ) && ( parentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName ) )
+			if ( ( selectedObjects.ParentPlaylist != null ) && ( selectedObjects.ParentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName ) )
 			{
 				// Process this Now Playing command
 				NowPlayingController.DeleteNowPlayingItems( selectedObjects.PlaylistItems );
@@ -30,19 +27,21 @@ namespace DBTest
 				Playlist playlistSelected = selectedObjects.Playlists.FirstOrDefault();
 
 				// If a playlist as well as songs are selected then prompt the user to check if the playlist entry should be deleted as well
-				if ( ( selectedObjects.PlaylistItems.Count() > 0 ) && ( playlistSelected != null ) )
+				if ( ( selectedObjects.PlaylistItemsCount > 0 ) && ( playlistSelected != null ) )
 				{
 					DeletePlaylistDialogFragment.ShowFragment( CommandRouter.Manager, playlistSelected, selectedObjects.PlaylistItems, DeleteSelected );
 				}
-				else if ( selectedObjects.PlaylistItems.Count() > 0 )
+				else if ( selectedObjects.PlaylistItemsCount > 0 )
 				{
 					// Deletion of songs from a playlist
-					PlaylistsController.DeletePlaylistItems( parentPlaylist, selectedObjects.PlaylistItems );
+					PlaylistsController.DeletePlaylistItems( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
+					commandCallback.PerformAction();
 				}
 				else
 				{
 					// Deletion of a playlist with no songs
 					PlaylistsController.DeletePlaylist( playlistSelected );
+					commandCallback.PerformAction();
 				}
 			}
 		}
@@ -57,25 +56,21 @@ namespace DBTest
 		{
 			bool isValid = false;
 
-			// If this is a Now Playing command then the parent of the first selected song will have the NowPlayingPlaylistName
-			int songCount = selectedObjects.PlaylistItems.Count();
-			int playlistCount = selectedObjects.Playlists.Count();
-
-			// Get the parent playlist of the first song
-			Playlist parentPlaylist = ( songCount == 0 ) ? null : Playlists.GetPlaylist( selectedObjects.PlaylistItems.First().PlaylistId );
-
-			if ( ( parentPlaylist != null ) && ( parentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName ) )
+			// If this is a Now Playing command then the parent of the first selected playlistitem will have the NowPlayingPlaylistName
+			if ( ( selectedObjects.ParentPlaylist != null ) && ( selectedObjects.ParentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName ) )
 			{
 				isValid = true;
 			}
 			else
 			{
-				// The Delete command is only available if the selected songs are from a single playlist and only one playlist is selected.
+				// The Delete command is only available if the selected playlistitems are from a single playlist and only one playlist is selected.
 				// Or if just a single empty playlist is selected
 				// Remember the playlist could be empty
-				bool singlePlaylistSongs = ( songCount > 0 ) && ( selectedObjects.PlaylistItems.Any( item => ( item.PlaylistId != parentPlaylist.Id ) ) == false );
+				bool itemsFromSinglePlaylist = ( selectedObjects.PlaylistItemsCount > 0 ) &&
+					( selectedObjects.PlaylistItems.All( item => ( item.PlaylistId == selectedObjects.ParentPlaylist.Id ) ) == true );
 				
-				isValid = ( ( singlePlaylistSongs == true ) && ( playlistCount < 2 ) ) || ( ( songCount == 0 ) && ( playlistCount == 1 ) );
+				isValid = ( ( itemsFromSinglePlaylist == true ) && ( selectedObjects.PlaylistsCount < 2 ) ) || 
+					( ( selectedObjects.PlaylistItemsCount == 0 ) && ( selectedObjects.PlaylistsCount == 1 ) );
 			}
 
 			return isValid;
@@ -96,6 +91,8 @@ namespace DBTest
 			{
 				PlaylistsController.DeletePlaylistItems( playlist, selectedObjects.PlaylistItems );
 			}
+
+			commandCallback.PerformAction();
 		}
 
 		/// <summary>

@@ -53,10 +53,11 @@ namespace DBTest
 		public override void OnResume()
 		{
 			base.OnResume();
-			binder.Invoke( this );
 
 			// Install a handler for the cancel button so that a cancel can be scheduled rather than acted upon immediately
 			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) => { reporter.Invoke(); };
+
+			binder.Invoke( this );
 		}
 
 		/// <summary>

@@ -32,6 +32,13 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Is the command valid given the selected objects
+		/// </summary>
+		/// <param name="selectedObjects"></param>
+		/// <returns></returns>
+		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.SongsCount > 0 );
+
+		/// <summary>
 		/// The command identity associated with this handler
 		/// </summary>
 		protected override int CommandIdentity { get; } = Resource.Id.add_to_playlist;

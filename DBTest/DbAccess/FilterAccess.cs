@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using SQLiteNetExtensionsAsync.Extensions;
 
@@ -14,28 +13,13 @@ namespace DBTest
 		/// Get all the Tags in the database with their children TaggedAlbums
 		/// NB This list is for the entire database. The Albums will generally be filtered by library id before being used.
 		/// </summary>
-		public static async Task<List<Tag>> GetTagsAsync() =>
-			await ConnectionDetailsModel.AsynchConnection.Table<Tag>().ToListAsync();
+		public static async Task<List<Tag>> GetTagsAsync() => await ConnectionDetailsModel.AsynchConnection.Table<Tag>().ToListAsync();
 
 		/// <summary>
 		/// Get all the TaggedAlbum entries in the database
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<List<TaggedAlbum>> GetTaggedAlbumsAsync() =>
-			await ConnectionDetailsModel.AsynchConnection.Table<TaggedAlbum>().ToListAsync();
-
-		/// <summary>
-		/// Get all the Genres in the database
-		/// </summary>
-		/// <returns></returns>
-		public static async Task<List<Genre>> GetGenresAsync() => await ConnectionDetailsModel.AsynchConnection.Table<Genre>().ToListAsync();
-
-		/// <summary>
-		/// Add a new Genre to the collection 
-		/// </summary>
-		/// <param name="genreToAdd"></param>
-		/// <returns></returns>
-		public static async Task AddGenre( Genre genreToAdd ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( genreToAdd );
+		public static async Task<List<TaggedAlbum>> GetTaggedAlbumsAsync() => await ConnectionDetailsModel.AsynchConnection.Table<TaggedAlbum>().ToListAsync();
 
 		/// <summary>
 		/// Remove the specified TaggedAlbum  from the database

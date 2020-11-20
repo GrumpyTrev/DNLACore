@@ -17,31 +17,18 @@
 		/// </summary>
 		public void ScanFinished()
 		{
+			// Check if any of the songs in the library have not been matched or have changed (only process if the scan was not cancelled)
+			if ( ( cancelHasBeenRequested == false ) && ( LibraryScanModel.UnmatchedSongs.Count > 0 ) )
+			{
+				// Delete all of the unmatched songs. Don't wait for this to finish, the DeleteFinished method will be called when it has finished. 
+				commandState = CommandStateType.Deleting;
+				LibraryScanController.DeleteSongsAsync();
+			}
 			// If the ScanProgressDialogFragment is available then we can proceed with the next stage of the process
-			if ( scanProgressDialog != null )
+			else if ( scanProgressDialog != null )
 			{
 				scanProgressDialog.Dismiss();
-
-				// Check if any of the songs in the library have not been matched or have changed (only process if the scan was not cancelled)
-				if ( ( cancelHasBeenRequested == false ) && ( LibraryScanModel.UnmatchedSongs.Count > 0 ) )
-				{
-					// Ask the user to confirm the deletion of unmatched songs
-					ScanDeleteDialogFragment.ShowFragment( CommandRouter.Manager, DeleteConfirmed, BindDialog );
-				}
-				else
-				{
-					// If there have been any changes to the library, and it is the library currently being displayed then force a refresh
-					if ( ( LibraryScanModel.LibraryModified == true ) && ( libraryBeingScanned.Id == ConnectionDetailsModel.LibraryId ) )
-					{
-						new SelectedLibraryChangedMessage() { SelectedLibrary = libraryBeingScanned.Id }.Send();
-					}
-
-					// Let the user know that the process has finished
-					NotificationDialogFragment.ShowFragment( CommandRouter.Manager,
-						string.Format( "Scanning of library: {0} {1}", libraryBeingScanned.Name, ( cancelHasBeenRequested == true ) ? "cancelled" : "finished" ) );
-
-					commandState = CommandStateType.Idle;
-				}
+				NotifyScanFinished();
 			}
 			else
 			{
@@ -54,21 +41,24 @@
 		/// </summary>
 		public void DeleteFinished()
 		{
-			// If the ScanDeleteDialogFragment is available then we can proceed with the next stage of the process
-			if ( scanDeleteDialog != null )
+			// If the UI is available then get rid of the Scan In Progress dialoue 
+			if ( scanProgressDialog != null )
 			{
-				scanDeleteDialog.Dismiss();
+				scanProgressDialog.Dismiss();
 
-				// Let the user know that the process has finished
-				NotificationDialogFragment.ShowFragment( CommandRouter.Manager,
-					string.Format( "Scanning of library: {0} finished", LibraryScanModel.LibraryBeingScanned.Name ) );
+				// If there have been any changes to the library, and it is the library currently being displayed then force a refresh
+				if ( ( LibraryScanModel.LibraryModified == true ) && ( libraryBeingScanned.Id == ConnectionDetailsModel.LibraryId ) )
+				{
+					new SelectedLibraryChangedMessage() { SelectedLibrary = libraryBeingScanned.Id }.Send();
+				}
 
+				NotificationDialogFragment.ShowFragment( CommandRouter.Manager, $"Scanning of library: {LibraryScanModel.LibraryBeingScanned.Name} finished" );
 				commandState = CommandStateType.Idle;
 			}
 			else
 			{
 				commandState = CommandStateType.DeleteComplete;
-			}
+			} 
 		}
 
 		/// <summary>
@@ -97,9 +87,10 @@
 			// Save the library being scanned
 			libraryBeingScanned = selectedLibrary;
 
-			// Start the library scan process and let the use know what is happening
+			// Start the library scan process and let the user know what is happening
 			cancelHasBeenRequested = false;
 			commandState = CommandStateType.Scanning;
+
 			LibraryScanController.ResetController();
 			LibraryScanController.ScanReporter = this;
 			LibraryScanController.ScanLibraryAsynch( libraryBeingScanned );
@@ -117,42 +108,37 @@
 			scanProgressDialog = dialogue;
 
 			// If the post-scan processing was paused due to the UI not being available, then continue with it now
-			if ( ( scanProgressDialog != null ) && ( commandState == CommandStateType.ScanComplete ) )
+			if ( ( scanProgressDialog != null ) && ( ( commandState == CommandStateType.ScanComplete ) || ( commandState == CommandStateType.DeleteComplete ) ) )
 			{
-				ScanFinished();
+				scanProgressDialog.Dismiss();
+
+				if ( commandState == CommandStateType.ScanComplete )
+				{
+					NotifyScanFinished();
+				}
+				else
+				{
+					DeleteFinished();
+				}
 			}
 		}
 
 		/// <summary>
-		/// Called when the ScanDeleteDialogFragment dialog is displayed (OnResume)
-		/// Save the reference to allow the dialogue to be dismissed
+		/// Let the user and other compnents know that the scan process has finished
 		/// </summary>
-		/// <param name="dialogue"></param>
-		private void BindDialog( ScanDeleteDialogFragment dialogue )
+		private void NotifyScanFinished()
 		{
-			scanDeleteDialog = dialogue;
-
-			// Update the state of the dialogue depending on whether or not the delete process is in progress
-			scanDeleteDialog?.UpdateState( commandState == CommandStateType.Deleting );
-
-			// If the post-delete processing was paused due to the UI not being available, then continue with it now
-			if ( ( scanDeleteDialog != null ) && ( commandState == CommandStateType.DeleteComplete ) )
+			// If there have been any changes to the library, and it is the library currently being displayed then force a refresh
+			if ( ( LibraryScanModel.LibraryModified == true ) && ( libraryBeingScanned.Id == ConnectionDetailsModel.LibraryId ) )
 			{
-				DeleteFinished();
+				new SelectedLibraryChangedMessage() { SelectedLibrary = libraryBeingScanned.Id }.Send();
 			}
-		}
 
-		/// <summary>
-		/// Called when the deletion of unmatched songs has been confirmed
-		/// Stat the song deletion process
-		/// </summary>
-		private void DeleteConfirmed()
-		{
-			commandState = CommandStateType.Deleting;
-			scanDeleteDialog?.UpdateState( true );
+			// Let the user know that the process has finished
+			NotificationDialogFragment.ShowFragment( CommandRouter.Manager,
+				$"Scanning of library: {libraryBeingScanned.Name} {( ( cancelHasBeenRequested == true ) ? "cancelled" : "finished" )}" );
 
-			// Delete all of the unmatched songs. Don't wait for this to finish, the DeleteFinished method will be called when it has finished. 
-			LibraryScanController.DeleteSongsAsync();
+			commandState = CommandStateType.Idle;
 		}
 
 		/// <summary>
@@ -167,7 +153,7 @@
 			ScanComplete,
 			// The deletion of unmatched songs is in progress and has not completed yet
 			Deleting,
-			// The deletion process has finished but the next stage could not proceed due to the UI not being available
+			// The delete process has finished but could not be notified because the UI was not available
 			DeleteComplete
 		};
 
@@ -180,11 +166,6 @@
 		/// ScanProgressDialogFragment reference held so that it can be dismissed
 		/// </summary>
 		private ScanProgressDialogFragment scanProgressDialog = null;
-
-		/// <summary>
-		/// ScanDeleteDialogFragment reference held so that it can be dismissed
-		/// </summary>
-		private ScanDeleteDialogFragment scanDeleteDialog = null;
 
 		/// <summary>
 		/// Has a cancel been requested

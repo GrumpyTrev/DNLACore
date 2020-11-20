@@ -5,19 +5,9 @@ namespace DBTest
 	static class FilterManagementModel
 	{
 		/// <summary>
-		/// The list of filters
-		/// </summary>
-		public static List< Tag > Tags { get; internal set; } = null;
-
-		/// <summary>
-		/// The ste of all tag groups available for the user to choose from
+		/// The set of all tag groups available for the user to choose from
 		/// </summary>
 		public static List<TagGroup> TagGroups { get; internal set; } = new List<TagGroup>();
-
-		/// <summary>
-		/// The recently added tag
-		/// </summary>
-		public static Tag RecentlyAddedTag { get; internal set; } = null;
 
 		/// <summary>
 		/// The just played tag

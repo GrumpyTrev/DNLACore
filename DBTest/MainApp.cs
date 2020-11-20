@@ -1,16 +1,14 @@
 ﻿using System;
 using System.IO;
 using Android.App;
-using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using SQLite;
-using static Android.App.Application;
 
 namespace DBTest
 {
 	[Application]
-	class MainApp : Application, IActivityLifecycleCallbacks
+	class MainApp : Application
 	{
 		/// <summary>
 		/// Base constructor which must be implemented if it is to successfully inherit from the Application
@@ -22,10 +20,19 @@ namespace DBTest
 		{
 			instance = this;
 
-			RegisterActivityLifecycleCallbacks( this );
+			// Initialise the storage
+			InitialiseStorage();
 
+			// Bind the command handlers to their command identities
+			CommandRouter.BindHandlers();
+
+			// Configure the controllers
+			ConfigureControllers();
+
+			// Initialise the newtwork monitoring
 			playbackCapabilities = new PlaybackCapabilities( Context );
 
+			// Initialise the playback device monitoring
 			playbackMonitoring = new PlaybackMonitor();
 		}
 
@@ -36,87 +43,48 @@ namespace DBTest
 			instance.playbackCapabilities.RegisterCallback( callback );
 
 		/// <summary>
-		/// Remove the specified inteferace from the callback collection
-		/// </summary>
-		/// <param name="callback"></param>
-		public static void UnregisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback ) => 
-			instance.playbackCapabilities.UnregisterCallback( callback );
-
-		/// <summary>
 		/// Bind the playback monitor to the specified menu
 		/// </summary>
 		/// <param name="menu"></param>
 		public static void BindToPlaybackMonitor( IMenu menu ) => instance.playbackMonitoring.BindToMenu( menu );
 
 		/// <summary>
-		/// Unbind the playback monitor from the specified menu
+		/// OnCreate needs to be overwritten otherwise Android does not create the MainApp class until it wnats to - strange but true
 		/// </summary>
-		/// <param name="menu"></param>
-		public static void UnbindFromPlaybackMonitor() => instance.playbackMonitoring.BindToMenu( null );
-
-		public void OnActivityCreated( Activity activity, Bundle savedInstanceState )
+		public override void OnCreate()
 		{
-		}
-
-		public void OnActivityDestroyed( Activity activity )
-		{
-		}
-
-		public void OnActivityPaused( Activity activity )
-		{
-			Logger.Log( "MainApp::OnActivityPaused()" );
-			Foreground = false;
-		}
-
-		public void OnActivityResumed( Activity activity )
-		{
-			Logger.Log( "MainApp::OnActivityResumed()" );
-			Foreground = true;
-		}
-
-		public void OnActivitySaveInstanceState( Activity activity, Bundle outState )
-		{
-		}
-
-		public void OnActivityStarted( Activity activity )
-		{
-		}
-
-		public void OnActivityStopped( Activity activity )
-		{
+			base.OnCreate();
 		}
 
 		/// <summary>
-		/// Called when the application is starting, before any other application objects have been created (like MainActivity).
-		/// Perform and process scope initialisation
+		/// Configure all the controllers
 		/// </summary>
-		public override void OnCreate()
+		private void ConfigureControllers()
+		{
+			AlbumsController.GetControllerData();
+			ArtistsController.GetControllerData();
+			PlaylistsController.GetControllerData();
+			NowPlayingController.GetControllerData();
+			LibraryNameDisplayController.GetControllerData();
+
+			FilterManagementController.GetTags();
+			PlaybackSelectionController.GetPlaybackDetails();
+			AutoplayController.GetAutoplays( ConnectionDetailsModel.LibraryId );
+		}
+
+		/// <summary>
+		/// Initialisze access to the persistent storage
+		/// </summary>
+		private void InitialiseStorage()
 		{
 			// Path to the locally stored database
 			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
 
-			// Check if the database connections are still there. They will be on an activity restart (configuration change)
-			if ( ConnectionDetailsModel.SynchConnection == null )
-			{
-				ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
-				ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath );
-			}
+			ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
+			ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath );
 
 			// Initialise the rest of the ConnectionDetailsModel if required
 			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
-
-			// Bind the command handlers to their command identities
-			CommandRouter.BindHandlers();
-
-			AlbumsController.GetAlbums( ConnectionDetailsModel.LibraryId );
-			ArtistsController.GetArtists( ConnectionDetailsModel.LibraryId );
-			PlaylistsController.GetPlaylists( ConnectionDetailsModel.LibraryId );
-			NowPlayingController.GetNowPlayingList( ConnectionDetailsModel.LibraryId );
-			FilterManagementController.GetTagsAsync();
-			PlaybackSelectionController.GetPlaybackDetails();
-			AutoplayController.GetAutoplays( ConnectionDetailsModel.LibraryId );
-
-			base.OnCreate();
 		}
 
 		/// <summary>
@@ -127,28 +95,9 @@ namespace DBTest
 			int currentLibraryId = -1;
 
 			bool createTables = false;
-			bool dropGenres = false;
-			bool changeSource = false;
-			bool addAutoplay = true;
 
 			try
 			{
-				if ( dropGenres == true )
-				{
-					ConnectionDetailsModel.SynchConnection.DropTable<Genre>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Genre>();
-				}
-
-				if ( changeSource == true )
-				{
-					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
-				}
-
-				if ( addAutoplay == true )
-				{
-					ConnectionDetailsModel.SynchConnection.CreateTable<Autoplay>();
-				}
-
 				if ( createTables == true )
 				{
 					// Create the tables if they don't already exist
@@ -163,7 +112,6 @@ namespace DBTest
 					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Genre>();
 				}
 
 				// Check for a Playback record which will tell us the currently selected library
@@ -180,11 +128,6 @@ namespace DBTest
 		/// THe one and only MainApp
 		/// </summary>
 		private static MainApp instance = null;
-
-		/// <summary>
-		/// Keep track of whether or not the application is running in the foreground
-		/// </summary>
-		public static bool Foreground { get; private set; } = false;
 
 		/// <summary>
 		/// The one and only Http server used to serve local files to remote devices

@@ -64,7 +64,6 @@
     <Compile Include="AlbumsView\AlbumsAdapter.cs" />
     <Compile Include="AlbumsView\AlbumsViewModel.cs" />
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
-    <Compile Include="AutoplayManagement\AutoPlaylistConfiguration.cs" />
     <Compile Include="AutoplayManagement\AutoplayModel.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
@@ -72,9 +71,12 @@
     <Compile Include="BaseView\SortSelector.cs" />
     <Compile Include="CommandHandlers\AddSongsToNowPlayingListCommandHandler.cs" />
     <Compile Include="CommandHandlers\DuplicatePlaylistCommandHandler.cs" />
-    <Compile Include="CommandHandlers\GenerateAutoPlaylistCommandHandler.cs" />
+    <Compile Include="CommandHandlers\LibraryOptionsCommandHandler.cs" />
+    <Compile Include="CommandHandlers\StartAutoPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\GroupedSelection.cs" />
+    <Compile Include="CommandHandlers\RenamePlaylistCommandHandler.cs" />
+    <Compile Include="CommandHandlers\NewPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\TagAlbumsCommandHandler.cs" />
     <Compile Include="CommandHandlers\MoveItemsCommandHandler.cs" />
     <Compile Include="CommandHandlers\DeletePlaylistItemsCommandHandler.cs" />
@@ -125,9 +127,11 @@
     <Compile Include="LibraryManagement\ClearConfirmationDialogFragment.cs" />
     <Compile Include="LibraryManagement\ClearProgressDialogFragment.cs" />
     <Compile Include="LibraryManagement\LibraryScanModel.cs" />
-    <Compile Include="LibraryManagement\ScanDeleteDialogFragment.cs" />
     <Compile Include="LibraryManagement\ScanProgressDialogFragment.cs" />
     <Compile Include="LibraryManagement\SourceEditDialogFragment.cs" />
+    <Compile Include="LibraryOptionsView\LibraryNameDisplay.cs" />
+    <Compile Include="LibraryOptionsView\LibraryNameViewModel.cs" />
+    <Compile Include="LibraryOptionsView\LibraryOptionsDialogFragment.cs" />
     <Compile Include="LibraryScanning\FTPScanner.cs" />
     <Compile Include="BaseView\IAdapterActionHandler.cs" />
     <Compile Include="BaseView\IPageVisible.cs" />
@@ -137,7 +141,6 @@
     <Compile Include="LibraryScanning\InternalScanner.cs" />
     <Compile Include="LibraryScanning\SongStorage.cs" />
     <Compile Include="MainApp.cs" />
-    <Compile Include="Messages\AlbumAddedMessageo.cs" />
     <Compile Include="Messages\AlbumsDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackModelChangedMessage.cs" />
     <Compile Include="Messages\StorageDataAvailableMessage.cs" />
@@ -153,6 +156,9 @@
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />
     <Compile Include="Model\Album.cs" />
     <Compile Include="DbAccess\AlbumAccess.cs" />
+    <Compile Include="Model\TaggedAlbums.cs" />
+    <Compile Include="Model\Tag.cs" />
+    <Compile Include="Model\Tags.cs" />
     <Compile Include="Model\Artist.cs" />
     <Compile Include="Model\Autoplay.cs" />
     <Compile Include="Model\Autoplays.cs" />
@@ -164,7 +170,6 @@
     <Compile Include="Model\Artists.cs" />
     <Compile Include="Model\Albums.cs" />
     <Compile Include="DbAccess\FilterAccess.cs" />
-    <Compile Include="Model\Genres.cs" />
     <Compile Include="DbAccess\LibraryAccess.cs" />
     <Compile Include="Model\PlaybackDetails.cs" />
     <Compile Include="Model\Source.cs" />
@@ -493,9 +498,6 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\source_details_dialogue_layout.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\local_playback_no_wifi.png" />
   </ItemGroup>
   <ItemGroup>
@@ -512,6 +514,24 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\auto_gen.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\new_playlist_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\rename_playlist_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\library_options_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

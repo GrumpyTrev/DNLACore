@@ -1,13 +1,11 @@
-﻿using Android.Views;
-using Android.Widget;
-using System.Collections.Generic;
+﻿using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace DBTest
 {
 	public class PlaylistsFragment: PagedFragment<Playlist>, ExpandableListAdapter< Playlist >.IGroupContentsProvider< Playlist >, 
-		PlaylistsController.IReporter
+		PlaylistsController.IPlaylistsReporter
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -17,48 +15,14 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Add fragment specific menu items to the main toolbar
-		/// </summary>
-		/// <param name="menu"></param>
-		/// <param name="inflater"></param>
-		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
-		{
-			inflater.Inflate( Resource.Menu.menu_playlists, menu );
-
-			base.OnCreateOptionsMenu( menu, inflater );
-		}
-
-		/// <summary>
-		/// Called when a menu item has been selected
-		/// </summary>
-		/// <param name="item"></param>
-		/// <returns></returns>
-		public override bool OnOptionsItemSelected( IMenuItem item )
-		{
-			bool handled;
-
-			// Check for a new playlist request
-			if ( item.ItemId == Resource.Id.new_playlist )
-			{
-				NewPlaylistNameDialogFragment.ShowFragment( Activity.SupportFragmentManager );
-			
-				handled = true;
-			}
-			else
-			{
-				handled = base.OnOptionsItemSelected( item );
-			}
-
-			return handled;
-		}
-
-		/// <summary>
 		/// Get all the PlaylistItem entries associated with a specified Playlist.
+		/// Playlist items are now read at startup. So this is no longer required
 		/// </summary>
 		/// <param name="thePlayList"></param>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 		public async Task ProvideGroupContentsAsync( Playlist _ )
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 		{
-			// Playlist items are now read at startup. So this is no longer required
 		}
 
 		/// <summary>
@@ -66,7 +30,7 @@ namespace DBTest
 		/// Display the data held in the Playlists view model
 		/// </summary>
 		/// <param name="message"></param>
-		public void PlaylistsDataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
+		public void DataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
 
 		/// <summary>
 		/// Called when a specific playlist has been updated
@@ -79,42 +43,8 @@ namespace DBTest
 		/// Called when the number of selected items has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		protected override void SelectedItemsChanged( List<object> selectedObjects )
-		{
-			// Determine the number of songs and playlists selected.
-			IEnumerable< PlaylistItem > songsSelected = selectedItems.Values.OfType<PlaylistItem>();
-			IEnumerable<Playlist> playlistSelected = selectedItems.Values.OfType<Playlist>();
-			int songCount = songsSelected.Count();
-			int playlistCount = playlistSelected.Count();
-
-			// Are all the selected songs from a single playlist
-			int parentPlaylistId = ( songCount > 0 ) ? songsSelected.First().PlaylistId : -1;
-			bool singlePlaylistSongs = ( songCount > 0 ) && ( songsSelected.Any( item => ( item.PlaylistId != parentPlaylistId ) ) == false ) ;
-
-			// The move up / move down is available if all the songs are from a single playlist and that playlist is not selected, i.e. not all
-			// of its songs are selected
-			moveUpCommand.Visible = false;
-			moveDownCommand.Visible = false;
-
-			if ( ( singlePlaylistSongs == true ) && ( playlistSelected.Any( list => ( list.Id == parentPlaylistId ) ) == false ) )
-			{
-				// So the playlist containing all the songs is not selected.
-				// Need to obtain the playlist to determine which command is available
-				Playlist parentPlaylist = PlaylistsViewModel.Playlists.Single( list => ( list.Id == parentPlaylistId ) );
-
-				// Move up is available if the first song is not selected
-				moveUpCommand.Visible = songsSelected.Any( list => ( list.Id == parentPlaylist.PlaylistItems.First().Id ) ) == false;
-
-				// Move down is available if the last song is not selected
-				moveDownCommand.Visible = songsSelected.Any( list => ( list.Id == parentPlaylist.PlaylistItems.Last().Id ) ) == false;
-			}
-
-			// The edit command is only available if a single playlist has been selected
-			editCommand.Visible = ( playlistCount == 1 );
-
-			// Set the action bar title
-			SetActionBarTitle( songCount, playlistCount );
-		}
+		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
+			SetActionBarTitle( selectedObjects.PlaylistItemsCount, selectedObjects.PlaylistsCount );
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment
@@ -123,20 +53,14 @@ namespace DBTest
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
+		/// Initialise the PlaylistsController
 		/// </summary>
-		protected override void PostViewCreateAction()
-		{
-			// Initialise the PlaylistsController
-			PlaylistsController.Reporter = this;
-
-			// Get the data
-			PlaylistsController.GetPlaylists( ConnectionDetailsModel.LibraryId );
-		}
+		protected override void PostViewCreateAction() => PlaylistsController.DataReporter = this;
 
 		/// <summary>
 		/// Called to release any resources held by the fragment
 		/// </summary>
-		protected override void ReleaseResources() => PlaylistsController.Reporter = null;
+		protected override void ReleaseResources() => PlaylistsController.DataReporter = null;
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -147,6 +71,11 @@ namespace DBTest
 		/// The resource used to create the ExpandedListView for this fragment
 		/// </summary>
 		protected override int ListViewLayout { get; } = Resource.Id.playlistsList;
+
+		/// <summary>
+		/// The menu resource for this fragment
+		/// </summary>
+		protected override int Menu { get; } = Resource.Menu.menu_playlists;
 
 		/// <summary>
 		/// Set the title for the Action Bar according to the number of songs and playlists selected

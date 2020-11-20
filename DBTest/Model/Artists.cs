@@ -38,10 +38,11 @@ namespace DBTest
 		public static async Task AddArtistAsync( Artist artistToAdd )
 		{
 			ArtistCollection.Add( artistToAdd );
-			IdLookup[ artistToAdd.Id ] = artistToAdd;
 
 			// Need to wait for the Artist to be added so that its Id is available
 			await ArtistAccess.AddArtistAsync( artistToAdd );
+
+			IdLookup[ artistToAdd.Id ] = artistToAdd;
 		}
 
 		/// <summary>

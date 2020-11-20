@@ -11,7 +11,7 @@ using Android.Widget;
 namespace DBTest
 {
 	[Activity( Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true )]
-	public class MainActivity: AppCompatActivity, Logger.ILogger, LibraryNameDisplayController.IReporter
+	public class MainActivity: AppCompatActivity, Logger.ILogger
 	{
 		/// <summary>
 		/// Called to create the UI components of the activity
@@ -26,7 +26,14 @@ namespace DBTest
 			SetContentView( view );
 
 			// Set the main top toolbar
-			SetSupportActionBar( FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.toolbar ) );
+			Android.Support.V7.Widget.Toolbar toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.toolbar );
+			SetSupportActionBar( toolbar );
+
+			// Don't display the title as this is now done by the LibraryNameDisplay class (see below )
+			SupportActionBar.SetDisplayShowTitleEnabled( false );
+
+			// Link in to the LibraryNameDisplay so that the current library can be displayed
+			libraryDisplayer = new LibraryNameDisplay( toolbar );
 
 			// Set up logging
 			Logger.Reporter = this;
@@ -44,10 +51,6 @@ namespace DBTest
 			tagDeleteCommandHandler = new TagDeletor( this );
 			tagEditCommandHandler = new TagEditor( this );
 
-			// Link in to the LibraryNameDisplayController to be informed of library name changes
-			LibraryNameDisplayController.Reporter = this;
-			LibraryNameDisplayController.GetCurrentLibraryNameAsync();
-
 			// Start the router and selector - via a Post so that any response comes back after the UI has been created
 			// This didn't work when placed in OnStart() or OnResume(). Not sure why.
 			view.Post( () => {
@@ -63,6 +66,29 @@ namespace DBTest
 						.SetData( Uri.Parse( "package:" + PackageName ) ) );
 				}
 			}
+/*
+			Task.Run( async () =>
+			{
+				const int seconds = 30;
+				const string grefsFile = "grefs.txt";
+				string grefFile = Path.Combine( "/data/data", PackageName, "files/.__override__", grefsFile );
+				string grefFilePublic = Path.Combine( Environment.GetExternalStoragePublicDirectory( Environment.DirectoryDownloads ).AbsolutePath, grefsFile );
+
+				while ( true )
+				{
+					if ( File.Exists( grefFile ) )
+					{
+						File.Copy( grefFile, grefFilePublic, true );
+						Logger.Log( $"adb pull {grefFilePublic} {grefsFile}" );
+					}
+					else
+					{
+						Logger.Log( "No grefs.txt found, gref logging enabled? (adb shell setprop debug.mono.log gref)" );
+					}
+					await Task.Delay( seconds * 1000 );
+				}
+			} );
+*/
 		}
 
 		/// <summary>
@@ -168,12 +194,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the library name has been obtained at start-up or if it has changed
-		/// </summary>
-		/// <param name="libraryName"></param>
-		public void LibraryNameAvailable( string libraryName ) => SupportActionBar.Title = libraryName;
-
-		/// <summary>
 		/// Log a message
 		/// </summary>
 		/// <param name="message"></param>
@@ -206,7 +226,7 @@ namespace DBTest
 
 			// Some of the managers need to remove themselves from the scene
 			FragmentTitles.ParentActivity = null;
-			LibraryNameDisplayController.Reporter = null;
+			libraryDisplayer.UnBind();
 
 			// Unbind from any process wide command handler or monitors that require a menu item
 			MainApp.BindToPlaybackMonitor( null );
@@ -256,6 +276,11 @@ namespace DBTest
 		/// The handler for the tag editor command
 		/// </summary>
 		private TagEditor tagEditCommandHandler = null;
+
+		/// <summary>
+		/// The LibraryNameDisplay instance used to display the library name
+		/// </summary>
+		private LibraryNameDisplay libraryDisplayer = null;
 
 		/// <summary>
 		/// A reference to the repeat off menu item so that it can be shown or hidden

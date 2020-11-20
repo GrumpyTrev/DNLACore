@@ -21,11 +21,8 @@ namespace DBTest
 		/// <param name="inflater"></param>
 		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
 		{
-			inflater.Inflate( Resource.Menu.menu_albums, menu );
-
-			AlbumsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
-
 			base.OnCreateOptionsMenu( menu, inflater );
+			AlbumsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
 		}
 
 		/// <summary>
@@ -52,7 +49,7 @@ namespace DBTest
 		/// Called when the Controller has obtained the Albums data
 		/// Pass it on to the adapter
 		/// </summary>
-		public void AlbumsDataAvailable()
+		public void DataAvailable()
 		{
 			Activity.RunOnUiThread( () => 
 			{
@@ -80,14 +77,8 @@ namespace DBTest
 		/// Called when the number of selected items (songs) has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		protected override void SelectedItemsChanged( List<object> selectedObjects )
-		{
-			// Determine the number of songs in the selected items
-			int songsSelected = selectedObjects.OfType< Song >().Count();
-
-			// Update the Action Mode bar title
-			ActionModeTitle = ( songsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, songsSelected );
-		}
+		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
+			ActionModeTitle = ( selectedObjects.SongsCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.SongsCount );
 
 		/// <summary>
 		/// Called when the sort selector has changes the sort order
@@ -99,15 +90,9 @@ namespace DBTest
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
+		/// Initialise the AlbumsController
 		/// </summary>
-		protected override void PostViewCreateAction()
-		{
-			// Initialise the AlbumsController
-			AlbumsController.Reporter = this;
-
-			// Get the data
-			AlbumsController.GetAlbums( ConnectionDetailsModel.LibraryId );
-		}
+		protected override void PostViewCreateAction() => AlbumsController.DataReporter = this;
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment
@@ -120,7 +105,7 @@ namespace DBTest
 		protected override void ReleaseResources()
 		{
 			// Remove this object from the controller
-			AlbumsController.Reporter = null;
+			AlbumsController.DataReporter = null;
 
 			// Remove this object from the sort selector
 			AlbumsViewModel.SortSelector.Reporter = null;
@@ -138,6 +123,11 @@ namespace DBTest
 		/// The resource used to create the ExpandedListView for this fragment
 		/// </summary>
 		protected override int ListViewLayout { get; } = Resource.Id.albumsList;
+
+		/// <summary>
+		/// The menu resource for this fragment
+		/// </summary>
+		protected override int Menu { get; } = Resource.Menu.menu_albums;
 
 		/// <summary>
 		/// Show or hide genres

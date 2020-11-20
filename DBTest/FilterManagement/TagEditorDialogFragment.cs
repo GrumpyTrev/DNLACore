@@ -110,26 +110,40 @@ namespace DBTest
 					TaggedAlbums = new List<TaggedAlbum>()
 				};
 
-				// If nothing has changed then tell the user, otherwise carry out the save operation
-				if ( editTag != null )
+				// Make sure that the Name is not empty
+				if ( newOrUpdatedTag.Name.Length == 0 )
 				{
-					if ( ( editTag.Name != newOrUpdatedTag.Name ) || ( editTag.ShortName != newOrUpdatedTag.ShortName ) ||
-						( editTag.TagOrder != newOrUpdatedTag.TagOrder ) || ( editTag.MaxCount != newOrUpdatedTag.MaxCount ) ||
-						( editTag.Synchronise != newOrUpdatedTag.Synchronise ) )
-					{
-						// Something has changed so attempt to update the tag
-						FilterManagementController.UpdateTagAsync( editTag, newOrUpdatedTag, TagUpdated );
-					}
-					else
-					{
-						// Nothing has changed
-						NotificationDialogFragment.ShowFragment( Activity.SupportFragmentManager, "No changes made to tag" );
-					}
+					NotificationDialogFragment.ShowFragment( Activity.SupportFragmentManager, "An empty Tag name is not valid" );
 				}
 				else
 				{
-					// Attempt to add a new tag
-					FilterManagementController.CreateTagAsync( newOrUpdatedTag, TagUpdated );
+					// Normalise the short name
+					if ( newOrUpdatedTag.ShortName.Length == 0 )
+					{
+						newOrUpdatedTag.ShortName = newOrUpdatedTag.Name;
+					}
+
+					// If nothing has changed then tell the user, otherwise carry out the save operation
+					if ( editTag != null )
+					{
+						if ( ( editTag.Name != newOrUpdatedTag.Name ) || ( editTag.ShortName != newOrUpdatedTag.ShortName ) ||
+							( editTag.TagOrder != newOrUpdatedTag.TagOrder ) || ( editTag.MaxCount != newOrUpdatedTag.MaxCount ) ||
+							( editTag.Synchronise != newOrUpdatedTag.Synchronise ) )
+						{
+							// Something has changed so attempt to update the tag
+							FilterManagementController.UpdateTag( editTag, newOrUpdatedTag, TagUpdated );
+						}
+						else
+						{
+							// Nothing has changed
+							NotificationDialogFragment.ShowFragment( Activity.SupportFragmentManager, "No changes made to tag" );
+						}
+					}
+					else
+					{
+						// Attempt to add a new tag
+						FilterManagementController.CreateTag( newOrUpdatedTag, TagUpdated );
+					}
 				}
 			};
 		}

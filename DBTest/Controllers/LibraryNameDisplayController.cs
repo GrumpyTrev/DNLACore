@@ -3,38 +3,54 @@
 	/// <summary>
 	/// The LibraryNameDisplayController is used to obtain the name of the current library and to react to library changes
 	/// </summary>
-	static class LibraryNameDisplayController
+	class LibraryNameDisplayController : BaseController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
 		/// </summary>
-		static LibraryNameDisplayController() => Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
+		static LibraryNameDisplayController()
+		{
+			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
+
+			instance = new LibraryNameDisplayController();
+		}
 
 		/// <summary>
-		/// Get the name of the currently displayed library and report it back via the delegate
+		/// Get the library name data 
 		/// </summary>
-		public static async void GetCurrentLibraryNameAsync() => 
-			Reporter?.LibraryNameAvailable( await LibraryAccess.GetLibraryNameAsync( ConnectionDetailsModel.LibraryId ) );
+		public static void GetControllerData() => instance.GetData();
+
+		/// <summary>
+		/// Called during startup, or library change, when the storage data is available
+		/// </summary>
+		/// <param name="message"></param>
+		protected override void StorageDataAvailable( object _ = null )
+		{
+			// Save the current library name
+			LibraryNameViewModel.LibraryName = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).Name;
+
+			// Call the base class
+			base.StorageDataAvailable();
+		}
 
 		/// <summary>
 		/// Called when a SelectedLibraryChangedMessage has been received
-		/// Report the library name back to the delegate
+		/// Use the StorageDataAvailable method to store the new librray name and report it
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void SelectedLibraryChanged( object message ) => 
-			Reporter?.LibraryNameAvailable( await LibraryAccess.GetLibraryNameAsync( ( message as SelectedLibraryChangedMessage ).SelectedLibrary ) );
+		private static void SelectedLibraryChanged( object _ ) => instance.StorageDataAvailable();
 
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter Reporter { private get; set; } = null;
+		public static IReporter DataReporter
+		{
+			set => instance.Reporter = value;
+		}
 
 		/// <summary>
-		/// The interface used to report back controller results
+		/// The one and only LibraryNameDisplayController instance
 		/// </summary>
-		public interface IReporter
-		{
-			void LibraryNameAvailable( string libraryName );
-		}
+		private static readonly LibraryNameDisplayController instance = null;
 	}
 }

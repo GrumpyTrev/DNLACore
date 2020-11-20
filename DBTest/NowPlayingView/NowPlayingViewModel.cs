@@ -12,7 +12,6 @@
 		{
 			NowPlayingPlaylist = null;
 			LibraryId = -1;
-			DataValid = false;
 		}
 
 		/// The Now Playing playlist that has been obtained from the database
@@ -28,10 +27,5 @@
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
 		public static int LibraryId { get; set; } = -1;
-
-		/// <summary>
-		/// Indicates whether or not the data held by the class is valid
-		/// </summary>
-		public static bool DataValid { get; set; } = false;
 	}
 }

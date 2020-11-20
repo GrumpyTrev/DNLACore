@@ -110,14 +110,14 @@ namespace DBTest
 
 				// REQUIRED TO INITIALLY GET GENRES STORED CORRECTLY
 //				scanRequired = true;
-//				matchedSong.ScanAction = Song.ScanActionType.Differ;
+	//			matchedSong.ScanAction = Song.ScanActionType.Differ;
 			}
 
 			return scanRequired;
 		}
 
 		/// <summary>
-		/// Called to determine whether a song that has been scanned requires adding to the library, or just an exisiting entry updated
+		/// Called to determine whether a song that has been scanned requires adding to the library, or just an existing entry updated
 		/// </summary>
 		/// <param name="song"></param>
 		/// <returns></returns>
@@ -139,8 +139,8 @@ namespace DBTest
 				// If the artist or album name has changed then treat this as a new song. Otherwise update the existing song in the library
 				if ( ( matchedArtist.Name.ToUpper() != song.ArtistName.ToUpper() ) || ( matchedArtistAlbum.Name.ToUpper() != song.Tags.Album.ToUpper() ) )
 				{
-					// The existing song needs to be deleted now just in case the user decides not to delete unmatched entries at the end of the process.
-					// If the song is not deleted then there will be more than one associated with the same storgae location.
+					// The existing song needs to be deleted now.
+					// If the song is not deleted then there will be more than one associated with the same storage location.
 					// This is much less complicated than trying to move the existing song to a new Artist or Album
 					await LibraryScanController.DeleteSongAsync( matchedSong );
 					matchedSong.ScanAction = Song.ScanActionType.Matched;
@@ -160,6 +160,14 @@ namespace DBTest
 					// Don't update the Album if it is a 'various artists' album as the these fields is not applicable
 					Album matchedAlbum = Albums.GetAlbumById( matchedArtistAlbum.AlbumId );
 
+					// TESTING ONLY
+					// If the artist name has not be set in the Album then set it now
+					if ( matchedAlbum.ArtistName == null )
+					{
+						matchedAlbum.ArtistName = song.ArtistName;
+						await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
+					}
+
 					if ( matchedAlbum.ArtistName != SongStorage.VariousArtistsString )
 					{
 						// Update the stored year if it is different to the artist year and the artist year is defined.
@@ -175,15 +183,10 @@ namespace DBTest
 
 						if ( song.Tags.Genre.Length > 0 )
 						{
-							// If this album has a genre id then get the associated genre record
-							Genre albumGenre = Genres.GetGenreById( matchedAlbum.GenreId );
-
-							if ( ( albumGenre == null ) || ( albumGenre.Name != song.Tags.Genre ) )
+							// If this album does not already have a genre, or the genre has been changed then set it now
+							if ( ( matchedAlbum.Genre == null ) || ( matchedAlbum.Genre != song.Tags.Genre ) )
 							{
-								// If this is a new genre then add it to the genres list.
-								albumGenre = await Genres.GetGenreByNameAsync( song.Tags.Genre, true );
-
-								matchedAlbum.GenreId = albumGenre.Id;
+								matchedAlbum.Genre = song.Tags.Genre;
 								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
 							}
 						}
@@ -250,6 +253,7 @@ namespace DBTest
 				if ( ( songAlbum.ArtistName == null ) || ( songAlbum.ArtistName.Length == 0 ) )
 				{
 					songAlbum.ArtistName = songArtist.Name;
+					await ConnectionDetailsModel.AsynchConnection.UpdateAsync( songAlbum );
 				}
 				else
 				{
@@ -257,6 +261,7 @@ namespace DBTest
 					if ( songAlbum.ArtistName != songArtist.Name )
 					{
 						songAlbum.ArtistName = VariousArtistsString;
+						await ConnectionDetailsModel.AsynchConnection.UpdateAsync( songAlbum );
 					}
 				}
 
@@ -264,14 +269,16 @@ namespace DBTest
 				if ( ( songAlbum.Year != songScanned.Year ) && ( songAlbum.Year == 0 ) )
 				{
 					songAlbum.Year = songScanned.Year;
+					await ConnectionDetailsModel.AsynchConnection.UpdateAsync( songAlbum );
 				}
 
 				// Update the album genre.
 				// Only try updating if a genre is defined for the song
 				// If the album does not have a genre then get one for the song and store it in the album
-				if ( ( songScanned.Tags.Genre.Length > 0 ) && ( songAlbum.GenreId == 0 ) )
+				if ( ( songScanned.Tags.Genre.Length > 0 ) && ( songAlbum.Genre.Length == 0 ) )
 				{
-					songAlbum.GenreId = ( await Genres.GetGenreByNameAsync( songScanned.Tags.Genre, true ) ).Id;
+					songAlbum.Genre = songScanned.Tags.Genre;
+					await ConnectionDetailsModel.AsynchConnection.UpdateAsync( songAlbum );
 				}
 
 				// Add to the source
@@ -319,9 +326,6 @@ namespace DBTest
 			{
 				songAlbum = new Album() { Name = album.Name, Songs = new List<Song>(), LibraryId = scanLibrary };
 				await Albums.AddAlbumAsync( songAlbum );
-
-				// Add this album to the Recently Added list
-				new AlbumAddedMessage() { AlbumAdded = songAlbum }.Send();
 			}
 
 			return songAlbum;
@@ -343,7 +347,7 @@ namespace DBTest
 			if ( songArtist == null )
 			{
 				// Create a new Artist and add it to the database
-				songArtist = new Artist() { Name = artistName, ArtistAlbums = new List<ArtistAlbum>() };
+				songArtist = new Artist() { Name = artistName, ArtistAlbums = new List<ArtistAlbum>(), LibraryId = scanLibrary };
 				await Artists.AddArtistAsync( songArtist );
 
 				// Add it to the collection for this library only
@@ -382,7 +386,7 @@ namespace DBTest
 				// Get the children of the existing ArtistAlbum
 				if ( songArtistAlbum.Songs == null )
 				{
-					await SongAccess.GetArtistAlbumSongsAsync( songArtistAlbum.Id );
+					songArtistAlbum.Songs = await SongAccess.GetArtistAlbumSongsAsync( songArtistAlbum.Id );
 				}
 			}
 

@@ -1,8 +1,8 @@
 ﻿using System;
-
 using Android.App;
 using Android.Content;
 using Android.OS;
+using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
@@ -16,7 +16,19 @@ namespace DBTest
 	/// </summary>
 	internal class NewPlaylistNameDialogFragment : DialogFragment
 	{
-		public static void ShowFragment( FragmentManager manager ) => new NewPlaylistNameDialogFragment().Show( manager, "fragment_new_playlist_name" );
+		/// <summary>
+		/// Show the dialogue
+		/// </summary>
+		/// <param name="manager"></param>
+		public static void ShowFragment( FragmentManager manager, NameEntered nameCallback, string dialogTitle, int layoutResource, string playlistName )
+		{
+			reporter = nameCallback;
+			title = dialogTitle;
+			layout = layoutResource;
+			name = playlistName;
+
+			new NewPlaylistNameDialogFragment().Show( manager, "fragment_new_playlist_name" );
+		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
@@ -34,26 +46,27 @@ namespace DBTest
 		{
 			// Show a dialogue asking for a new playlist name. Don't install handlers for Ok/Cancel yet.
 			// This prevents the default Dismiss action after the buttons are clicked
-			playListName = new EditText( Context ) { Hint = "Enter new playlist name" };
+			View editView = LayoutInflater.From( Context ).Inflate( Resource.Layout.new_playlist_dialogue_layout, null );
+			playListName = editView.FindViewById<EditText>( Resource.Id.playlistName );
 
-			// If this dialog is being restored then get the saved playlist name
-			if ( savedInstanceState != null )
+			if ( ( savedInstanceState == null ) && ( name.Length > 0 ) )
 			{
-				playListName.Text = savedInstanceState.GetString( PlaylistNameTag );
+				playListName.Text = name;
 			}
 
-			AlertDialog alert = new AlertDialog.Builder( Context )
-				.SetTitle( "New playlist" )
-				.SetView( playListName )
+			return new AlertDialog.Builder( Context )
+				.SetTitle( title )
+				.SetView( editView )
 				.SetPositiveButton( "Ok", ( EventHandler<DialogClickEventArgs> )null )
-				.SetNegativeButton( "Cancel", ( EventHandler<DialogClickEventArgs> )null )
-				.Create();
-
-			return alert;
+				.SetNegativeButton( "Cancel", delegate {
+					// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
+					InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( playListName.WindowToken, HideSoftInputFlags.None );
+				} )
+				.Create(); ;
 		}
 
 		/// <summary>
-		/// Install handlers for the Ok and Cancel buttons when the dialogue is displayed
+		/// Install handlers for the Ok button when the dialogue is displayed
 		/// </summary>
 		public override void OnResume()
 		{
@@ -64,54 +77,30 @@ namespace DBTest
 			// Install a handler for the Ok button that performs the validation and playlist creation
 			alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) =>
 			{
-				string alertText = "";
-
-				if ( playListName.Text.Length == 0 )
-				{
-					alertText = "An empty name is not valid.";
-				}
-				else if ( PlaylistsViewModel.PlaylistNames.Contains( playListName.Text ) == true )
-				{
-					alertText = "A playlist with that name already exists.";
-				}
-				else
-				{
-					PlaylistsController.AddPlaylist( playListName.Text );
-
-					// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
-					InputMethodManager imm = ( InputMethodManager )Context.GetSystemService( Context.InputMethodService );
-					imm.HideSoftInputFromWindow( playListName.WindowToken, 0 );
-
-					Dismiss();
-				}
-
-				// Display an error message if the playlist name is not valid. Do not dismiss the dialog
-				if ( alertText.Length > 0 )
-				{
-					NotificationDialogFragment.ShowFragment( Activity.SupportFragmentManager, alertText );
-				}
-			};
-
-			// Install a handler for the cancel button so that the keyboard can be explicitly hidden
-			alert.GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) =>
-			{
-				// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
-				InputMethodManager imm = ( InputMethodManager )Context.GetSystemService( Context.InputMethodService );
-				imm.HideSoftInputFromWindow( playListName.WindowToken, 0 );
-
-				Dismiss();
+				reporter?.Invoke( playListName.Text, this );
 			};
 		}
 
 		/// <summary>
-		/// Override the base method in order to save the current playlist name
+		/// Called by the command handler to dismiss the dialog, and to close any open input service
 		/// </summary>
-		/// <param name="outState"></param>
-		public override void OnSaveInstanceState( Bundle outState )
+		public override void Dismiss()
 		{
-			base.OnSaveInstanceState( outState );
-			outState.PutString( PlaylistNameTag, playListName.Text );
+			// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
+			InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( playListName.WindowToken, HideSoftInputFlags.None );
+
+			base.Dismiss();
 		}
+
+		/// <summary>
+		/// The delegate used to report back the playlist name
+		/// </summary>
+		private static NameEntered reporter = null;
+
+		/// <summary>
+		/// Delegate type used to report back the playlist name
+		/// </summary>
+		public delegate void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment );
 
 		/// <summary>
 		/// The control holding the name of the new playlist
@@ -119,8 +108,18 @@ namespace DBTest
 		private EditText playListName = null;
 
 		/// <summary>
-		/// Storage name for the playlist
+		/// The title for this dialogue
 		/// </summary>
-		private const string PlaylistNameTag = "playlistName";
+		private static string title = "";
+
+		/// <summary>
+		/// The layout resource for the dialogue
+		/// </summary>
+		private static int layout = -1;
+
+		/// <summary>
+		/// The name to preload the playlist name field with
+		/// </summary>
+		private static string name = "";
 	}
 }

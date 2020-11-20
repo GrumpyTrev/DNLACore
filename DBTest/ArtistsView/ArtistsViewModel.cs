@@ -19,8 +19,8 @@ namespace DBTest
 			LibraryId = -1;
 			ListViewState = null;
 			CurrentFilter = null;
+			FilteredAlbumsIds.Clear();
 			SortSelector.SetActiveSortOrder( SortSelector.SortType.alphabetic ); // This also sets the sort order to alphabetic ascending
-			DataValid = false;
 		}
 
 		/// <summary>
@@ -65,8 +65,8 @@ namespace DBTest
 		public static List<TagGroup> TagGroups { get; set; } = new List<TagGroup>();
 
 		/// <summary>
-		/// Indicates whether or not the data held by the class is valid
+		/// The set of filtered Albums formed fromthe current filter (including TagGroups)
 		/// </summary>
-		public static bool DataValid { get; set; } = false;
+		public static HashSet<int> FilteredAlbumsIds { get; set; } = new HashSet<int>();
 	}
 }

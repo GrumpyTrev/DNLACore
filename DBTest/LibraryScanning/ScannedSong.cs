@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace DBTest
@@ -79,8 +81,11 @@ namespace DBTest
 			{
 			}
 
-			// The genre tag may consist of multiple parts divided by a ';'
-			Tags.Genre = Tags.Genre.Split( ';' )[ 0 ];
+			// The genre tag may consist of multiple parts divided by a ';'. We need to keep all of them but remove any whitespace around them
+			List<string> genres = Tags.Genre.Split( ';' ).ToList();
+			genres.ForEach( gen => gen = gen.Trim() );
+			
+			Tags.Genre = string.Join( ';', genres );
 		}
 	}
 }

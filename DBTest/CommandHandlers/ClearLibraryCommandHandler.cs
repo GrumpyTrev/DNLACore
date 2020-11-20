@@ -52,11 +52,7 @@
 			await LibraryAccess.ClearLibraryAsync( libraryToClear );
 			clearFinished = true;
 
-			// Only let the user know if the app has not paused
-			if ( MainApp.Foreground == true )
-			{
-				progressDialogFragment?.UpdateDialogueState( clearFinished );
-			}
+			progressDialogFragment?.UpdateDialogueState( clearFinished );
 		}
 
 		/// <summary>

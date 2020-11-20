@@ -92,8 +92,6 @@ namespace DBTest
 							byte[] requestBytes = Encoding.UTF8.GetBytes( request );
 							await networkStream.WriteAsync( requestBytes, 0, requestBytes.Length );
 
-							// Read into a fixed length byte array
-							byte[] readBuffer = new byte[ 2000 ];
 							int bytesRead;
 
 							do
@@ -168,5 +166,10 @@ namespace DBTest
 		/// Size of buffer to read DNLA response
 		/// </summary>
 		private const int ReadBufferSize = 2000;
+
+		/// <summary>
+		/// As only one request is allowed at a time make the buffer static
+		/// </summary>
+		private static readonly byte[] readBuffer = new byte[ ReadBufferSize ];
 	}
 }

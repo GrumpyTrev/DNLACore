@@ -27,8 +27,11 @@ namespace DBTest
 			new MoveItemsCommandHandler().BindToRouter();
 			new DeletePlaylistItemsCommandHandler().BindToRouter();
 			new TagAlbumsCommandHandler().BindToRouter();
-			new GenerateAutoPlaylistCommandHandler().BindToRouter();
+			new StartAutoPlaylistCommandHandler().BindToRouter();
 			new DuplicatePlaylistCommandHandler().BindToRouter();
+			new NewPlaylistCommandHandler().BindToRouter();
+			new RenamePlaylistCommandHandler().BindToRouter();
+			new LibraryOptionsCommandHandler().BindToRouter();
 		}
 
 		/// <summary>

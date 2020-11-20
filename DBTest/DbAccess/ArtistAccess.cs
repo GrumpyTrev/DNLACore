@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using SQLiteNetExtensionsAsync.Extensions;
 using System.Collections.Generic;
 
 namespace DBTest

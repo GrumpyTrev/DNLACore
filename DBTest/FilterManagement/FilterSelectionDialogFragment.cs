@@ -63,7 +63,7 @@ namespace DBTest
 			AlertDialog alert = ( AlertDialog )Dialog;
 
 			// Form a list of choices including None
-			List<string> tagNames = FilterManagementModel.Tags.Select( tag => tag.Name ).ToList();
+			List<string> tagNames = FilterManagementController.GetTagNames();
 			tagNames.Insert( 0, "None" );
 
 			// Which one of these is currently selected
@@ -88,7 +88,7 @@ namespace DBTest
 
 				// Get the simple tag
 				int tagIndex = simpleTags.CheckedItemPosition;
-				Tag newTag = ( tagIndex == 0 ) ? null : FilterManagementModel.Tags[ tagIndex - 1 ];
+				Tag newTag = ( tagIndex == 0 ) ? null : Tags.TagsCollection[ tagIndex - 1 ];
 
 				// Check for simple or group tag changes
 				if ( ( newTag != CurrentlySelectedFilter ) || ( selectedGroups.Count != CurrentlySelectedTagGroups.Count ) || 

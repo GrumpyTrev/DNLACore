@@ -27,7 +27,7 @@ namespace DBTest
 			stateChangeReporter = stateChange;
 
 			// Save the inflator to use when creating the item views
-			inflator = ( LayoutInflater )context.GetSystemService( Context.LayoutInflaterService );
+			inflator = LayoutInflater.FromContext( context );
 
 			// Set up listeners for group and child selection and item long click
 			parentView.SetOnGroupClickListener( this );
@@ -76,11 +76,11 @@ namespace DBTest
 		{
 			convertView = GetSpecialisedChildView( groupPosition, childPosition, isLastChild, convertView, parent );
 
-			// Tag the view with the group and child position
-			convertView.Tag = FormChildTag( groupPosition, childPosition );
+			// Save the position for this view
+			( ( ExpandableListViewHolder )convertView.Tag ).ItemTag = FormChildTag( groupPosition, childPosition );
 
 			// Display the checkbox
-			RenderCheckbox( convertView, ( int )convertView.Tag );
+			RenderCheckbox( convertView );
 
 			return convertView;
 		}
@@ -112,11 +112,11 @@ namespace DBTest
 		{
 			convertView = GetSpecialisedGroupView( groupPosition, isExpanded, convertView, parent );
 
-			// Tag the view with the group and child position
-			convertView.Tag = FormGroupTag( groupPosition );
+			// Save the position for this view
+			( ( ExpandableListViewHolder )convertView.Tag ).ItemTag = FormGroupTag( groupPosition );
 
 			// Display the checkbox
-			RenderCheckbox( convertView, ( int )convertView.Tag );
+			RenderCheckbox( convertView );
 
 			return convertView;
 		}
@@ -259,7 +259,7 @@ namespace DBTest
 		/// <returns></returns>
 		public bool OnItemLongClick( AdapterView parent, View view, int position, long id )
 		{
-			int tag = ( int )view.Tag;
+			ExpandableListViewHolder holder = ( ExpandableListViewHolder )view.Tag;
 
 			// If action mode is not in effect then request it.
 			// Otherwise ignore long presses
@@ -268,9 +268,9 @@ namespace DBTest
 				ActionMode = true;
 
 				// Let derived classes control what happens in addition to just turning on action mode 
-				if ( SelectLongClickedItem( tag ) == true )
+				if ( SelectLongClickedItem( holder.ItemTag ) == true )
 				{
-					OnChildClick( parentView, view, GetGroupFromTag( tag ), GetChildFromTag( tag ), 0 );
+					OnChildClick( parentView, view, GetGroupFromTag( holder.ItemTag ), GetChildFromTag( holder.ItemTag ), 0 );
 				}
 			}
 
@@ -292,7 +292,7 @@ namespace DBTest
 			// Only process this if Action Mode is in effect
 			if ( ActionMode == true )
 			{
-				CheckBox selectionBox = clickedView.FindViewById<CheckBox>( Resource.Id.checkBox );
+				CheckBox selectionBox = ( ( ExpandableListViewHolder )clickedView.Tag ).SelectionBox;
 
 				selectionBox.Checked = !selectionBox.Checked;
 
@@ -347,7 +347,22 @@ namespace DBTest
 		/// Return the names of all the sections
 		/// </summary>
 		/// <returns></returns>
-		public Java.Lang.Object[] GetSections() => new Java.Util.ArrayList( alphaIndexer.Keys ).ToArray();
+		public Java.Lang.Object[] GetSections()
+		{
+			javaSections = null;
+
+			// Returning this information seems to lose storage, so try to collect some just freed
+			GC.Collect( GC.MaxGeneration );
+
+			// Size the section array from the alphaIndexer as the sections array is not always cleared
+			javaSections = new Java.Lang.Object[ alphaIndexer.Keys.Count ];
+			for ( int index = 0; index < javaSections.Length; ++index )
+			{
+				javaSections[ index ] = new Java.Lang.String( sections[ index ] );
+			}
+
+			return javaSections;
+		}
 
 		/// <summary>
 		/// Derived classes must implement this method to provide a view for a child item
@@ -578,6 +593,18 @@ namespace DBTest
 		/// <returns></returns>
 		protected static int GetGroupFromTag( int tag ) => tag >> 16;
 
+		protected CheckBox GetSelectionBox( View view )
+		{
+			CheckBox selectionBox = view.FindViewById<CheckBox>( Resource.Id.checkBox );
+			if ( selectionBox != null )
+			{
+				selectionBox.Tag = new TagHolder();
+				selectionBox.Click += SelectionBoxClickAsync;
+			}
+
+			return selectionBox;
+		}
+
 		/// <summary>
 		/// Called to perform the actual group collapse or expansion asynchronously
 		/// If a group is being expanded then get its contents if not previously displayed
@@ -643,7 +670,7 @@ namespace DBTest
 		/// <param name="e"></param>
 		private async void SelectionBoxClickAsync( object sender, EventArgs e )
 		{
-			int tag = ( int )( ( CheckBox )sender ).Tag;
+			int tag = ( ( TagHolder ) ( ( CheckBox )sender ).Tag  ).Tag;
 			int groupPosition = GetGroupFromTag( tag );
 
 			// Toggle the selection
@@ -688,24 +715,29 @@ namespace DBTest
 		/// </summary>
 		/// <param name="convertView"></param>
 		/// <param name="tag"></param>
-		private void RenderCheckbox( View convertView, int tag )
+		private void RenderCheckbox( View convertView )
 		{
-			CheckBox selectionBox = convertView.FindViewById<CheckBox>( Resource.Id.checkBox );
+			ExpandableListViewHolder viewHolder = ( ExpandableListViewHolder )convertView.Tag;
+			CheckBox selectionBox = viewHolder.SelectionBox;
 
 			if ( selectionBox != null )
 			{
 				// Save the item identifier in the check box for the click event
-				selectionBox.Tag = tag;
+				( ( TagHolder )selectionBox.Tag ).Tag = viewHolder.ItemTag;
 
-				// Show or hide the checkbox
-				selectionBox.Visibility = ( ActionMode == true ) ? ViewStates.Visible : ViewStates.Gone;
+				if ( ActionMode == true )
+				{
+					// Show the checkbox
+					selectionBox.Visibility = ViewStates.Visible;
 
-				// Retrieve the cheked state of the item and set the checkbox state accordingly
-				selectionBox.Checked = IsItemSelected( tag );
-
-				// Trap checkbox clicks
-				selectionBox.Click -= SelectionBoxClickAsync;
-				selectionBox.Click += SelectionBoxClickAsync;
+					// Retrieve the checked state of the item and set the checkbox state accordingly
+					selectionBox.Checked = IsItemSelected( viewHolder.ItemTag );
+				}
+				else
+				{
+					// Hide the checkbox
+					selectionBox.Visibility = ViewStates.Gone;
+				}
 			}
 		}
 
@@ -771,5 +803,22 @@ namespace DBTest
 		/// Lookup table specifying the starting position for each section name
 		/// </summary>
 		protected Dictionary<string, int> alphaIndexer = new Dictionary<string, int>();
+
+		/// <summary>
+		/// The section names sent back to the Java Adapter base class
+		/// </summary>
+		private Java.Lang.Object[] javaSections = null;
+
+		protected class ExpandableListViewHolder : Java.Lang.Object
+		{
+			public int ItemTag { get; set; } = -1;
+			public CheckBox SelectionBox { get; set; } = null;
+			public bool SelectionBoxEventCaptured { get; set; } = false;
+		}
+
+		private class TagHolder : Java.Lang.Object
+		{
+			public int Tag { get; set; } = 0;
+		}
 	}
 }

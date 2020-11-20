@@ -7,7 +7,7 @@ namespace DBTest
 	/// The PlaylistsController is the Controller for the PlaylistsView. It responds to PlaylistsView commands and maintains Playlist data in the
 	/// PlaylistsViewModel
 	/// /// </summary>
-	static class PlaylistsController
+	class PlaylistsController : BaseController
 	{
 		/// <summary>
 		/// Public constructor providing the Database path and the interface instance used to report results
@@ -16,33 +16,14 @@ namespace DBTest
 		{
 			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
+
+			instance = new PlaylistsController();
 		}
 
 		/// <summary>
-		/// Get the Playlist data associated with the specified library
-		/// If the data has already been obtained then notify view immediately.
-		/// Otherwise wait for the data to be made available
+		/// Get the Playlist data
 		/// </summary>
-		/// <param name="libraryId"></param>
-		public static void GetPlaylists( int libraryId )
-		{
-			// Check if the Playlists details for the library have already been obtained
-			if ( PlaylistsViewModel.LibraryId != libraryId )
-			{
-				PlaylistsViewModel.LibraryId = libraryId;
-
-				// All Playlists are read at startup. So wait until that is available and then carry out the rest of the initialisation
-				StorageController.RegisterInterestInDataAvailable( PlaylistDataAvailable );
-			}
-			else
-			{
-				// Let the Views know that Playlists data is available
-				if ( PlaylistsViewModel.DataValid == true )
-				{
-					Reporter?.PlaylistsDataAvailable();
-				}
-			}
-		}
+		public static void GetControllerData() => instance.GetData();
 
 		/// <summary>
 		/// Delete the specified playlist and its contents
@@ -53,11 +34,11 @@ namespace DBTest
 			// Delete the playlist and then refresh the data held by the model
 			Playlists.DeletePlaylist( thePlaylist );
 
-			// Refresh the playlists held by the model and report the change
-			PlaylistDataAvailable();
-
 			// Let other controllers know
 			new PlaylistDeletedMessage().Send();
+
+			// Refresh the playlists held by the model and report the change
+			instance.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -74,7 +55,7 @@ namespace DBTest
 			thePlaylist.AdjustTrackNumbers();
 
 			// Report the change
-			Reporter?.PlaylistUpdated( thePlaylist );
+			DataReporter?.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
@@ -85,11 +66,23 @@ namespace DBTest
 		{
 			Playlists.AddPlaylist( new Playlist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId } );
 
-			// Refresh the playlists held by the model and report the change
-			PlaylistDataAvailable();
-
 			// Let other controllers know
 			new PlaylistAddedMessage().Send();
+
+			// Refresh the playlists held by the model and report the change
+			instance.StorageDataAvailable();
+		}
+
+		/// <summary>
+		/// Change the name of the specified playlist
+		/// </summary>
+		/// <param name="playlistName"></param>
+		public static void RenamePlaylist( Playlist playlist, string newName )
+		{
+			playlist.Rename( newName );
+
+			// Refresh the playlists held by the model and report the change
+			instance.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -108,7 +101,7 @@ namespace DBTest
 		{
 			thePlaylist.MoveItemsDown( items );
 
-			Reporter?.PlaylistUpdated( thePlaylist );
+			DataReporter?.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
@@ -120,7 +113,7 @@ namespace DBTest
 		{
 			thePlaylist.MoveItemsUp( items );
 
-			Reporter?.PlaylistUpdated( thePlaylist );
+			DataReporter?.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
@@ -205,26 +198,26 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called during startup, or library change, when the storage data is available
+		/// </summary>
+		/// <param name="message"></param>
+		protected override void StorageDataAvailable( object _ = null )
+		{
+			// Save the libray being used locally to detect changes
+			PlaylistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
+
+			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId );
+			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
+
+			base.StorageDataAvailable();
+		}
+
+		/// <summary>
 		/// Called when the PlaylistSongsAddedMessage is received
 		/// Let the view know
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongsAdded( object message ) => 
-			Reporter?.PlaylistUpdated( ( ( PlaylistSongsAddedMessage )message ).Playlist );
-
-		/// <summary>
-		/// Called when the Playlist data is available to be displayed, or needs to be refreshed
-		/// </summary>
-		private static void PlaylistDataAvailable( object _ = null )
-		{
-			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId );
-			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
-
-			PlaylistsViewModel.DataValid = true;
-
-			// Let the views know that Playlists data is available
-			Reporter?.PlaylistsDataAvailable();
-		}
+		private static void SongsAdded( object message ) => DataReporter?.PlaylistUpdated( ( ( PlaylistSongsAddedMessage )message ).Playlist );
 
 		/// <summary>
 		/// Called when a SelectedLibraryChangedMessage has been received
@@ -236,25 +229,31 @@ namespace DBTest
 			// Clear the displayed data
 			PlaylistsViewModel.ClearModel();
 
-			// Publish the data
-			Reporter?.PlaylistsDataAvailable();
-
 			// Reread the data
-			GetPlaylists( ConnectionDetailsModel.LibraryId );
+			instance.dataValid = false;
+			instance.StorageDataAvailable();
 		}
 
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter Reporter { private get; set; } = null;
+		public static IPlaylistsReporter DataReporter
+		{
+			private get => ( IPlaylistsReporter )instance.Reporter;
+			set => instance.Reporter = value;
+		}
 
 		/// <summary>
 		/// The interface used to report back controller results
 		/// </summary>
-		public interface IReporter
+		public interface IPlaylistsReporter : IReporter
 		{
-			void PlaylistsDataAvailable();
 			void PlaylistUpdated( Playlist playlist );
 		}
+
+		/// <summary>
+		/// The one and only PlaylistsController instance
+		/// </summary>
+		private static readonly PlaylistsController instance = null;
 	}
 }

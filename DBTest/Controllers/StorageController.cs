@@ -39,7 +39,6 @@ namespace DBTest
 		/// </summary>
 		private static async void ReadManagedCollections()
 		{
-			await Genres.GetDataAsync();
 			await Albums.GetDataAsync();
 			await Sources.GetDataAsync();
 			await Artists.GetDataAsync();
@@ -48,8 +47,10 @@ namespace DBTest
 			await PlaybackDetails.GetDataAsync();
 			await Playlists.GetDataAsync();
 			await Autoplays.GetDataAsync();
+			await Tags.GetDataAsync();
+			await TaggedAlbums.GetDataAsync();
 
-			// Carry out some one-of data linking
+			// Carry out some one-off data linking
 			await PopulateArtistsAsync();
 
 			DataAvailable = true;
@@ -74,7 +75,7 @@ namespace DBTest
 					if ( associatedAlbum != null )
 					{
 						// Store the Album in the ArtistAlbum
-						artAlbum.Album = associatedAlbum; ;
+						artAlbum.Album = associatedAlbum;
 
 						// Save a reference to the Artist in the ArtistAlbum
 						artAlbum.Artist = Artists.GetArtistById( artAlbum.ArtistId );
@@ -85,7 +86,6 @@ namespace DBTest
 				}
 			} );
 		}
-
 
 		/// <summary>
 		/// Is the managed storage available

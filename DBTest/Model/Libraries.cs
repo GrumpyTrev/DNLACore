@@ -33,6 +33,13 @@ namespace DBTest
 		public static int Index( int libraryId ) => LibraryCollection.FindIndex( lib => ( lib.Id == libraryId ) );
 
 		/// <summary>
+		/// Get the specified Library
+		/// </summary>
+		/// <param name="libraryId"></param>
+		/// <returns></returns>
+		public static Library GetLibraryById( int libraryId ) => LibraryCollection.SingleOrDefault( lib => ( lib.Id == libraryId ) );
+
+		/// <summary>
 		/// The set of Library entries currently held in storage
 		/// </summary>
 		public static List<Library> LibraryCollection { get; private set; } = null;

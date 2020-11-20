@@ -8,7 +8,7 @@ namespace DBTest
 	/// The NowPlayingController is the Controller for the NowPlayingView. It responds to NowPlayingView commands and maintains Now Playing data in the
 	/// NowPlayingViewModel
 	/// </summary>
-	static class NowPlayingController
+	class NowPlayingController : BaseController
 	{
 		/// <summary>
 		/// Register for external Now Playing list change messages
@@ -18,31 +18,14 @@ namespace DBTest
 			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
+
+			instance = new NowPlayingController();
 		}
 
 		/// <summary>
-		/// Get the Now Playing data associated with the specified library
-		/// If the data has already been obtained then notify view immediately.
-		/// Otherwise get the data from the database asynchronously
+		/// Get the Playlist data
 		/// </summary>
-		/// <param name="libraryId"></param>
-		public static void GetNowPlayingList( int libraryId )
-		{
-			// Check if the Playlists details for the library have already been obtained
-			if ( NowPlayingViewModel.LibraryId != libraryId )
-			{
-				NowPlayingViewModel.LibraryId = libraryId;
-
-				// All Playlists are read at startup. So wait until that is available and then carry out the rest of the initialisation
-				StorageController.RegisterInterestInDataAvailable( PlaylistDataAvailable );
-			}
-
-			// Publish this data unless it is still being obtained
-			if ( NowPlayingViewModel.DataValid == true )
-			{
-				Reporter?.NowPlayingDataAvailable();
-			}
-		}
+		public static void GetControllerData() => instance.GetData();
 
 		/// <summary>
 		/// Set the selected song in the database and raise the SongSelectedMessage
@@ -122,7 +105,7 @@ namespace DBTest
 			AdjustSelectedSongIndex( currentPlaylistItem );
 
 			// Report
-			Reporter?.NowPlayingDataAvailable();
+			DataReporter?.DataAvailable();
 		}
 
 		/// <summary>
@@ -141,7 +124,7 @@ namespace DBTest
 			AdjustSelectedSongIndex( currentPlaylistItem );
 
 			// Report that the playlist has been updated - don't use NowPlayingDataAvailable as that will clear the selections
-			Reporter?.PlaylistUpdated();
+			DataReporter?.PlaylistUpdated();
 		}
 
 		/// <summary>
@@ -160,24 +143,24 @@ namespace DBTest
 			AdjustSelectedSongIndex( currentPlaylistItem );
 
 			// Report that the playlist has been updated - don't use NowPlayingDataAvailable as that will clear the selections
-			Reporter?.PlaylistUpdated();
+			DataReporter?.PlaylistUpdated();
 		}
 
 		/// <summary>
 		/// Called when the Playlist data is available to be displayed, or needs to be refreshed
 		/// </summary>
-		private static void PlaylistDataAvailable( object _ = null )
+		protected override void StorageDataAvailable( object _ = null )
 		{
+			// Save the libray being used locally to detect changes
+			NowPlayingViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
+
 			// Get the NowPlaying playlist.
 			NowPlayingViewModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( NowPlayingViewModel.LibraryId );
 
 			// Get the selected song
 			NowPlayingViewModel.SelectedSong = PlaybackDetails.SongIndex;
 
-			NowPlayingViewModel.DataValid = true;
-
-			// Let the views know that Now Playing data is available
-			Reporter?.NowPlayingDataAvailable();
+			base.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -191,7 +174,10 @@ namespace DBTest
 			{
 				// Force a total refresh  by clearing the previous results
 				NowPlayingViewModel.ClearModel();
-				GetNowPlayingList( ConnectionDetailsModel.LibraryId );
+
+				// Reread the data
+				instance.dataValid = false;
+				instance.StorageDataAvailable();
 			}
 		}
 
@@ -203,7 +189,7 @@ namespace DBTest
 		private static void SongSelected( object message )
 		{
 			NowPlayingViewModel.SelectedSong = ( ( SongSelectedMessage )message ).ItemNo;
-			Reporter?.SongSelected();
+			DataReporter?.SongSelected();
 		}
 
 		/// <summary>
@@ -215,7 +201,10 @@ namespace DBTest
 		{
 			// Clear the displayed data
 			NowPlayingViewModel.ClearModel();
-			GetNowPlayingList( ConnectionDetailsModel.LibraryId );
+
+			// Reread the data
+			instance.dataValid = false;
+			instance.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -245,17 +234,27 @@ namespace DBTest
 		/// </summary>
 		public const string NowPlayingPlaylistName = "Now Playing";
 
-		// The interface instance used to report back controller results
-		public static IReporter Reporter { private get; set; } = null;
+		/// <summary>
+		/// The interface instance used to report back controller results
+		/// </summary>
+		public static INowPlayingReporter DataReporter
+		{
+			private get => ( INowPlayingReporter )instance.Reporter;
+			set => instance.Reporter = value;
+		}
 
 		/// <summary>
 		/// The interface used to report back controller results
 		/// </summary>
-		public interface IReporter
+		public interface INowPlayingReporter : IReporter
 		{
-			void NowPlayingDataAvailable();
 			void SongSelected();
 			void PlaylistUpdated();
 		}
+
+		/// <summary>
+		/// The one and only NowPlayingController instance
+		/// </summary>
+		private static readonly NowPlayingController instance = null;
 	}
 }

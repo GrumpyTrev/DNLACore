@@ -144,13 +144,9 @@ namespace DBTest
 		/// </summary>
 		public int Rating { get; set; } = 2;
 
-		[ForeignKey( typeof( Genre ) )]
-		public int GenreId { get; set; }
-
 		/// <summary>
-		/// This entry is not in the database but is set when the album is read from the database
+		/// The full genre string that could include several genres is included in the database
 		/// </summary>
-		[Ignore]
 		public string Genre { get; set; } = "";
 	}
 
@@ -218,7 +214,7 @@ namespace DBTest
 	}
 
 	[Table( "Tag" )]
-	public class Tag
+	public partial class Tag
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
@@ -249,9 +245,6 @@ namespace DBTest
 		/// Synchronise tagged albums across libraries
 		/// </summary>
 		public bool Synchronise { get; set; } = false;
-
-		[OneToMany]
-		public List<TaggedAlbum> TaggedAlbums { get; set; } = new List<TaggedAlbum>();
 	}
 
 	[Table( "TaggedAlbum" )]
@@ -274,18 +267,6 @@ namespace DBTest
 		public override bool Equals( object obj ) => ( obj == null ) ? false : ( ( ( TaggedAlbum )obj ).AlbumId == AlbumId );
 
 		public override int GetHashCode() => AlbumId.GetHashCode();
-	}
-
-	[Table( "Genre" )]
-	public class Genre
-	{
-		[PrimaryKey, AutoIncrement, Column( "_id" )]
-		public int Id { get; set; }
-
-		public string Name { get; set; }
-
-		[OneToMany]
-		public List<Album> Albums { get; set; }
 	}
 
 	[Table( "Autoplay" )]

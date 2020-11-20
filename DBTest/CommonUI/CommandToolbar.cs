@@ -69,7 +69,7 @@ namespace DBTest
 		/// Use the command handler associated with each button to determine if the button should be shown
 		/// </summary>
 		/// <param name="selectedObjects"></param>
-		public void DetermineButtonsVisibility( List<object> selectedObjects )
+		public void DetermineButtonsVisibility( GroupedSelection selectedObjects )
 		{
 			foreach ( KeyValuePair<int, AppCompatImageButton> buttonPair in Buttons )
 			{
@@ -78,7 +78,7 @@ namespace DBTest
 				if ( handler != null )
 				{
 					buttonPair.Value.Visibility = 
-						( handler.IsSelectionValidForCommand( new GroupedSelection( selectedObjects ), buttonPair.Key ) == true ) ? ViewStates.Visible : ViewStates.Gone;
+						( handler.IsSelectionValidForCommand( selectedObjects, buttonPair.Key ) == true ) ? ViewStates.Visible : ViewStates.Gone;
 				}
 			}
 		}

@@ -40,7 +40,10 @@ namespace DBTest
 		public static async Task< List<Source> > GetSourcesAndSongsForLibraryAsync( int libraryId )
 		{
 			List<Source> sources = SourceCollection.Where( sou => sou.LibraryId == libraryId ).ToList();
-			sources.ForEach( async source => await source.GetSongsAsync() );
+			foreach ( Source source in sources )
+			{
+				await source.GetSongsAsync();
+			}
 
 			return sources;
 		}

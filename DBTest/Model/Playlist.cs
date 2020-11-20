@@ -1,5 +1,4 @@
 ﻿using SQLite;
-using SQLiteNetExtensions.Attributes;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,22 +15,19 @@ namespace DBTest
 		/// Get the PlaylistItems and associated songs for this playlist
 		/// </summary>
 		/// <param name="playlist"></param>
-		public async Task GetContentsAsync()
+		public async Task GetContentsAsync( List<PlaylistItem> playlistItems )
 		{
-			if ( PlaylistItems == null )
+			// Get all the PlaylistItem entries associated with this Playlist and then the Song entries for each of them
+			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == this.Id ) );
+
+			foreach ( PlaylistItem playlistItem in PlaylistItems )
 			{
-				// Get the children PlaylistItems and then the Song entries for each of them
-				await PlaylistAccess.GetPlaylistItems( this );
-
-				foreach ( PlaylistItem playlistItem in PlaylistItems )
-				{
-					playlistItem.Song = await SongAccess.GetSongAsync( playlistItem.SongId );
-					playlistItem.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playlistItem.Song.ArtistAlbumId ).ArtistId );
-					playlistItem.Song.Artist = playlistItem.Artist;
-				}
-
-				PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+				playlistItem.Song = await SongAccess.GetSongAsync( playlistItem.SongId );
+				playlistItem.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playlistItem.Song.ArtistAlbumId ).ArtistId );
+				playlistItem.Song.Artist = playlistItem.Artist;
 			}
+
+			PlaylistItems.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 		}
 
 		/// <summary>
@@ -133,9 +129,21 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Change the name of this playlist
+		/// </summary>
+		/// <param name="newName"></param>
+		public void Rename( string newName )
+		{
+			Name = newName;
+
+			// Update the item in the model. No need to wait for this.
+			PlaylistAccess.UpdatePlaylistAsync( this );
+		}
+
+		/// <summary>
 		/// The PlaylistItems associated with this playlist
 		/// </summary>
-		[OneToMany]
-		public List<PlaylistItem> PlaylistItems { get; set; }
+		[Ignore]
+		public List<PlaylistItem> PlaylistItems { get; set; } = new List<PlaylistItem>();
 	}
 }

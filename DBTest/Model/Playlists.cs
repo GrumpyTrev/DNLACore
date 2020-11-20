@@ -24,9 +24,12 @@ namespace DBTest
 				// Get all the content for the playlists
 				await Task.Run( async () =>
 				{
+					// Get all the PlaylistItems
+					List<PlaylistItem> playlistItems = await PlaylistAccess.GetPlaylistItemsAsync();
+
 					foreach ( Playlist playlist in PlaylistCollection )
 					{
-						await playlist.GetContentsAsync();
+						await playlist.GetContentsAsync( playlistItems );
 					}
 				} );
 			}
@@ -38,16 +41,14 @@ namespace DBTest
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
 		public static List<Playlist> GetPlaylistsForLibrary( int libraryId ) =>
-			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && 
-				( play.Name != NowPlayingController.NowPlayingPlaylistName ) ).ToList();
+			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name != NowPlayingController.NowPlayingPlaylistName ) ).ToList();
 
 		/// <summary>
 		/// Get the Now Playing playlist for the specified library
 		/// </summary>
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
-		public static Playlist GetNowPlayingPlaylist( int libraryId ) =>
-			GetPlaylist( NowPlayingController.NowPlayingPlaylistName, libraryId );
+		public static Playlist GetNowPlayingPlaylist( int libraryId ) => GetPlaylist( NowPlayingController.NowPlayingPlaylistName, libraryId );
 
 		/// <summary>
 		/// Get a playlist given its name and library

@@ -10,7 +10,16 @@ namespace DBTest
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity )
 		{
-			BaseController.AddSongsToNowPlayingList( selectedObjects.Songs, ( commandIdentity == Resource.Id.play_now ) );
+			// If playlistitems are selected then get the songs from them
+			if ( selectedObjects.PlaylistItemsCount > 0 )
+			{
+				BaseController.AddSongsToNowPlayingList( selectedObjects.PlaylistItems.Select( item => item.Song ), ( commandIdentity == Resource.Id.play_now ) );
+			}
+			else
+			{
+				BaseController.AddSongsToNowPlayingList( selectedObjects.Songs, ( commandIdentity == Resource.Id.play_now ) );
+			}
+
 			commandCallback.PerformAction();
 		}
 
@@ -28,7 +37,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.PlaylistItems.Count() > 0 );
+		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.PlaylistItemsCount > 0 ) || ( selectedObjects.SongsCount > 0 );
 
 		/// <summary>
 		/// (one of)The command identity associated with this handler

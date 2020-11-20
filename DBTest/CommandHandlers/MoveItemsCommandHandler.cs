@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 
 namespace DBTest
 {
@@ -16,32 +15,28 @@ namespace DBTest
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity )
 		{
-			if ( selectedObjects.PlaylistItems.Count() > 0 )
+			if ( selectedObjects.ParentPlaylist != null )
 			{
-				Playlist parentPlaylist = Playlists.GetPlaylist( selectedObjects.PlaylistItems.First().PlaylistId );
-				if ( parentPlaylist != null )
+				if ( selectedObjects.ParentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName )
 				{
-					if ( parentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName )
+					if ( commandIdentity == Resource.Id.move_up )
 					{
-						if ( commandIdentity == Resource.Id.move_up )
-						{
-							NowPlayingController.MoveItemsUp( selectedObjects.PlaylistItems );
-						}
-						else
-						{
-							NowPlayingController.MoveItemsDown( selectedObjects.PlaylistItems );
-						}
+						NowPlayingController.MoveItemsUp( selectedObjects.PlaylistItems );
 					}
 					else
 					{
-						if ( commandIdentity == Resource.Id.move_up )
-						{
-							PlaylistsController.MoveItemsUp( parentPlaylist, selectedObjects.PlaylistItems );
-						}
-						else
-						{
-							PlaylistsController.MoveItemsDown( parentPlaylist, selectedObjects.PlaylistItems );
-						}
+						NowPlayingController.MoveItemsDown( selectedObjects.PlaylistItems );
+					}
+				}
+				else
+				{
+					if ( commandIdentity == Resource.Id.move_up )
+					{
+						PlaylistsController.MoveItemsUp( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
+					}
+					else
+					{
+						PlaylistsController.MoveItemsDown( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
 					}
 				}
 			}
@@ -54,6 +49,44 @@ namespace DBTest
 		{
 			CommandRouter.BindHandler( CommandIdentity, this );
 			CommandRouter.BindHandler( Resource.Id.move_down, this );
+		}
+
+		/// <summary>
+		/// Is the command valid given the selected objects
+		/// If at least one playlist item is selected and its parent is a Now Playing list then enable this command.
+		/// </summary>
+		/// <param name="selectedObjects"></param>
+		/// <returns></returns>
+		protected override bool IsSelectionValidForCommand( int commandIdentity )
+		{
+			bool isValid = false;
+
+			if ( selectedObjects.PlaylistItemsCount > 0 )
+			{
+				// Determine which is the key playlistitem to check for selection
+				int keyItemId = ( commandIdentity == Resource.Id.move_up ) ? selectedObjects.ParentPlaylist.PlaylistItems[ 0 ].Id :
+					selectedObjects.ParentPlaylist.PlaylistItems.Last().Id;
+
+				// If this is the NowPlaying list then the move up command is valid if the first playlist item is not selected, and the
+				// move down command is valid if the last playlist item is not selected
+				if ( selectedObjects.ParentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName )
+				{
+					isValid = ( selectedObjects.PlaylistItems.Any( item => ( item.Id == keyItemId ) ) == false );
+				}
+				else
+				{
+					// The move up / move down is available if all the songs are from a single playlist and that playlist is not selected, i.e. not all
+					// of its songs are selected
+					bool itemsFromSinglePlaylist = selectedObjects.PlaylistItems.Any( item => ( item.PlaylistId != selectedObjects.ParentPlaylist.Id ) ) == false;
+
+					if ( ( itemsFromSinglePlaylist == true ) && ( selectedObjects.Playlists.Any( list => ( list.Id == selectedObjects.ParentPlaylist.Id ) ) == false ) )
+					{
+						isValid = ( selectedObjects.PlaylistItems.Any( item => ( item.Id == keyItemId ) ) == false );
+					}
+				}
+			}
+
+			return isValid;
 		}
 
 		/// <summary>

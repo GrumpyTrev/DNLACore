@@ -17,20 +17,39 @@ namespace DBTest
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
 		public NowPlayingAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<PlaylistItem> provider, IActionHandler actionHandler ) :
-			base( context, parentView, provider, NowPlayingAdapterModel.BaseModel, actionHandler )
-		{
-			adapterHandler = actionHandler;
-		}
+			base( context, parentView, provider, NowPlayingAdapterModel.BaseModel, actionHandler ) => adapterHandler = actionHandler;
 
 		/// <summary>
 		/// Number of child items of selected group
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetChildrenCount( int groupPosition )
-		{
-			return 0;
-		}
+		public override int GetChildrenCount( int groupPosition ) => 0;
+
+		/// <summary>
+		/// There are no child types
+		/// </summary>
+		public override int ChildTypeCount => 0;
+
+		/// <summary>
+		/// This should never be called. Return zero anyway
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <returns></returns>
+		public override int GetChildType( int groupPosition, int childPosition ) => 0;
+
+		/// <summary>
+		/// There is one group type, the songs
+		/// </summary>
+		public override int GroupTypeCount => 1;
+
+		/// <summary>
+		/// As there is only one group Type always return 0
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <returns></returns>
+		public override int GetGroupType( int groupPosition ) => 0;
 
 		/// <summary>
 		/// Notification that a particular song is being played.
@@ -100,7 +119,6 @@ namespace DBTest
 			NotifyDataSetChanged();
 		}
 
-
 		/// <summary>
 		/// Provide a view containing either album or song details at the specified position
 		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
@@ -111,10 +129,7 @@ namespace DBTest
 		/// <param name="convertView"></param>
 		/// <param name="parent"></param>
 		/// <returns></returns>
-		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
-		{
-			return null;
-		}
+		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent ) => null;
 
 		/// <summary>
 		/// Derived classes must implement this method to provide a view for a child item
@@ -126,33 +141,42 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
-			View view = convertView;
-
-			if ( view == null )
+			if ( convertView == null )
 			{
-				view = inflator.Inflate( Resource.Layout.playlistitem_layout, null );
-			}
-
-			Song songItem = Groups[ groupPosition ].Song;
-
-			if ( songItem != null )
-			{
-				if ( view != null )
+				convertView = inflator.Inflate( Resource.Layout.playlistitem_layout, null );
+				convertView.Tag = new SongViewHolder()
 				{
-					// Display the Title, Duration and Artist
-					view.FindViewById<TextView>( Resource.Id.title ).Text = songItem.Title;
-					view.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( songItem.Length ).ToString( @"mm\:ss" );
-					view.FindViewById<TextView>( Resource.Id.artist ).Text = Groups[ groupPosition ].Artist.Name;
-
-					// If this song is currently being played then show with a different background
-					view.SetBackgroundColor( ( NowPlayingAdapterModel.SongPlayingIndex == groupPosition ) ? Color.AliceBlue : Color.Transparent );
-				}
+					SelectionBox = GetSelectionBox( convertView ),
+					Artist = convertView.FindViewById<TextView>( Resource.Id.artist ),
+					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
+					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
+				};
 			}
-			else
+
+			// Display the Title, Duration and Artist
+			( ( SongViewHolder )convertView.Tag ).DisplaySong( Groups[ groupPosition ] );
+
+			// If this song is currently being played then show with a different background
+			convertView.SetBackgroundColor( ( NowPlayingAdapterModel.SongPlayingIndex == groupPosition ) ? Color.AliceBlue : Color.Transparent );
+
+			return convertView;
+		}
+
+		/// <summary>
+		/// View holder for the group Song items
+		/// </summary>
+		private class SongViewHolder : ExpandableListViewHolder
+		{
+			public void DisplaySong( PlaylistItem playlistItem )
 			{
+				Title.Text = playlistItem.Song.Title;
+				Duration.Text = TimeSpan.FromSeconds( playlistItem.Song.Length ).ToString( @"mm\:ss" );
+				Artist.Text = playlistItem.Artist.Name;
 			}
 
-			return view;
+			public TextView Artist { get; set; }
+			public TextView Title { get; set; }
+			public TextView Duration { get; set; }
 		}
 
 		/// <summary>
@@ -161,20 +185,14 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition )
-		{
-			return ( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : null;
-		}
+		protected override object GetItemAt( int groupPosition, int childPosition ) => ( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : null;
 
 		/// <summary>
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
+		/// Always select the clicked item
 		/// </summary>
 		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag )
-		{
-			// Always select the clicked item
-			return true;
-		}
+		protected override bool SelectLongClickedItem( int tag ) => true;
 
 		/// <summary>
 		/// Interface used to handler adapter request and state changes
@@ -204,5 +222,4 @@ namespace DBTest
 			void SongSelected( int itemNo );
 		}
 	}
-
 }

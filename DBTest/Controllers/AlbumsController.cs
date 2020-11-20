@@ -8,7 +8,7 @@ namespace DBTest
 	/// The AlbumsController is the Controller for the AlbumsView. It responds to AlbumsView commands and maintains Albums data in the
 	/// AlbumsViewModel
 	/// </summary>
-	static class AlbumsController
+	class AlbumsController : BaseController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
@@ -20,35 +20,15 @@ namespace DBTest
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
 			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
 			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
+
+			instance = new AlbumsController();
 		}
 
 		/// <summary>
-		/// Get the Album data associated with the specified library
-		/// If the data has already been obtained then notify view immediately.
-		/// Otherwise get the data from the database asynchronously
+		/// Get the Album data
 		/// </summary>
 		/// <param name="libraryId"></param>
-		public static void GetAlbums( int libraryId )
-		{
-			// Check if the Album details for the library have already been obtained
-			if ( AlbumsViewModel.LibraryId != libraryId )
-			{
-				// New data is required. At this point the albums are not filtered
-				AlbumsViewModel.LibraryId = libraryId;
-
-				// All Albums are read as part of the Albums collection. So wait until that is available and then carry out the rest of the 
-				// initialisation
-				StorageController.RegisterInterestInDataAvailable( AlbumDataAvailable );
-			}
-			else
-			{
-				// Publish the data
-				if ( AlbumsViewModel.DataValid == true )
-				{
-					Reporter?.AlbumsDataAvailable();
-				}
-			}
-		}
+		public static void GetControllerData() => instance.GetData();
 
 		/// <summary>
 		/// Get the contents for the specified Album
@@ -75,55 +55,6 @@ namespace DBTest
 		/// <param name="newFilter"></param>
 		/// <returns></returns>
 		public static async Task ApplyFilterDelegateAsync( Tag newFilter ) => await ApplyFilterAsync( newFilter );
-
-		/// <summary>
-		/// Apply the new filter to the data being displayed
-		/// </summary>
-		/// <param name="newFilter"></param>
-		public static async Task ApplyFilterAsync( Tag newFilter, bool report = true )
-		{   
-			// Update the model
-			AlbumsViewModel.CurrentFilter = newFilter;
-
-			// Make all sort orders available
-			AlbumsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
-					SortSelector.SortType.year, SortSelector.SortType.genre } );
-
-			// Check for no simple or group tag filters
-			if ( ( AlbumsViewModel.CurrentFilter == null ) && ( AlbumsViewModel.TagGroups.Count == 0 ) )
-			{
-				AlbumsViewModel.Albums = new List<Album>( AlbumsViewModel.UnfilteredAlbums );
-			}
-			else
-			{
-				await Task.Run( () =>
-				{
-					// Combine the simple and group tabs
-					List< TaggedAlbum > albumFilter = BaseController.CombineAlbumFilters( AlbumsViewModel.CurrentFilter, AlbumsViewModel.TagGroups );
-
-					// First of all form a set of all the album identities in the selected filter
-					HashSet<int> albumIds = albumFilter.Select( ta => ta.AlbumId ).ToHashSet();
-
-					// Now get all the albums that are tagged and in the current library
-					AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums.FindAll( album => albumIds.Contains( album.Id ) == true );
-
-					// If the TagOrder flag is set then set the sort order to Id order.
-					if ( ( AlbumsViewModel.CurrentFilter?.TagOrder??false ) == true )
-					{
-						AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
-					}
-				} );
-			}
-
-			// Sort the displayed albums to the order specified in the SortSelector
-			await SortDataAsync();
-
-			// Publish the data
-			if ( report == true )
-			{
-				Reporter?.AlbumsDataAvailable();
-			}
-		}
 
 		/// <summary>
 		/// Sort the available data according to the current sort option
@@ -211,7 +142,7 @@ namespace DBTest
 			if ( refreshData == true )
 			{
 				// Publish the data
-				Reporter?.AlbumsDataAvailable();
+				instance.Reporter?.DataAvailable();
 			}
 		}
 
@@ -219,34 +150,63 @@ namespace DBTest
 		/// Called when the Album data has been read in from storage
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void AlbumDataAvailable( object message )
+		protected override async void StorageDataAvailable( object _ = null )
 		{
-			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
+			// Save the libray being used locally to detect changes
+			AlbumsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
 
-			// Populate the genre name from the id in the album
-			await PopulateAlbumGenresAsync();
+			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
 
 			// Revert to no filter and sort the data
 			await ApplyFilterAsync( null, false );
 
-			AlbumsViewModel.DataValid = true;
-
-			Reporter?.AlbumsDataAvailable();
+			base.StorageDataAvailable();
 		}
 
 		/// <summary>
-		/// Once the Albums have been read their genre id fields can be used to set their genre name values
+		/// Apply the new filter to the data being displayed
 		/// </summary>
-		private static async Task PopulateAlbumGenresAsync()
+		/// <param name="newFilter"></param>
+		private static async Task ApplyFilterAsync( Tag newFilter, bool report = true )
 		{
-			// Do the linking of Album entries off the UI thread
-			await Task.Run( () =>
+			// Update the model
+			AlbumsViewModel.CurrentFilter = newFilter;
+
+			// Make all sort orders available
+			AlbumsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
+					SortSelector.SortType.year, SortSelector.SortType.genre } );
+
+			// Check for no simple or group tag filters
+			if ( ( AlbumsViewModel.CurrentFilter == null ) && ( AlbumsViewModel.TagGroups.Count == 0 ) )
 			{
-				foreach ( Album album in AlbumsViewModel.UnfilteredAlbums )
+				AlbumsViewModel.Albums = new List<Album>( AlbumsViewModel.UnfilteredAlbums );
+			}
+			else
+			{
+				await Task.Run( () =>
 				{
-					album.Genre = Genres.GetGenreName( album.GenreId );
-				}
-			} );
+					// Combine the simple and group tabs
+					HashSet<int> albumIds = BaseController.CombineAlbumFilters( AlbumsViewModel.CurrentFilter, AlbumsViewModel.TagGroups );
+
+					// Now get all the albums that are tagged and in the current library
+					AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums.FindAll( album => albumIds.Contains( album.Id ) == true );
+
+					// If the TagOrder flag is set then set the sort order to Id order.
+					if ( ( AlbumsViewModel.CurrentFilter?.TagOrder ?? false ) == true )
+					{
+						AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
+					}
+				} );
+			}
+
+			// Sort the displayed albums to the order specified in the SortSelector
+			await SortDataAsync();
+
+			// Publish the data
+			if ( report == true )
+			{
+				instance.Reporter?.DataAvailable();
+			}
 		}
 
 		/// <summary>
@@ -275,11 +235,9 @@ namespace DBTest
 			// Clear the displayed data and filter
 			AlbumsViewModel.ClearModel();
 
-			// Publish the data
-			Reporter?.AlbumsDataAvailable();
-
-			// Reread the data
-			GetAlbums( ConnectionDetailsModel.LibraryId );
+			// Reload the library specific album data
+			instance.dataValid = false;
+			instance.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -328,7 +286,7 @@ namespace DBTest
 				// Is this album being displayed
 				if ( AlbumsViewModel.Albums.Any( album => album.Id == changedAlbum.Id ) == true )
 				{
-					Reporter?.AlbumsDataAvailable();
+					instance.Reporter?.DataAvailable();
 				}
 			}
 		}
@@ -336,14 +294,14 @@ namespace DBTest
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter Reporter { get; set; } = null;
+		public static IReporter DataReporter
+		{
+			set => instance.Reporter = value;
+		}
 
 		/// <summary>
-		/// The interface used to report back controller results
+		/// The one and only AlbumsController instance
 		/// </summary>
-		public interface IReporter
-		{
-			void AlbumsDataAvailable();
-		}
+		private static readonly AlbumsController instance = null;
 	}
 }

@@ -8,7 +8,7 @@ namespace DBTest
 	/// The ArtistsController is the Controller for the ArtistsView. It responds to ArtistsView commands and maintains Artists data in the
 	/// ArtistsViewModel
 	/// </summary>
-	static class ArtistsController
+	class ArtistsController : BaseController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
@@ -20,43 +20,17 @@ namespace DBTest
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
 			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
 			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
+
+			instance = new ArtistsController(); 
 		}
 
 		/// <summary>
-		/// Get the Artist data associated with the specified library
-		/// If the data has already been obtained then notify view immediately.
-		/// Otherwise get the data from the database asynchronously
+		/// Get the Artist data 
 		/// </summary>
-		/// <param name="libraryId"></param>
-		public static void GetArtists( int libraryId )
-		{
-			// Check if the Artist details for the library have already been obtained
-			if ( ArtistsViewModel.LibraryId != libraryId )
-			{
-				// Make sure that this data is not returned until all of it is available
-				ArtistsViewModel.DataValid = false;
-
-				// New data is required
-				ArtistsViewModel.LibraryId = libraryId;
-
-				// All Artists are read as part of the storage data. So wait until that is available and then carry out the rest of the 
-				// initialisation
-				StorageController.RegisterInterestInDataAvailable( StorageDataAvailable );
-			}
-			else
-			{
-				// Publish the data if valid
-				if ( ArtistsViewModel.DataValid == true )
-				{
-					Reporter?.ArtistsDataAvailable();
-				}
-			}
-		}
+		public static void GetControllerData() => instance.GetData();
 
 		/// <summary>
 		/// Get the contents for the specified Artist
-		/// This amount of work could/should be done in a non-UI task, but not sure at the moment how to
-		/// interact with the expanding UI.
 		/// </summary>
 		/// <param name="theArtist"></param>
 		public static async Task GetArtistContentsAsync( Artist theArtist ) => await theArtist.GetSongsAsync();
@@ -91,16 +65,14 @@ namespace DBTest
 				await Task.Run( () =>
 				{
 					// Combine the simple and group tabs
-					List<TaggedAlbum> albumFilter = BaseController.CombineAlbumFilters( ArtistsViewModel.CurrentFilter, ArtistsViewModel.TagGroups );
-
-					// First of all form a list of all the album identities in the selected filter
-					HashSet<int> albumIds = albumFilter.Select( ta => ta.AlbumId ).ToHashSet();
+					ArtistsViewModel.FilteredAlbumsIds = BaseController.CombineAlbumFilters( ArtistsViewModel.CurrentFilter, ArtistsViewModel.TagGroups );
 
 					// Now get all the artist identities of the albums that are tagged
-					HashSet<int> artistIds = ArtistAlbums.ArtistAlbumCollection.FindAll( aa => albumIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).ToHashSet();
+					HashSet<int> artistIds = ArtistAlbums.ArtistAlbumCollection.
+						Where( aa => ArtistsViewModel.FilteredAlbumsIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).Distinct().ToHashSet();
 
 					// Now get the Artists from the list of artist ids
-					ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) == true ).ToList();
+					ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) ).ToList();
 
 					// If the TagOrder flag is set then set the sort order to Id order.
 					if ( ( ArtistsViewModel.CurrentFilter?.TagOrder ?? false ) == true )
@@ -159,8 +131,30 @@ namespace DBTest
 			if ( refreshData == true )
 			{
 				// Publish the data
-				Reporter?.ArtistsDataAvailable();
+				instance.Reporter?.DataAvailable();
 			}
+		}
+
+		/// <summary>
+		/// Called during startup, or library change, when the storage data is available
+		/// </summary>
+		/// <param name="message"></param>
+		protected override async void StorageDataAvailable( object _ = null )
+		{
+			// Save the libray being used locally to detect changes
+			ArtistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
+
+			// Get the Artists we are interested in
+			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
+
+			// Do the sorting of ArtistAlbum entries off the UI thread
+			await SortArtistAlbumsAsync();
+
+			// Apply the current filter and get the data ready for display 
+			await ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
+
+			// Call the base class
+			base.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -183,27 +177,13 @@ namespace DBTest
 			// Make sure the list is empty - it should be
 			ArtistsViewModel.ArtistsAndAlbums.Clear();
 
-			// The simple case is when there is no filter
-			if ( ArtistsViewModel.CurrentFilter == null )
+			foreach ( Artist artist in ArtistsViewModel.Artists )
 			{
-				foreach ( Artist artist in ArtistsViewModel.Artists )
-				{
-					ArtistsViewModel.ArtistsAndAlbums.Add( artist );
-					ArtistsViewModel.ArtistsAndAlbums.AddRange( artist.ArtistAlbums );
-				}
-			}
-			else
-			{
-				// Third time we've done this?
-				HashSet<int> albumIds = ArtistsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
+				ArtistsViewModel.ArtistsAndAlbums.Add( artist );
 
-				foreach ( Artist artist in ArtistsViewModel.Artists )
-				{
-					ArtistsViewModel.ArtistsAndAlbums.Add( artist );
-
-					// Only add the ArtistAlbums that are in the filter
-					ArtistsViewModel.ArtistsAndAlbums.AddRange( artist.ArtistAlbums.Where( alb => albumIds.Contains( alb.AlbumId ) == true ) );
-				}
+				// If there is no filter add all the albums, otherwise only add the albums that are in the filter
+				ArtistsViewModel.ArtistsAndAlbums.AddRange( ( ArtistsViewModel.CurrentFilter == null ) ? artist.ArtistAlbums :
+					artist.ArtistAlbums.Where( alb => ArtistsViewModel.FilteredAlbumsIds.Contains( alb.AlbumId ) == true ) );
 			}
 		}
 
@@ -233,11 +213,9 @@ namespace DBTest
 			// Clear the displayed data and filter
 			ArtistsViewModel.ClearModel();
 
-			// Publish the data
-			Reporter?.ArtistsDataAvailable();
-
-			// Reread the data
-			GetArtists( ConnectionDetailsModel.LibraryId );
+			// Reload the library specific artist data
+			instance.dataValid = false;
+			instance.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -284,41 +262,21 @@ namespace DBTest
 			// It may be in another library if this is being called as part of a library synchronisation process
 			if ( changedAlbum.LibraryId == ArtistsViewModel.LibraryId )
 			{
-				Reporter?.ArtistsDataAvailable();
+				instance.Reporter?.DataAvailable();
 			}
-		}
-
-		/// <summary>
-		/// Called during startup, or library change, when the storage data is available
-		/// </summary>
-		/// <param name="message"></param>
-		private static async void StorageDataAvailable( object message )
-		{
-			// Get the Artists we are interested in
-			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
-
-			// Do the sorting of ArtistAlbum entries off the UI thread
-			await SortArtistAlbumsAsync();
-
-			// Apply the current filter and get the data ready for display 
-			await ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
-
-			// The data is now valid
-			ArtistsViewModel.DataValid = true;
-			Reporter?.ArtistsDataAvailable();
 		}
 
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter Reporter { get; set; } = null;
+		public static IReporter DataReporter
+		{
+			set => instance.Reporter = value;
+		}
 
 		/// <summary>
-		/// The interface used to report back controller results
+		/// The one and only ArtistsController instance
 		/// </summary>
-		public interface IReporter
-		{
-			void ArtistsDataAvailable();
-		}
+		private static readonly ArtistsController instance = null;
 	}
 }

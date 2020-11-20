@@ -38,10 +38,11 @@ namespace DBTest
 		public static async Task AddAlbumAsync( Album albumToAdd )
 		{
 			AlbumCollection.Add( albumToAdd );
-			IdLookup[ albumToAdd.Id ] = albumToAdd;
 
 			// Need to wait for the Album to be added to ensure that its ID is available
 			await AlbumAccess.AddAlbumAsync( albumToAdd );
+
+			IdLookup[ albumToAdd.Id ] = albumToAdd;
 		}
 
 		/// <summary>

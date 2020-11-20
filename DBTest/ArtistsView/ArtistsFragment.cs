@@ -21,30 +21,16 @@ namespace DBTest
 		/// <param name="inflater"></param>
 		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
 		{
-			inflater.Inflate( Resource.Menu.menu_artists, menu );
-
-			ArtistsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
-
 			base.OnCreateOptionsMenu( menu, inflater );
+			ArtistsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
 		}
 
 		/// <summary>
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public async Task ProvideGroupContentsAsync( object theArtist )
-		{
-			// If the object is an ArtistAlbum then get its contents (songs )
-			// TO DO - regardless of whether an Artist or ArtistAlbum is selected, all the Artists contents are grabbed (already being done here?)
-			if ( theArtist is ArtistAlbum )
-			{
-				await ArtistsController.GetArtistContentsAsync( ( theArtist as ArtistAlbum ).Artist );
-			}
-			else
-			{
-				await ArtistsController.GetArtistContentsAsync( theArtist as Artist );
-			}
-		}
+		public async Task ProvideGroupContentsAsync( object theArtist ) => 
+			await ArtistsController.GetArtistContentsAsync( ( theArtist is ArtistAlbum ) ? ( ( ArtistAlbum )theArtist ).Artist : ( Artist )theArtist );
 
 		/// <summary>
 		/// Called when a menu item on the Contextual Action Bar has been selected
@@ -58,7 +44,7 @@ namespace DBTest
 		/// Called when the Controller has obtained the Artist data
 		/// Pass it on to the adapter
 		/// </summary>
-		public void ArtistsDataAvailable()
+		public void DataAvailable()
 		{
 			// Make sure that this is being processed in the UI thread as it may have arrived during libraray scanning
 			Activity.RunOnUiThread( () => {
@@ -87,14 +73,8 @@ namespace DBTest
 		/// Called when the number of selected items (songs) has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		protected override void SelectedItemsChanged( List<object> selectedObjects )
-		{
-			// Determine the number of songs in the selected items
-			songsSelected = selectedObjects.OfType< Song >().Count();
-
-			// Update the Action Mode bar title
-			ActionModeTitle = ( songsSelected == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, songsSelected );
-		}
+		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
+			ActionModeTitle = ( selectedObjects.SongsCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.SongsCount );
 
 		/// <summary>
 		/// Called when the sort selector has changed the sort order
@@ -103,15 +83,9 @@ namespace DBTest
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
+		/// Initialise the ArtistsController
 		/// </summary>
-		protected override void PostViewCreateAction()
-		{
-			// Initialise the ArtistsController
-			ArtistsController.Reporter = this;
-
-			// Get the data
-			ArtistsController.GetArtists( ConnectionDetailsModel.LibraryId );
-		}
+		protected override void PostViewCreateAction() => ArtistsController.DataReporter = this;
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment
@@ -124,7 +98,7 @@ namespace DBTest
 		protected override void ReleaseResources()
 		{
 			// Remove this object from the controller
-			ArtistsController.Reporter = null;
+			ArtistsController.DataReporter = null;
 
 			// Save the scroll position 
 			ArtistsViewModel.ListViewState = ListView.OnSaveInstanceState();
@@ -139,6 +113,11 @@ namespace DBTest
 		/// The resource used to create the ExpandedListView for this fragment
 		/// </summary>
 		protected override int ListViewLayout { get; } = Resource.Id.artistsList;
+
+		/// <summary>
+		/// The menu resource for this fragment
+		/// </summary>
+		protected override int Menu { get; } = Resource.Menu.menu_artists;
 
 		/// <summary>
 		/// Show or hide genres
@@ -161,11 +140,6 @@ namespace DBTest
 		/// </summary>
 		/// <returns></returns>
 		protected override FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => ArtistsController.ApplyFilterAsync;
-
-		/// <summary>
-		/// Keep track of the number of songs reported as selected
-		/// </summary>
-		private int songsSelected = 0;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

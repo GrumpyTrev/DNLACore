@@ -24,17 +24,32 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetChildrenCount( int groupPosition )
-		{
-			int childCount = 0;
-			Playlist playList = Groups[ groupPosition ];
-			if ( playList.PlaylistItems != null )
-			{
-				childCount = Groups[ groupPosition ].PlaylistItems.Count;
-			}
+		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].PlaylistItems?.Count ?? 0;
 
-			return childCount;
-		}
+		/// <summary>
+		/// There is only one Child Type - the songs
+		/// </summary>
+		public override int ChildTypeCount => 1;
+
+		/// <summary>
+		/// As there is only one Child Type always return 0
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <returns></returns>
+		public override int GetChildType( int groupPosition, int childPosition ) => 0;
+
+		/// <summary>
+		/// There is one group type, the playlist
+		/// </summary>
+		public override int GroupTypeCount => 1;
+
+		/// <summary>
+		/// As there is only one group Type always return 0
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <returns></returns>
+		public override int GetGroupType( int groupPosition ) => 0;
 
 		/// <summary>
 		/// Called when songs have been added to or deleted from a playlist
@@ -77,26 +92,40 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
-			// If the supplied view previously contained a Playlist heading then don't use it
-			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.title ) == null ) )
-			{
-				convertView = null;
-			}
-
-			// If no view supplied, or unuasable, then create a new one
+			// If no view supplied then create a new one
 			if ( convertView == null )
 			{
 				convertView = inflator.Inflate( Resource.Layout.playlistitem_layout, null );
+				convertView.Tag = new SongViewHolder()
+				{
+					SelectionBox = GetSelectionBox( convertView ),
+					Artist = convertView.FindViewById<TextView>( Resource.Id.artist ),
+					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
+					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
+				};
 			}
 
-			PlaylistItem item = Groups[ groupPosition ].PlaylistItems[ childPosition ];
-
 			// Display the Title, Duration and Artist
-			convertView.FindViewById<TextView>( Resource.Id.title ).Text = item.Song.Title;
-			convertView.FindViewById<TextView>( Resource.Id.duration ).Text = TimeSpan.FromSeconds( item.Song.Length ).ToString( @"mm\:ss" );
-			convertView.FindViewById<TextView>( Resource.Id.artist ).Text = item.Artist.Name;
+			( ( SongViewHolder )convertView.Tag ).DisplaySong( Groups[ groupPosition ].PlaylistItems[ childPosition ] );
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// View holder for the child Song items
+		/// </summary>
+		private class SongViewHolder : ExpandableListViewHolder
+		{
+			public void DisplaySong( PlaylistItem playlistItem )
+			{
+				Title.Text = playlistItem.Song.Title;
+				Duration.Text = TimeSpan.FromSeconds( playlistItem.Song.Length ).ToString( @"mm\:ss" );
+				Artist.Text = playlistItem.Artist.Name;
+			}
+
+			public TextView Artist { get; set; }
+			public TextView Title { get; set; }
+			public TextView Duration { get; set; }
 		}
 
 		/// <summary>
@@ -109,22 +138,31 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
-			// If the supplied view previously contained other than a PLaylist then don't use it
-			if ( ( convertView != null ) && ( convertView.FindViewById<TextView>( Resource.Id.playListName ) == null ) )
-			{
-				convertView = null;
-			}
-
-			// If no view supplied, or unusable, then create a new one
+			// If no view supplied then create a new one
 			if ( convertView == null )
 			{
 				convertView = inflator.Inflate( Resource.Layout.playlist_layout, null );
+				convertView.Tag = new PlaylistViewHolder()
+				{
+					SelectionBox = GetSelectionBox( convertView ),
+					Name = convertView.FindViewById<TextView>( Resource.Id.playListName )
+				};
 			}
 
-			// Display the artist's name
-			convertView.FindViewById<TextView>( Resource.Id.playListName ).Text = Groups[ groupPosition ].Name;
+			// Display the playlist's name
+			( ( PlaylistViewHolder )convertView.Tag ).DisplayPlaylist( Groups[ groupPosition ] );
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// View holder for the child Song items
+		/// </summary>
+		private class PlaylistViewHolder : ExpandableListViewHolder
+		{
+			public void DisplayPlaylist( Playlist playlist ) => Name.Text = playlist.Name;
+
+			public TextView Name { get; set; }
 		}
 
 		/// <summary>

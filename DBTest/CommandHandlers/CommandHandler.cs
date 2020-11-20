@@ -1,5 +1,4 @@
 ﻿using Android.Support.V7.Widget;
-using System.Collections.Generic;
 
 namespace DBTest
 {

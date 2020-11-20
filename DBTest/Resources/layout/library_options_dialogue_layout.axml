@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+ 	xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+	android:paddingLeft="20dp">
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="Options:"
+		android:textSize="24dp"
+		android:paddingLeft="5dp"
+		android:paddingBottom="10dp" />
+	<Button
+		android:text="Change library"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/select_library"
+		android:textSize="20dp"
+		app:textAllCaps="false"/>
+	<Button
+		android:text="Edit library"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/edit_library"
+		android:textSize="20dp"
+		app:textAllCaps="false"/>
+	<Button
+		android:text="Scan library"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/scan_library"
+		android:textSize="20dp"
+		app:textAllCaps="false"/>
+	<Button
+		android:text="Clear library"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/clear_library"
+		android:textSize="20dp"
+		app:textAllCaps="false"/>
+</LinearLayout>
