@@ -10,7 +10,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	[Activity( Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true )]
+	[Activity( Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true )]
 	public class MainActivity: AppCompatActivity, Logger.ILogger
 	{
 		/// <summary>
@@ -33,7 +33,7 @@ namespace DBTest
 			SupportActionBar.SetDisplayShowTitleEnabled( false );
 
 			// Link in to the LibraryNameDisplay so that the current library can be displayed
-			libraryDisplayer = new LibraryNameDisplay( toolbar );
+			libraryDisplayer = new LibraryNameDisplay( toolbar, this );
 
 			// Set up logging
 			Logger.Reporter = this;

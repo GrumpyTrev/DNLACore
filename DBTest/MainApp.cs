@@ -69,7 +69,7 @@ namespace DBTest
 
 			FilterManagementController.GetTags();
 			PlaybackSelectionController.GetPlaybackDetails();
-			AutoplayController.GetAutoplays( ConnectionDetailsModel.LibraryId );
+			AutoplayController.GetControllerData();
 		}
 
 		/// <summary>
@@ -94,12 +94,15 @@ namespace DBTest
 		{
 			int currentLibraryId = -1;
 
-			bool createTables = false;
+			bool createTables = true;
 
 			try
 			{
 				if ( createTables == true )
 				{
+//					ConnectionDetailsModel.SynchConnection.DropTable<Autoplay>();
+//					ConnectionDetailsModel.SynchConnection.DropTable<GenrePopulation>();
+
 					// Create the tables if they don't already exist
 					ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
@@ -112,6 +115,8 @@ namespace DBTest
 					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<Autoplay>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<GenrePopulation>();
 				}
 
 				// Check for a Playback record which will tell us the currently selected library

@@ -25,9 +25,8 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get the Album data
+		/// Get the Controller data
 		/// </summary>
-		/// <param name="libraryId"></param>
 		public static void GetControllerData() => instance.GetData();
 
 		/// <summary>

@@ -31,7 +31,6 @@ namespace DBTest
 			new DuplicatePlaylistCommandHandler().BindToRouter();
 			new NewPlaylistCommandHandler().BindToRouter();
 			new RenamePlaylistCommandHandler().BindToRouter();
-			new LibraryOptionsCommandHandler().BindToRouter();
 		}
 
 		/// <summary>

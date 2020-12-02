@@ -49,9 +49,11 @@ namespace DBTest
 			await Autoplays.GetDataAsync();
 			await Tags.GetDataAsync();
 			await TaggedAlbums.GetDataAsync();
+			await GenrePopulations.GetDataAsync();
 
 			// Carry out some one-off data linking
 			await PopulateArtistsAsync();
+			await FilterManagementController.FormGenreTagsAsync();
 
 			DataAvailable = true;
 			new StorageDataAvailableMessage().Send();

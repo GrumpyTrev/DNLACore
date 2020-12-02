@@ -275,11 +275,64 @@ namespace DBTest
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
 
-		public string Genres { get; set; }
-
-		public bool Active { get; set; }
+		/// <summary>
+		/// Is Autoplay currently active for the specified library
+		/// </summary>
+		public bool Active { get; set; } = false;
 
 		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
+
+		/// <summary>
+		/// The genre populaton used for the last generation
+		/// </summary>
+		public int LastPopulation { get; set; } = -1;
+
+		/// <summary>
+		/// How fast are genres added as songs are played
+		/// </summary>
+		public SpreadType Spread { get; set; } = SpreadType.Slow;
+
+		public enum SpreadType { NoSpread, Fast, Slow };
+
+		/// <summary>
+		/// Are all populations the target of the next generated song, or just populations linked to the current song
+		/// </summary>
+		public TargetType Target { get; set; } = TargetType.AllPopulations;
+
+		public enum TargetType { AllPopulations, NextPopulation };
+
+		/// <summary>
+		/// How are selection weighted.
+		/// </summary>
+		public WeightType Weight { get; set; } = WeightType.None;
+
+		public enum WeightType { None, Centre, Edge };
+	}
+
+	/// <summary>
+	/// The GenrePopulation class is used to hold one or more Genres stored as a delimited string
+	/// </summary>
+	[Table( "GenrePopulation" )]
+	public partial class GenrePopulation
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		/// <summary>
+		/// The semicolon delimited list of genres held by this class
+		/// </summary>
+		public string GenreString { get; set; } = "";
+
+		/// <summary>
+		/// The population number of this record
+		/// </summary>
+		public int Index { get; set; } = -1;
+
+		/// <summary>
+		/// Link to the Autoplay instance that uses this set of Genres
+		/// </summary>
+		[ForeignKey( typeof( Autoplay ) )]
+		public int AutoplayId { get; set; }
 	}
 }

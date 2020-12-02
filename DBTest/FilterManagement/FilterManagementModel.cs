@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace DBTest
 {
@@ -25,9 +26,30 @@ namespace DBTest
 		public static int JustPlayedCount { get; set; } = 0;
 
 		/// <summary>
+		/// The Genre tags
+		/// </summary>
+		public static TagGroup GenreTags
+		{
+			get
+			{
+				if ( genreTags == null )
+				{
+					genreTags = TagGroups.Single( tg => tg.Name == "Genre" );
+				}
+
+				return genreTags;
+			}
+		}
+
+		/// <summary>
 		/// The number of times a song must be played for the album to be considered as having been played
 		/// </summary>
 		public const int JustPlayedLimit = 3;
+
+		/// <summary>
+		/// The Genre tag group
+		/// </summary>
+		private static TagGroup genreTags = null;
 	}
 
 	/// <summary>

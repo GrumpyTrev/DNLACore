@@ -71,7 +71,6 @@
     <Compile Include="BaseView\SortSelector.cs" />
     <Compile Include="CommandHandlers\AddSongsToNowPlayingListCommandHandler.cs" />
     <Compile Include="CommandHandlers\DuplicatePlaylistCommandHandler.cs" />
-    <Compile Include="CommandHandlers\LibraryOptionsCommandHandler.cs" />
     <Compile Include="CommandHandlers\StartAutoPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\GroupedSelection.cs" />
@@ -107,6 +106,7 @@
     <Compile Include="Controllers\PlaybackSelectionController.cs" />
     <Compile Include="Controllers\StorageController.cs" />
     <Compile Include="DbAccess\ArtistAlbumAccess.cs" />
+    <Compile Include="DbAccess\GenrePopulationAccess.cs" />
     <Compile Include="DbAccess\AutoplayAccess.cs" />
     <Compile Include="DbAccess\SourceAccess.cs" />
     <Compile Include="FilterManagement\DeleteConfirmationDialogFragment.cs" />
@@ -156,6 +156,9 @@
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />
     <Compile Include="Model\Album.cs" />
     <Compile Include="DbAccess\AlbumAccess.cs" />
+    <Compile Include="Model\GenrePopulation.cs" />
+    <Compile Include="Model\GenrePopulations.cs" />
+    <Compile Include="Model\Population.cs" />
     <Compile Include="Model\TaggedAlbums.cs" />
     <Compile Include="Model\Tag.cs" />
     <Compile Include="Model\Tags.cs" />
@@ -529,6 +532,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\library_options_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_library.xml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>

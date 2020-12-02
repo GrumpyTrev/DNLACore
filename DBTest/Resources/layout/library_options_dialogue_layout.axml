@@ -12,33 +12,25 @@
 		android:text="Options:"
 		android:textSize="24dp"
 		android:paddingLeft="5dp"
-		android:paddingBottom="10dp" />
+		android:paddingBottom="10dp"/>
 	<Button
 		android:text="Change library"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:id="@+id/select_library"
-		android:textSize="20dp"
-		app:textAllCaps="false"/>
+		android:id="@+id/select_library" />
 	<Button
 		android:text="Edit library"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:id="@+id/edit_library"
-		android:textSize="20dp"
-		app:textAllCaps="false"/>
+		android:id="@+id/edit_library" />
 	<Button
 		android:text="Scan library"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:id="@+id/scan_library"
-		android:textSize="20dp"
-		app:textAllCaps="false"/>
+		android:id="@+id/scan_library" />
 	<Button
 		android:text="Clear library"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:id="@+id/clear_library"
-		android:textSize="20dp"
-		app:textAllCaps="false"/>
+		android:id="@+id/clear_library" />
 </LinearLayout>

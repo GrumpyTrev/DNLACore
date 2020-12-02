@@ -1,0 +1,16 @@
+﻿<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+	<item
+		android:id="@+id/select_library"
+		android:title="Select library" />
+	<item
+		android:id="@+id/edit_library"
+		android:title="Edit library" />
+	<item
+		android:id="@+id/scan_library"
+		android:title="Scan library" />
+	<item
+		android:id="@+id/clear_library"
+		android:title="Clear library" />
+</menu>

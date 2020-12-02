@@ -1,38 +1,44 @@
 <resources>
 
-    <!-- Base application theme. -->
+    <!-- This the base theme for the application referenced at the top of the MainActivity class. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light">
-        <!-- Customize your theme here. -->
+        <!-- Custom colours for widgets that reference them. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-		<item name="toolbarStyle">@style/myToolbarStyle</item>
-	</style>
 
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
+		<!-- We are using our own top toolbar, so get rid of the standard one -->
+		<item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+
+		<!-- The action bar replaces the tolbar and takes the primary colour -->
 		<item name="windowActionModeOverlay">true</item>
 		<item name="actionModeBackground">@color/colorPrimary</item>
-    </style>
 
+		<!-- Use our own style for the top toolbar -->
+		<item name="toolbarStyle">@style/myToolbarStyle</item>
+
+		<!-- This is only here to test how to apply application wide changes to the button style-->
+		<item name="buttonStyle">@style/myButtonStyle</item>
+		
+	</style>
+
+	<!-- When using our own icons on the toolbar we need to set a maximum size for them otherwise they are too large
+		 Set the background to use the primary colour-->
 	<style name="myToolbarStyle" parent="Widget.AppCompat.Toolbar">
 		<item name="maxButtonHeight">48dp</item>
-		<item name="android:padding">0dp</item>
+		<item name="android:background">@color/colorPrimary</item>
 	</style>
-	
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+	<!-- This is only here to test how to apply application wide changes to the button style-->
+	<style name="myButtonStyle" parent="Base.Widget.AppCompat.Button.Borderless.Colored" />
 
+	<!-- Override some of the TextAppearance attributes for the Tab text 
+	-->
 	<style name="CustomTextAppearanceTab" parent="TextAppearance.Design.Tab">
 		<item name="textAllCaps">false</item>
-		<item name="android:textAllCaps">false</item>
 		<item name="android:textStyle">bold</item>
 	</style>
 
-	<style name="ToolbarTitle" parent="@style/TextAppearance.Widget.AppCompat.Toolbar.Title">
-		<item name="android:textSize">20dp</item>
-	</style>
 
 </resources>

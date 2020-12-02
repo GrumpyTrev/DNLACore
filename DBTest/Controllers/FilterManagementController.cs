@@ -193,57 +193,10 @@ namespace DBTest
 		public static void DeleteTag( Tag tagToDelete ) => Tags.DeleteTag( tagToDelete );
 
 		/// <summary>
-		/// Called during startup when data is available from storage
-		/// </summary>
-		/// <param name="message"></param>
-		private static async void DataAvailable( object message )
-		{
-			// Extract the 'system' tags from this list for easy access later
-			FilterManagementModel.JustPlayedTag = Tags.GetTagByName( JustPlayedTagName );
-
-			// Do the linking of TaggedAlbums off the UI thread
-			await LinkInTaggedAlbums();
-
-			// Generate tags for all the genres
-			await FormGenreTagsAsync();
-		}
-
-		/// <summary>
-		/// Link the TaggedAlbum entries to their Tags and set the Album entry in the TaggedAlbum  
-		/// </summary>
-		/// <returns></returns>
-		private static async Task LinkInTaggedAlbums()
-		{
-			await Task.Run( () =>
-			{
-				// Link these to their Tags
-				Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
-
-				List<TaggedAlbum> taggedAlbumsToDelete = new List<TaggedAlbum>();
-
-				foreach ( TaggedAlbum taggedAlbum in TaggedAlbums.TaggedAlbumCollection )
-				{
-					taggedAlbum.Album = Albums.GetAlbumById( taggedAlbum.AlbumId );
-					if ( taggedAlbum.Album != null )
-					{
-						tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
-					}
-					else
-					{
-						// This tagged album points to an album that no longer exists, don't link it
-						taggedAlbumsToDelete.Add( taggedAlbum );
-					}
-				}
-
-				taggedAlbumsToDelete.ForEach( ta => FilterAccess.DeleteTaggedAlbumAsync( ta ) );
-			} );
-		}
-
-		/// <summary>
 		/// Form Tags and associated TaggedAlbum entries for each genre
 		/// </summary>
 		/// <returns></returns>
-		private static async Task FormGenreTagsAsync()
+		public static async Task FormGenreTagsAsync()
 		{
 			await Task.Run( () =>
 			{
@@ -291,6 +244,50 @@ namespace DBTest
 				// Now unload the genre tags into a list and sort it
 				genres.Tags = tagLookup.Values.ToList();
 				genres.Tags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
+			} );
+		}
+
+		/// <summary>
+		/// Called during startup when data is available from storage
+		/// </summary>
+		/// <param name="message"></param>
+		private static async void DataAvailable( object message )
+		{
+			// Extract the 'system' tags from this list for easy access later
+			FilterManagementModel.JustPlayedTag = Tags.GetTagByName( JustPlayedTagName );
+
+			// Do the linking of TaggedAlbums off the UI thread
+			await LinkInTaggedAlbums();
+		}
+
+		/// <summary>
+		/// Link the TaggedAlbum entries to their Tags and set the Album entry in the TaggedAlbum  
+		/// </summary>
+		/// <returns></returns>
+		private static async Task LinkInTaggedAlbums()
+		{
+			await Task.Run( () =>
+			{
+				// Link these to their Tags
+				Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
+
+				List<TaggedAlbum> taggedAlbumsToDelete = new List<TaggedAlbum>();
+
+				foreach ( TaggedAlbum taggedAlbum in TaggedAlbums.TaggedAlbumCollection )
+				{
+					taggedAlbum.Album = Albums.GetAlbumById( taggedAlbum.AlbumId );
+					if ( taggedAlbum.Album != null )
+					{
+						tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
+					}
+					else
+					{
+						// This tagged album points to an album that no longer exists, don't link it
+						taggedAlbumsToDelete.Add( taggedAlbum );
+					}
+				}
+
+				taggedAlbumsToDelete.ForEach( ta => FilterAccess.DeleteTaggedAlbumAsync( ta ) );
 			} );
 		}
 

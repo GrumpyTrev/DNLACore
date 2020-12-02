@@ -3525,13 +3525,16 @@ namespace DBTest
 			public const int menu_artists = 2131623937;
 			
 			// aapt resource value: 0x7f0e0002
-			public const int menu_main = 2131623938;
+			public const int menu_library = 2131623938;
 			
 			// aapt resource value: 0x7f0e0003
-			public const int menu_nowplaying = 2131623939;
+			public const int menu_main = 2131623939;
 			
 			// aapt resource value: 0x7f0e0004
-			public const int menu_playlists = 2131623940;
+			public const int menu_nowplaying = 2131623940;
+			
+			// aapt resource value: 0x7f0e0005
+			public const int menu_playlists = 2131623941;
 			
 			static Menu()
 			{
@@ -3724,15 +3727,6 @@ namespace DBTest
 			
 			// aapt resource value: 0x7f0a0180
 			public const int AppTheme = 2131362176;
-			
-			// aapt resource value: 0x7f0a0183
-			public const int AppTheme_AppBarOverlay = 2131362179;
-			
-			// aapt resource value: 0x7f0a0181
-			public const int AppTheme_NoActionBar = 2131362177;
-			
-			// aapt resource value: 0x7f0a0184
-			public const int AppTheme_PopupOverlay = 2131362180;
 			
 			// aapt resource value: 0x7f0a009a
 			public const int Base_AlertDialog_AppCompat = 2131361946;
@@ -4223,8 +4217,8 @@ namespace DBTest
 			// aapt resource value: 0x7f0a0161
 			public const int Base_Widget_Design_TabLayout = 2131362145;
 			
-			// aapt resource value: 0x7f0a0185
-			public const int CustomTextAppearanceTab = 2131362181;
+			// aapt resource value: 0x7f0a0183
+			public const int CustomTextAppearanceTab = 2131362179;
 			
 			// aapt resource value: 0x7f0a001e
 			public const int Platform_AppCompat = 2131361822;
@@ -4616,9 +4610,6 @@ namespace DBTest
 			// aapt resource value: 0x7f0a010d
 			public const int ThemeOverlay_AppCompat_Light = 2131362061;
 			
-			// aapt resource value: 0x7f0a0186
-			public const int ToolbarTitle = 2131362182;
-			
 			// aapt resource value: 0x7f0a010e
 			public const int Widget_AppCompat_ActionBar = 2131362062;
 			
@@ -4875,7 +4866,10 @@ namespace DBTest
 			public const int Widget_Design_TextInputLayout = 2131362168;
 			
 			// aapt resource value: 0x7f0a0182
-			public const int myToolbarStyle = 2131362178;
+			public const int myButtonStyle = 2131362178;
+			
+			// aapt resource value: 0x7f0a0181
+			public const int myToolbarStyle = 2131362177;
 			
 			static Style()
 			{
