@@ -46,8 +46,11 @@ namespace DBTest
 		{
 			TagsCollection.Add( tagToAdd );
 
-			// No need to wait for this as we are not using its identity
-			FilterAccess.AddTagAsync( tagToAdd );
+			if ( tagToAdd.PersistTag == true )
+			{
+				// No need to wait for this as we are not using its identity
+				FilterAccess.AddTagAsync( tagToAdd );
+			}
 
 			NameLookup[ tagToAdd.Name ] = tagToAdd;
 			ShortNameLookup[ tagToAdd.ShortName ] = tagToAdd;

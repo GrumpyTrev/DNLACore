@@ -17,5 +17,12 @@ namespace DBTest
 		/// <param name="autoplay"></param>
 		/// <returns></returns>
 		public static async Task AddAutoplayAsync( Autoplay autoplay ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( autoplay );
+
+		/// <summary>
+		/// Update the database with any changes to this Autoplay
+		/// </summary>
+		/// <param name="autoplay"></param>
+		/// <returns></returns>
+		public static async void UpdateAutoplayAsync( Autoplay autoplay ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( autoplay );
 	}
 }

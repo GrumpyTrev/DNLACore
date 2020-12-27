@@ -69,8 +69,10 @@
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
     <Compile Include="BaseView\PlaybackMonitor.cs" />
     <Compile Include="BaseView\SortSelector.cs" />
+    <Compile Include="CommandHandlers\AutoplayCommandHandler.cs" />
     <Compile Include="CommandHandlers\AddSongsToNowPlayingListCommandHandler.cs" />
     <Compile Include="CommandHandlers\DuplicatePlaylistCommandHandler.cs" />
+    <Compile Include="CommandHandlers\AutoplayOptionsCommandHandler.cs" />
     <Compile Include="CommandHandlers\StartAutoPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\GroupedSelection.cs" />
@@ -88,6 +90,7 @@
     <Compile Include="CommandHandlers\SelectLibraryCommandHandler.cs" />
     <Compile Include="CommandHandlers\ScanLibraryCommandHandler.cs" />
     <Compile Include="CommonUI\CommandToolbar.cs" />
+    <Compile Include="CommonUI\MultiSpinner.cs" />
     <Compile Include="Controllers\AlbumsController.cs" />
     <Compile Include="Controllers\ArtistsController.cs" />
     <Compile Include="Controllers\AutoplayController.cs" />
@@ -110,7 +113,6 @@
     <Compile Include="DbAccess\AutoplayAccess.cs" />
     <Compile Include="DbAccess\SourceAccess.cs" />
     <Compile Include="FilterManagement\DeleteConfirmationDialogFragment.cs" />
-    <Compile Include="FilterManagement\FilterGroupAdapter.cs" />
     <Compile Include="FilterManagement\FilterManagementModel.cs" />
     <Compile Include="FilterManagement\FilterSelectionDialogFragment.cs" />
     <Compile Include="FilterManagement\TagApplicationDialogFragment.cs" />
@@ -131,7 +133,7 @@
     <Compile Include="LibraryManagement\SourceEditDialogFragment.cs" />
     <Compile Include="LibraryOptionsView\LibraryNameDisplay.cs" />
     <Compile Include="LibraryOptionsView\LibraryNameViewModel.cs" />
-    <Compile Include="LibraryOptionsView\LibraryOptionsDialogFragment.cs" />
+    <Compile Include="AutoplayManagement\AutoplayOptionsDialogFragment.cs" />
     <Compile Include="LibraryScanning\FTPScanner.cs" />
     <Compile Include="BaseView\IAdapterActionHandler.cs" />
     <Compile Include="BaseView\IPageVisible.cs" />
@@ -531,13 +533,19 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\library_options_dialogue_layout.axml">
+    <AndroidResource Include="Resources\layout\autoplay_options_dialogue_layout.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\menu\menu_library.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_autoplay.xml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>

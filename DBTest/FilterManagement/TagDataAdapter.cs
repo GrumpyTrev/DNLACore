@@ -47,7 +47,7 @@ namespace DBTest
 
 			if ( view != null )
 			{
-				view.FindViewById<TextView>( Resource.Id.TagName ).Text = TagData[ position ].TagName;
+				view.FindViewById<TextView>( Resource.Id.TagName ).Text = TagData[ position ].SourceTag.Name;
 
 				CheckBox selectionBox = view.FindViewById<CheckBox>( Resource.Id.checkBox );
 				ImageView indetermiate = view.FindViewById<ImageView>( Resource.Id.indeterminateCheck );

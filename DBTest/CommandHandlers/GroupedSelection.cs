@@ -17,7 +17,8 @@ namespace DBTest
 			// Save the unprocessed objects.
 			SelectedObjects = selectedObjects;
 
-			// Group the objects into sets of Song, PlaylistItem, Playlist, Artist, ArtistAlbum and Album items
+			// Group the objects into sets of Song, PlaylistItem, Playlist, Artist, ArtistAlbum, Album and Genre (string) items
+			// TODO Its probably more efficient to loop through the objects and build the sets as we go.
 			Songs = selectedObjects.OfType<Song>();
 			SongsCount = Songs.Count();
 			PlaylistItems = selectedObjects.OfType<PlaylistItem>();
@@ -30,6 +31,8 @@ namespace DBTest
 			ArtistAlbumsCount = ArtistAlbums.Count();
 			Albums = selectedObjects.OfType<Album>();
 			AlbumsCount = Albums.Count();
+			Genres = selectedObjects.OfType<string>();
+			GenresCount = Genres.Count();
 
 			// Determine if there is a parent playlist
 			ParentPlaylist = ( PlaylistItemsCount == 0 ) ? null : DBTest.Playlists.GetPlaylist( PlaylistItems.First().PlaylistId );
@@ -96,7 +99,17 @@ namespace DBTest
 		public int AlbumsCount { get; private set; } = 0;
 
 		/// <summary>
-		/// The pareent playlist of selceted playlistitems, if there is one
+		/// The set of genres in the selected objects
+		/// </summary>
+		public IEnumerable<string> Genres { get; private set; } = null;
+
+		/// <summary>
+		/// The number of genres in the selected objects
+		/// </summary>
+		public int GenresCount { get; private set; } = 0;
+
+		/// <summary>
+		/// The parent playlist of selceted playlistitems, if there is one
 		/// </summary>
 		public Playlist ParentPlaylist { get; private set; } = null;
 

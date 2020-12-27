@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Android.Views;
+﻿using Android.Views;
 using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,7 +61,7 @@ namespace DBTest
 				AppendToTabTitle();
 
 				// Update the icon as well
-				SetFilterIcon();
+				ArtistsViewModel.FilterSelector.DisplayFilterIcon();
 
 				// Display the current sort order
 				ArtistsViewModel.SortSelector.DisplaySortIcon();
@@ -79,7 +78,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the sort selector has changed the sort order
 		/// </summary>
-		public void SortOrderChanged() => ArtistsController.SortArtistsAsync( true );
+		public void SortOrderChanged() => ArtistsController.SortArtistsAsync();
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -126,20 +125,9 @@ namespace DBTest
 		protected override void ShowGenre( bool showGenre ) => ( ( ArtistsAdapter )Adapter ).ShowGenre( showGenre );
 
 		/// <summary>
-		/// Return the filter held by the model
+		/// The FilterSelection object used by this fragment
 		/// </summary>
-		protected override Tag CurrentFilter => ArtistsViewModel.CurrentFilter;
-
-		/// <summary>
-		/// The current groups Tags applied to the albums
-		/// </summary>
-		protected override List<TagGroup> TagGroups => ArtistsViewModel.TagGroups;
-
-		/// <summary>
-		/// The delegate used to apply a filter change
-		/// </summary>
-		/// <returns></returns>
-		protected override FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => ArtistsController.ApplyFilterAsync;
+		protected override FilterSelection FilterSelector { get; } = ArtistsViewModel.FilterSelector;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

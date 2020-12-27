@@ -17,7 +17,7 @@ namespace DBTest
 			UnfilteredAlbums.Clear();
 			LibraryId = -1;
 			ListViewState = null;
-			CurrentFilter = null;
+			FilterSelector.CurrentFilter = null;
 		}
 
 		/// <summary>
@@ -41,19 +41,13 @@ namespace DBTest
 		public static IParcelable ListViewState { get; set; } = null;
 
 		/// <summary>
-		/// The current tag being used to filter the artists displayed
-		/// </summary>
-		public static Tag CurrentFilter { get; set; } = null;
-
-		/// <summary>
 		/// Class used to select the album sort order
 		/// </summary>
 		public static SortSelector SortSelector { get; } = new SortSelector();
 
 		/// <summary>
-		/// List of TagGroups containing currently selected Tags.
-		/// A TagGroup only needs to be stored here if some and not all of the tags are selected.
+		/// The FilterSelection used to select and apply filter to the Albums tab
 		/// </summary>
-		public static List<TagGroup> TagGroups { get; set; } = new List<TagGroup>();
+		public static FilterSelection FilterSelector { get; } = new FilterSelection( AlbumsController.SetNewFilter );
 	}
 }

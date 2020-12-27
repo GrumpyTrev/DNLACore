@@ -18,7 +18,7 @@ namespace DBTest
 			ArtistsAndAlbums.Clear();
 			LibraryId = -1;
 			ListViewState = null;
-			CurrentFilter = null;
+			FilterSelector.CurrentFilter = null;
 			FilteredAlbumsIds.Clear();
 			SortSelector.SetActiveSortOrder( SortSelector.SortType.alphabetic ); // This also sets the sort order to alphabetic ascending
 		}
@@ -49,24 +49,18 @@ namespace DBTest
 		public static IParcelable ListViewState { get; set; } = null;
 
 		/// <summary>
-		/// The current tag being used to filter the artists displayed
-		/// </summary>
-		public static Tag CurrentFilter { get; set; } = null;
-
-		/// <summary>
 		/// Class used to select the artist sort order
 		/// </summary>
 		public static SortSelector SortSelector { get; } = new SortSelector();
 
 		/// <summary>
-		/// List of TagGroups containing currently selected Tags.
-		/// A TagGroup only needs to be stored here if some and not all of the tags are selected.
-		/// </summary>
-		public static List<TagGroup> TagGroups { get; set; } = new List<TagGroup>();
-
-		/// <summary>
 		/// The set of filtered Albums formed fromthe current filter (including TagGroups)
 		/// </summary>
 		public static HashSet<int> FilteredAlbumsIds { get; set; } = new HashSet<int>();
+		
+		/// <summary>
+		/// The FilterSelection used to select and apply filter to the Albums tab
+		/// </summary>
+		public static FilterSelection FilterSelector { get; } = new FilterSelection( ArtistsController.SetNewFilter );
 	}
 }

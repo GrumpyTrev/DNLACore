@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+ 	xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:divider="?android:dividerVertical"
+	android:showDividers="middle"
+	android:paddingLeft="20dp">
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Spread:"
+			android:textColor="@android:color/black" />
+		<RadioGroup
+			android:minWidth="25px"
+			android:minHeight="25px"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/spreadGroup"
+			android:layout_marginLeft="5dp">
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:checked="true"
+				android:text="No spread"
+				android:id="@+id/noSpread" />
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Fast"
+				android:id="@+id/fastSpread" />
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Slow"
+				android:id="@+id/slowSpread" />
+		</RadioGroup>
+	</LinearLayout>
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="6.0dp" >
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Target:"
+			android:textColor="@android:color/black" />
+		<RadioGroup
+			android:minWidth="25px"
+			android:minHeight="25px"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/targetGroup"
+			android:layout_marginLeft="9dp">
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:checked="true"
+				android:text="All populations"
+				android:id="@+id/allPopulations" />
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Next population"
+				android:id="@+id/nextPopulation" />
+		</RadioGroup>
+	</LinearLayout>
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="6.0dp" >
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Weight:"
+			android:textColor="@android:color/black" />
+		<RadioGroup
+			android:minWidth="25px"
+			android:minHeight="25px"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/weightGroup"
+			android:layout_marginLeft="5dp">
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:checked="true"
+				android:text="None"
+				android:id="@+id/noWeighting" />
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Centre"
+				android:id="@+id/centreWeighting" />
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Edge"
+				android:id="@+id/edgeWeighting" />
+		</RadioGroup>
+	</LinearLayout>
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<Button
+			android:text="Play"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/auto_play" />
+		<Button
+			android:text="Queue"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/auto_queue" />
+		<Button
+			android:text="Cancel"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/auto_cancel" />
+	</LinearLayout>
+</LinearLayout>

@@ -47,14 +47,13 @@ namespace DBTest
 		public override Dialog OnCreateDialog( Bundle savedInstanceState )
 		{
 			// Lookup this tag in the list of tags held by the controller
-			editTag = FilterManagementController.GetTagFromName( Arguments.GetString( "tag", "" ) );
+			editTag = Tags.GetTagByName( Arguments.GetString( "tag", "" ) );
 
 			// Create the custom view and get references to the editable fields
 			View tagView = LayoutInflater.From( Context ).Inflate( Resource.Layout.tag_details_dialogue_layout, null );
 			tagName = tagView.FindViewById<EditText>( Resource.Id.tagName );
 			tagShortName = tagView.FindViewById<EditText>( Resource.Id.tagShortName );
 			idSort = tagView.FindViewById<CheckBox>( Resource.Id.idSort );
-			maxCount = tagView.FindViewById<EditText>( Resource.Id.maxCount );
 			synchLibs = tagView.FindViewById<CheckBox>( Resource.Id.idSynchronise );
 
 			// If editing an existing tag then set the dialogue fields to the current values from the tag
@@ -63,12 +62,7 @@ namespace DBTest
 				tagName.Text = editTag.Name;
 				tagShortName.Text = editTag.ShortName;
 				idSort.Checked = editTag.TagOrder;
-				maxCount.Text = editTag.MaxCount.ToString();
 				synchLibs.Checked = editTag.Synchronise;
-			}
-			else
-			{
-				maxCount.Text = "-1";
 			}
 
 			// Focus the tag namne field and display the input keyboard
@@ -104,7 +98,6 @@ namespace DBTest
 				{
 					Name = tagName.Text,
 					ShortName = tagShortName.Text,
-					MaxCount = int.Parse( maxCount.Text ),
 					TagOrder = idSort.Checked,
 					Synchronise = synchLibs.Checked,
 					TaggedAlbums = new List<TaggedAlbum>()
@@ -127,8 +120,7 @@ namespace DBTest
 					if ( editTag != null )
 					{
 						if ( ( editTag.Name != newOrUpdatedTag.Name ) || ( editTag.ShortName != newOrUpdatedTag.ShortName ) ||
-							( editTag.TagOrder != newOrUpdatedTag.TagOrder ) || ( editTag.MaxCount != newOrUpdatedTag.MaxCount ) ||
-							( editTag.Synchronise != newOrUpdatedTag.Synchronise ) )
+							( editTag.TagOrder != newOrUpdatedTag.TagOrder ) ||	( editTag.Synchronise != newOrUpdatedTag.Synchronise ) )
 						{
 							// Something has changed so attempt to update the tag
 							FilterManagementController.UpdateTag( editTag, newOrUpdatedTag, TagUpdated );
@@ -177,7 +169,6 @@ namespace DBTest
 		EditText tagName = null;
 		EditText tagShortName = null;
 		CheckBox idSort = null;
-		EditText maxCount = null;
 		CheckBox synchLibs = null;
 	}
 }

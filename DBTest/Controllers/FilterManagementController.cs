@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The FilterManagementController class responds to filter selection commands and reflects changes to other controllers
 	/// </summary>
-	public static class FilterManagementController
+	class FilterManagementController : BaseController
 	{
 		/// <summary>
 		/// Register for external filter change messages
@@ -16,34 +16,23 @@ namespace DBTest
 		{
 			Mediator.RegisterPermanent( SongPlayed, typeof( SongPlayedMessage ) );
 			Mediator.RegisterPermanent( AlbumsDeleted, typeof( AlbumsDeletedMessage ) );
+
+			instance = new FilterManagementController();
 		}
 
 		/// <summary>
-		/// Get the Tag data from storage
+		/// Get the Controller data
 		/// </summary>
-		public static void GetTags()
-		{
-			// The Tags need to be linked to their TaggedAlbum entries which contain Albums, so wait
-			// until the Album data is available
-			StorageController.RegisterInterestInDataAvailable( DataAvailable );
-		}
+		public static void GetControllerData() => instance.GetData();
 
 		/// <summary>
-		/// Return a list of the names of all the tags
+		/// Return a list of the names of all the tags. Order the tags so the system tags are displayed first
 		/// </summary>
 		/// <returns></returns>
-		public static List<string> GetTagNames() => Tags.TagsCollection?.Select( tag => tag.Name ).ToList() ?? new List<string>();
-
-		/// <summary>
-		/// Return the Tag with the given name, or null if no such Tag
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public static Tag GetTagFromName( string name ) => Tags.GetTagByName( name );
+		public static List<string> GetTagNames() => Tags.TagsCollection?.OrderBy( tag => tag.UserTag ).Select( tag => tag.Name ).ToList() ?? new List<string>();
 
 		/// <summary>
 		/// Update an existing Tag with updated values.
-		/// Remove TaggedAlbums if the MaxCount for a library has now been exceeded
 		/// </summary>
 		/// <param name="existingTag"></param>
 		/// <param name="updatedTag"></param>
@@ -55,19 +44,7 @@ namespace DBTest
 
 			if ( updateOk == true )
 			{
-				// No problems in performing the update.
-				// Has the maximum number changed and do we need to do anything about it?
-				if ( updatedTag.MaxCount != existingTag.MaxCount )
-				{
-					if ( ( updatedTag.MaxCount != -1 ) && ( ( existingTag.MaxCount == -1 ) || ( updatedTag.MaxCount < existingTag.MaxCount ) ) )
-					{
-						// The maximum count setting has been reduced, so we may need to remove TagedAlbum entries
-						ReduceTaggedAlbumNumbers( existingTag, updatedTag.MaxCount );
-					}
-				}
-
-				// If the synchronise libraries flag has just been set then attempt to synchronise the contents of this tag
-				// across all libraries
+				// If the synchronise libraries flag has just been set then attempt to synchronise the contents of this tag across all libraries
 				if ( ( updatedTag.Synchronise != existingTag.Synchronise ) && ( updatedTag.Synchronise == true ) )
 				{
 					SynchroniseTagAcrossLibraries( existingTag );
@@ -77,6 +54,7 @@ namespace DBTest
 				existingTag.UpdateTagDetails( updatedTag );
 			}
 
+			// Let the delegate know
 			tagDelegate( updateOk );
 		}
 
@@ -92,10 +70,12 @@ namespace DBTest
 
 			if ( createdOk == true )
 			{
+				// Add the new tag to the tag collection
 				newTag.UserTag = true;
 				Tags.AddTag( newTag );
 			}
 
+			// Let the delegate know
 			tagDelegate( createdOk );
 		}
 
@@ -108,8 +88,8 @@ namespace DBTest
 		{
 			List<AppliedTag> appliedTags = new List<AppliedTag>();
 
-			await Task.Run( () => {
-
+			await Task.Run( () => 
+			{
 				// Form a lookup table for the selected album ids
 				HashSet<int> albumLookup = selectedAlbums.Select( alb => alb.Id ).ToHashSet();
 
@@ -117,19 +97,10 @@ namespace DBTest
 				{
 					// Check if all, none or some of the selected albums are tagged with this tag
 					int taggedCount = tag.TaggedAlbums.Count( artistAlbum => albumLookup.Contains( artistAlbum.AlbumId ) );
+					AppliedTag.AppliedType selectionApplied = ( taggedCount == 0 ) ? AppliedTag.AppliedType.None :
+							( ( taggedCount == selectedAlbums.Count() ) ? AppliedTag.AppliedType.All : AppliedTag.AppliedType.Some );
 
-					AppliedTag appliedTag = new AppliedTag()
-					{
-						TagName = tag.Name,
-						// Set the Applied value according to the taggedCount
-						Applied = ( taggedCount == 0 ) ? AppliedTag.AppliedType.None :
-							( ( taggedCount == selectedAlbums.Count() ) ? AppliedTag.AppliedType.All : AppliedTag.AppliedType.Some )
-					};
-
-					// Keep track of the original value so that any changes can be processed
-					appliedTag.OriginalApplied = appliedTag.Applied;
-
-					appliedTags.Add( appliedTag );
+					appliedTags.Add( new AppliedTag() { SourceTag = tag, Applied = selectionApplied, OriginalApplied = selectionApplied } );
 				}
 			} );
 
@@ -154,17 +125,14 @@ namespace DBTest
 					// Has there been a change to this tag
 					if ( appliedTag.Applied != appliedTag.OriginalApplied )
 					{
-						changedTags.Add( appliedTag.TagName );
-
-						// Find the tag record
-						Tag changedTag = GetTagFromName( appliedTag.TagName );
+						changedTags.Add( appliedTag.SourceTag.Name );
 
 						if ( appliedTag.Applied == AppliedTag.AppliedType.None )
 						{
 							// Remove the selected albums from this tag
 							foreach ( Album selectedAlbum in selectedAlbums )
 							{
-								RemoveAlbumFromTag( changedTag, selectedAlbum );
+								RemoveAlbumFromTag( appliedTag.SourceTag, selectedAlbum );
 							}
 						}
 						else if ( appliedTag.Applied == AppliedTag.AppliedType.All )
@@ -172,7 +140,7 @@ namespace DBTest
 							// Add the selected albums to this tag
 							foreach ( Album selectedAlbum in selectedAlbums )
 							{
-								AddAlbumToTag( changedTag, selectedAlbum );
+								AddAlbumToTag( appliedTag.SourceTag, selectedAlbum );
 							}
 						}
 					}
@@ -251,13 +219,16 @@ namespace DBTest
 		/// Called during startup when data is available from storage
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void DataAvailable( object message )
+		protected override async void StorageDataAvailable( object _ = null )
 		{
 			// Extract the 'system' tags from this list for easy access later
 			FilterManagementModel.JustPlayedTag = Tags.GetTagByName( JustPlayedTagName );
 
 			// Do the linking of TaggedAlbums off the UI thread
 			await LinkInTaggedAlbums();
+
+			// Create the Not Played tag from the Just Played tag
+			await CreateNotPlayedTagAsync();
 		}
 
 		/// <summary>
@@ -271,6 +242,7 @@ namespace DBTest
 				// Link these to their Tags
 				Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
 
+				// Tidy up any tags no longer associated with albums
 				List<TaggedAlbum> taggedAlbumsToDelete = new List<TaggedAlbum>();
 
 				foreach ( TaggedAlbum taggedAlbum in TaggedAlbums.TaggedAlbumCollection )
@@ -288,6 +260,34 @@ namespace DBTest
 				}
 
 				taggedAlbumsToDelete.ForEach( ta => FilterAccess.DeleteTaggedAlbumAsync( ta ) );
+			} );
+		}
+
+		/// <summary>
+		/// Create the NotPlayed tag based on the Just Played tag
+		/// </summary>
+		/// <returns></returns>
+		private static async Task CreateNotPlayedTagAsync()
+		{
+			await Task.Run( () =>
+			{
+				// Create a new Not Played tag
+				FilterManagementModel.NotPlayedTag = new Tag() { Name = NotPlayedTagName, ShortName = NotPlayedTagName, PersistTag = false,
+					TagOrder = true, UserTag = false, Synchronise = true };
+
+				Tags.AddTag( FilterManagementModel.NotPlayedTag );
+
+				// Now add all albums to this tag that are not in the Just Played tag
+				HashSet<int> justPlayedAlbumIds = FilterManagementModel.JustPlayedTag.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
+
+				foreach ( Album album in Albums.AlbumCollection )
+				{
+					if ( justPlayedAlbumIds.Contains( album.Id ) == false )
+					{
+						FilterManagementModel.NotPlayedTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id,
+							TagIndex = FilterManagementModel.NotPlayedTag.TaggedAlbums.Count } );
+					}
+				}
 			} );
 		}
 
@@ -327,29 +327,6 @@ namespace DBTest
 							}
 						}
 					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// Reduce the number of TaggedAlbum entries for a Tag if the count for any library excees the new maximum count
-		/// </summary>
-		/// <param name="tagToReduce"></param>
-		/// <param name="newMaxCount"></param>
-		private static void ReduceTaggedAlbumNumbers( Tag tagToReduce, int newMaxCount )
-		{
-			// Look at the TaggedAlbums in each library in turn
-			foreach ( Library library in Libraries.LibraryCollection )
-			{
-				// Get the TaggedAlbums for this library
-				IEnumerable<TaggedAlbum> taggedAlbums = tagToReduce.TaggedAlbums.Where( ta => ta.Album.LibraryId == library.Id );
-
-				// Count exceeded?
-				int tagCount = taggedAlbums.Count();
-				if ( tagCount > newMaxCount )
-				{
-					// Need to remove the first (tagCount - newMaxCount) entries from the Tag for this library
-					tagToReduce.DeleteTaggedAlbums( taggedAlbums.Take( tagCount - newMaxCount ) );
 				}
 			}
 		}
@@ -406,7 +383,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="toTag"></param>
 		/// <param name="albumToAdd"></param>
-		private static void AddAlbumToTag( Tag toTag, Album albumToAdd, bool dontSynchronise = false )
+		private static void AddAlbumToTag( Tag toTag, Album albumToAdd, bool synchronise = true )
 		{
 			// Get the set of TaggedAlbum entries in this tag for the album's library
 			List<TaggedAlbum> tagEntriesInSameLibrary = toTag.TaggedAlbums.Where( ta => ta.Album.LibraryId == albumToAdd.LibraryId ).ToList();
@@ -426,14 +403,6 @@ namespace DBTest
 			}
 			else
 			{
-				// There is no existing entry. If there is a limit to the number of albums that can be tagged then check if the limit has been reached 
-				// and remove the oldest (lowest id) entry
-				if ( ( toTag.MaxCount != -1 ) && ( tagEntriesInSameLibrary.Count >= toTag.MaxCount ) )
-				{
-					// Remove the oldest entry, i.e. the first entry 
-					toTag.DeleteTaggedAlbum( tagEntriesInSameLibrary[ 0 ] );
-				}
-
 				toTag.AddTaggedAlbum( new TaggedAlbum() { TagId = toTag.Id, AlbumId = albumToAdd.Id, Album = albumToAdd } );
 			}
 
@@ -442,7 +411,7 @@ namespace DBTest
 
 			// If this tag is synchronised across libraries then find any matching albums in the other libraries and add them to the tag if not already present
 			// Sychronise whether or not a new entry was added as we may need to reorder an existing tag item in other libraries
-			if ( ( dontSynchronise == false ) && ( toTag.Synchronise == true ) )
+			if ( ( synchronise == true ) && ( toTag.Synchronise == true ) )
 			{
 				foreach ( Library library in Libraries.LibraryCollection )
 				{
@@ -452,7 +421,7 @@ namespace DBTest
 						Album albumToSynch = Albums.GetAlbumInLibrary( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
 						if ( albumToSynch != null )
 						{
-							AddAlbumToTag( toTag, albumToSynch, true );
+							AddAlbumToTag( toTag, albumToSynch, false );
 						}
 					}
 				}
@@ -466,48 +435,47 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SongPlayed( object message )
 		{
-			// Only process this if the Just Played tag exists
-			if ( FilterManagementModel.JustPlayedTag != null )
+			// Assume that the album does not need adding to the tag
+			bool addTag = false;
+
+			// Get the Album from the Albums collection
+			Album songAlbum = Albums.GetAlbumById( ( message as SongPlayedMessage ).SongPlayed.AlbumId );
+
+			// Determine if this album should be marked as having been played
+			if ( songAlbum.Played == false )
 			{
-				// Assume that the album does not need adding to the tag
-				bool addTag = false;
-
-				// Get the Album from the Albums collection
-				Album songAlbum = Albums.GetAlbumById( ( message as SongPlayedMessage ).SongPlayed.AlbumId );
-
-				// Determine if this album should be marked as having been played
-				if ( songAlbum.Played == false )
+				// Is this the same album as last time
+				if ( songAlbum.Id == FilterManagementModel.JustPlayedAlbumId )
 				{
-					// Is this the same album as last time
-					if ( songAlbum.Id == FilterManagementModel.JustPlayedAlbumId )
-					{
-						// Have enough songs been played to tag the album
-						addTag = ( ++FilterManagementModel.JustPlayedCount == FilterManagementModel.JustPlayedLimit );
-					}
-					else
-					{
-						// Different album so save its identity and reset the count
-						FilterManagementModel.JustPlayedAlbumId = songAlbum.Id;
-						FilterManagementModel.JustPlayedCount = 1;
-					}
+					// Have enough songs been played to tag the album
+					addTag = ( ++FilterManagementModel.JustPlayedCount == FilterManagementModel.JustPlayedLimit );
 				}
 				else
 				{
-					// Record this as the last album played anyway
+					// Different album so save its identity and reset the count
 					FilterManagementModel.JustPlayedAlbumId = songAlbum.Id;
-
-					// And tag it just to get it at the top of the tag
-					addTag = true;
+					FilterManagementModel.JustPlayedCount = 1;
 				}
+			}
+			else
+			{
+				// Record this as the last album played anyway
+				FilterManagementModel.JustPlayedAlbumId = songAlbum.Id;
 
-				// If the album has been played, either set just now or previously, add it to the tag (to get the ordering right)
-				if ( addTag == true )
-				{
-					AddAlbumToTag( FilterManagementModel.JustPlayedTag, songAlbum );
+				// And tag it just to get it at the top of the tag
+				addTag = true;
+			}
 
-					// Report this filter change
-					new TagMembershipChangedMessage() { ChangedTags = new List<string>() { JustPlayedTagName } }.Send();
-				}
+			// If the album has been played, either set just now or previously, add it to the tag (to get the ordering right)
+			if ( addTag == true )
+			{
+				AddAlbumToTag( FilterManagementModel.JustPlayedTag, songAlbum );
+
+				// Delete this album from the Not Played tag
+				RemoveAlbumFromTag( FilterManagementModel.NotPlayedTag, songAlbum );
+
+				// Report these filter change
+				new TagMembershipChangedMessage() { ChangedTags = new List<string>() { JustPlayedTagName, NotPlayedTagName } }.Send();
 			}
 		}
 
@@ -576,5 +544,15 @@ namespace DBTest
 		/// The name given to the "Just played" tag
 		/// </summary>
 		public const string JustPlayedTagName = "Just played";
+
+		/// <summary>
+		/// The name given to the "Not played" tag
+		/// </summary>
+		public const string NotPlayedTagName = "Not played";
+
+		/// <summary>
+		/// The one and only FilterManagementController instance
+		/// </summary>
+		private static readonly FilterManagementController instance = null;
 	}
 }

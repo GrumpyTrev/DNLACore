@@ -60,16 +60,5 @@
 			android:layout_height="wrap_content"
 			android:id="@+id/idSynchronise"
 			android:paddingRight="10dp" />
-		<TextView
-			android:text="Max count:"
-			android:textSize="14sp"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content" />
-		<EditText
-			android:inputType="number|numberSigned"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:id="@+id/maxCount" />
 	</LinearLayout>
-
 </LinearLayout>

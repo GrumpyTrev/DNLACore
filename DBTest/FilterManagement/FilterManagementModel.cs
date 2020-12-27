@@ -16,6 +16,11 @@ namespace DBTest
 		public static Tag JustPlayedTag { get; internal set; } = null;
 
 		/// <summary>
+		/// The not played tag
+		/// </summary>
+		public static Tag NotPlayedTag { get; set; } = null;
+
+		/// <summary>
 		/// The identity of the album whose song was just played
 		/// </summary>
 		public static int JustPlayedAlbumId { get; set; } = -1;
@@ -58,9 +63,9 @@ namespace DBTest
 	public class AppliedTag
 	{
 		/// <summary>
-		/// The name of the tag
+		/// The source tag
 		/// </summary>
-		public string TagName { get; set; } = "";
+		public Tag SourceTag { get; set; } = null;
 
 		/// <summary>
 		/// How fully has this tag been applied

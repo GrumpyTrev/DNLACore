@@ -49,16 +49,22 @@ namespace DBTest
 		public static void AddSongsToPlaylist( List<Song> songsToAdd, Playlist playlist ) => playlist.AddSongs( songsToAdd );
 
 		/// <summary>
-		/// Wrapper around ApplyFilterAsync to match delegate signature
+		/// Apply the specified filter to the data being displayed
 		/// </summary>
 		/// <param name="newFilter"></param>
-		/// <returns></returns>
-		public static async Task ApplyFilterDelegateAsync( Tag newFilter ) => await ApplyFilterAsync( newFilter );
+		public static void SetNewFilter( Tag newFilter )
+		{
+			// Update the model
+			AlbumsViewModel.FilterSelector.CurrentFilter = newFilter;
+
+			// No need to wait for this to be applied
+			ApplyFilterAsync();
+		}
 
 		/// <summary>
 		/// Sort the available data according to the current sort option
 		/// </summary>
-		public static async Task SortDataAsync( bool refreshData = false )
+		public static async Task SortDataAsync()
 		{
 			// Do the sorting and indexing off the UI task
 			await Task.Run( () => 
@@ -84,7 +90,7 @@ namespace DBTest
 					case SortSelector.SortOrder.idDescending:
 					{
 						// If these entries are filtered then order them by the tag id rather than the album id
-						if ( AlbumsViewModel.CurrentFilter == null )
+						if ( AlbumsViewModel.FilterSelector.CurrentFilter == null )
 						{
 							if ( sortOrder == SortSelector.SortOrder.idAscending )
 							{
@@ -99,7 +105,7 @@ namespace DBTest
 						else
 						{
 							// Form a list of all album ids in the same order as they are in the tag
-							List<int> albumIds = AlbumsViewModel.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToList();
+							List<int> albumIds = AlbumsViewModel.FilterSelector.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToList();
 
 							if ( sortOrder == SortSelector.SortOrder.idDescending )
 							{
@@ -138,11 +144,8 @@ namespace DBTest
 				}
 			} );
 
-			if ( refreshData == true )
-			{
-				// Publish the data
-				instance.Reporter?.DataAvailable();
-			}
+			// Publish the data
+			instance.Reporter?.DataAvailable();
 		}
 
 		/// <summary>
@@ -156,8 +159,8 @@ namespace DBTest
 
 			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
 
-			// Revert to no filter and sort the data
-			await ApplyFilterAsync( null, false );
+			// Apply the current filter
+			await ApplyFilterAsync();
 
 			base.StorageDataAvailable();
 		}
@@ -166,17 +169,14 @@ namespace DBTest
 		/// Apply the new filter to the data being displayed
 		/// </summary>
 		/// <param name="newFilter"></param>
-		private static async Task ApplyFilterAsync( Tag newFilter, bool report = true )
+		private static async Task ApplyFilterAsync()
 		{
-			// Update the model
-			AlbumsViewModel.CurrentFilter = newFilter;
-
 			// Make all sort orders available
 			AlbumsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
 					SortSelector.SortType.year, SortSelector.SortType.genre } );
 
 			// Check for no simple or group tag filters
-			if ( ( AlbumsViewModel.CurrentFilter == null ) && ( AlbumsViewModel.TagGroups.Count == 0 ) )
+			if ( AlbumsViewModel.FilterSelector.FilterApplied == false )
 			{
 				AlbumsViewModel.Albums = new List<Album>( AlbumsViewModel.UnfilteredAlbums );
 			}
@@ -185,13 +185,13 @@ namespace DBTest
 				await Task.Run( () =>
 				{
 					// Combine the simple and group tabs
-					HashSet<int> albumIds = BaseController.CombineAlbumFilters( AlbumsViewModel.CurrentFilter, AlbumsViewModel.TagGroups );
+					HashSet<int> albumIds = AlbumsViewModel.FilterSelector.CombineAlbumFilters();
 
 					// Now get all the albums that are tagged and in the current library
 					AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums.FindAll( album => albumIds.Contains( album.Id ) == true );
 
 					// If the TagOrder flag is set then set the sort order to Id order.
-					if ( ( AlbumsViewModel.CurrentFilter?.TagOrder ?? false ) == true )
+					if ( AlbumsViewModel.FilterSelector.TagOrderFlag == true )
 					{
 						AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
 					}
@@ -200,27 +200,21 @@ namespace DBTest
 
 			// Sort the displayed albums to the order specified in the SortSelector
 			await SortDataAsync();
-
-			// Publish the data
-			if ( report == true )
-			{
-				instance.Reporter?.DataAvailable();
-			}
 		}
 
 		/// <summary>
-		/// Called when a TagMembershipChangedMessage has been received
+		/// Called when a TagMembershipChangedMessage has been received.
+		/// If the CurrentFilter has been changed or if the TagGroups contains this tag then the data must be refreshed
 		/// If there is no filtering of if the tag being filtered on has not changed then no action is required.
 		/// Otherwise the data must be refreshed
 		/// </summary>
 		/// <param name="message"></param>
 		private static void TagMembershipChanged( object message )
 		{
-			if ( ( AlbumsViewModel.CurrentFilter != null ) &&
-				 ( ( AlbumsViewModel.TagGroups.Count > 0 ) ||
-				   ( ( message as TagMembershipChangedMessage ).ChangedTags.Contains( AlbumsViewModel.CurrentFilter.Name ) == true ) ) )
+			if ( AlbumsViewModel.FilterSelector.FilterContainsTags( ( ( TagMembershipChangedMessage )message ).ChangedTags ) == true )
 			{
-				ApplyFilterAsync( AlbumsViewModel.CurrentFilter );
+				// Reapply the same filter. No need to wait for this.
+				ApplyFilterAsync();
 			}
 		}
 
@@ -247,13 +241,10 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void TagDetailsChanged( object message )
 		{
-			if ( AlbumsViewModel.CurrentFilter != null )
+			if ( AlbumsViewModel.FilterSelector.CurrentFilterName == ( ( TagDetailsChangedMessage )message ).ChangedTag.Name )
 			{
-				TagDetailsChangedMessage tagMessage = message as TagDetailsChangedMessage;
-				if ( AlbumsViewModel.CurrentFilter.Name == tagMessage.PreviousName )
-				{
-					ApplyFilterAsync( tagMessage.ChangedTag );
-				}
+				// Reapply the same filter. No need to wait for this
+				ApplyFilterAsync();
 			}
 		}
 
@@ -264,9 +255,9 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void TagDeleted( object message )
 		{
-			if ( ( AlbumsViewModel.CurrentFilter != null ) && ( AlbumsViewModel.CurrentFilter.Name == ( message as TagDeletedMessage ).DeletedTag.Name ) )
+			if ( AlbumsViewModel.FilterSelector.CurrentFilterName == ( message as TagDeletedMessage ).DeletedTag.Name )
 			{
-				ApplyFilterAsync( null );
+				SetNewFilter( null );
 			}
 		}
 

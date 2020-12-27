@@ -3,6 +3,9 @@ using System.Linq;
 
 namespace DBTest
 {
+	/// <summary>
+	/// The StartAutoPlaylistCommandHandler class is used to process a Play or Queue autoplay command
+	/// </summary>
 	class StartAutoPlaylistCommandHandler : CommandHandler
 	{
 		/// <summary>
@@ -48,23 +51,23 @@ namespace DBTest
 				selectedGenres = selectedGenres.Distinct().ToList();
 			}
 
-			AutoplayController.StartAutoplayAsync( selectedSong, selectedGenres );
+			AutoplayController.StartAutoplayAsync( selectedSong, selectedGenres, commandIdentity == Resource.Id.auto_play );
 
 			commandCallback.PerformAction();
 		}
-
+		
 		/// <summary>
-		/// Is the command valid given the selected objects
+		/// Bind this command to the router. An override is required here as this command can be launched using two identities
 		/// </summary>
-		/// <param name="selectedObjects"></param>
-		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) =>
-			( selectedObjects.ArtistsCount == 1 ) || ( selectedObjects.ArtistAlbumsCount == 1 ) || 
-			( selectedObjects.SongsCount == 1 ) || ( selectedObjects.AlbumsCount == 1 );
+		public override void BindToRouter()
+		{
+			CommandRouter.BindHandler( CommandIdentity, this );
+			CommandRouter.BindHandler( Resource.Id.auto_queue, this );
+		}
 
 		/// <summary>
 		/// The command identity associated with this handler
 		/// </summary>
-		protected override int CommandIdentity { get; } = Resource.Id.auto_gen;
+		protected override int CommandIdentity { get; } = Resource.Id.auto_play;
 	}
 }

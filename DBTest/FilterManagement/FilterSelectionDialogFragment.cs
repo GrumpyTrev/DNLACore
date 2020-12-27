@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Android.App;
-using Android.Content;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-using Java.Lang;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 using FragmentManager = Android.Support.V4.App.FragmentManager;
@@ -17,7 +15,7 @@ namespace DBTest
 	/// <summary>
 	/// The FilterSelectionDialogFragment class allows the user to select a filter
 	/// </summary>
-	internal class FilterSelectionDialogFragment : DialogFragment, FilterGroupAdapter.IReporter
+	internal class FilterSelectionDialogFragment : DialogFragment
 	{
 		/// <summary>
 		/// Show the dialogue displaying the specified list of tags and the current tag
@@ -45,73 +43,102 @@ namespace DBTest
 		/// </summary>
 		/// <param name="savedInstanceState"></param>
 		/// <returns></returns>
-		public override Dialog OnCreateDialog( Bundle savedInstanceState ) =>
-			new AlertDialog.Builder( Context )
+		public override Dialog OnCreateDialog( Bundle savedInstanceState )
+		{
+			// Initialise the controls holding the simple Tags and Genres
+			View dialogView = LayoutInflater.From( Context ).Inflate( Resource.Layout.filter_selection_dialogue_layout, null );
+			Spinner tagSpinner = dialogView.FindViewById<Spinner>( Resource.Id.simpleTags );
+			MultiSpinner genreSpinner = dialogView.FindViewById<MultiSpinner>( Resource.Id.genreSpinner );
+
+			InitialiseTagSpinner( tagSpinner );
+			InitialiseGenreSpinner( genreSpinner );
+
+			return new AlertDialog.Builder( Context )
 				.SetTitle( "Apply filter" )
-				.SetView( Resource.Layout.filter_selection_dialogue_layout )
-				.SetPositiveButton( "OK", ( EventHandler<DialogClickEventArgs> )null )
+				.SetView( dialogView )
+				.SetPositiveButton( "OK", delegate { OnOk( genreSpinner, tagSpinner ); } )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Create();
+		}
 
 		/// <summary>
-		/// Install a handler for the Ok button that gets the selected item from the internal ListView
+		/// Initialise the contents of the Tag spinner
 		/// </summary>
-		public override void OnResume()
+		/// <param name="tagSpinner"></param>
+		private void InitialiseTagSpinner( Spinner tagSpinner )
 		{
-			base.OnResume();
-
-			AlertDialog alert = ( AlertDialog )Dialog;
-
-			// Form a list of choices including None
-			List<string> tagNames = FilterManagementController.GetTagNames();
-			tagNames.Insert( 0, "None" );
+			// Form a list of the tag choices including None
+			List<string> tagNames = new List<string> { "None" };
+			tagNames.AddRange( FilterManagementController.GetTagNames() );
 
 			// Which one of these is currently selected
 			int currentTagIndex = ( CurrentlySelectedFilter != null ) ? tagNames.IndexOf( CurrentlySelectedFilter.Name ) : 0;
 
-			// Create an adapter for the list view to display the tag names
-			ListView simpleTags = alert.FindViewById<ListView>( Resource.Id.simpleTags );
-			simpleTags.Adapter = new ArrayAdapter<string>( Context, Resource.Layout.select_dialog_singlechoice_material, tagNames.ToArray() );
-			simpleTags.ChoiceMode = ChoiceMode.Single;
-			simpleTags.SetItemChecked( currentTagIndex, true );
+			// Create an adapter for the spinner to display the tag names
+			ArrayAdapter<string> spinnerAdapter = new ArrayAdapter<string>( Context, Resource.Layout.select_dialog_item_material, tagNames.ToArray() );
+			spinnerAdapter.SetDropDownViewResource( Resource.Layout.support_simple_spinner_dropdown_item );
 
-			// Create an adapter for the ExpandableListView of group tags
-			ExpandableListView groupTags = alert.FindViewById<ExpandableListView>( Resource.Id.groupTags );
-			FilterGroupAdapter adapter = new FilterGroupAdapter( Context, FilterManagementModel.TagGroups, CurrentlySelectedTagGroups, groupTags, this );
-			groupTags.SetAdapter( adapter );
-
-			// Specify the action to take when the Ok button is selected
-			alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) =>
-			{
-				// Get the GroupTag selections
-				List<TagGroup> selectedGroups = adapter.GetSelectedTagGroups();
-
-				// Get the simple tag
-				int tagIndex = simpleTags.CheckedItemPosition;
-				Tag newTag = ( tagIndex == 0 ) ? null : Tags.TagsCollection[ tagIndex - 1 ];
-
-				// Check for simple or group tag changes
-				if ( ( newTag != CurrentlySelectedFilter ) || ( selectedGroups.Count != CurrentlySelectedTagGroups.Count ) || 
-					 ( selectedGroups.Any( group => GroupChanged( group ) ) == true ) )
-				{
-					// Update the FilterManagementModel TagGroups with the possibly updated data from the Adapter
-					CurrentlySelectedTagGroups.Clear();
-					CurrentlySelectedTagGroups.AddRange( selectedGroups );
-
-					SelectionDelegate?.Invoke( newTag );
-				}
-
-				Dismiss();
-			};
+			// Associate the adapter with the spinner and preselect the current entry
+			tagSpinner.Adapter = spinnerAdapter;
+			tagSpinner.SetSelection( currentTagIndex );
 		}
 
 		/// <summary>
-		/// Called when a filter group state changes
-		/// If any filter group is totally deselected then disable the OK button
+		/// Initialise the contents of the Genre spinner
 		/// </summary>
-		public void OnGroupStatusChange( List<TagGroup.GroupSelectionState> newStates )
+		/// <param name="genreSpinner"></param>
+		private void InitialiseGenreSpinner( MultiSpinner genreSpinner )
 		{
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Enabled = !newStates.Any( state => ( state == TagGroup.GroupSelectionState.None ) );
+			// Get the currently selected Genre items from the CurrentlySelectedTagGroups.
+			// If there is no Genre TagGroup then all the Genre items are selected.
+			// Otherwise only the items in the TagGroup are selected
+			bool[] selected = Enumerable.Repeat( true, FilterManagementModel.GenreTags.Tags.Count ).ToArray();
+
+			// Is there a Genre TagGroup
+			TagGroup genreGroup = CurrentlySelectedTagGroups.FirstOrDefault( group => ( group.Name == FilterManagementModel.GenreTags.Name ) );
+			if ( genreGroup != null )
+			{
+				// Set the selected flag for each tag according to whether or not it is in the TagGroup
+				for ( int genreIndex = 0; genreIndex < FilterManagementModel.GenreTags.Tags.Count; ++genreIndex )
+				{
+					selected[ genreIndex ] = genreGroup.Tags.Exists( tag => tag.Name == FilterManagementModel.GenreTags.Tags[ genreIndex ].Name );
+				}
+			}
+
+			// Display the names of all the genre tags in a multi-select spinner
+			genreSpinner.SetItems( FilterManagementModel.GenreTags.Tags.Select( ta => ta.Name ).ToList(), selected, "All" );
+		}
+
+		/// <summary>
+		/// Get the selected simple and Genre tags and determine if there has been any changes
+		/// </summary>
+		private void OnOk( MultiSpinner genreSpinner, Spinner tagSpinner )
+		{
+			// Get the selected record from the Genre spinner. If not all of the items are selected then add an entry for each selected item to a new TagGroup
+			List<TagGroup> selectedGroups = new List<TagGroup>();
+
+			if ( genreSpinner.SelectionRecord.All( genre => genre ) == false )
+			{
+				TagGroup group = new TagGroup() { Name = FilterManagementModel.GenreTags.Name };
+				selectedGroups.Add( group );
+
+				// Merge the Spinner's selection record and the Genre tags into a single list and then add to the new group any tags that are selected
+				IEnumerable<Tuple<bool, Tag>> merged = genreSpinner.SelectionRecord.Zip( FilterManagementModel.GenreTags.Tags, ( x, y ) => Tuple.Create( x, y ) );
+				group.Tags.AddRange( merged.Where( t => ( t.Item1 == true ) ).Select( t => t.Item2 ) );
+			}
+
+			// Get the simple tag
+			Tag newTag = ( tagSpinner.SelectedItemPosition == 0 ) ? null : Tags.GetTagByName( tagSpinner.SelectedItem.ToString() );
+
+			// Check for simple or group tag changes
+			if ( ( newTag != CurrentlySelectedFilter ) || ( selectedGroups.Count != CurrentlySelectedTagGroups.Count ) || 
+				 ( selectedGroups.Any( group => GroupChanged( group ) ) == true ) )
+			{
+				// Update the FilterManagementModel TagGroups with the possibly updated data from the Adapter
+				CurrentlySelectedTagGroups.Clear();
+				CurrentlySelectedTagGroups.AddRange( selectedGroups );
+				SelectionDelegate?.Invoke( newTag );
+			}
 		}
 
 		/// <summary>

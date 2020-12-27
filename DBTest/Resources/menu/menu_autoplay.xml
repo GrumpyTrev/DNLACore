@@ -1,0 +1,13 @@
+﻿<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+	<item
+		android:id="@+id/auto_play"
+		android:title="Play now" />
+	<item
+		android:id="@+id/auto_queue"
+		android:title="Edit library" />
+	<item
+		android:id="@+id/auto_options"
+		android:title="Option..." />
+</menu>

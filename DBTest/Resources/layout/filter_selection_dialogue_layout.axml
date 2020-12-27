@@ -4,14 +4,74 @@
 	android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-	<ListView
+	<LinearLayout
+		android:orientation="horizontal"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:id="@+id/simpleTags">
-	</ListView>
-	<ExpandableListView
+		android:paddingLeft="5dp"
+		>
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Tags:"
+			android:textColor="@android:color/black"
+			android:textSize="20dp" />
+		<Spinner
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/simpleTags" />
+	</LinearLayout>
+	<LinearLayout
+		android:orientation="horizontal"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:id="@+id/groupTags">
-	</ExpandableListView>
+		android:paddingLeft="5dp"
+		>
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Genres:"
+			android:textColor="@android:color/black"
+			android:textSize="20dp" />
+		<DBTest.MultiSpinner
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/genreSpinner" />
+	</LinearLayout>
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:paddingLeft="5dp" >
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Scope:"
+			android:textColor="@android:color/black"
+			android:textSize="20dp" />
+		<RadioGroup
+			android:minWidth="25px"
+			android:minHeight="25px"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/scopeGroup"
+			android:layout_marginLeft="5dp" >
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:checked="true"
+				android:text="This tab"
+				android:id="@+id/scopeThisTab" />
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Artists and Albums"
+				android:id="@+id/scopeAllTabs" />
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Use for Autoplay"
+				android:id="@+id/scopeAuto" />
+		</RadioGroup>
+	</LinearLayout>
 </LinearLayout>

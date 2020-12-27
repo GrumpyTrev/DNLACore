@@ -44,52 +44,21 @@ namespace DBTest
 
 		/// <summary>
 		/// Apply the specified filter to the data being displayed
-		/// Once the Artists have been filtered prepare them for display by sorting and combinig them with their ArtistAlbum entries
 		/// </summary>
 		/// <param name="newFilter"></param>
-		public static async Task ApplyFilterAsync( Tag newFilter )
+		public static void SetNewFilter( Tag newFilter )
 		{
 			// Update the model
-			ArtistsViewModel.CurrentFilter = newFilter;
+			ArtistsViewModel.FilterSelector.CurrentFilter = newFilter;
 
-			// alphabetic and identity sorting are available to the user
-			ArtistsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity } );
-
-			// Check for no simple or group tag filters
-			if ( ( ArtistsViewModel.CurrentFilter == null ) && ( ArtistsViewModel.TagGroups.Count == 0 ) )
-			{
-				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists;
-			}
-			else
-			{
-				await Task.Run( () =>
-				{
-					// Combine the simple and group tabs
-					ArtistsViewModel.FilteredAlbumsIds = BaseController.CombineAlbumFilters( ArtistsViewModel.CurrentFilter, ArtistsViewModel.TagGroups );
-
-					// Now get all the artist identities of the albums that are tagged
-					HashSet<int> artistIds = ArtistAlbums.ArtistAlbumCollection.
-						Where( aa => ArtistsViewModel.FilteredAlbumsIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).Distinct().ToHashSet();
-
-					// Now get the Artists from the list of artist ids
-					ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) ).ToList();
-
-					// If the TagOrder flag is set then set the sort order to Id order.
-					if ( ( ArtistsViewModel.CurrentFilter?.TagOrder ?? false ) == true )
-					{
-						ArtistsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
-					}
-				} );
-			}
-
-			// Sort the artists to the order specified in the SortSelector and publish the data
-			await SortArtistsAsync( true );
+			// No need to wait for this to be applied
+			ApplyFilterAsync();
 		}
 
 		/// <summary>
 		/// Sort the Artists according to the currently selected sort order
 		/// </summary>
-		public static async Task SortArtistsAsync( bool refreshData = false )
+		public static async Task SortArtistsAsync()
 		{
 			// Do the sorting and indexing off the UI task
 			await Task.Run( () =>
@@ -128,11 +97,8 @@ namespace DBTest
 				PrepareCombinedList();
 			} );
 
-			if ( refreshData == true )
-			{
-				// Publish the data
-				instance.Reporter?.DataAvailable();
-			}
+			// Publish the data
+			instance.Reporter?.DataAvailable();
 		}
 
 		/// <summary>
@@ -151,10 +117,51 @@ namespace DBTest
 			await SortArtistAlbumsAsync();
 
 			// Apply the current filter and get the data ready for display 
-			await ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
+			await ApplyFilterAsync();
 
 			// Call the base class
 			base.StorageDataAvailable();
+		}
+
+		/// <summary>
+		/// Apply the current filter to the data being displayed
+		/// Once the Artists have been filtered prepare them for display by sorting and combinig them with their ArtistAlbum entries
+		/// </summary>
+		/// <param name="newFilter"></param>
+		private static async Task ApplyFilterAsync()
+		{
+			// alphabetic and identity sorting are available to the user
+			ArtistsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity } );
+
+			// Check for no simple or group tag filters
+			if ( ArtistsViewModel.FilterSelector.FilterApplied == false )
+			{
+				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists;
+			}
+			else
+			{
+				await Task.Run( () =>
+				{
+					// Combine the simple and group tabs
+					ArtistsViewModel.FilteredAlbumsIds = ArtistsViewModel.FilterSelector.CombineAlbumFilters();
+
+					// Now get all the artist identities of the albums that are tagged
+					HashSet<int> artistIds = ArtistAlbums.ArtistAlbumCollection.
+						Where( aa => ArtistsViewModel.FilteredAlbumsIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).Distinct().ToHashSet();
+
+					// Now get the Artists from the list of artist ids
+					ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) ).ToList();
+
+					// If the TagOrder flag is set then set the sort order to Id order.
+					if ( ArtistsViewModel.FilterSelector.TagOrderFlag == true )
+					{
+						ArtistsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
+					}
+				} );
+			}
+
+			// Sort the artists to the order specified in the SortSelector and publish the data
+			await SortArtistsAsync();
 		}
 
 		/// <summary>
@@ -177,29 +184,29 @@ namespace DBTest
 			// Make sure the list is empty - it should be
 			ArtistsViewModel.ArtistsAndAlbums.Clear();
 
+			// These have already been filtered
 			foreach ( Artist artist in ArtistsViewModel.Artists )
 			{
 				ArtistsViewModel.ArtistsAndAlbums.Add( artist );
 
 				// If there is no filter add all the albums, otherwise only add the albums that are in the filter
-				ArtistsViewModel.ArtistsAndAlbums.AddRange( ( ArtistsViewModel.CurrentFilter == null ) ? artist.ArtistAlbums :
+				ArtistsViewModel.ArtistsAndAlbums.AddRange( ( ArtistsViewModel.FilterSelector.FilterApplied == false ) ? artist.ArtistAlbums :
 					artist.ArtistAlbums.Where( alb => ArtistsViewModel.FilteredAlbumsIds.Contains( alb.AlbumId ) == true ) );
 			}
 		}
 
 		/// <summary>
 		/// Called when a TagMembershipChangedMessage has been received
-		/// If there is no filtering of if the tag being filtered on has not changed then no action is required.
+		/// If there is no filtering or if the tag being filtered on has not changed then no action is required.
 		/// Otherwise the data must be refreshed
 		/// </summary>
 		/// <param name="message"></param>
 		private static void TagMembershipChanged( object message )
 		{
-			if ( ( ArtistsViewModel.CurrentFilter != null ) &&
-				 ( ( ArtistsViewModel.TagGroups.Count > 0 ) ||
-				   ( ( message as TagMembershipChangedMessage ).ChangedTags.Contains( ArtistsViewModel.CurrentFilter.Name ) == true ) ) )
+			if ( ArtistsViewModel.FilterSelector.FilterContainsTags( ( ( TagMembershipChangedMessage )message ).ChangedTags ) == true )
 			{
-				ApplyFilterAsync( ArtistsViewModel.CurrentFilter );
+				// Reapply the same filter. No need to wait for this.
+				ApplyFilterAsync();
 			}
 		}
 
@@ -226,13 +233,10 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void TagDetailsChanged( object message )
 		{
-			if ( ArtistsViewModel.CurrentFilter != null )
+			if ( ArtistsViewModel.FilterSelector.CurrentFilterName == ( ( TagDetailsChangedMessage )message ).ChangedTag.Name )
 			{
-				TagDetailsChangedMessage tagMessage = message as TagDetailsChangedMessage;
-				if ( ArtistsViewModel.CurrentFilter.Name == tagMessage.PreviousName )
-				{
-					ApplyFilterAsync( tagMessage.ChangedTag );
-				}
+				// Reapply the same filter
+				ApplyFilterAsync();
 			}
 		}
 
@@ -243,9 +247,9 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void TagDeleted( object message )
 		{
-			if ( ( ArtistsViewModel.CurrentFilter != null ) && ( ArtistsViewModel.CurrentFilter.Name == ( message as TagDeletedMessage ).DeletedTag.Name ) )
+			if ( ArtistsViewModel.FilterSelector.CurrentFilterName == ( message as TagDeletedMessage ).DeletedTag.Name )
 			{
-				ApplyFilterAsync( null );
+				SetNewFilter( null );
 			}
 		}
 

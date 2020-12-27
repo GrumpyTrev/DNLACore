@@ -91,6 +91,24 @@ namespace DBTest
 		public void SaveSeedGenres( IEnumerable<string> genres ) => SeedGenres = GenrePopulations.CreatePopulation( Id, -1, genres );
 
 		/// <summary>
+		/// Update this Autoplay's options with those in the new Autoplay
+		/// </summary>
+		/// <param name="newAutoplay"></param>
+		public void UpdateOptions( Autoplay newAutoplay )
+		{
+			bool optionsChanged = ( newAutoplay.Spread != Spread ) || ( newAutoplay.Target != Target ) || ( newAutoplay.Weight != Weight );
+			Spread = newAutoplay.Spread;
+			Target = newAutoplay.Target;
+			Weight = newAutoplay.Weight;
+
+			if ( optionsChanged == true )
+			{
+				// Update the record. No need to wait.
+				AutoplayAccess.UpdateAutoplayAsync( this );
+			}
+		}
+
+		/// <summary>
 		/// Find all the albums associated with a list of genre names
 		/// </summary>
 		/// <param name="genres"></param>

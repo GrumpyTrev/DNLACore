@@ -27,7 +27,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="selectedSong"></param>
 		/// <param name="genres"></param>
-		public static async void StartAutoplayAsync( Song selectedSong, IEnumerable<string> genres )
+		public static async void StartAutoplayAsync( Song selectedSong, IEnumerable<string> genres, bool playNow )
 		{
 			// Clear any existing Genre/Album populations from the Autoplay record
 			AutoplayModel.CurrentAutoplay.Clear();
@@ -45,7 +45,7 @@ namespace DBTest
 
 			await GenerateSongsAsync( songs );
 
-			BaseController.AddSongsToNowPlayingList( songs, true );
+			BaseController.AddSongsToNowPlayingList( songs, playNow );
 		}
 
 		/// <summary>

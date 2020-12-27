@@ -3,9 +3,7 @@ using Android.Views;
 using Android.Support.V4.App;
 using Android.Widget;
 using System.Collections.Generic;
-using Android.Support.V7.App;
 using Android.Support.V7.Widget;
-using System.Linq;
 
 namespace DBTest
 {
@@ -74,6 +72,7 @@ namespace DBTest
 		{
 			FragmentView = null;
 			commandCallback.Callback = null;
+			FilterSelector?.BindToMenu( null );
 
 			// Allow derived fragments to release their own resources
 			ReleaseResources();
@@ -94,16 +93,8 @@ namespace DBTest
 			collapseItem = menu.FindItem( Resource.Id.action_collapse );
 			collapseItem?.SetVisible( expandedGroupCount > 0 );
 
-			// If there is a filter item then create a FilterSelection instance to handle it
-			filterItem = menu.FindItem( Resource.Id.filter );
-			if ( filterItem != null )
-			{
-				// Create the FilterSelection. When a new filter has been selected pass it on to the derived class
-				filterSelector = new FilterSelection( ( AppCompatActivity )Activity, FilterSelectionDelegate() );
-
-				// Set the menu icon according to whether or not any filtering is in effect
-				SetFilterIcon();
-			}
+			// If there is a filter selector then bind to it
+			FilterSelector?.BindToMenu( menu.FindItem( Resource.Id.filter ) );
 
 			// Find the 'show genre' submenu option so that the text can be changed
 			genresOption = menu.FindItem( Resource.Id.info )?.SubMenu.FindItem( Resource.Id.genreOption ) ?? null;
@@ -135,7 +126,7 @@ namespace DBTest
 			}
 			else if ( id == Resource.Id.filter )
 			{
-				filterSelector.SelectFilter( CurrentFilter, TagGroups );
+				FilterSelector?.SelectFilter();
 			}
 			else if ( id == Resource.Id.genreOption )
 			{
@@ -372,10 +363,9 @@ namespace DBTest
 			CommandRouter.HandleCommand( commandId, Adapter.SelectedItems.Values, commandCallback, button );
 
 		/// <summary>
-		/// The delegate used to apply a filter change
+		/// The FilterSelection object used by this fragment
 		/// </summary>
-		/// <returns></returns>
-		protected virtual FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => null;
+		protected virtual FilterSelection FilterSelector { get; } = null;
 
 		/// <summary>
 		/// Show the command bar if any of the command bar buttons are visible
@@ -386,31 +376,13 @@ namespace DBTest
 		/// <summary>
 		/// Append the specified string to the tab title for this frasgment
 		/// </summary>
-		protected void AppendToTabTitle()
-		{
-			string appendString = "";
-
-			if ( ( CurrentFilter != null ) || ( TagGroups.Count > 0 ) )
-			{
-				appendString = ( CurrentFilter == null ) ? "\r\n" : string.Format( "\r\n[{0}]", CurrentFilter.ShortName );
-				TagGroups.ForEach( tg => appendString += string.Format( "[{0}]", tg.Name ) );
-			}
-
-			FragmentTitles.AppendToTabTitle( appendString, this );
-		}
+		protected void AppendToTabTitle() => FragmentTitles.AppendToTabTitle( FilterSelector?.TabString() ?? "", this );
 
 		/// <summary>
 		/// Base class method that can be overriden by derived classes to display or hide genre information
 		/// </summary>
 		/// <param name="showGenre"></param>
-		protected virtual void ShowGenre( bool showGenre )
-		{
-		}
-
-		/// <summary>
-		/// Set the filter icon according to whether or not filtering is in effect
-		/// </summary>
-		protected void SetFilterIcon() => filterItem?.SetIcon( ( CurrentFilter == null ) ? Resource.Drawable.filter_off : Resource.Drawable.filter_on );
+		protected virtual void ShowGenre( bool showGenre ) { }
 
 		/// <summary>
 		/// The ExpandableListAdapter used to display the data for this fragment
@@ -492,11 +464,6 @@ namespace DBTest
 		private IMenuItem collapseItem = null;
 
 		/// <summary>
-		/// The filter menu item that will be used to show whether filtering is on or off
-		/// </summary>
-		private IMenuItem filterItem = null;
-
-		/// <summary>
 		/// Has the start of Action Mode been delayed until the view has been created
 		/// </summary>
 		private bool delayedActionMode = false;
@@ -505,11 +472,6 @@ namespace DBTest
 		/// The title to display in the action mode
 		/// </summary>
 		private string actionModeTitle = "";
-
-		/// <summary>
-		/// A FilterSelection instance to handle the selection a filter to be applied to the contents displayed by the fragment
-		/// </summary>
-		private FilterSelection filterSelector = null;
 
 		/// <summary>
 		/// Are genres being displayed for albums

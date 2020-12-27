@@ -41,7 +41,7 @@ namespace DBTest
 				.SetTitle( Arguments.GetString( "title", "" ) )
 				.SetPositiveButton( "OK", delegate 
 				{
-					Tag tagToDelete = FilterManagementController.GetTagFromName( Arguments.GetString( "tag", "" ) );
+					Tag tagToDelete = Tags.GetTagByName( Arguments.GetString( "tag", "" ) );
 					if ( tagToDelete != null )
 					{
 						FilterManagementController.DeleteTag( tagToDelete );

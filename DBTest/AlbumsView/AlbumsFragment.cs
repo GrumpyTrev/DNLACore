@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Android.Views;
+﻿using Android.Views;
 using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
@@ -66,7 +65,7 @@ namespace DBTest
 				AppendToTabTitle();
 
 				// Update the icon as well
-				SetFilterIcon();
+				AlbumsViewModel.FilterSelector.DisplayFilterIcon();
 
 				// Display the current sort order
 				AlbumsViewModel.SortSelector.DisplaySortIcon();
@@ -85,7 +84,7 @@ namespace DBTest
 		/// No need to wait for this to finish. Albums display will be refreshed when it is complete
 		/// </summary>
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-		public void SortOrderChanged() => AlbumsController.SortDataAsync( true );
+		public void SortOrderChanged() => AlbumsController.SortDataAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 		/// <summary>
@@ -136,21 +135,9 @@ namespace DBTest
 		protected override void ShowGenre( bool showGenre ) => ( ( AlbumsAdapter )Adapter ).ShowGenre( showGenre );
 
 		/// <summary>
-		/// The base class does nothing special with the CurrentTag property.
-		/// Derived classes use it to filter what is being displayed
+		/// The FilterSelection object used by this fragment
 		/// </summary>
-		protected override Tag CurrentFilter => AlbumsViewModel.CurrentFilter;
-
-		/// <summary>
-		/// The current groups Tags applied to the albums
-		/// </summary>
-		protected override List<TagGroup> TagGroups => AlbumsViewModel.TagGroups;
-
-		/// <summary>
-		/// The delegate used to apply a filter change
-		/// </summary>
-		/// <returns></returns>
-		protected override FilterSelection.FilterSelectionDelegate FilterSelectionDelegate() => AlbumsController.ApplyFilterDelegateAsync;
+		protected override FilterSelection FilterSelector { get; } = AlbumsViewModel.FilterSelector;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

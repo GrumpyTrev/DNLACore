@@ -66,8 +66,7 @@ namespace DBTest
 			PlaylistsController.GetControllerData();
 			NowPlayingController.GetControllerData();
 			LibraryNameDisplayController.GetControllerData();
-
-			FilterManagementController.GetTags();
+			FilterManagementController.GetControllerData();
 			PlaybackSelectionController.GetPlaybackDetails();
 			AutoplayController.GetControllerData();
 		}

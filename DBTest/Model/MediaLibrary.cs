@@ -213,12 +213,18 @@ namespace DBTest
 		public Artist Artist { get; set; }
 	}
 
+	/// <summary>
+	/// The Tag class is used to group together one or more albums
+	/// </summary>
 	[Table( "Tag" )]
 	public partial class Tag
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
 
+		/// <summary>
+		/// The full name of the tag
+		/// </summary>
 		public string Name { get; set; }
 
 		/// <summary>
@@ -230,11 +236,6 @@ namespace DBTest
 		/// Is this a user or system tag
 		/// </summary>
 		public bool UserTag { get; set; } = true;
-
-		/// <summary>
-		/// The maximum number of albums that can be tagged (used by system tags only)
-		/// </summary>
-		public int MaxCount { get; set; } = -1;
 
 		/// <summary>
 		/// Sort tagged albums by tag id

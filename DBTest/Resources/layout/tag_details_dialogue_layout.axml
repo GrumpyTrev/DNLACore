@@ -53,17 +53,4 @@
 		android:layout_marginTop="5dp"
 		android:id="@+id/idSynchronise" />
 	</LinearLayout>
-	<TextView
-		android:text="Maximum count (-1 = no max) :"
-		android:textSize="14sp"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_marginTop="5dp" />
-	<EditText
-		android:inputType="number|numberSigned"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:id="@+id/maxCount"
-		android:layout_marginTop="-10dp" />
-
 </LinearLayout>

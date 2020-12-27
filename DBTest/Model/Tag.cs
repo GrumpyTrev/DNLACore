@@ -26,8 +26,11 @@ namespace DBTest
 		/// <param name="album"></param>
 		public void DeleteTaggedAlbum( TaggedAlbum album )
 		{
-			// No need to wait for the delete
-			FilterAccess.DeleteTaggedAlbumAsync( album );
+			if ( PersistTag == true )
+			{
+				// No need to wait for the delete
+				FilterAccess.DeleteTaggedAlbumAsync( album );
+			}
 			TaggedAlbums.Remove( album );
 		}
 
@@ -37,8 +40,11 @@ namespace DBTest
 		/// <param name="album"></param>
 		public void AddTaggedAlbum( TaggedAlbum album )
 		{
-			// No need to wait for the delete
-			FilterAccess.AddTaggedAlbumAsync( album );
+			if ( PersistTag == true )
+			{
+				// No need to wait for the delete
+				FilterAccess.AddTaggedAlbumAsync( album );
+			}
 			TaggedAlbums.Add( album );
 		}
 
@@ -55,21 +61,31 @@ namespace DBTest
 
 			Name = newTagDetails.Name;
 			ShortName = newTagDetails.ShortName;
-			MaxCount = newTagDetails.MaxCount;
 			TagOrder = newTagDetails.TagOrder;
 			Synchronise = newTagDetails.Synchronise;
 
-			// No need to wait for this
-			FilterAccess.UpdateTagAsync( this );
+			if ( PersistTag == true )
+			{
+				// No need to wait for this
+				FilterAccess.UpdateTagAsync( this );
+			}
 
 			// The Tags class maintains lookup tables using the tag details so inform it of the change
 			Tags.TagDetailsChanged( this, oldName, oldShortName );
 
 			// Let everyone know about this
-			new TagDetailsChangedMessage() { ChangedTag = this, PreviousName = oldName }.Send();
+			new TagDetailsChangedMessage() { ChangedTag = this }.Send();
 		}
 
+		/// <summary>
+		/// The collection of Albums associated with this tag
+		/// </summary>
 		[Ignore]
 		public List<TaggedAlbum> TaggedAlbums { get; set; } = new List<TaggedAlbum>();
+
+		/// <summary>
+		/// Should this tag be persisted in storage
+		/// </summary>
+		public bool PersistTag { get; set; } = true;
 	}
 }
