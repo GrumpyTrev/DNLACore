@@ -14,7 +14,6 @@ namespace DBTest
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity )
 		{
-			Song selectedSong = null;
 			List<string> selectedGenres = new List<string>();
 
 			// If an Artist has been selected then the starting point for generation will be the albums associated with the Artist.
@@ -22,36 +21,43 @@ namespace DBTest
 			// If a Song has been selected then that song will be the starting point.
 			if ( selectedObjects.ArtistsCount > 0 )
 			{
-				Artist selectedArtist = selectedObjects.Artists.First();
-
-				// Get all the genres associated with this artist
-				foreach ( ArtistAlbum artistAlbum in selectedArtist.ArtistAlbums )
+				// Get all the genres associated with all the selected artists
+				foreach ( Artist selectedArtist in selectedObjects.Artists )
 				{
-					selectedGenres.AddRange( artistAlbum.Album.Genre.Split( ';' ).ToList() );
+					foreach ( ArtistAlbum artistAlbum in selectedArtist.ArtistAlbums )
+					{
+						selectedGenres.AddRange( artistAlbum.Album.Genre.Split( ';' ).ToList() );
+					}
 				}
-
-				// Make genre list unique
-				selectedGenres = selectedGenres.Distinct().ToList();
 			}
 			else if ( selectedObjects.ArtistAlbumsCount > 0 )
 			{
-				// Use this albums genres
-				selectedGenres.AddRange( selectedObjects.ArtistAlbums.First().Album.Genre.Split( ';' ).ToList() );
-
-				// Make genre list unique
-				selectedGenres = selectedGenres.Distinct().ToList();
+				// Get all the genres associated with the albums from all the selected artistalbums
+				foreach ( ArtistAlbum selectedArtistAlbum in selectedObjects.ArtistAlbums )
+				{
+					selectedGenres.AddRange( selectedArtistAlbum.Album.Genre.Split( ';' ).ToList() );
+				}
+			}
+			else if ( selectedObjects.AlbumsCount > 0 )
+			{
+				// Get all the genres associated with the albums from all the selected albums
+				foreach ( Album selectedAlbum in selectedObjects.Albums )
+				{
+					selectedGenres.AddRange( selectedAlbum.Genre.Split( ';' ).ToList() );
+				}
 			}
 			else if ( selectedObjects.SongsCount > 0 )
 			{
-				selectedSong = selectedObjects.Songs.First();
-
-				selectedGenres.AddRange( ArtistAlbums.GetArtistAlbumById( selectedSong.ArtistAlbumId ).Album.Genre.Split( ';' ).ToList() );
-
-				// Make genre list unique
-				selectedGenres = selectedGenres.Distinct().ToList();
+				foreach ( Song selectedSong in selectedObjects.Songs )
+				{
+					selectedGenres.AddRange( ArtistAlbums.GetArtistAlbumById( selectedSong.ArtistAlbumId ).Album.Genre.Split( ';' ).ToList() );
+				}
 			}
 
-			AutoplayController.StartAutoplayAsync( selectedSong, selectedGenres, commandIdentity == Resource.Id.auto_play );
+			// Make genre list unique
+			selectedGenres = selectedGenres.Distinct().ToList();
+
+			AutoplayController.StartAutoplayAsync( selectedObjects.Songs, selectedGenres, commandIdentity == Resource.Id.auto_play );
 
 			commandCallback.PerformAction();
 		}

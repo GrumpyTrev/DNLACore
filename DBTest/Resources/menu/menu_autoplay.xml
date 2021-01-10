@@ -6,7 +6,7 @@
 		android:title="Play now" />
 	<item
 		android:id="@+id/auto_queue"
-		android:title="Edit library" />
+		android:title="Queue" />
 	<item
 		android:id="@+id/auto_options"
 		android:title="Option..." />

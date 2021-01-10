@@ -93,7 +93,7 @@ namespace DBTest
 		{
 			int currentLibraryId = -1;
 
-			bool createTables = true;
+			bool createTables = false;
 
 			try
 			{

@@ -3,7 +3,7 @@
 namespace DBTest
 {
 	/// <summary>
-	/// The AutoplayCommandHandler class is used to display a set of options when the Autoplay toolbat button is clicked.
+	/// The AutoplayCommandHandler class is used to display a set of options when the Autoplay toolbar button is clicked.
 	/// </summary>
 	class AutoplayCommandHandler : CommandHandler
 	{

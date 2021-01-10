@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -112,34 +113,11 @@ namespace DBTest
 				// Check if any of these ArtistAlbum items are now empty and need deleting
 				foreach ( int id in artistAlbumIds )
 				{
-					// Refresh the contents of the ArtistAlbum
-					ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( id );
-					artistAlbum.Songs = await SongAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
+					Tuple<int, Artist> deletionResults = await CheckForAlbumDeletionAsync( id );
 
-					// Check if this ArtistAlbum is being referenced by any songs
-					if ( artistAlbum.Songs.Count == 0 )
+					if ( deletionResults.Item1 != -1 )
 					{
-						// Delete the ArtistAlbum as it is no longer being referenced
-						ArtistAlbums.DeleteArtistAlbum( artistAlbum );
-
-						// Remove this ArtistAlbum from the Artist
-						Artist artist = Artists.GetArtistById( artistAlbum.ArtistId );
-						artist.ArtistAlbums.Remove( artistAlbum );
-
-						// Does the associated Artist have any other Albums
-						if ( artist.ArtistAlbums.Count == 0 )
-						{
-							// Delete the Artist
-							Artists.DeleteArtist( artist );
-						}
-
-						// Does any other ArtistAlbum reference the Album
-						if ( ArtistAlbums.ArtistAlbumCollection.Any( art => art.AlbumId == artistAlbum.AlbumId ) == true )
-						{
-							// Not referenced by any ArtistAlbum. so delete it
-							Albums.DeleteAlbum( artistAlbum.Album );
-							deletedAlbumIds.Add( artistAlbum.AlbumId );
-						}
+						deletedAlbumIds.Add( deletionResults.Item1 );
 					}
 				}
 			} );
@@ -158,7 +136,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songToDelete"></param>
 		/// <returns></returns>
-		public static async Task DeleteSongAsync( Song songToDelete )
+		public static async Task<Artist> DeleteSongAsync( Song songToDelete )
 		{
 			// Delete the song.
 			await SongAccess.DeleteSongAsync( songToDelete );
@@ -166,9 +144,30 @@ namespace DBTest
 			// Delete all the PlaylistItems associated with the song. No need to wait for this
 			Playlists.DeletePlaylistItems( new List<int> { songToDelete.Id } );
 
-			// Check if the ArtistAlbum item is now empty and need deleting
+			// Check if this ArtistAlbum item is now empty and need deleting
+			Tuple<int, Artist> deletionResults = await CheckForAlbumDeletionAsync( songToDelete.ArtistAlbumId );
+
+			if ( deletionResults.Item1 != -1 )
+			{
+				new AlbumsDeletedMessage() { DeletedAlbumIds = new List<int> { deletionResults.Item1 } }.Send();
+			}
+
+			return deletionResults.Item2;
+		}
+
+		/// <summary>
+		/// Check if the specified ArtistAlbum should be deleted and any associated Album or Artist
+		/// </summary>
+		/// <param name="artistAlbumId"></param>
+		/// <returns></returns>
+		private static async Task<Tuple<int, Artist >> CheckForAlbumDeletionAsync( int artistAlbumId )
+		{
+			// Keep track in the Tuple of any albums or artists deleted
+			int deletedAlbumId = -1;
+			Artist deletedArtist = null;
+
 			// Refresh the contents of the ArtistAlbum
-			ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( songToDelete.ArtistAlbumId );
+			ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( artistAlbumId );
 			artistAlbum.Songs = await SongAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
 
 			// Check if this ArtistAlbum is being referenced by any songs
@@ -186,6 +185,7 @@ namespace DBTest
 				{
 					// Delete the Artist
 					Artists.DeleteArtist( artist );
+					deletedArtist = artist;
 				}
 
 				// Does any other ArtistAlbum reference the Album
@@ -193,9 +193,11 @@ namespace DBTest
 				{
 					// Not referenced by any ArtistAlbum. so delete it
 					Albums.DeleteAlbum( artistAlbum.Album );
-					new AlbumsDeletedMessage() { DeletedAlbumIds = new List<int> { artistAlbum.AlbumId } }.Send();
+					deletedAlbumId = artistAlbum.AlbumId;
 				}
 			}
+
+			return new Tuple<int, Artist>( deletedAlbumId, deletedArtist );
 		}
 
 		/// <summary>

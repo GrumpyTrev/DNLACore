@@ -27,5 +27,13 @@ namespace DBTest
 		/// <param name="albumToDelete"></param>
 		/// <returns></returns>
 		public static async void DeleteArtistAlbumAsync( ArtistAlbum albumToDelete ) => await ConnectionDetailsModel.AsynchConnection.DeleteAsync( albumToDelete );
+
+		/// <summary>
+		/// Update the specified ArtistAlbum entry
+		/// </summary>
+		/// <param name="albumToUpdate"></param>
+		/// <returns></returns>
+		public static async void UpdateArtistAlbumAsync( ArtistAlbum albumToUpdate ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( albumToUpdate );
+
 	}
 }

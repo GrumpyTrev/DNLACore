@@ -297,6 +297,11 @@ namespace DBTest
 		public enum SpreadType { NoSpread, Fast, Slow };
 
 		/// <summary>
+		/// The maximum number of times the list of genres is expanded 
+		/// </summary>
+		public int FastSpreadLimit { get; set; } = 2;
+
+		/// <summary>
 		/// Are all populations the target of the next generated song, or just populations linked to the current song
 		/// </summary>
 		public TargetType Target { get; set; } = TargetType.AllPopulations;

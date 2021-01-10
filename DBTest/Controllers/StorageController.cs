@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DBTest
@@ -67,8 +69,11 @@ namespace DBTest
 		private static async Task PopulateArtistsAsync()
 		{
 			// Do the linking of ArtistAlbum entries off the UI thread
-			await Task.Run( () =>
+			await Task.Run( async () =>
 			{
+				// Keep track of which ArtistAlbum entries are pointing to missing Artists
+				List<ArtistAlbum> missingArtistRefs = new List<ArtistAlbum>();
+
 				// Link the Albums from the AlbumModel to the ArtistAlbums and link the ArtistAlbums to their associated Artists. 
 				foreach ( ArtistAlbum artAlbum in ArtistAlbums.ArtistAlbumCollection )
 				{
@@ -82,10 +87,47 @@ namespace DBTest
 						// Save a reference to the Artist in the ArtistAlbum
 						artAlbum.Artist = Artists.GetArtistById( artAlbum.ArtistId );
 
-						// Add this ArtistAlbum to its Artist
-						artAlbum.Artist.ArtistAlbums.Add( artAlbum );
+						// Need to fix up some missing artists.
+						if ( artAlbum.Artist == null )
+						{
+							Logger.Log( string.Format( "Cannot find Artist for ArtistAlbum id {0} name {1} using artist id {2}", artAlbum.Id, artAlbum.Name, artAlbum.ArtistId ) );
+							missingArtistRefs.Add( artAlbum );
+						}
+						else
+						{
+							// Add this ArtistAlbum to its Artist
+							artAlbum.Artist.ArtistAlbums.Add( artAlbum );
+						}
+					}
+					else
+					{
+						Logger.Log( string.Format( "Cannot find album for ArtistAlbum id {0} name {1} using album id {2}", artAlbum.Id, artAlbum.Name, artAlbum.AlbumId ) );
 					}
 				}
+
+				// Should be able to remove this after a few more sucessful library scans
+				if ( missingArtistRefs.Count > 0 )
+				{
+					foreach ( ArtistAlbum artAlbum in missingArtistRefs )
+					{
+						// Find the Artist by name and library rather than id
+						Artist missingArtist = Artists.ArtistCollection.Where( art => ( art.Name == artAlbum.Album.ArtistName ) && 
+							( art.LibraryId == artAlbum.Album.LibraryId ) ).SingleOrDefault();
+
+						if ( missingArtist == null )
+						{
+							// No such artist. Create one. Wait for this because we need to access the Id of the artist
+							missingArtist = new Artist() { LibraryId = artAlbum.Album.LibraryId, Name = artAlbum.Album.ArtistName };
+							await Artists.AddArtistAsync( missingArtist );
+						}
+
+						// Add this ArtistAlbum to the Artist
+						missingArtist.ArtistAlbums.Add( artAlbum );
+						artAlbum.ArtistId = missingArtist.Id;
+						ArtistAlbumAccess.UpdateArtistAlbumAsync( artAlbum );
+					}
+				}
+
 			} );
 		}
 

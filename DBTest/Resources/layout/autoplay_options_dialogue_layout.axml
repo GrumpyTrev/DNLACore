@@ -41,6 +41,25 @@
 				android:text="Slow"
 				android:id="@+id/slowSpread" />
 		</RadioGroup>
+		<LinearLayout
+			android:orientation="vertical"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/fastSpreadLimitLayout">
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginLeft="10dp"
+				android:layout_marginTop="20dp"
+				android:text="Fast limit:"
+				android:textColor="@android:color/black" />
+			<Spinner
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginLeft="10dp"
+				android:layout_marginTop="0dp"
+				android:id="@+id/fastSpreadLimit"/>
+		</LinearLayout>
 	</LinearLayout>
 	<LinearLayout
 		android:orientation="horizontal"

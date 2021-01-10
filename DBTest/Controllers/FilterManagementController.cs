@@ -362,7 +362,7 @@ namespace DBTest
 				if ( fromTag.Synchronise == true )
 				{
 					fromTag.DeleteTaggedAlbums( fromTag.TaggedAlbums.
-						Where( tag => ( tag.Album.Name == taggedAlbum.Album.Name ) && ( tag.Album.ArtistName == taggedAlbum.Album.ArtistName ) ) );
+						Where( tag => ( tag.Album.Name == taggedAlbum.Album.Name ) && ( tag.Album.ArtistName == taggedAlbum.Album.ArtistName ) ).ToList() );
 				}
 				else
 				{
