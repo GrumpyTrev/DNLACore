@@ -492,8 +492,9 @@ namespace DBTest
 
 			foreach ( Tag tag in Tags.TagsCollection )
 			{
-				// Get the TaggedAlbum entries that have album ids in the deleted set
-				IEnumerable<TaggedAlbum> taggedAlbums = tag.TaggedAlbums.Where( ta => ( deletedAlbumIds.Contains( ta.AlbumId ) ) );
+				// Get the TaggedAlbum entries that have album ids in the deleted set.
+				// Don't use a lazy enumerator here as we'll be deleting entries from the collection being enumerated
+				List<TaggedAlbum> taggedAlbums = tag.TaggedAlbums.Where( ta => ( deletedAlbumIds.Contains( ta.AlbumId ) ) ).ToList();
 
 				// Delete all these
 				if ( taggedAlbums.Count() > 0 )

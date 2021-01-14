@@ -37,7 +37,7 @@ namespace DBTest
 		/// Add the specified TaggedAlbum to the database
 		/// </summary>
 		/// <param name="taggedAlbum"></param>
-		public static async Task AddTaggedAlbumAsync( TaggedAlbum taggedAlbum ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( taggedAlbum );
+		public static async void AddTaggedAlbumAsync( TaggedAlbum taggedAlbum ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( taggedAlbum );
 
 		/// <summary>
 		/// Add the specified tag to the database

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using Android.App;
 using Android.Content;
@@ -100,7 +99,6 @@ namespace DBTest
 					ShortName = tagShortName.Text,
 					TagOrder = idSort.Checked,
 					Synchronise = synchLibs.Checked,
-					TaggedAlbums = new List<TaggedAlbum>()
 				};
 
 				// Make sure that the Name is not empty

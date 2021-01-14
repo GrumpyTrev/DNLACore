@@ -28,10 +28,11 @@ namespace DBTest
 		{
 			if ( PersistTag == true )
 			{
-				// No need to wait for the delete
-				FilterAccess.DeleteTaggedAlbumAsync( album );
+				DBTest.TaggedAlbums.DeleteTaggedAlbum( album );
 			}
+
 			TaggedAlbums.Remove( album );
+			AlbumToTagLookup.Remove( album.AlbumId );
 		}
 
 		/// <summary>
@@ -42,10 +43,11 @@ namespace DBTest
 		{
 			if ( PersistTag == true )
 			{
-				// No need to wait for the delete
-				FilterAccess.AddTaggedAlbumAsync( album );
+				DBTest.TaggedAlbums.AddTaggedAlbum( album );
 			}
+
 			TaggedAlbums.Add( album );
+			AlbumToTagLookup[ album.AlbumId ] = album;
 		}
 
 		/// <summary>
@@ -81,11 +83,12 @@ namespace DBTest
 		/// The collection of Albums associated with this tag
 		/// </summary>
 		[Ignore]
-		public List<TaggedAlbum> TaggedAlbums { get; set; } = new List<TaggedAlbum>();
+		public List<TaggedAlbum> TaggedAlbums { get; } = new List<TaggedAlbum>();
 
 		/// <summary>
-		/// Should this tag be persisted in storage
+		/// Allow a TaggedAlbum entry to be accessed by associated Album is
 		/// </summary>
-		public bool PersistTag { get; set; } = true;
+		[Ignore]
+		public Dictionary<int, TaggedAlbum> AlbumToTagLookup { get; } = new Dictionary<int, TaggedAlbum>();
 	}
 }

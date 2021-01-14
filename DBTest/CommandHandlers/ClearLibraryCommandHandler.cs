@@ -49,7 +49,7 @@
 		private async void ClearLibraryAsync()
 		{
 			clearFinished = false;
-			await LibraryAccess.ClearLibraryAsync( libraryToClear );
+			await LibraryManagementController.ClearLibraryAsync( libraryToClear );
 			clearFinished = true;
 
 			progressDialogFragment?.UpdateDialogueState( clearFinished );

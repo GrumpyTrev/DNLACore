@@ -246,6 +246,11 @@ namespace DBTest
 		/// Synchronise tagged albums across libraries
 		/// </summary>
 		public bool Synchronise { get; set; } = false;
+
+		/// <summary>
+		/// Should this tag be persisted in storage
+		/// </summary>
+		public bool PersistTag { get; set; } = true;
 	}
 
 	[Table( "TaggedAlbum" )]
