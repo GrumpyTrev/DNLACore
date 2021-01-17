@@ -76,6 +76,8 @@ namespace DBTest
 		/// </summary>
 		public static void SetSelectedSong( int songIndex )
 		{
+			Logger.Log( $"PlaybackManagementController.SetSelectedSong setting SongIndex to {songIndex} and sending SongSelectedMessage" );
+
 			PlaybackDetails.SongIndex = songIndex;
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
 		}
@@ -99,6 +101,8 @@ namespace DBTest
 			{
 				// Update the selected song in the model and report the selection
 				PlaybackManagerModel.CurrentSongIndex = ( ( SongSelectedMessage )message ).ItemNo;
+				Logger.Log( $"PlaybackManagementController.SongSelected saving index in model {PlaybackManagerModel.CurrentSongIndex} and reporting" );
+
 				Reporter?.SongSelected();
 			}
 		}

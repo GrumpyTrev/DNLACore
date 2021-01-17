@@ -144,6 +144,8 @@ namespace DBTest
 
 			if ( ( Playlist != null ) && ( CurrentSongIndex < Playlist.PlaylistItems.Count ) )
 			{
+				Logger.Log( $"BasePlaybackService.GetSongResource requested with index {CurrentSongIndex}" );
+
 				Song songToPlay = Playlist.PlaylistItems[ CurrentSongIndex ].Song;
 
 				// Find the Source associated with this song
@@ -203,6 +205,9 @@ namespace DBTest
 			if ( CurrentSongIndex < ( Playlist.PlaylistItems.Count - 1 ) )
 			{
 				CurrentSongIndex++;
+
+				Logger.Log( $"BasePlaybackService.CanPlayNextSong CurrentSongIndex is now {CurrentSongIndex}" );
+
 				Reporter?.SongIndexChanged( CurrentSongIndex );
 			}
 			else if ( ( PlaybackManagerModel.RepeatOn == true ) && ( Playlist.PlaylistItems.Count > 0 ) )

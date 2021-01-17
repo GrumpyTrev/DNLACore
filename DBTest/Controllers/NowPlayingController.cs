@@ -33,12 +33,16 @@ namespace DBTest
 		/// </summary>
 		public static void SetSelectedSong( int songIndex, bool playSong = true )
 		{
+			Logger.Log( $"NowPlayingController.SetSelectedSong setting index to {songIndex} and sending a SongSelectedMessage" );
+
 			PlaybackDetails.SongIndex = songIndex;
 			new SongSelectedMessage() { ItemNo = songIndex }.Send();
 
 			// Make sure the new song is played if requested
 			if ( ( songIndex != -1 ) && ( playSong == true ) )
 			{
+				Logger.Log( $"NowPlayingController.SetSelectedSong play song requested" );
+
 				new PlayCurrentSongMessage().Send();
 			}
 		}
@@ -189,6 +193,9 @@ namespace DBTest
 		private static void SongSelected( object message )
 		{
 			NowPlayingViewModel.SelectedSong = ( ( SongSelectedMessage )message ).ItemNo;
+
+			Logger.Log( $"NowPlayingController.SongSelected passing index {NowPlayingViewModel.SelectedSong} to UI" );
+
 			DataReporter?.SongSelected();
 		}
 
@@ -219,6 +226,7 @@ namespace DBTest
 
 				if ( newSelectedIndex != NowPlayingViewModel.SelectedSong )
 				{
+					Logger.Log( $"NowPlayingController.AdjustSelectedSongIndex setting index to {newSelectedIndex}" );
 					SetSelectedSong( newSelectedIndex, false );
 				}
 			}

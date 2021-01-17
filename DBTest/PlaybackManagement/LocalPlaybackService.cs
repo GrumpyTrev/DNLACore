@@ -90,6 +90,8 @@ namespace DBTest
 		/// </summary>
 		public override void Play()
 		{
+			Logger.Log( $"LocalPlaybackService.Play requested with index {CurrentSongIndex} and isPreparing {isPreparing}" );
+
 			// Prevent this from being called again until it has been processed
 			if ( isPreparing == false )
 			{

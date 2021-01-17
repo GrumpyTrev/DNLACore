@@ -117,6 +117,8 @@ namespace DBTest
 		/// </summary>
 		public void SongSelected()
 		{
+			Logger.Log( $"PlaybackRouter.SongSelected {PlaybackManagerModel.CurrentSongIndex} reported. Passing on to connections" );
+
 			// Make sure the connections pass the index on to their services
 			localConnection.SongSelected();
 			remoteConnection.SongSelected();

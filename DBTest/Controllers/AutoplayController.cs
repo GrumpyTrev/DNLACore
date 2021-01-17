@@ -13,7 +13,11 @@ namespace DBTest
 		/// <summary>
 		/// Create the one and only instance of the controller
 		/// </summary>
-		static AutoplayController() => instance = new AutoplayController();
+		static AutoplayController()
+		{
+			Mediator.RegisterPermanent( SongSelectedAsync, typeof( SongSelectedMessage ) );
+			instance = new AutoplayController();
+		}
 
 		/// <summary>
 		/// Get the Controller data
@@ -31,6 +35,7 @@ namespace DBTest
 		{
 			// Clear any existing Genre/Album populations from the Autoplay record
 			AutoplayModel.CurrentAutoplay.Clear();
+			populationNumber = -1;
 
 			// Save the starting set of Genres with the Autoplay record and add the first population
 			AutoplayModel.CurrentAutoplay.SaveSeedGenres( genres );
@@ -52,10 +57,13 @@ namespace DBTest
 
 			// Start generating songs
 			List<Song> songs = new List<Song>( selectedSongs );
-
 			await GenerateSongsAsync( songs );
 
+			// Add these songs to the NowPlaying list either replacing or just adding them to the list
 			BaseController.AddSongsToNowPlayingList( songs, playNow );
+
+			// Set Autoplay active 
+			AutoplayModel.CurrentAutoplay.SetActive( true );
 		}
 
 		/// <summary>
@@ -85,9 +93,6 @@ namespace DBTest
 		private static async Task GenerateSongsAsync( List<Song> songs )
 		{
 			Random generator = new Random();
-
-			// The last population index used to select from
-			int populationNumber = -1;
 
 			// For each generation select a song from the available populations
 			while ( songs.Count() < GenerationSize )
@@ -169,9 +174,59 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when the SongSelectedMessage is received
+		/// We need to work out here if another set of entries should be added to the playlist. 
+		/// If the song index is within "RefillLevel" of the end of the Now Playing list then add another "GenerationSize" set of songs.
+		/// All the songs prior to the song index are removed except for the last "LeaveSongs"
+		/// Only proceed with any of this processing if autoplay is active
+		/// </summary>
+		/// <param name="message"></param>
+		private static async void SongSelectedAsync( object message )
+		{
+			if ( AutoplayModel.CurrentAutoplay.Active == true )
+			{
+				int currentSongIndex = ( ( SongSelectedMessage )message ).ItemNo;
+				Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( AutoplayModel.LibraryId );
+
+				Logger.Log( $"AutoplayController.SongSelectedAsync setting currentSongIndex to {currentSongIndex}" );
+
+				if ( ( nowPlaying.PlaylistItems.Count - currentSongIndex ) < RefillLevel )
+				{
+					// Generate some songs and add to the Now Playing list
+					List<Song> songs = new List<Song>();
+					await GenerateSongsAsync( songs );
+
+					// Add these songs to the NowPlaying list
+					BaseController.AddSongsToNowPlayingList( songs, false );
+
+					// Remove 'played' songs
+					int songsToRemove = Math.Max(0, currentSongIndex - LeaveSongs );
+					if ( songsToRemove > 0 )
+					{
+						Logger.Log( $"AutoplayController.SongSelectedAsync removing {songsToRemove} songs" );
+						NowPlayingController.DeleteNowPlayingItems( nowPlaying.PlaylistItems.GetRange( 0, songsToRemove ) );
+					}
+				}
+			}
+		}
+		
+		/// <summary>
 		/// The number of songs generated in one go
 		/// </summary>
 		private const int GenerationSize = 50;
+
+		/// <summary>
+		/// The number of songs left to play at which point the next set is generated
+		/// </summary>
+		private const int RefillLevel = 10;
+
+		/// <summary>
+		/// The number of songs to leave above the current song when deleting songs
+		/// </summary>
+		private const int LeaveSongs = 10;
+
+		// The last population index used to select from
+		private static int populationNumber = -1;
 
 		/// <summary>
 		/// The one and only AutoplayController instance

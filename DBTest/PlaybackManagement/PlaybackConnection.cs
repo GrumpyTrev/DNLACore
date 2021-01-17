@@ -133,6 +133,7 @@ namespace DBTest
 		{
 			if ( playerService != null )
 			{
+				Logger.Log( $"PlaybackConnection.SongSelected setting CurrentSongIndex to {PlaybackManagerModel.CurrentSongIndex}" );
 				playerService.CurrentSongIndex = PlaybackManagerModel.CurrentSongIndex;
 			}
 		}
