@@ -325,14 +325,14 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sectionIndex"></param>
 		/// <returns></returns>
-		public int GetPositionForSection( int sectionIndex ) => alphaIndexer[ sections[ sectionIndex ] ];
+		public virtual int GetPositionForSection( int sectionIndex ) => alphaIndexer[ sections[ sectionIndex ] ];
 
 		/// <summary>
 		/// Get the section that the specified position is in
 		/// </summary>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		public int GetSectionForPosition( int position )
+		public virtual int GetSectionForPosition( int position )
 		{
 			int index = 0;
 			while ( ( index < sections.Length ) && ( GetPositionForSection( index ) <= position ) )
@@ -347,7 +347,7 @@ namespace DBTest
 		/// Return the names of all the sections
 		/// </summary>
 		/// <returns></returns>
-		public Java.Lang.Object[] GetSections()
+		public virtual Java.Lang.Object[] GetSections()
 		{
 			javaSections = null;
 
@@ -807,7 +807,7 @@ namespace DBTest
 		/// <summary>
 		/// The section names sent back to the Java Adapter base class
 		/// </summary>
-		private Java.Lang.Object[] javaSections = null;
+		protected Java.Lang.Object[] javaSections = null;
 
 		protected class ExpandableListViewHolder : Java.Lang.Object
 		{

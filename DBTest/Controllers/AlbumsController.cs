@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -72,17 +73,27 @@ namespace DBTest
 				// Use the sort order stored in the model
 				SortSelector.SortOrder sortOrder = AlbumsViewModel.SortSelector.CurrentSortOrder;
 
+				// Clear the indexing collections (in case they are not used in the new sort order)
+				AlbumsViewModel.FastScrollSections = null;
+				AlbumsViewModel.FastScrollSectionLookup = null;
+
+				// Now do the sorting and indexing according to the sort order
 				switch ( sortOrder )
 				{
 					case SortSelector.SortOrder.alphaAscending:
-					{
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
-						break;
-					}
-
 					case SortSelector.SortOrder.alphaDescending:
 					{
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ); } );
+						if ( sortOrder == SortSelector.SortOrder.alphaAscending )
+						{
+							AlbumsViewModel.FilteredAlbums.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
+						}
+						else
+						{
+							AlbumsViewModel.FilteredAlbums.Sort( ( a, b ) => { return b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ); } );
+						}
+
+						AlbumsViewModel.Albums = AlbumsViewModel.FilteredAlbums;
+						GenerateIndex( ( album, index ) => { return album.Name.RemoveThe().Substring( 0, 1 ).ToUpper(); } );
 						break;
 					}
 
@@ -94,51 +105,76 @@ namespace DBTest
 						{
 							if ( sortOrder == SortSelector.SortOrder.idAscending )
 							{
-								AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
+								AlbumsViewModel.FilteredAlbums.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
 							}
 							else
 							{
-								// Reverse the albums
-								AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Id.CompareTo( a.Id ); } );
+								AlbumsViewModel.FilteredAlbums.Sort( ( a, b ) => { return b.Id.CompareTo( a.Id ); } );
 							}
 						}
 						else
 						{
-							// Form a list of all album ids in the same order as they are in the tag
-							List<int> albumIds = AlbumsViewModel.FilterSelector.CurrentFilter.TaggedAlbums.Select( ta => ta.AlbumId ).ToList();
-
-							if ( sortOrder == SortSelector.SortOrder.idDescending )
-							{
-								albumIds.Reverse();
-							}
+							// Form a lookup table from album identity to index in tagged albums.
+							Dictionary<int, int> albumIdLookup = AlbumsViewModel.FilterSelector.CurrentFilter.TaggedAlbums
+								.Select( ( ta, index ) => new { ta.AlbumId, index }).ToDictionary( pair => pair.AlbumId, pair => pair.index );
 
 							// Order the albums by the album id list
-							AlbumsViewModel.Albums = AlbumsViewModel.Albums.OrderBy( album => albumIds.IndexOf( album.Id ) ).ToList();
+							if ( sortOrder == SortSelector.SortOrder.idAscending )
+							{
+								AlbumsViewModel.FilteredAlbums = AlbumsViewModel.FilteredAlbums.OrderBy( album => albumIdLookup[ album.Id ] ).ToList();
+							}
+							else
+							{
+								AlbumsViewModel.FilteredAlbums = AlbumsViewModel.FilteredAlbums.OrderByDescending( album => albumIdLookup[ album.Id ] ).ToList();
+							}
 						}
+
+						// No index required when sorted by Id
+						AlbumsViewModel.Albums = AlbumsViewModel.FilteredAlbums;
 						break;
 					}
 
 					case SortSelector.SortOrder.yearAscending:
-					{
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Year.CompareTo( b.Year ); } );
-						break;
-					}
-
 					case SortSelector.SortOrder.yearDescending:
 					{
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Year.CompareTo( a.Year ); } );
+						if ( sortOrder == SortSelector.SortOrder.yearAscending )
+						{
+							AlbumsViewModel.FilteredAlbums.Sort( ( a, b ) => { return a.Year.CompareTo( b.Year ); } );
+						}
+						else
+						{
+							AlbumsViewModel.FilteredAlbums.Sort( ( a, b ) => { return b.Year.CompareTo( a.Year ); } );
+						}
+
+						AlbumsViewModel.Albums = AlbumsViewModel.FilteredAlbums;
+						GenerateIndex( ( album, index ) => { return album.Year.ToString(); } );
 						break;
 					}
 
 					case SortSelector.SortOrder.genreAscending:
-					{
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return a.Genre.CompareTo( b.Genre ); } );
-						break;
-					}
-
 					case SortSelector.SortOrder.genreDescending:
 					{
-						AlbumsViewModel.Albums.Sort( ( a, b ) => { return b.Genre.CompareTo( a.Genre ); } );
+						// If there is no GenreSortAlbums collection then make one now
+						if ( AlbumsViewModel.GenreSortedAlbums == null )
+						{
+							GenerateGenreAlbumList();
+						}
+
+						// We want to keep the AlbumsViewModel.GenreSortedAlbums in ascending order.
+						// So rather than sort the AlbumsViewModel.GenreSortedAlbums we copy it and sort the copy.
+						AlbumsViewModel.Albums = AlbumsViewModel.GenreSortedAlbums.ToList();
+
+						// We only need to sort if the order is descending
+						if ( sortOrder == SortSelector.SortOrder.genreDescending )
+						{
+							// Reverse it
+							AlbumsViewModel.Albums.Reverse();
+						}
+
+						// Generate the fast lookup indexes. If in reverse order do the genre lookup in reverse order as well
+						GenerateIndex( ( album, index ) => { return AlbumsViewModel.AlbumIndexToGenreLookup[
+							sortOrder == SortSelector.SortOrder.genreAscending ? index : AlbumsViewModel.Albums.Count - 1 - index ]; } );
+
 						break;
 					}
 				}
@@ -157,11 +193,13 @@ namespace DBTest
 			// Save the libray being used locally to detect changes
 			AlbumsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
 
+			// Get all the albums associated with the library
 			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
 
 			// Apply the current filter
 			await ApplyFilterAsync();
 
+			// Let the base class do the reporting back
 			base.StorageDataAvailable();
 		}
 
@@ -175,10 +213,13 @@ namespace DBTest
 			AlbumsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
 					SortSelector.SortType.year, SortSelector.SortType.genre } );
 
+			// Clear the Genre sorted albums list. It will only be set if a Genre sort is applied
+			AlbumsViewModel.GenreSortedAlbums = null;
+
 			// Check for no simple or group tag filters
 			if ( AlbumsViewModel.FilterSelector.FilterApplied == false )
 			{
-				AlbumsViewModel.Albums = new List<Album>( AlbumsViewModel.UnfilteredAlbums );
+				AlbumsViewModel.FilteredAlbums = AlbumsViewModel.UnfilteredAlbums.ToList();
 			}
 			else
 			{
@@ -187,8 +228,8 @@ namespace DBTest
 					// Combine the simple and group tabs
 					HashSet<int> albumIds = AlbumsViewModel.FilterSelector.CombineAlbumFilters();
 
-					// Now get all the albums that are tagged and in the current library
-					AlbumsViewModel.Albums = AlbumsViewModel.UnfilteredAlbums.FindAll( album => albumIds.Contains( album.Id ) == true );
+					// Now get all the albums in the current library that are tagged
+					AlbumsViewModel.FilteredAlbums = AlbumsViewModel.UnfilteredAlbums.Where( album => albumIds.Contains( album.Id ) == true ).ToList();
 
 					// If the TagOrder flag is set then set the sort order to Id order.
 					if ( AlbumsViewModel.FilterSelector.TagOrderFlag == true )
@@ -278,6 +319,76 @@ namespace DBTest
 				{
 					instance.Reporter?.DataAvailable();
 				}
+			}
+		}
+
+		/// <summary>
+		/// Form a new Albums collection where albums with multiple genres are given multiple entries. The Albums will be in genre order
+		/// </summary>
+		private static void GenerateGenreAlbumList()
+		{
+			// This is the album list that we'll be generating
+			AlbumsViewModel.GenreSortedAlbums = new List<Album>();
+
+			// This genre list is generated alongside the main Album list
+			AlbumsViewModel.AlbumIndexToGenreLookup = new List<string>();
+
+			// We need a lookup table for all the Albums in the current filtered Album list
+			Dictionary<int, Album> albumIds = AlbumsViewModel.FilteredAlbums.ToDictionary( alb => alb.Id );
+
+			// The Albums need to be sorted in genre order. If there is no genre filter then use all the genre tags, otherwise just use
+			// the tags in the filter
+			TagGroup genreTags = AlbumsViewModel.FilterSelector.TagGroups.SingleOrDefault( ta => ta.Name == "Genre" ) ?? FilterManagementModel.GenreTags;
+
+			// Get the Genre GroupTag and order the Tags by name. Copy the list so that we don't change it
+			List <Tag> sortedTags = genreTags.Tags.ToList();
+			sortedTags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
+
+			// Use the Genre GroupTag to order the Album entries
+			foreach ( Tag genreTag in sortedTags )
+			{
+				// For each TaggedAlbum in this tag that refers to an Album in the Album list add a new entry to the new Genre album list
+				foreach ( TaggedAlbum taggedAlbum in genreTag.TaggedAlbums )
+				{
+					Album genreAlbum = albumIds.GetValueOrDefault( taggedAlbum.AlbumId );
+					if ( genreAlbum != null )
+					{
+						AlbumsViewModel.AlbumIndexToGenreLookup.Add( genreTag.Name );
+						AlbumsViewModel.GenreSortedAlbums.Add( genreAlbum );
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Generate the fast scroll indexes using the provided function to obtain the section name
+		/// The sorted albums have already been moved/copied to the AlbumsViewModel.Albums list
+		/// </summary>
+		/// <param name="sectionNameProvider"></param>
+		private static void GenerateIndex( Func<Album, int, string > sectionNameProvider )
+		{
+			// Initialise the index collections
+			AlbumsViewModel.FastScrollSections = new List<Tuple<string, int>>();
+			AlbumsViewModel.FastScrollSectionLookup = new int[ AlbumsViewModel.Albums.Count ];
+
+			// Keep track of when a section has already been added to the FastScrollSections collection
+			Dictionary<string, int> sectionLookup = new Dictionary<string, int>();
+
+			int index = 0;
+			foreach ( Album album in AlbumsViewModel.Albums )
+			{
+				// If this is the first occurrence of the section name then add it to the FastScrollSections collection together with the index 
+				string sectionName = sectionNameProvider( album, index );
+				int sectionIndex = sectionLookup.GetValueOrDefault( sectionName, -1 );
+				if ( sectionIndex == -1 )
+				{
+					sectionIndex = sectionLookup.Count;
+					sectionLookup[ sectionName ] = sectionIndex;
+					AlbumsViewModel.FastScrollSections.Add( new Tuple<string, int>( sectionName, index ) );
+				}
+
+				// Provide a quick section lookup for this album
+				AlbumsViewModel.FastScrollSectionLookup[ index++ ] = sectionIndex;
 			}
 		}
 

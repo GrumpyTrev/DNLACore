@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using Android.Content;
 using Android.Graphics;
 using Android.Views;
@@ -64,6 +63,26 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
 		public override int GetGroupType( int groupPosition ) => 0;
+
+		/// <summary>
+		/// Get the starting position for a section
+		/// </summary>
+		/// <param name="sectionIndex"></param>
+		/// <returns></returns>
+		public override int GetPositionForSection( int sectionIndex ) => AlbumsViewModel.FastScrollSections[ sectionIndex ].Item2;
+
+		/// <summary>
+		/// Get the section that the specified position is in
+		/// </summary>
+		/// <param name="position"></param>
+		/// <returns></returns>
+		public override int GetSectionForPosition( int position ) => AlbumsViewModel.FastScrollSectionLookup[ position ];
+
+		/// <summary>
+		/// Return the names of all the sections
+		/// </summary>
+		/// <returns></returns>
+		public override Java.Lang.Object[] GetSections() => javaSections;
 
 		/// <summary>
 		/// Provide a view containing song details at the specified position
@@ -140,7 +159,7 @@ namespace DBTest
 			}
 
 			// Display the album
-			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( Groups[ groupPosition ], ActionMode, showGenre );
+			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( Groups[ groupPosition ], ActionMode, showGenre, SortType, groupPosition );
 
 			return convertView;
 		}
@@ -150,7 +169,7 @@ namespace DBTest
 		/// </summary>
 		private class AlbumViewHolder : ExpandableListViewHolder
 		{
-			public void DisplayAlbum( Album album, bool actionMode, bool showGenre )
+			public void DisplayAlbum( Album album, bool actionMode, bool showGenre, SortSelector.SortType sortType, int groupPosition )
 			{
 				// Save the default colour if not already done so
 				if ( albumNameColour == Color.Fuchsia )
@@ -174,8 +193,9 @@ namespace DBTest
 					GenreLayout.Visibility = ViewStates.Visible;
 					Year.Visibility = ViewStates.Gone;
 
-					// Display the genre name. Alter the left margin according to whether the checkbox id being displayed ( ActonMode on)
-					Genre.Text = album.Genre;
+					// Display the genre name. If sorting by genre then the genre name is obtained from the current section we are in
+					Genre.Text = ( sortType != SortSelector.SortType.genre ) ? album.Genre 
+						: AlbumsViewModel.FastScrollSections[ AlbumsViewModel.FastScrollSectionLookup[ groupPosition ] ].Item1;
 
 					// Set the year
 					GenreYear.Text = yearText;
@@ -219,35 +239,23 @@ namespace DBTest
 		protected override bool SelectLongClickedItem( int tag ) => true;
 
 		/// <summary>
-		/// Create an index from the Groups data taking into account whether or not they are expanded
+		/// This is called by the base class when new data has been provided in order to create some of the fast scroll data.
+		/// Most of this has already been done in the AlbumsController.
+		/// All that is missing is the copying of the section names into an array of Java strings
 		/// </summary>
 		protected override void SetGroupIndex()
 		{
-			alphaIndexer.Clear();
+			// Clear the array first in case there are none
+			javaSections = null;
 
-			if ( ( SortType == SortSelector.SortType.alphabetic ) || ( SortType == SortSelector.SortType.year ) ||
-				 ( SortType == SortSelector.SortType.genre ) )
+			if ( AlbumsViewModel.FastScrollSections != null )
 			{
-				// Work out the section indexes for the sorted data
-				int index = 0;
-				foreach ( Album album in Groups )
+				// Size the section array from the AlbumsViewModel.FastScrollSections
+				javaSections = new Java.Lang.Object[ AlbumsViewModel.FastScrollSections.Count ];
+				for ( int index = 0; index < javaSections.Length; ++index )
 				{
-					if ( SortType == SortSelector.SortType.alphabetic )
-					{
-						alphaIndexer.TryAdd( album.Name.RemoveThe().Substring( 0, 1 ).ToUpper(), index++ );
-					}
-					else if ( SortType == SortSelector.SortType.year )
-					{
-						alphaIndexer.TryAdd( album.Year.ToString(), index++ );
-					}
-					else
-					{
-						alphaIndexer.TryAdd( album.Genre, index++ );
-					}
+					javaSections[ index ] = new Java.Lang.String( AlbumsViewModel.FastScrollSections[ index ].Item1 );
 				}
-
-				// Save a copy of the keys
-				sections = alphaIndexer.Keys.ToArray();
 			}
 		}
 
