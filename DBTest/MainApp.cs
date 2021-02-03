@@ -34,6 +34,9 @@ namespace DBTest
 
 			// Initialise the playback device monitoring
 			playbackMonitoring = new PlaybackMonitor();
+
+			// Create the PlaybackModeView instance
+			playbackModeViewer = new PlaybackModeView();
 		}
 
 		/// Add the specified interface to the callback colletion
@@ -43,10 +46,14 @@ namespace DBTest
 			instance.playbackCapabilities.RegisterCallback( callback );
 
 		/// <summary>
-		/// Bind the playback monitor to the specified menu
+		/// Bind the playback monitor and playback mode viewer to the specified menu
 		/// </summary>
 		/// <param name="menu"></param>
-		public static void BindToPlaybackMonitor( IMenu menu ) => instance.playbackMonitoring.BindToMenu( menu );
+		public static void BindMenu( IMenu menu )
+		{
+			instance.playbackMonitoring.BindToMenu( menu );
+			instance.playbackModeViewer.BindToMenu( menu );
+		}
 
 		/// <summary>
 		/// OnCreate needs to be overwritten otherwise Android does not create the MainApp class until it wnats to - strange but true
@@ -69,6 +76,7 @@ namespace DBTest
 			FilterManagementController.GetControllerData();
 			PlaybackSelectionController.GetPlaybackDetails();
 			AutoplayController.GetControllerData();
+			PlaybackModeController.GetControllerData();
 		}
 
 		/// <summary>
@@ -99,9 +107,6 @@ namespace DBTest
 			{
 				if ( createTables == true )
 				{
-//					ConnectionDetailsModel.SynchConnection.DropTable<Autoplay>();
-//					ConnectionDetailsModel.SynchConnection.DropTable<GenrePopulation>();
-
 					// Create the tables if they don't already exist
 					ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
@@ -119,7 +124,7 @@ namespace DBTest
 				}
 
 				// Check for a Playback record which will tell us the currently selected library
-				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault().LibraryId;
+				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault().DBLibraryId;
 			}
 			catch ( SQLite.SQLiteException )
 			{
@@ -147,5 +152,10 @@ namespace DBTest
 		/// The PlaybackMonitor instance used to monitor the state of the playback system
 		/// </summary>
 		private readonly PlaybackMonitor playbackMonitoring = null;
+
+		/// <summary>
+		/// The PlaybackModeView instance used to display the playback mode and to allow it to be changed
+		/// </summary>
+		private readonly PlaybackModeView playbackModeViewer = null;
 	}
 }

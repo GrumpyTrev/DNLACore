@@ -63,7 +63,7 @@ namespace DBTest
 			BaseController.AddSongsToNowPlayingList( songs, playNow );
 
 			// Set Autoplay active 
-			AutoplayModel.CurrentAutoplay.SetActive( true );
+			PlaybackModeController.AutoOn = true;
 		}
 
 		/// <summary>
@@ -181,11 +181,11 @@ namespace DBTest
 		/// Only proceed with any of this processing if autoplay is active
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void SongSelectedAsync( object message )
+		private static async void SongSelectedAsync( object _message )
 		{
-			if ( AutoplayModel.CurrentAutoplay.Active == true )
+			if ( PlaybackModeModel.AutoOn == true )
 			{
-				int currentSongIndex = ( ( SongSelectedMessage )message ).ItemNo;
+				int currentSongIndex = Playback.SongIndex;
 				Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( AutoplayModel.LibraryId );
 
 				Logger.Log( $"AutoplayController.SongSelectedAsync setting currentSongIndex to {currentSongIndex}" );

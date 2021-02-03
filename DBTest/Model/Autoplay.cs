@@ -150,21 +150,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Set or clear the Active flag and store it in the database
-		/// </summary>
-		/// <param name="active"></param>
-		public void SetActive( bool active )
-		{
-			if ( Active != active )
-			{
-				Active = active;
-
-				// Update the record. No need to wait.
-				AutoplayAccess.UpdateAutoplayAsync( this );
-			}
-		}
-
-		/// <summary>
 		/// Find all the albums associated with a list of genre names
 		/// </summary>
 		/// <param name="genres"></param>

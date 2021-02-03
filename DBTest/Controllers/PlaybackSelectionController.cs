@@ -32,7 +32,7 @@
 			{
 				PlaybackSelectionModel.SelectedDevice = selectedDevice;
 				PlaybackSelectionModel.SelectedDeviceName = selectedDevice.FriendlyName;
-				PlaybackDetails.PlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
+				Playback.PlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
 
 				new PlaybackDeviceAvailableMessage() { SelectedDevice = PlaybackSelectionModel.SelectedDevice }.Send();
 
@@ -66,14 +66,14 @@
 		{
 			PlaybackDevice localDevice = PlaybackSelectionModel.RemoteDevices.DeviceCollection[ 0 ];
 
-			// Use the PlaybackDetails class to retrieve the last selected device
-			PlaybackSelectionModel.SelectedDeviceName = PlaybackDetails.PlaybackDeviceName;
+			// Use the Playback class to retrieve the last selected device
+			PlaybackSelectionModel.SelectedDeviceName = Playback.PlaybackDeviceName;
 
 			if ( PlaybackSelectionModel.SelectedDeviceName.Length == 0 )
 			{
 				// No device selected. Select the local device
 				PlaybackSelectionModel.SelectedDeviceName = localDevice.FriendlyName;
-				PlaybackDetails.PlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
+				Playback.PlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
 			}
 
 			// If the selected device is the local device then report it as available

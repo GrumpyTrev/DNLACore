@@ -212,6 +212,17 @@ namespace DBTest
 				// Now unload the genre tags into a list and sort it
 				genres.Tags = tagLookup.Values.ToList();
 				genres.Tags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
+
+				// Display all the tags and the number of albms associated with them
+				foreach ( Tag tag in genres.Tags )
+				{
+					Logger.Log( $"Genre [{tag.Name}] albums {tag.TaggedAlbums.Count}" );
+
+					foreach ( TaggedAlbum taggedAlbum in tag.TaggedAlbums )
+					{
+						Logger.Log( $"Artist: {taggedAlbum.Album.ArtistName} Album: {taggedAlbum.Album.Name} genres {taggedAlbum.Album.Genre}" );
+					}
+				}
 			} );
 		}
 

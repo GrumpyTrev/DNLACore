@@ -20,7 +20,7 @@ namespace DBTest
 			// Only process this if the library has changed
 			if ( selectedLibrary.Id != ConnectionDetailsModel.LibraryId )
 			{
-				PlaybackDetails.LibraryId = selectedLibrary.Id;
+				Playback.LibraryId = selectedLibrary.Id;
 				ConnectionDetailsModel.LibraryId = selectedLibrary.Id;
 				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary.Id }.Send();
 			}

@@ -66,29 +66,6 @@ namespace DBTest
 						.SetData( Uri.Parse( "package:" + PackageName ) ) );
 				}
 			}
-/*
-			Task.Run( async () =>
-			{
-				const int seconds = 30;
-				const string grefsFile = "grefs.txt";
-				string grefFile = Path.Combine( "/data/data", PackageName, "files/.__override__", grefsFile );
-				string grefFilePublic = Path.Combine( Environment.GetExternalStoragePublicDirectory( Environment.DirectoryDownloads ).AbsolutePath, grefsFile );
-
-				while ( true )
-				{
-					if ( File.Exists( grefFile ) )
-					{
-						File.Copy( grefFile, grefFilePublic, true );
-						Logger.Log( $"adb pull {grefFilePublic} {grefsFile}" );
-					}
-					else
-					{
-						Logger.Log( "No grefs.txt found, gref logging enabled? (adb shell setprop debug.mono.log gref)" );
-					}
-					await Task.Delay( seconds * 1000 );
-				}
-			} );
-*/
 		}
 
 		/// <summary>
@@ -102,10 +79,10 @@ namespace DBTest
 
 			// Keep a reference to the repeat off menu item
 			repeatOffMenu = menu.FindItem( Resource.Id.action_repeat_off );
-			repeatOffMenu.SetVisible( PlaybackManagerModel.RepeatOn );
+			repeatOffMenu.SetVisible( PlaybackModeModel.RepeatOn );
 
 			// Bind to any process wide command handler or monitors that require a menu item
-			MainApp.BindToPlaybackMonitor( menu );
+			MainApp.BindMenu( menu );
 
 			return true;
 		}
@@ -121,7 +98,7 @@ namespace DBTest
 			menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( playbackRouter.PlaybackControlsVisible == false );
 
 			// Change the text for the repeat item according to the repeat mode
-			menu.FindItem( Resource.Id.repeat_on_off ).SetTitle( PlaybackManagerModel.RepeatOn ? "Repeat off" : "Repeat on" );
+			menu.FindItem( Resource.Id.repeat_on_off ).SetTitle( PlaybackModeModel.RepeatOn ? "Repeat off" : "Repeat on" );
 
 			// Populate the rename and delete tag menus with submenus containing the user tags items
 			int menuId = Menu.First;
@@ -179,8 +156,8 @@ namespace DBTest
 			else if ( ( id == Resource.Id.repeat_on_off ) || ( id == Resource.Id.action_repeat_off ) )
 			{
 				// Toggle the repeat state
-				PlaybackManagerModel.RepeatOn = ! PlaybackManagerModel.RepeatOn;
-				repeatOffMenu.SetVisible( PlaybackManagerModel.RepeatOn );
+				PlaybackModeController.RepeatOn = !PlaybackModeModel.RepeatOn;
+				repeatOffMenu.SetVisible( PlaybackModeModel.RepeatOn );
 				handled = true;
 			}
 
@@ -229,7 +206,7 @@ namespace DBTest
 			libraryDisplayer.UnBind();
 
 			// Unbind from any process wide command handler or monitors that require a menu item
-			MainApp.BindToPlaybackMonitor( null );
+			MainApp.BindMenu( null );
 
 			base.OnDestroy();
 		}

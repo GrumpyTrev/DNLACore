@@ -210,7 +210,7 @@ namespace DBTest
 
 				Reporter?.SongIndexChanged( CurrentSongIndex );
 			}
-			else if ( ( PlaybackManagerModel.RepeatOn == true ) && ( Playlist.PlaylistItems.Count > 0 ) )
+			else if ( ( PlaybackModeModel.RepeatOn == true ) && ( Playlist.PlaylistItems.Count > 0 ) )
 			{
 				// Play the first song
 				CurrentSongIndex = 0;

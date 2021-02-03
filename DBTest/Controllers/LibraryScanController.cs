@@ -189,7 +189,7 @@ namespace DBTest
 				}
 
 				// Does any other ArtistAlbum reference the Album
-				if ( ArtistAlbums.ArtistAlbumCollection.Any( art => art.AlbumId == artistAlbum.AlbumId ) == true )
+				if ( ArtistAlbums.ArtistAlbumCollection.Any( art => art.AlbumId == artistAlbum.AlbumId ) == false )
 				{
 					// Not referenced by any ArtistAlbum. so delete it
 					Albums.DeleteAlbum( artistAlbum.Album );

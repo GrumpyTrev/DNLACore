@@ -96,6 +96,7 @@
     <Compile Include="Controllers\AutoplayController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\FilterManagementController.cs" />
+    <Compile Include="Controllers\PlaybackModeController.cs" />
     <Compile Include="Controllers\LibraryNameDisplayController.cs" />
     <Compile Include="Controllers\LibraryManagementController.cs" />
     <Compile Include="Controllers\LibraryScanController.cs" />
@@ -176,7 +177,7 @@
     <Compile Include="Model\Albums.cs" />
     <Compile Include="DbAccess\FilterAccess.cs" />
     <Compile Include="DbAccess\LibraryAccess.cs" />
-    <Compile Include="Model\PlaybackDetails.cs" />
+    <Compile Include="Model\Playback.cs" />
     <Compile Include="Model\Source.cs" />
     <Compile Include="Model\Sources.cs" />
     <Compile Include="PlaybackManagement\BasePlaybackService.cs" />
@@ -204,6 +205,8 @@
     <Compile Include="NowPlayingView\NowPlayingFragment.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapterModel.cs" />
     <Compile Include="BaseView\PagedFragment.cs" />
+    <Compile Include="PlaybackMode\PlaybackModeModel.cs" />
+    <Compile Include="PlaybackMode\PlaybackModeView.cs" />
     <Compile Include="PlaybackSelection\SelectDeviceDialogFragment.cs" />
     <Compile Include="PlaylistsView\DuplicatePlaylistDialogFragment.cs" />
     <Compile Include="PlaylistsView\NewPlaylistNameDialogFragment.cs" />
@@ -282,9 +285,6 @@
     <AndroidResource Include="Resources\drawable\collapse.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\playlist.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\artists_fragment.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
@@ -293,9 +293,6 @@
     <AndroidResource Include="Resources\layout\playlists_fragment.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\select.png" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\menu\menu_playlists.xml" />
@@ -432,9 +429,6 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\duplicate.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\artists_album_group_layout.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
@@ -549,6 +543,18 @@
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\linear_play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\repeat_shuffle.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\auto_play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shuffle.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

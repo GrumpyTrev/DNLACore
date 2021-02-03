@@ -35,8 +35,7 @@ namespace DBTest
 		{
 			Logger.Log( $"NowPlayingController.SetSelectedSong setting index to {songIndex} and sending a SongSelectedMessage" );
 
-			PlaybackDetails.SongIndex = songIndex;
-			new SongSelectedMessage() { ItemNo = songIndex }.Send();
+			Playback.SongIndex = songIndex;
 
 			// Make sure the new song is played if requested
 			if ( ( songIndex != -1 ) && ( playSong == true ) )
@@ -162,7 +161,7 @@ namespace DBTest
 			NowPlayingViewModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( NowPlayingViewModel.LibraryId );
 
 			// Get the selected song
-			NowPlayingViewModel.SelectedSong = PlaybackDetails.SongIndex;
+			NowPlayingViewModel.SelectedSong = Playback.SongIndex;
 
 			base.StorageDataAvailable();
 		}
@@ -190,9 +189,9 @@ namespace DBTest
 		/// Update the local model and inform the reporter 
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongSelected( object message )
+		private static void SongSelected( object _message )
 		{
-			NowPlayingViewModel.SelectedSong = ( ( SongSelectedMessage )message ).ItemNo;
+			NowPlayingViewModel.SelectedSong = Playback.SongIndex;
 
 			Logger.Log( $"NowPlayingController.SongSelected passing index {NowPlayingViewModel.SelectedSong} to UI" );
 

@@ -46,7 +46,7 @@ namespace DBTest
 			await Artists.GetDataAsync();
 			await ArtistAlbums.GetDataAsync();
 			await Libraries.GetDataAsync();
-			await PlaybackDetails.GetDataAsync();
+			await Playback.GetDataAsync();
 			await Playlists.GetDataAsync();
 			await Autoplays.GetDataAsync();
 			await Tags.GetDataAsync();
@@ -74,6 +74,9 @@ namespace DBTest
 				// Keep track of which ArtistAlbum entries are pointing to missing Artists
 				List<ArtistAlbum> missingArtistRefs = new List<ArtistAlbum>();
 
+				// Keep track of which Albums have been references by ArtistAlbums and report any that have no references
+				HashSet<int> albumsIds = Albums.AlbumCollection.Select( album => album.Id ).ToHashSet();
+
 				// Link the Albums from the AlbumModel to the ArtistAlbums and link the ArtistAlbums to their associated Artists. 
 				foreach ( ArtistAlbum artAlbum in ArtistAlbums.ArtistAlbumCollection )
 				{
@@ -98,6 +101,9 @@ namespace DBTest
 							// Add this ArtistAlbum to its Artist
 							artAlbum.Artist.ArtistAlbums.Add( artAlbum );
 						}
+
+						// Remove this album identity from the HashSet to indicate that it has been referenced
+						albumsIds.Remove( artAlbum.AlbumId );
 					}
 					else
 					{
@@ -128,6 +134,18 @@ namespace DBTest
 					}
 				}
 
+				// Report any albums that are no longer referenced by ArtistAlbums
+				if ( albumsIds.Count > 0 )
+				{
+					foreach ( int albumId in albumsIds )
+					{
+						Album orphanAlbum = Albums.GetAlbumById( albumId );
+						Logger.Log( $"Album {orphanAlbum.Name} is not referenced" );
+
+						// Delete the album
+						Albums.DeleteAlbum( orphanAlbum );
+					}
+				}
 			} );
 		}
 

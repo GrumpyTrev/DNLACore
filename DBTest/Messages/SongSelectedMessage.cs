@@ -5,9 +5,5 @@
 	/// </summary>
 	class SongSelectedMessage: BaseMessage
 	{
-		/// <summary>
-		/// Index of the song in the Now Playing list
-		/// </summary>
-		public int ItemNo { get; set; } = -1;
 	}
 }

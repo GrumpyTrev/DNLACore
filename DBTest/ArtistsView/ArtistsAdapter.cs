@@ -156,8 +156,6 @@ namespace DBTest
 					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
 					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
 				};
-
-				Logger.Log( $"Song view count now {++songViewCount}" );
 			}
 
 			// Display the Track number, Title and Duration
@@ -205,8 +203,6 @@ namespace DBTest
 						SelectionBox = GetSelectionBox( convertView ),
 						Name = convertView.FindViewById<TextView>( Resource.Id.artistName )
 					};
-
-					Logger.Log( $"Artist view count now {++artistViewCount}" );
 				}
 
 				// Display the artist's name
@@ -228,8 +224,6 @@ namespace DBTest
 						GenreYear = convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ),
 						GenreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout )
 					};
-
-					Logger.Log( $"Album view count now {++albumViewCount}" );
 				}
 
 				// Display the album
@@ -441,10 +435,5 @@ namespace DBTest
 		/// Is genre information to be displayed
 		/// </summary>
 		private bool showGenre = false;
-
-		// TESTING
-		private int songViewCount = 0;
-		private int artistViewCount = 0;
-		private int albumViewCount = 0;
 	}
 }

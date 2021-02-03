@@ -53,7 +53,7 @@ namespace DBTest
 			PlaybackManagerModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( PlaybackManagerModel.LibraryId );
 
 			// Get the selected song
-			PlaybackManagerModel.CurrentSongIndex = PlaybackDetails.SongIndex;
+			PlaybackManagerModel.CurrentSongIndex = Playback.SongIndex;
 
 			// Get the sources associated with the library
 			PlaybackManagerModel.Sources = Sources.GetSourcesForLibrary( PlaybackManagerModel.LibraryId );
@@ -78,8 +78,7 @@ namespace DBTest
 		{
 			Logger.Log( $"PlaybackManagementController.SetSelectedSong setting SongIndex to {songIndex} and sending SongSelectedMessage" );
 
-			PlaybackDetails.SongIndex = songIndex;
-			new SongSelectedMessage() { ItemNo = songIndex }.Send();
+			Playback.SongIndex = songIndex;
 		}
 
 		/// <summary>
@@ -94,13 +93,13 @@ namespace DBTest
 		/// Update the local model and inform the reporter 
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongSelected( object message )
+		private static void SongSelected( object _message )
 		{
 			// Only process this if there is a valid playlist, otherwise just wait for the data to become available
 			if ( PlaybackManagerModel.NowPlayingPlaylist != null )
 			{
 				// Update the selected song in the model and report the selection
-				PlaybackManagerModel.CurrentSongIndex = ( ( SongSelectedMessage )message ).ItemNo;
+				PlaybackManagerModel.CurrentSongIndex = Playback.SongIndex;
 				Logger.Log( $"PlaybackManagementController.SongSelected saving index in model {PlaybackManagerModel.CurrentSongIndex} and reporting" );
 
 				Reporter?.SongSelected();
