@@ -1,4 +1,5 @@
-﻿using Android.Support.V7.Widget;
+﻿using Android.Content;
+using Android.Support.V7.Widget;
 using Android.Views;
 
 namespace DBTest
@@ -20,7 +21,7 @@ namespace DBTest
 		/// Store the AppCompatImageButton from the view
 		/// </summary>
 		/// <param name="menu"></param>
-		public void BindToMenu( IMenu menu )
+		public void BindToMenu( IMenu menu, Context _context )
 		{
 			if ( menu != null )
 			{

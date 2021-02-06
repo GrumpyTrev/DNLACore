@@ -33,6 +33,9 @@ namespace DBTest
 			new RenamePlaylistCommandHandler().BindToRouter();
 			new AutoplayCommandHandler().BindToRouter();
 			new AutoplayOptionsCommandHandler().BindToRouter();
+			new AutoModeCommandHander().BindToRouter();
+			new RepeatModeCommandHander().BindToRouter();
+			new ShuffleModeCommandHander().BindToRouter();
 		}
 
 		/// <summary>

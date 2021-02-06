@@ -10,8 +10,6 @@
 		/// </summary>
 		static PlaybackModeController()
 		{
-//			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-
 			instance = new PlaybackModeController();
 		}
 
@@ -28,6 +26,14 @@
 			set
 			{
 				Playback.AutoPlayOn = value;
+
+				// If autoplay is now on, turn off repeat and shuffle
+				if ( Playback.AutoPlayOn == true )
+				{
+					Playback.RepeatPlayOn = false;
+					Playback.ShufflePlayOn = false;
+				}
+
 				instance.StorageDataAvailable();
 			}
 		}
@@ -40,6 +46,13 @@
 			set
 			{
 				Playback.RepeatPlayOn = value;
+
+				// If repeat is now on, turn off auto
+				if ( Playback.RepeatPlayOn == true )
+				{
+					Playback.AutoPlayOn = false;
+				}
+
 				instance.StorageDataAvailable();
 			}
 		}
@@ -52,6 +65,13 @@
 			set
 			{
 				Playback.ShufflePlayOn = value;
+
+				// If shuffle is now on, turn off auto
+				if ( Playback.ShufflePlayOn == true )
+				{
+					Playback.AutoPlayOn = false;
+				}
+
 				instance.StorageDataAvailable();
 			}
 		}

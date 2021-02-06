@@ -73,6 +73,9 @@
     <Compile Include="CommandHandlers\AddSongsToNowPlayingListCommandHandler.cs" />
     <Compile Include="CommandHandlers\DuplicatePlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\AutoplayOptionsCommandHandler.cs" />
+    <Compile Include="CommandHandlers\AutoModeCommandHander.cs" />
+    <Compile Include="CommandHandlers\ShuffleModeCommandHander.cs" />
+    <Compile Include="CommandHandlers\RepeatModeCommandHander.cs" />
     <Compile Include="CommandHandlers\StartAutoPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\GroupedSelection.cs" />
@@ -555,6 +558,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\shuffle.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_playback.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

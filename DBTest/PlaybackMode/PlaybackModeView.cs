@@ -1,4 +1,5 @@
-﻿using Android.Support.V7.Widget;
+﻿using Android.Content;
+using Android.Support.V7.Widget;
 using Android.Views;
 
 namespace DBTest
@@ -9,7 +10,7 @@ namespace DBTest
 	class PlaybackModeView : BaseController.IReporter
 	{
 		/// <summary>
-		/// 
+		/// Default constructor
 		/// </summary>
 		public PlaybackModeView()
 		{
@@ -22,7 +23,7 @@ namespace DBTest
 		/// Add an event handler for the button.
 		/// </summary>
 		/// <param name="menu"></param>
-		public void BindToMenu( IMenu menu )
+		public void BindToMenu( IMenu menu, Context context )
 		{
 			if ( menu != null )
 			{
@@ -32,15 +33,34 @@ namespace DBTest
 				{
 					boundMenuItem.SetActionView( Resource.Layout.toolbarButton );
 					imageButton = boundMenuItem.ActionView.FindViewById<AppCompatImageButton>( Resource.Id.toolbarSpecialButton );
+
+					// Create a Popup for this button and route it's selections to the CommandRouter
+					titlePopup = new PopupMenu( context, imageButton );
+					titlePopup.Inflate( Resource.Menu.menu_playback );
+					titlePopup.MenuItemClick += ( sender, args ) =>
+					{
+						CommandRouter.HandleCommand( args.Item.ItemId );
+					};
+
+					// Show the popup when the button is selected
+					imageButton.Click += ( sender, args ) =>
+					{
+						// Set the submenu item text according to the current state of the individual playback attributes
+						titlePopup.Menu.FindItem( Resource.Id.repeat_on_off ).SetTitle( PlaybackModeModel.RepeatOn ? "Repeat off" : "Repeat on" );
+						titlePopup.Menu.FindItem( Resource.Id.shuffle_on_off ).SetTitle( PlaybackModeModel.ShuffleOn ? "Shuffle off" : "Shuffle on" );
+						titlePopup.Menu.FindItem( Resource.Id.auto_on_off ).SetTitle( PlaybackModeModel.AutoOn ? "Auto off" : "Auto on" );
+						titlePopup.Show();
+					};
+
 					DisplayPlaybackIcon();
 				}
 
 				PlaybackModeController.DataReporter = this;
-
 			}
 			else
 			{
 				imageButton = null;
+				titlePopup = null;
 			}
 		}
 
@@ -69,5 +89,10 @@ namespace DBTest
 		/// The button (icon) item that this view is bound to
 		/// </summary>
 		private AppCompatImageButton imageButton = null;
+
+		/// <summary>
+		/// The PopupMenu used to display the playback mode change options
+		/// </summary>
+		private PopupMenu titlePopup = null;
 	}
 }

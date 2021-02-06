@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Android.App;
+using Android.Content;
 using Android.Runtime;
 using Android.Views;
 using SQLite;
@@ -49,10 +50,10 @@ namespace DBTest
 		/// Bind the playback monitor and playback mode viewer to the specified menu
 		/// </summary>
 		/// <param name="menu"></param>
-		public static void BindMenu( IMenu menu )
+		public static void BindMenu( IMenu menu, Context context )
 		{
-			instance.playbackMonitoring.BindToMenu( menu );
-			instance.playbackModeViewer.BindToMenu( menu );
+			instance.playbackMonitoring.BindToMenu( menu, context );
+			instance.playbackModeViewer.BindToMenu( menu, context );
 		}
 
 		/// <summary>

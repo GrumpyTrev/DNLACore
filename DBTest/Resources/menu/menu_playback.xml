@@ -1,0 +1,13 @@
+﻿<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+	<item
+		android:id="@+id/repeat_on_off"
+		android:title="Repeat on" />
+	<item
+		android:id="@+id/shuffle_on_off"
+		android:title="Shuffle on" />
+	<item
+		android:id="@+id/auto_on_off"
+		android:title="Auto on" />
+</menu>

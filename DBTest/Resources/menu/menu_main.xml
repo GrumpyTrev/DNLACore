@@ -2,12 +2,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 	<item
-		android:id="@+id/action_repeat_off"
-		android:icon="@drawable/repeat"
-		android:orderInCategory="1"
-		app:showAsAction="ifRoom"
-		android:title="Repeat off"/>
-	<item
 		android:id="@+id/playback_info"
 		android:icon="@drawable/local_playback_no_wifi"
 		android:orderInCategory="1"
@@ -18,14 +12,11 @@
 		android:icon="@drawable/linear_play"
 		android:orderInCategory="1"
 		app:showAsAction="always"
-		android:title="Playback mode"/>
+		android:title="Playback mode" />
 	<item
 		android:title="Playback"
 		app:showAsAction="never" >
 		<menu>
-			<item
-				android:id="@+id/repeat_on_off"
-				android:title="Repeat on" />
 			<item
 				android:id="@+id/show_media_controls"
 				android:title="Show playback controls" />

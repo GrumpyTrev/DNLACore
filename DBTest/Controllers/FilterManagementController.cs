@@ -182,7 +182,6 @@ namespace DBTest
 					if ( album.Genre.Length == 0 )
 					{
 						unknownTag.TaggedAlbums.Add( new TaggedAlbum() { Album = album, AlbumId = album.Id, TagIndex = unknownTag.TaggedAlbums.Count } );
-						Logger.Log( $"Album {album.Name} genre unknown" );
 					}
 					else
 					{
@@ -196,7 +195,6 @@ namespace DBTest
 							{
 								genreTag = new Tag() { Name = genreString, UserTag = false, ShortName = genreString };
 								tagLookup[ genreString ] = genreTag;
-								Logger.Log( $"Album {album.Name} new genre {genreString}" );
 							}
 
 							// Add a TaggedAlbum for this album
@@ -213,7 +211,7 @@ namespace DBTest
 				genres.Tags = tagLookup.Values.ToList();
 				genres.Tags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
 
-				// Display all the tags and the number of albms associated with them
+				// Display all the tags and the number of albums associated with them
 				foreach ( Tag tag in genres.Tags )
 				{
 					Logger.Log( $"Genre [{tag.Name}] albums {tag.TaggedAlbums.Count}" );
@@ -253,24 +251,11 @@ namespace DBTest
 				// Link these to their Tags
 				Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
 
-				// Tidy up any tags no longer associated with albums
-				List<TaggedAlbum> taggedAlbumsToDelete = new List<TaggedAlbum>();
-
 				foreach ( TaggedAlbum taggedAlbum in TaggedAlbums.TaggedAlbumCollection )
 				{
 					taggedAlbum.Album = Albums.GetAlbumById( taggedAlbum.AlbumId );
-					if ( taggedAlbum.Album != null )
-					{
-						tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
-					}
-					else
-					{
-						// This tagged album points to an album that no longer exists, don't link it
-						taggedAlbumsToDelete.Add( taggedAlbum );
-					}
-				}
-
-				taggedAlbumsToDelete.ForEach( ta => FilterAccess.DeleteTaggedAlbumAsync( ta ) );
+					tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
+				};
 			} );
 		}
 
