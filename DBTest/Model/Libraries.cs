@@ -19,7 +19,7 @@ namespace DBTest
 			if ( LibraryCollection == null )
 			{
 				// Get the current set of libraries
-				LibraryCollection = await LibraryAccess.GetLibrariesAsync();
+				LibraryCollection = await DbAccess.LoadAsync<Library>();
 
 				LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();
 			}

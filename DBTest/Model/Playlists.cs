@@ -19,13 +19,13 @@ namespace DBTest
 			if ( PlaylistCollection == null )
 			{
 				// Get the current set of Playlists
-				PlaylistCollection = await PlaylistAccess.GetAllPlaylistsAsync();
+				PlaylistCollection = await DbAccess.LoadAsync<Playlist>();
 
 				// Get all the content for the playlists
 				await Task.Run( async () =>
 				{
 					// Get all the PlaylistItems
-					List<PlaylistItem> playlistItems = await PlaylistAccess.GetPlaylistItemsAsync();
+					List<PlaylistItem> playlistItems = await DbAccess.LoadAsync<PlaylistItem>();
 
 					foreach ( Playlist playlist in PlaylistCollection )
 					{
@@ -73,7 +73,13 @@ namespace DBTest
 		public static void DeletePlaylist( Playlist playlistToDelete )
 		{
 			PlaylistCollection.Remove( playlistToDelete );
-			PlaylistAccess.DeletePlaylist( playlistToDelete );
+
+			// Delete the PlaylistItem entries from the database.
+			// No need to wait for this to finish
+			DbAccess.DeleteAsync( playlistToDelete.PlaylistItems );
+
+			// Now delete the playlist itself. No need to wait for this to finish
+			DbAccess.DeleteAsync( playlistToDelete );
 		}
 
 		/// <summary>
@@ -85,7 +91,7 @@ namespace DBTest
 		public static void AddPlaylist( Playlist playlistToAdd )
 		{
 			PlaylistCollection.Add( playlistToAdd );
-			PlaylistAccess.AddPlaylist( playlistToAdd );
+			DbAccess.InsertAsync( playlistToAdd );
 		}
 
 		/// <summary>

@@ -112,10 +112,7 @@
     <Compile Include="BaseView\ExpandableListAdapterModel.cs" />
     <Compile Include="Controllers\PlaybackSelectionController.cs" />
     <Compile Include="Controllers\StorageController.cs" />
-    <Compile Include="DbAccess\ArtistAlbumAccess.cs" />
-    <Compile Include="DbAccess\GenrePopulationAccess.cs" />
-    <Compile Include="DbAccess\AutoplayAccess.cs" />
-    <Compile Include="DbAccess\SourceAccess.cs" />
+    <Compile Include="DbAccess\DbAccess.cs" />
     <Compile Include="FilterManagement\DeleteConfirmationDialogFragment.cs" />
     <Compile Include="FilterManagement\FilterManagementModel.cs" />
     <Compile Include="FilterManagement\FilterSelectionDialogFragment.cs" />
@@ -161,7 +158,6 @@
     <Compile Include="Messages\TagDetailsChangedMessage.cs" />
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />
     <Compile Include="Model\Album.cs" />
-    <Compile Include="DbAccess\AlbumAccess.cs" />
     <Compile Include="Model\GenrePopulation.cs" />
     <Compile Include="Model\GenrePopulations.cs" />
     <Compile Include="Model\Population.cs" />
@@ -172,14 +168,11 @@
     <Compile Include="Model\Autoplay.cs" />
     <Compile Include="Model\Autoplays.cs" />
     <Compile Include="Model\Playlist.cs" />
-    <Compile Include="DbAccess\SongAccess.cs" />
     <Compile Include="Model\Playlists.cs" />
     <Compile Include="Model\Libraries.cs" />
     <Compile Include="Model\ArtistAlbums.cs" />
     <Compile Include="Model\Artists.cs" />
     <Compile Include="Model\Albums.cs" />
-    <Compile Include="DbAccess\FilterAccess.cs" />
-    <Compile Include="DbAccess\LibraryAccess.cs" />
     <Compile Include="Model\Playback.cs" />
     <Compile Include="Model\Source.cs" />
     <Compile Include="Model\Sources.cs" />
@@ -201,9 +194,6 @@
     <Compile Include="Messages\BaseMessage.cs" />
     <Compile Include="Messages\SongSelectedMessage.cs" />
     <Compile Include="Messages\PlaylistSongsAddedMessage.cs" />
-    <Compile Include="DbAccess\ArtistAccess.cs" />
-    <Compile Include="DbAccess\PlaybackAccess.cs" />
-    <Compile Include="DbAccess\PlaylistAccess.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapter.cs" />
     <Compile Include="NowPlayingView\NowPlayingFragment.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapterModel.cs" />
@@ -266,8 +256,8 @@
     <AndroidResource Include="Resources\mipmap-xxxhdpi\ic_launcher_round.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SQLiteNetExtensions.Async">
-      <Version>2.1.0</Version>
+    <PackageReference Include="sqlite-net-pcl">
+      <Version>1.7.335</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Android.Support.Design" Version="28.0.0.3" />
   </ItemGroup>

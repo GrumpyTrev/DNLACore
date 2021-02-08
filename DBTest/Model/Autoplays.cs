@@ -18,7 +18,7 @@ namespace DBTest
 			if ( AutoplayCollection == null )
 			{
 				// Get the current set of autoplays
-				AutoplayCollection = await AutoplayAccess.GetAutoplaysAsync();
+				AutoplayCollection = await DbAccess.LoadAsync<Autoplay>();
 			}
 		}
 
@@ -37,7 +37,7 @@ namespace DBTest
 				autoPlay = new Autoplay() { LibraryId = libraryId };
 
 				// Need to wait for thus so that it's Id gets set
-				await AutoplayAccess.AddAutoplayAsync( autoPlay );
+				await DbAccess.InsertAsync( autoPlay );
 			}
 
 			return autoPlay;

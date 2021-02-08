@@ -19,7 +19,7 @@ namespace DBTest
 			if ( AlbumCollection == null )
 			{
 				// Get the current set of albums and form the lookup tables
-				AlbumCollection = await AlbumAccess.GetAllAlbumsAsync();
+				AlbumCollection = await DbAccess.LoadAsync<Album>();
 				IdLookup = AlbumCollection.ToDictionary( alb => alb.Id );
 			}
 		}
@@ -40,7 +40,7 @@ namespace DBTest
 			AlbumCollection.Add( albumToAdd );
 
 			// Need to wait for the Album to be added to ensure that its ID is available
-			await AlbumAccess.AddAlbumAsync( albumToAdd );
+			await DbAccess.InsertAsync( albumToAdd );
 
 			IdLookup[ albumToAdd.Id ] = albumToAdd;
 		}
@@ -53,7 +53,7 @@ namespace DBTest
 		public static void DeleteAlbum( Album albumToDelete )
 		{
 			// No need to wait for the delete
-			AlbumAccess.DeleteAlbumAsync( albumToDelete );
+			DbAccess.DeleteAsync( albumToDelete );
 			AlbumCollection.Remove( albumToDelete );
 			IdLookup.Remove( albumToDelete.Id );
 		}

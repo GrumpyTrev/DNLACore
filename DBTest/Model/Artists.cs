@@ -19,7 +19,7 @@ namespace DBTest
 			if ( ArtistCollection == null )
 			{
 				// Get the current set of artists and form the lookup tables
-				ArtistCollection = await ArtistAccess.GetAllArtistsAsync();
+				ArtistCollection = await DbAccess.LoadAsync<Artist>();
 				IdLookup = ArtistCollection.ToDictionary( art => art.Id );
 			}
 		}
@@ -38,7 +38,7 @@ namespace DBTest
 		public static async Task AddArtistAsync( Artist artistToAdd )
 		{
 			// Need to wait for the Artist to be added so that its Id is available
-			await ArtistAccess.AddArtistAsync( artistToAdd );
+			await DbAccess.InsertAsync( artistToAdd );
 			ArtistCollection.Add( artistToAdd );
 			IdLookup[ artistToAdd.Id ] = artistToAdd;
 		}
@@ -51,7 +51,7 @@ namespace DBTest
 		public static void DeleteArtist( Artist artistToDelete )
 		{
 			// No need to wait for the Artist to be removed from storage
-			ArtistAccess.DeleteArtistAsync( artistToDelete );
+			DbAccess.DeleteAsync( artistToDelete );
 			ArtistCollection.Remove( artistToDelete );
 			IdLookup.Remove( artistToDelete.Id );
 		}

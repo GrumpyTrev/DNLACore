@@ -145,7 +145,7 @@ namespace DBTest
 			if ( optionsChanged == true )
 			{
 				// Update the record. No need to wait.
-				AutoplayAccess.UpdateAutoplayAsync( this );
+				DbAccess.UpdateAsync( this );
 			}
 		}
 

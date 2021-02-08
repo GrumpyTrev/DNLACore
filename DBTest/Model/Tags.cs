@@ -18,7 +18,7 @@ namespace DBTest
 			if ( TagsCollection == null )
 			{
 				// Get the current set of tags and form the lookup tables
-				TagsCollection = await FilterAccess.GetTagsAsync();
+				TagsCollection = await DbAccess.LoadAsync<Tag>();
 				NameLookup = TagsCollection.ToDictionary( tag => tag.Name );
 				ShortNameLookup = TagsCollection.ToDictionary( tag => tag.ShortName );
 			}
@@ -49,7 +49,7 @@ namespace DBTest
 			if ( tagToAdd.PersistTag == true )
 			{
 				// No need to wait for this as we are not using its identity
-				FilterAccess.AddTagAsync( tagToAdd );
+				DbAccess.InsertAsync( tagToAdd );
 			}
 
 			NameLookup[ tagToAdd.Name ] = tagToAdd;
@@ -66,7 +66,7 @@ namespace DBTest
 			tagToDelete.DeleteTaggedAlbums( tagToDelete.TaggedAlbums.ToList() );
 
 			// Delete the Tag itself. No need to wait for this
-			FilterAccess.DeleteTagAsync( tagToDelete );
+			DbAccess.DeleteAsync( tagToDelete );
 
 			// And locally
 			TagsCollection.Remove( tagToDelete );

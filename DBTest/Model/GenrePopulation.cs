@@ -35,7 +35,7 @@ namespace DBTest
 			GenreString = string.Join( ';', Genres );
 
 			// No need to wait for this
-			GenrePopulationAccess.UpdateGenrePopulationAsync( this );
+			DbAccess.UpdateAsync( this );
 		}
 
 		/// <summary>

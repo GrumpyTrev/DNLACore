@@ -1,5 +1,4 @@
 ﻿using SQLite;
-using SQLiteNetExtensions.Attributes;
 using System;
 using System.Collections.Generic;
 
@@ -15,7 +14,6 @@ namespace DBTest
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
 
-		[ForeignKey( typeof( Library ) )]
 		[Column( "LibraryId" )]
 		public int DBLibraryId { get; set; }
 
@@ -96,7 +94,6 @@ namespace DBTest
 		/// </summary>
 		public int PortNo { get; set; }
 
-		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
 	}
 
@@ -117,13 +114,10 @@ namespace DBTest
 		[Ignore]
 		public ScanActionType ScanAction { get; set; }
 
-		[ForeignKey( typeof( Album ) )]
 		public int AlbumId { get; set; }
 
-		[ForeignKey( typeof( Source ) )]
 		public int SourceId { get; set; }
 
-		[ForeignKey( typeof( ArtistAlbum ) )]
 		public int ArtistAlbumId { get; set; }
 
 		/// <summary>
@@ -143,7 +137,6 @@ namespace DBTest
 
 		public string Name { get; set; }
 
-		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
 	}
 
@@ -155,7 +148,6 @@ namespace DBTest
 
 		public string Name { get; set; }
 
-		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
 
 		public string ArtistName { get; set; }
@@ -183,16 +175,14 @@ namespace DBTest
 
 		public string Name { get; set; }
 
-		[ForeignKey( typeof( Album ) )]
 		public int AlbumId { get; set; }
 
-		[OneToOne]
+		[Ignore]
 		public Album Album { get; set; }
 
-		[ForeignKey( typeof( Artist ) )]
 		public int ArtistId { get; set; }
 
-		[OneToMany]
+		[Ignore]
 		public List<Song> Songs { get; set; }
 
 		/// <summary>
@@ -210,7 +200,6 @@ namespace DBTest
 
 		public string Name { get; set; }
 
-		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
 	}
 
@@ -222,13 +211,11 @@ namespace DBTest
 
 		public int Track { get; set; }
 
-		[ForeignKey( typeof( Playlist ) )]
 		public int PlaylistId { get; set; }
 
-		[ForeignKey( typeof( Song ) )]
 		public int SongId { get; set; }
 
-		[OneToOne]
+		[Ignore]
 		public Song Song { get; set; }
 
 		/// <summary>
@@ -286,13 +273,11 @@ namespace DBTest
 
 		public int TagIndex { get; set; }
 
-		[ForeignKey( typeof( Album ) )]
 		public int AlbumId { get; set; }
 
-		[OneToOne]
+		[Ignore]
 		public Album Album { get; set; }
 
-		[ForeignKey( typeof( Tag ) )]
 		public int TagId { get; set; }
 
 		public override bool Equals( object obj ) => ( obj == null ) ? false : ( ( ( TaggedAlbum )obj ).AlbumId == AlbumId );
@@ -306,7 +291,6 @@ namespace DBTest
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
 
-		[ForeignKey( typeof( Library ) )]
 		public int LibraryId { get; set; }
 
 		/// <summary>
@@ -363,7 +347,6 @@ namespace DBTest
 		/// <summary>
 		/// Link to the Autoplay instance that uses this set of Genres
 		/// </summary>
-		[ForeignKey( typeof( Autoplay ) )]
 		public int AutoplayId { get; set; }
 	}
 }

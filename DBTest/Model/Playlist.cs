@@ -22,7 +22,7 @@ namespace DBTest
 
 			foreach ( PlaylistItem playlistItem in PlaylistItems )
 			{
-				playlistItem.Song = await SongAccess.GetSongAsync( playlistItem.SongId );
+				playlistItem.Song = await DbAccess.GetSongAsync( playlistItem.SongId );
 				playlistItem.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playlistItem.Song.ArtistAlbumId ).ArtistId );
 				playlistItem.Song.Artist = playlistItem.Artist;
 			}
@@ -41,7 +41,7 @@ namespace DBTest
 				PlaylistItems.Remove( item );
 			}
 
-			PlaylistAccess.DeletePlaylistItems( items );
+			DbAccess.DeleteAsync( items );
 		}
 
 		/// <summary>
@@ -72,7 +72,7 @@ namespace DBTest
 				};
 
 				PlaylistItems.Add( itemToAdd );
-				PlaylistAccess.AddPlaylistItem( itemToAdd );
+				DbAccess.InsertAsync( itemToAdd );
 			}
 
 			new PlaylistSongsAddedMessage() { Playlist = this }.Send();
@@ -123,7 +123,7 @@ namespace DBTest
 					itemToCheck.Track = index + 1;
 
 					// Update the item in the model. No need to wait for this.
-					PlaylistAccess.UpdatePlaylistItemAsync( itemToCheck );
+					DbAccess.UpdateAsync( itemToCheck );
 				}
 			}
 		}
@@ -137,7 +137,7 @@ namespace DBTest
 			Name = newName;
 
 			// Update the item in the model. No need to wait for this.
-			PlaylistAccess.UpdatePlaylistAsync( this );
+			DbAccess.UpdateAsync( this );
 		}
 
 		/// <summary>

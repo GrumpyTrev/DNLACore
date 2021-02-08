@@ -16,7 +16,7 @@ namespace DBTest
 		{
 			if ( PlaybackInstance == null )
 			{
-				PlaybackInstance = await PlaybackAccess.GetPlaybackAsync();
+				PlaybackInstance = ( await DbAccess.LoadAsync<Playback>() )[0];
 			}
 		}
 
@@ -33,7 +33,7 @@ namespace DBTest
 				PlaybackInstance.DBSongIndex = value;
 
 				// No need to wait for the update to complete
-				PlaybackAccess.UpdatePlaybackAsync( PlaybackInstance );
+				DbAccess.UpdateAsync( PlaybackInstance );
 
 				// Inform controllers about this
 				new SongSelectedMessage().Send();
@@ -52,7 +52,7 @@ namespace DBTest
 				PlaybackInstance.DBPlaybackDeviceName = value;
 
 				// No need to wait for the update to complete
-				PlaybackAccess.UpdatePlaybackAsync( PlaybackInstance );
+				DbAccess.UpdateAsync( PlaybackInstance );
 			}
 		}
 
@@ -68,7 +68,7 @@ namespace DBTest
 				PlaybackInstance.DBLibraryId = value;
 
 				// No need to wait for the update to complete
-				PlaybackAccess.UpdatePlaybackAsync( PlaybackInstance );
+				DbAccess.UpdateAsync( PlaybackInstance );
 			}
 		}
 
@@ -84,7 +84,7 @@ namespace DBTest
 				PlaybackInstance.DBRepeatPlayOn = value;
 
 				// No need to wait for the update to complete
-				PlaybackAccess.UpdatePlaybackAsync( PlaybackInstance );
+				DbAccess.UpdateAsync( PlaybackInstance );
 			}
 		}
 
@@ -100,7 +100,7 @@ namespace DBTest
 				PlaybackInstance.DBShufflePlayOn = value;
 
 				// No need to wait for the update to complete
-				PlaybackAccess.UpdatePlaybackAsync( PlaybackInstance );
+				DbAccess.UpdateAsync( PlaybackInstance );
 			}
 		}
 
@@ -116,7 +116,7 @@ namespace DBTest
 				PlaybackInstance.DBAutoPlayOn = value;
 
 				// No need to wait for the update to complete
-				PlaybackAccess.UpdatePlaybackAsync( PlaybackInstance );
+				DbAccess.UpdateAsync( PlaybackInstance );
 			}
 		}
 

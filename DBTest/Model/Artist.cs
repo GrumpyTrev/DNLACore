@@ -20,7 +20,7 @@ namespace DBTest
 			{
 				foreach ( ArtistAlbum artistAlbum in ArtistAlbums )
 				{
-					artistAlbum.Songs = await SongAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
+					artistAlbum.Songs = await DbAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
 					artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 				}
 			}

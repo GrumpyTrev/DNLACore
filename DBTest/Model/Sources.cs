@@ -18,7 +18,7 @@ namespace DBTest
 			if ( SourceCollection == null )
 			{
 				// Get the current set of sources
-				SourceCollection = await SourceAccess.GetAllSourcesAsync();
+				SourceCollection = await DbAccess.LoadAsync<Source>();
 
 				// Set the ScanSource, ScanType, LocalAccess and RemoteAccess fields. 
 				SourceCollection.ForEach( source => source.InitialiseAccess() );

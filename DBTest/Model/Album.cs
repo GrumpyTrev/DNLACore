@@ -10,13 +10,13 @@ namespace DBTest
 	public partial class Album
 	{
 		/// <summary>
-		/// Get teh songs associated with this Album
+		/// Get the songs associated with this Album
 		/// </summary>
 		public async Task GetSongsAsync()
 		{
 			if ( Songs == null )
 			{
-				Songs = await AlbumAccess.GetAlbumSongsAsync( Id );
+				Songs = await DbAccess.GetAlbumSongsAsync( Id );
 			}
 		}
 
@@ -29,7 +29,7 @@ namespace DBTest
 			Played = newState;
 
 			// No need to wait for the storage to complete
-			AlbumAccess.UpdateAlbumAsync( this );
+			DbAccess.UpdateAsync( this );
 
 			// Report the change
 			new AlbumPlayedStateChangedMessage() { AlbumChanged = this }.Send();

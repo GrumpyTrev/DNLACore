@@ -164,7 +164,7 @@ namespace DBTest
 						while ( ( matchingSong == null ) && ( sourceIndex < sources.Count ) )
 						{
 							// Get a list of all the songs with matching Titles in the source
-							List<Song> matchingTitles = await SongAccess.GetMatchingSongAsync( item.Song.Title, sources[ sourceIndex++ ].Id );
+							List<Song> matchingTitles = await DbAccess.GetMatchingSongAsync( item.Song.Title, sources[ sourceIndex++ ].Id );
 
 							// Now for each song access the associated artist
 							int titleIndex = 0;

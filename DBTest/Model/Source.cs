@@ -51,7 +51,7 @@ namespace DBTest
 			AccessType = newSource.AccessType;
 
 			// No need to wait for this to be written to storage
-			SourceAccess.UpdateSourceAsync( this );
+			DbAccess.UpdateAsync( this );
 		}
 
 		/// <summary>
@@ -61,7 +61,7 @@ namespace DBTest
 		{
 			if ( Songs == null )
 			{
-				Songs = await SongAccess.GetSongsForSourceAsync( Id );
+				Songs = await DbAccess.GetSongsForSourceAsync( Id );
 			}
 		}
 

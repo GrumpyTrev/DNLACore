@@ -102,7 +102,7 @@ namespace DBTest
 			await Task.Run( async () =>
 			{
 				// Delete all the Songs.
-				await SongAccess.DeleteSongsAsync( LibraryScanModel.UnmatchedSongs );
+				DbAccess.DeleteAsync( LibraryScanModel.UnmatchedSongs );
 
 				// Delete all the PlaylistItems associated with the songs. No need to wait for this
 				Playlists.DeletePlaylistItems( LibraryScanModel.UnmatchedSongs.Select( song => song.Id ).ToList() );
@@ -139,7 +139,7 @@ namespace DBTest
 		public static async Task<Artist> DeleteSongAsync( Song songToDelete )
 		{
 			// Delete the song.
-			await SongAccess.DeleteSongAsync( songToDelete );
+			DbAccess.DeleteAsync( songToDelete );
 
 			// Delete all the PlaylistItems associated with the song. No need to wait for this
 			Playlists.DeletePlaylistItems( new List<int> { songToDelete.Id } );
@@ -168,7 +168,7 @@ namespace DBTest
 
 			// Refresh the contents of the ArtistAlbum
 			ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( artistAlbumId );
-			artistAlbum.Songs = await SongAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
+			artistAlbum.Songs = await DbAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
 
 			// Check if this ArtistAlbum is being referenced by any songs
 			if ( artistAlbum.Songs.Count == 0 )

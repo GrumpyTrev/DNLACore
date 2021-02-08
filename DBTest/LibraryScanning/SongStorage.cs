@@ -247,7 +247,7 @@ namespace DBTest
 					ModifiedTime = songScanned.Modified, Length = songScanned.Length, AlbumId = songAlbum.Id, ArtistAlbumId = songArtistAlbum.Id,
 					SourceId = sourceBeingScanned.Id
 				};
-				await SongAccess.AddSongAsync( songToAdd );
+				await DbAccess.InsertAsync( songToAdd );
 
 				Logger.Log( string.Format( "Artist: {0} Title: {1} Track: {2} Modified: {3} Length {4} Year {5}", songScanned.Tags.Artist, songScanned.Tags.Title,
 					songScanned.Tags.Track, songScanned.Modified, songScanned.Length, songScanned.Year ) );
@@ -392,7 +392,7 @@ namespace DBTest
 				// Get the children of the existing ArtistAlbum
 				if ( songArtistAlbum.Songs == null )
 				{
-					songArtistAlbum.Songs = await SongAccess.GetArtistAlbumSongsAsync( songArtistAlbum.Id );
+					songArtistAlbum.Songs = await DbAccess.GetArtistAlbumSongsAsync( songArtistAlbum.Id );
 				}
 			}
 

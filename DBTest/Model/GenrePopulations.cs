@@ -17,7 +17,7 @@ namespace DBTest
 			if ( GenrePopulationCollection == null )
 			{
 				// Get the current set of GenrePopulation
-				GenrePopulationCollection = await GenrePopulationAccess.GetGenrePopulationsAsync();
+				GenrePopulationCollection = await DbAccess.LoadAsync<GenrePopulation>();
 			}
 		}
 
@@ -32,7 +32,7 @@ namespace DBTest
 			GenrePopulationCollection.Add( newPopulation );
 
 			// No need to wait for this
-			GenrePopulationAccess.AddGenrePopulationAsync( newPopulation );
+			DbAccess.InsertAsync( newPopulation );
 
 			return newPopulation;
 		}
@@ -46,7 +46,7 @@ namespace DBTest
 			GenrePopulationCollection.Remove( population );
 
 			// No need to wait for this
-			GenrePopulationAccess.DeleteGenrePopulationAsync( population );
+			DbAccess.DeleteAsync( population );
 		}
 
 		/// <summary>

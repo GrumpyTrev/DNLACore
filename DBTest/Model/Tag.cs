@@ -69,7 +69,7 @@ namespace DBTest
 			if ( PersistTag == true )
 			{
 				// No need to wait for this
-				FilterAccess.UpdateTagAsync( this );
+				DbAccess.UpdateAsync( this );
 			}
 
 			// The Tags class maintains lookup tables using the tag details so inform it of the change

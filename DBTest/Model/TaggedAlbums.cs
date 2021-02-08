@@ -17,7 +17,7 @@ namespace DBTest
 			if ( TaggedAlbumCollection == null )
 			{
 				// Get the current set of albums and form the lookup tables
-				TaggedAlbumCollection = await FilterAccess.GetTaggedAlbumsAsync();
+				TaggedAlbumCollection = await DbAccess.LoadAsync<TaggedAlbum>();
 			}
 		}
 
@@ -29,7 +29,7 @@ namespace DBTest
 		public static void DeleteTaggedAlbum( TaggedAlbum taggedAlbumToDelete )
 		{
 			// No need to wait for the TaggedAlbum to be deleted from storage
-			FilterAccess.DeleteTaggedAlbumAsync( taggedAlbumToDelete );
+			DbAccess.DeleteAsync( taggedAlbumToDelete );
 			TaggedAlbumCollection.Remove( taggedAlbumToDelete );
 		}
 
@@ -40,7 +40,7 @@ namespace DBTest
 		public static void AddTaggedAlbum( TaggedAlbum taggedAlbumToAdd )
 		{
 			// No need to wait for the TaggedAlbum to be added to storage
-			FilterAccess.AddTaggedAlbumAsync( taggedAlbumToAdd );
+			DbAccess.InsertAsync( taggedAlbumToAdd );
 			TaggedAlbumCollection.Add( taggedAlbumToAdd );
 		}
 

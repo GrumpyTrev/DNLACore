@@ -130,7 +130,7 @@ namespace DBTest
 						// Add this ArtistAlbum to the Artist
 						missingArtist.ArtistAlbums.Add( artAlbum );
 						artAlbum.ArtistId = missingArtist.Id;
-						ArtistAlbumAccess.UpdateArtistAlbumAsync( artAlbum );
+						DbAccess.UpdateAsync( artAlbum );
 					}
 				}
 
