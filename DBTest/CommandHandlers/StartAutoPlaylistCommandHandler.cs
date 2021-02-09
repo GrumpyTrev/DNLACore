@@ -19,7 +19,7 @@ namespace DBTest
 			// If an Artist has been selected then the starting point for generation will be the albums associated with the Artist.
 			// If an Album has been selected then that album will be the starting point.
 			// If a Song has been selected then that song will be the starting point.
-			if ( selectedObjects.ArtistsCount > 0 )
+			if ( selectedObjects.Artists.Count > 0 )
 			{
 				// Get all the genres associated with all the selected artists
 				foreach ( Artist selectedArtist in selectedObjects.Artists )
@@ -30,7 +30,7 @@ namespace DBTest
 					}
 				}
 			}
-			else if ( selectedObjects.ArtistAlbumsCount > 0 )
+			else if ( selectedObjects.ArtistAlbums.Count > 0 )
 			{
 				// Get all the genres associated with the albums from all the selected artistalbums
 				foreach ( ArtistAlbum selectedArtistAlbum in selectedObjects.ArtistAlbums )
@@ -38,7 +38,7 @@ namespace DBTest
 					selectedGenres.AddRange( selectedArtistAlbum.Album.Genre.Split( ';' ).ToList() );
 				}
 			}
-			else if ( selectedObjects.AlbumsCount > 0 )
+			else if ( selectedObjects.Albums.Count > 0 )
 			{
 				// Get all the genres associated with the albums from all the selected albums
 				foreach ( Album selectedAlbum in selectedObjects.Albums )
@@ -46,7 +46,7 @@ namespace DBTest
 					selectedGenres.AddRange( selectedAlbum.Genre.Split( ';' ).ToList() );
 				}
 			}
-			else if ( selectedObjects.SongsCount > 0 )
+			else if ( selectedObjects.Songs.Count > 0 )
 			{
 				foreach ( Song selectedSong in selectedObjects.Songs )
 				{

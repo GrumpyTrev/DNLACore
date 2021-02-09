@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace DBTest
 {
@@ -18,98 +17,82 @@ namespace DBTest
 			SelectedObjects = selectedObjects;
 
 			// Group the objects into sets of Song, PlaylistItem, Playlist, Artist, ArtistAlbum, Album and Genre (string) items
-			// TODO Its probably more efficient to loop through the objects and build the sets as we go.
-			Songs = selectedObjects.OfType<Song>();
-			SongsCount = Songs.Count();
-			PlaylistItems = selectedObjects.OfType<PlaylistItem>();
-			PlaylistItemsCount = PlaylistItems.Count();
-			Playlists = selectedObjects.OfType<Playlist>();
-			PlaylistsCount = Playlists.Count();
-			Artists = selectedObjects.OfType<Artist>();
-			ArtistsCount = Artists.Count();
-			ArtistAlbums = selectedObjects.OfType<ArtistAlbum>();
-			ArtistAlbumsCount = ArtistAlbums.Count();
-			Albums = selectedObjects.OfType<Album>();
-			AlbumsCount = Albums.Count();
-			Genres = selectedObjects.OfType<string>();
-			GenresCount = Genres.Count();
+			foreach ( object selectedObject in selectedObjects )
+			{
+				if ( selectedObject is Song song )
+				{
+					Songs.Add( song );
+				}
+				else if ( selectedObject is PlaylistItem playlistItem )
+				{
+					PlaylistItems.Add( playlistItem );
+				}
+				else if ( selectedObject is Playlist playlist )
+				{
+					Playlists.Add( playlist );
+				}
+				else if ( selectedObject is Artist artist )
+				{
+					Artists.Add( artist );
+				}
+				else if ( selectedObject is ArtistAlbum artistAlbum )
+				{
+					ArtistAlbums.Add( artistAlbum );
+				}
+				else if ( selectedObject is Album album )
+				{
+					Albums.Add( album );
+				}
+				else if ( selectedObject is string str )
+				{
+					Genres.Add( str );
+				}
+			}
 
 			// Determine if there is a parent playlist
-			ParentPlaylist = ( PlaylistItemsCount == 0 ) ? null : DBTest.Playlists.GetPlaylist( PlaylistItems.First().PlaylistId );
+			if ( PlaylistItems.Count > 0 )
+			{
+				ParentPlaylist = DBTest.Playlists.GetPlaylist( PlaylistItems[ 0 ].PlaylistId );
+			}
 		}
 
 		/// <summary>
 		/// The set of songs in the selected objects
 		/// </summary>
-		public IEnumerable<Song> Songs { get; private set; } = null;
-
-		/// <summary>
-		/// The number of songs in the selected objects
-		/// </summary>
-		public int SongsCount { get; private set; } = 0;
+		public List<Song> Songs { get; } = new List<Song>();
 
 		/// <summary>
 		/// The set of playlistitems in the selected objects
 		/// </summary>
-		public IEnumerable<PlaylistItem> PlaylistItems { get; private set; } = null;
-
-		/// <summary>
-		/// The number of playlistitems in the selected objects
-		/// </summary>
-		public int PlaylistItemsCount { get; private set; } = 0;
+		public List<PlaylistItem> PlaylistItems { get; } = new List<PlaylistItem>();
 
 		/// <summary>
 		/// The set of playlists in the selected objects
 		/// </summary>
-		public IEnumerable<Playlist> Playlists { get; private set; } = null;
-
-		/// <summary>
-		/// The number of playlists in the selected objects
-		/// </summary>
-		public int PlaylistsCount { get; private set; } = 0;
+		public List<Playlist> Playlists { get; } = new List<Playlist>();
 
 		/// <summary>
 		/// The set of artists in the selected objects
 		/// </summary>
-		public IEnumerable<Artist> Artists { get; private set; } = null;
-
-		/// <summary>
-		/// The number of artists in the selected objects
-		/// </summary>
-		public int ArtistsCount { get; private set; } = 0;
+		public List<Artist> Artists { get; } = new List<Artist>();
 
 		/// <summary>
 		/// The set of artistalbums in the selected objects
 		/// </summary>
-		public IEnumerable<ArtistAlbum> ArtistAlbums { get; private set; } = null;
-
-		/// <summary>
-		/// The number of artistalbums in the selected objects
-		/// </summary>
-		public int ArtistAlbumsCount { get; private set; } = 0;
+		public List<ArtistAlbum> ArtistAlbums { get; } = new List<ArtistAlbum>();
 
 		/// <summary>
 		/// The set of albums in the selected objects
 		/// </summary>
-		public IEnumerable<Album> Albums { get; private set; } = null;
-
-		/// <summary>
-		/// The number of albums in the selected objects
-		/// </summary>
-		public int AlbumsCount { get; private set; } = 0;
+		public List<Album> Albums { get; } = new List<Album>();
 
 		/// <summary>
 		/// The set of genres in the selected objects
 		/// </summary>
-		public IEnumerable<string> Genres { get; private set; } = null;
+		public List<string> Genres { get; } = new List<string>();
 
 		/// <summary>
-		/// The number of genres in the selected objects
-		/// </summary>
-		public int GenresCount { get; private set; } = 0;
-
-		/// <summary>
-		/// The parent playlist of selceted playlistitems, if there is one
+		/// The parent playlist of selected playlistitems, if there is one
 		/// </summary>
 		public Playlist ParentPlaylist { get; private set; } = null;
 

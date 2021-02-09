@@ -36,7 +36,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.SongsCount > 0 );
+		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Songs.Count > 0 );
 
 		/// <summary>
 		/// The command identity associated with this handler

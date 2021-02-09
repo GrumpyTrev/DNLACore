@@ -27,11 +27,11 @@ namespace DBTest
 				Playlist playlistSelected = selectedObjects.Playlists.FirstOrDefault();
 
 				// If a playlist as well as songs are selected then prompt the user to check if the playlist entry should be deleted as well
-				if ( ( selectedObjects.PlaylistItemsCount > 0 ) && ( playlistSelected != null ) )
+				if ( ( selectedObjects.PlaylistItems.Count > 0 ) && ( playlistSelected != null ) )
 				{
 					DeletePlaylistDialogFragment.ShowFragment( CommandRouter.Manager, playlistSelected, selectedObjects.PlaylistItems, DeleteSelected );
 				}
-				else if ( selectedObjects.PlaylistItemsCount > 0 )
+				else if ( selectedObjects.PlaylistItems.Count > 0 )
 				{
 					// Deletion of songs from a playlist
 					PlaylistsController.DeletePlaylistItems( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
@@ -66,11 +66,11 @@ namespace DBTest
 				// The Delete command is only available if the selected playlistitems are from a single playlist and only one playlist is selected.
 				// Or if just a single empty playlist is selected
 				// Remember the playlist could be empty
-				bool itemsFromSinglePlaylist = ( selectedObjects.PlaylistItemsCount > 0 ) &&
+				bool itemsFromSinglePlaylist = ( selectedObjects.PlaylistItems.Count > 0 ) &&
 					( selectedObjects.PlaylistItems.All( item => ( item.PlaylistId == selectedObjects.ParentPlaylist.Id ) ) == true );
 				
-				isValid = ( ( itemsFromSinglePlaylist == true ) && ( selectedObjects.PlaylistsCount < 2 ) ) || 
-					( ( selectedObjects.PlaylistItemsCount == 0 ) && ( selectedObjects.PlaylistsCount == 1 ) );
+				isValid = ( ( itemsFromSinglePlaylist == true ) && ( selectedObjects.Playlists.Count < 2 ) ) || 
+					( ( selectedObjects.PlaylistItems.Count == 0 ) && ( selectedObjects.Playlists.Count == 1 ) );
 			}
 
 			return isValid;

@@ -61,7 +61,7 @@ namespace DBTest
 		{
 			bool isValid = false;
 
-			if ( selectedObjects.PlaylistItemsCount > 0 )
+			if ( selectedObjects.PlaylistItems.Count > 0 )
 			{
 				// Determine which is the key playlistitem to check for selection
 				int keyItemId = ( commandIdentity == Resource.Id.move_up ) ? selectedObjects.ParentPlaylist.PlaylistItems[ 0 ].Id :

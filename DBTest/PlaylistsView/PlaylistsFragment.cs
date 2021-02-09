@@ -44,7 +44,7 @@ namespace DBTest
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
 		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
-			SetActionBarTitle( selectedObjects.PlaylistItemsCount, selectedObjects.PlaylistsCount );
+			SetActionBarTitle( selectedObjects.PlaylistItems.Count, selectedObjects.Playlists.Count );
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment

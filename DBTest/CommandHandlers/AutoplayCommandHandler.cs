@@ -30,8 +30,8 @@ namespace DBTest
 		/// </summary>
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) => 	( selectedObjects.ArtistsCount == 1 ) || ( selectedObjects.ArtistAlbumsCount == 1 ) ||
-			( selectedObjects.SongsCount == 1 ) || ( selectedObjects.AlbumsCount == 1 );
+		protected override bool IsSelectionValidForCommand( int _ ) => 	( selectedObjects.Artists.Count == 1 ) || ( selectedObjects.ArtistAlbums.Count == 1 ) ||
+			( selectedObjects.Songs.Count == 1 ) || ( selectedObjects.Albums.Count == 1 );
 
 		/// <summary>
 		/// The command identity associated with this handler

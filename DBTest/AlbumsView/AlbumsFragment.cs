@@ -77,7 +77,7 @@ namespace DBTest
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
 		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
-			ActionModeTitle = ( selectedObjects.SongsCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.SongsCount );
+			ActionModeTitle = ( selectedObjects.Songs.Count == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.Songs.Count );
 
 		/// <summary>
 		/// Called when the sort selector has changes the sort order

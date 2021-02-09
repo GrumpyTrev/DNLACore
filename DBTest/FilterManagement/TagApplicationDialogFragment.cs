@@ -60,7 +60,7 @@ namespace DBTest
 				.SetPositiveButton( "OK", delegate
 				{
 					// Convert the index back to a Tag and report back
-					reporter?.Invoke( tagAdapter.TagData );
+					reporter?.Invoke( tagAdapter.TagData, selectedAlbums );
 				} )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.Create();
@@ -81,6 +81,6 @@ namespace DBTest
 		/// <summary>
 		/// Delegate type used to report back the selected tags
 		/// </summary>
-		public delegate void TagsSelected( List<AppliedTag> appliedTags );
+		public delegate void TagsSelected( List<AppliedTag> appliedTags, IEnumerable<Album> selectedAlbums );
 	}
 }

@@ -15,7 +15,7 @@ namespace DBTest
 		public override void HandleCommand( int commandIdentity )
 		{
 			// If any ArtistAlbums are selected then form a list of Albums from them
-			if ( selectedObjects.ArtistAlbumsCount > 0 )
+			if ( selectedObjects.ArtistAlbums.Count > 0 )
 			{
 				TagApplicationDialogFragment.ShowFragment( CommandRouter.Manager, selectedObjects.ArtistAlbums.Select( aa => aa.Album ), TagsSelected );
 			}
@@ -30,17 +30,17 @@ namespace DBTest
 		/// </summary>
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.AlbumsCount > 0 ) || ( selectedObjects.ArtistAlbumsCount > 0 );
+		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Albums.Count > 0 ) || ( selectedObjects.ArtistAlbums.Count > 0 );
 
 		/// <summary>
 		/// Called when the user has selected the set of tags to apply
 		/// Use the FilterManagementController to apply them
 		/// </summary>
 		/// <param name="appliedTags"></param>
-		private void TagsSelected( List<AppliedTag> appliedTags )
+		private void TagsSelected( List<AppliedTag> appliedTags, IEnumerable<Album> selectedAlbums )
 		{
-			// Apply the changes
-			FilterManagementController.ApplyTagsAsync( selectedObjects.Albums, appliedTags );
+			// Apply the changes.
+			FilterManagementController.ApplyTagsAsync( selectedAlbums, appliedTags );
 
 			commandCallback.PerformAction();
 		}

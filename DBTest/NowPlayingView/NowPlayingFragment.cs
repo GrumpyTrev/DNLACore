@@ -60,7 +60,7 @@ namespace DBTest
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
 		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
-			ActionModeTitle = ( selectedObjects.PlaylistItemsCount == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.PlaylistItemsCount );
+			ActionModeTitle = ( selectedObjects.PlaylistItems.Count == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.PlaylistItems.Count );
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment
