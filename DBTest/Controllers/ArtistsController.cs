@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -63,6 +64,10 @@ namespace DBTest
 			// Do the sorting and indexing off the UI task
 			await Task.Run( () =>
 			{
+				// Clear the indexing collections (in case they are not used in the new sort order)
+				ArtistsViewModel.FastScrollSections = null;
+				ArtistsViewModel.FastScrollSectionLookup = null;
+
 				switch ( ArtistsViewModel.SortSelector.CurrentSortOrder )
 				{
 					case SortSelector.SortOrder.alphaDescending:
@@ -77,24 +82,34 @@ namespace DBTest
 							ArtistsViewModel.Artists.Sort( ( a, b ) => { return b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ); } );
 						}
 
+						// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted but before the scroll indexing
+						PrepareCombinedList();
+
+						// Generate the fast scroll data for alpha sorting
+						GenerateIndex( ( artist, index ) => { return artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper(); } );
+
 						break;
 					}
 
 					case SortSelector.SortOrder.idAscending:
-					{
-						ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
-						break;
-					}
-
 					case SortSelector.SortOrder.idDescending:
 					{
-						ArtistsViewModel.Artists.Sort( ( a, b ) => { return b.Id.CompareTo( a.Id ); } );
+						if ( ArtistsViewModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.idAscending )
+						{
+							ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
+						}
+						else
+						{
+							ArtistsViewModel.Artists.Sort( ( a, b ) => { return b.Id.CompareTo( a.Id ); } );
+						}
+
+						// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted.
+						// No fast scroll indexing is required for Id sort order
+						PrepareCombinedList();
+
 						break;
 					}
 				}
-
-				// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted
-				PrepareCombinedList();
 			} );
 
 			// Publish the data
@@ -267,6 +282,45 @@ namespace DBTest
 			if ( changedAlbum.LibraryId == ArtistsViewModel.LibraryId )
 			{
 				instance.Reporter?.DataAvailable();
+			}
+		}
+
+		/// <summary>
+		/// Generate the fast scroll indexes using the provided function to obtain the section name
+		/// The sorted albums have already been moved/copied to the ArtistsViewModel.ArtistsAndAlbums list
+		/// </summary>
+		/// <param name="sectionNameProvider"></param>
+		private static void GenerateIndex( Func<Artist, int, string> sectionNameProvider )
+		{
+			// Initialise the index collections - the 
+			ArtistsViewModel.FastScrollSections = new List<Tuple<string, int>>();
+			ArtistsViewModel.FastScrollSectionLookup = new int[ ArtistsViewModel.ArtistsAndAlbums.Count ];
+
+			// Keep track of when a section has already been added to the FastScrollSections collection
+			Dictionary<string, int> sectionLookup = new Dictionary<string, int>();
+
+			// Keep track of the last section index allocated or found for an Artist as it will also be used for the associated ArtistAlbum entries
+			int sectionIndex = -1;
+
+			int index = 0;
+			foreach ( object artistOrAlbum in ArtistsViewModel.ArtistsAndAlbums )
+			{
+				// Only add section names for Artists, not ArtistAlbums
+				if ( artistOrAlbum is Artist artist )
+				{
+					// If this is the first occurrence of the section name then add it to the FastScrollSections collection together with the index 
+					string sectionName = sectionNameProvider( artist, index );
+					sectionIndex = sectionLookup.GetValueOrDefault( sectionName, -1 );
+					if ( sectionIndex == -1 )
+					{
+						sectionIndex = sectionLookup.Count;
+						sectionLookup[ sectionName ] = sectionIndex;
+						ArtistsViewModel.FastScrollSections.Add( new Tuple<string, int>( sectionName, index ) );
+					}
+				}
+
+				// Provide a quick section lookup for this entry
+				ArtistsViewModel.FastScrollSectionLookup[ index++ ] = sectionIndex;
 			}
 		}
 

@@ -325,44 +325,20 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sectionIndex"></param>
 		/// <returns></returns>
-		public virtual int GetPositionForSection( int sectionIndex ) => alphaIndexer[ sections[ sectionIndex ] ];
+		public virtual int GetPositionForSection( int sectionIndex ) => 0;
 
 		/// <summary>
 		/// Get the section that the specified position is in
 		/// </summary>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		public virtual int GetSectionForPosition( int position )
-		{
-			int index = 0;
-			while ( ( index < sections.Length ) && ( GetPositionForSection( index ) <= position ) )
-			{
-				index++;
-			}
-
-			return ( index < sections.Length ) ? index : 0;
-		}
+		public virtual int GetSectionForPosition( int position ) => 0;
 
 		/// <summary>
 		/// Return the names of all the sections
 		/// </summary>
 		/// <returns></returns>
-		public virtual Java.Lang.Object[] GetSections()
-		{
-			javaSections = null;
-
-			// Returning this information seems to lose storage, so try to collect some just freed
-			GC.Collect( GC.MaxGeneration );
-
-			// Size the section array from the alphaIndexer as the sections array is not always cleared
-			javaSections = new Java.Lang.Object[ alphaIndexer.Keys.Count ];
-			for ( int index = 0; index < javaSections.Length; ++index )
-			{
-				javaSections[ index ] = new Java.Lang.String( sections[ index ] );
-			}
-
-			return javaSections;
-		}
+		public virtual Java.Lang.Object[] GetSections() => null;
 
 		/// <summary>
 		/// Derived classes must implement this method to provide a view for a child item
@@ -795,27 +771,25 @@ namespace DBTest
 		protected readonly IAdapterActionHandler stateChangeReporter = null;
 
 		/// <summary>
-		/// List of section names
-		/// </summary>
-		protected string[] sections = null;
-
-		/// <summary>
-		/// Lookup table specifying the starting position for each section name
-		/// </summary>
-		protected Dictionary<string, int> alphaIndexer = new Dictionary<string, int>();
-
-		/// <summary>
 		/// The section names sent back to the Java Adapter base class
 		/// </summary>
 		protected Java.Lang.Object[] javaSections = null;
 
+		/// <summary>
+		/// This is the base class for all ViewHolder classes used by the derived adapters
+		/// All ViewHolders have a tag to identify the index of the view and a reference to the view's checkbox, if there is one
+		/// </summary>
 		protected class ExpandableListViewHolder : Java.Lang.Object
 		{
 			public int ItemTag { get; set; } = -1;
 			public CheckBox SelectionBox { get; set; } = null;
-			public bool SelectionBoxEventCaptured { get; set; } = false;
 		}
 
+		/// <summary>
+		/// The TagHolder class holds the tag for the view's Checkbox
+		/// An object holding an int is used rather that an int directly to avoid casting and Java object garbage collection problems (that may not
+		/// actually exist)
+		/// </summary>
 		private class TagHolder : Java.Lang.Object
 		{
 			public int Tag { get; set; } = 0;

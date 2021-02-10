@@ -1,4 +1,5 @@
 ﻿using Android.OS;
+using System;
 using System.Collections.Generic;
 
 namespace DBTest
@@ -21,6 +22,8 @@ namespace DBTest
 			FilterSelector.CurrentFilter = null;
 			FilteredAlbumsIds.Clear();
 			SortSelector.SetActiveSortOrder( SortSelector.SortType.alphabetic ); // This also sets the sort order to alphabetic ascending
+			FastScrollSections = null;
+			FastScrollSectionLookup = null;
 		}
 
 		/// <summary>
@@ -37,6 +40,27 @@ namespace DBTest
 		/// The list of Artists and their associated ArtistAlbum entries to be displayed
 		/// </summary>
 		public static List<object> ArtistsAndAlbums { get; set; } = new List<object>();
+
+		//
+		// The following two collections are used for fast scrolling
+		// The Adapter requires 3 things
+		// 1) A list of all the section names in display order
+		// 2) The starting index for each section
+		// 3) The section index for each album
+		//
+		// The section names can be obtained from FastScrollSections
+		// The starting index for a section is FastScrollSections[ sectionIndex ]
+		// The section index for an album is FastScrollSectionLookup[ albumIndex ]
+		//
+		/// <summary>
+		/// Lookup table specifying the strings used when fast scrolling, and the index into the ArtistsAndAlbums collection
+		/// </summary>
+		public static List<Tuple<string, int>> FastScrollSections = null;
+
+		/// <summary>
+		/// Array of the section indexes associated with each ArtistsAndAlbums entry
+		/// </summary>
+		public static int[] FastScrollSectionLookup = null;
 
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained

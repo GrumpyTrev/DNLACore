@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.Graphics;
@@ -75,6 +74,26 @@ namespace DBTest
 		public override int GetGroupType( int groupPosition ) => ( Groups[ groupPosition ] is Artist ) ? 0 : 1;
 
 		/// <summary>
+		/// Get the starting position for a section
+		/// </summary>
+		/// <param name="sectionIndex"></param>
+		/// <returns></returns>
+		public override int GetPositionForSection( int sectionIndex ) => ArtistsViewModel.FastScrollSections[ sectionIndex ].Item2;
+
+		/// <summary>
+		/// Get the section that the specified position is in
+		/// </summary>
+		/// <param name="position"></param>
+		/// <returns></returns>
+		public override int GetSectionForPosition( int position ) => ArtistsViewModel.FastScrollSectionLookup[ position ];
+
+		/// <summary>
+		/// Return the names of all the sections
+		/// </summary>
+		/// <returns></returns>
+		public override Java.Lang.Object[] GetSections() => javaSections;
+
+		/// <summary>
 		/// Override the base method in order to process Artist groups differently
 		/// </summary>
 		/// <param name="parent"></param>
@@ -110,27 +129,24 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Create an index from the Groups data
+		/// This is called by the base class when new data has been provided in order to create some of the fast scroll data.
+		/// Most of this has already been done in the ArtistsController.
+		/// All that is missing is the copying of the section names into an array of Java strings
 		/// </summary>
 		protected override void SetGroupIndex()
 		{
-			alphaIndexer.Clear();
+			// Clear the array first in case there are none
+			javaSections = null;
 
-			if ( SortType == SortSelector.SortType.alphabetic )
+			if ( ArtistsViewModel.FastScrollSections != null )
 			{
-				// Work out the section indexes for the sorted data
-				for ( int index = 0; index < Groups.Count; ++index )
+				// Size the section array from the ArtistsViewModel.FastScrollSections
+				javaSections = new Java.Lang.Object[ ArtistsViewModel.FastScrollSections.Count ];
+				for ( int index = 0; index < javaSections.Length; ++index )
 				{
-					if ( Groups[ index ] is Artist artist )
-					{
-						// Remember to ignore leading 'The ' here as well
-						alphaIndexer.TryAdd( artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper(), index );
-					}
+					javaSections[ index ] = new Java.Lang.String( ArtistsViewModel.FastScrollSections[ index ].Item1 );
 				}
 			}
-
-			// Save a copy of the keys
-			sections = alphaIndexer.Keys.ToArray();
 		}
 
 		/// <summary>
