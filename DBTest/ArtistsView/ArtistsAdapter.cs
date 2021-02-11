@@ -112,13 +112,13 @@ namespace DBTest
 				bool expandGroup = !parent.IsGroupExpanded( groupPosition );
 
 				// Expand or collapse all of the ArtistAlbums associated with the Artist
-				for ( int albumIndex = 1; albumIndex <= artist.ArtistAlbums.Count; albumIndex++ )
+				PerformActionOnArtistAlbums( groupPosition, ( artistAlbumIndex ) =>
 				{
-					if ( parent.IsGroupExpanded( groupPosition + albumIndex ) != expandGroup )
+					if ( parent.IsGroupExpanded( artistAlbumIndex ) != expandGroup )
 					{
-						base.OnGroupClick( parent, clickedView, groupPosition + albumIndex, id );
+						base.OnGroupClick( parent, clickedView, artistAlbumIndex, id );
 					}
-				}
+				} );
 			}
 			else
 			{
@@ -346,20 +346,17 @@ namespace DBTest
 
 			if ( Groups[ groupPosition ] is Artist artist )
 			{
-				for ( int albumIndex = 1; albumIndex <= artist.ArtistAlbums.Count; ++albumIndex )
+				// Expand or collapse all of the ArtistAlbums associated with the Artist
+				PerformActionOnArtistAlbums( groupPosition, async ( artistAlbumIndex ) =>
 				{
-					selectionChanged |= RecordItemSelection( FormGroupTag( groupPosition + albumIndex ), selected );
-					selectionChanged |= await SelectGroupContents( groupPosition + albumIndex, selected );
-				}
+					selectionChanged |= RecordItemSelection( FormGroupTag( artistAlbumIndex ), selected );
+					selectionChanged |= await SelectGroupContents( artistAlbumIndex, selected );
+				} );
 			}
 			else
 			{
 				// Need to find the position of the associated Artist and then determine if its selection state also needs changing
-				int artistPosition = groupPosition - 1;
-				while ( Groups[ artistPosition ] is ArtistAlbum )
-				{
-					--artistPosition;
-				}
+				int artistPosition = FindArtistPosition( groupPosition );
 
 				// We now have the position of the Artist, if the ArtistAlbum has been deselected then deselect the Artist as well
 				if ( selected == false )
@@ -369,15 +366,7 @@ namespace DBTest
 				else
 				{
 					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all selected then select the Artist as well
-					int artistAlbumCount = ( ( Artist )Groups[ artistPosition ] ).ArtistAlbums.Count;
-
-					int albumIndex = 1;
-					while ( ( albumIndex <= artistAlbumCount ) && ( IsItemSelected( FormGroupTag( artistPosition + albumIndex ) ) == true ) )
-					{
-						albumIndex++;
-					}
-
-					if ( albumIndex > artistAlbumCount )
+					if ( CheckAllArtistAlbums( artistPosition, ( artistAlbumIndex ) => { return IsItemSelected( FormGroupTag( artistAlbumIndex ) ); } ) == true )
 					{
 						selectionChanged |= RecordItemSelection( FormGroupTag( artistPosition ), true );
 					}
@@ -398,26 +387,14 @@ namespace DBTest
 			if ( Groups[ groupPosition ] is ArtistAlbum artistAlbum )
 			{
 				// Find the Artist associated with this ArtistAlbum
-				int artistPosition = groupPosition - 1;
-				while ( Groups[ artistPosition ] is ArtistAlbum )
-				{
-					--artistPosition;
-				}
+				int artistPosition = FindArtistPosition( groupPosition );
 
 				// If the ArtistAlbum is now expanded then check if all the other ArtistAlbums are also expanded
 				// If the ArtistAlbum is now collapsed then collapse the Artist
 				if ( parent.IsGroupExpanded( groupPosition ) == true )
 				{
-					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all selected then select the Artist as well
-					int artistAlbumCount = ( ( Artist )Groups[ artistPosition ] ).ArtistAlbums.Count;
-
-					int albumIndex = 1;
-					while ( ( albumIndex <= artistAlbumCount ) && ( parent.IsGroupExpanded( artistPosition + albumIndex ) == true ) )
-					{
-						albumIndex++;
-					}
-
-					if ( albumIndex > artistAlbumCount )
+					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all expanded then expand the Artist as well
+					if ( CheckAllArtistAlbums( artistPosition, ( artistAlbumIndex ) => { return parent.IsGroupExpanded( artistAlbumIndex ); } ) == true )
 					{
 						// Add this to the record of which groups are expanded
 						adapterModel.ExpandedGroups.Add( artistPosition );
@@ -446,6 +423,54 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		protected override bool SelectLongClickedItem( int tag ) => ( IsGroupTag( tag ) == false ) || ( Groups[ GetGroupFromTag( tag ) ] is ArtistAlbum );
+
+		/// <summary>
+		/// Find the Artist index associated with the specified ArtistAlbum index
+		/// </summary>
+		/// <param name="artistAlbumPosition"></param>
+		/// <returns></returns>
+		private int FindArtistPosition( int artistAlbumPosition )
+		{
+			while ( Groups[ --artistAlbumPosition ] is ArtistAlbum ) {}
+
+			return artistAlbumPosition;
+		}
+
+		/// <summary>
+		/// Perform the specified action on all the ArtistAlbum entries associated with an Artist
+		/// </summary>
+		/// <param name="artistPosition"></param>
+		/// <param name="action"></param>
+		private void PerformActionOnArtistAlbums( int artistPosition, Action<int> action )
+		{
+			int albumIndex = artistPosition + 1;
+			while ( ( albumIndex < Groups.Count ) && ( Groups[ albumIndex ] is ArtistAlbum ) )
+			{
+				// Perform the provided action on this ArtistAlbum entry
+				action( albumIndex );
+				albumIndex++;
+			}
+		}
+
+		/// <summary>
+		/// Check whether of not all the ArtistAlbum entries associated with an Artist fulfill the specified condition
+		/// </summary>
+		/// <param name="artistPosition"></param>
+		/// <param name="action"></param>
+		/// <returns></returns>
+		private bool CheckAllArtistAlbums( int artistPosition, Func<int, bool> condition )
+		{
+			bool allArtistAlbumsFulfillCondition = true;
+
+			int albumIndex = artistPosition + 1;
+			while ( ( allArtistAlbumsFulfillCondition == true ) && ( albumIndex < Groups.Count ) && ( Groups[ albumIndex ] is ArtistAlbum ) )
+			{
+				allArtistAlbumsFulfillCondition = condition( albumIndex );
+				albumIndex++;
+			}
+
+			return allArtistAlbumsFulfillCondition;
+		}
 
 		/// <summary>
 		/// Is genre information to be displayed

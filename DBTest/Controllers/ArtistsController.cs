@@ -86,7 +86,7 @@ namespace DBTest
 						PrepareCombinedList();
 
 						// Generate the fast scroll data for alpha sorting
-						GenerateIndex( ( artist, index ) => { return artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper(); } );
+						GenerateIndex( ( artist ) => { return artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper(); } );
 
 						break;
 					}
@@ -290,7 +290,7 @@ namespace DBTest
 		/// The sorted albums have already been moved/copied to the ArtistsViewModel.ArtistsAndAlbums list
 		/// </summary>
 		/// <param name="sectionNameProvider"></param>
-		private static void GenerateIndex( Func<Artist, int, string> sectionNameProvider )
+		private static void GenerateIndex( Func<Artist, string> sectionNameProvider )
 		{
 			// Initialise the index collections - the 
 			ArtistsViewModel.FastScrollSections = new List<Tuple<string, int>>();
@@ -309,7 +309,7 @@ namespace DBTest
 				if ( artistOrAlbum is Artist artist )
 				{
 					// If this is the first occurrence of the section name then add it to the FastScrollSections collection together with the index 
-					string sectionName = sectionNameProvider( artist, index );
+					string sectionName = sectionNameProvider( artist );
 					sectionIndex = sectionLookup.GetValueOrDefault( sectionName, -1 );
 					if ( sectionIndex == -1 )
 					{
