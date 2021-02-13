@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The LibraryNameDisplay class is used to display the name of the current library and to pass click events on to the appropriate command handler
 	/// </summary>
-	class LibraryNameDisplay : LibraryNameDisplayController.IReporter
+	class LibraryNameDisplay : DataReporter.IReporter
 	{
 		/// <summary>
 		/// Bind this class to the specified view

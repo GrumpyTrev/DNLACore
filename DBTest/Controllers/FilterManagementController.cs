@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The FilterManagementController class responds to filter selection commands and reflects changes to other controllers
 	/// </summary>
-	class FilterManagementController : BaseController
+	class FilterManagementController
 	{
 		/// <summary>
 		/// Register for external filter change messages
@@ -16,14 +16,12 @@ namespace DBTest
 		{
 			Mediator.RegisterPermanent( SongPlayed, typeof( SongPlayedMessage ) );
 			Mediator.RegisterPermanent( AlbumsDeleted, typeof( AlbumsDeletedMessage ) );
-
-			instance = new FilterManagementController();
 		}
 
 		/// <summary>
 		/// Get the Controller data
 		/// </summary>
-		public static void GetControllerData() => instance.GetData();
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Return a list of the names of all the tags. Order the tags so the system tags are displayed first
@@ -228,7 +226,7 @@ namespace DBTest
 		/// Called during startup when data is available from storage
 		/// </summary>
 		/// <param name="message"></param>
-		protected override async void StorageDataAvailable( object _ = null )
+		private static async void StorageDataAvailable()
 		{
 			// Extract the 'system' tags from this list for easy access later
 			FilterManagementModel.JustPlayedTag = Tags.GetTagByName( JustPlayedTagName );
@@ -548,8 +546,8 @@ namespace DBTest
 		public const string NotPlayedTagName = "Not played";
 
 		/// <summary>
-		/// The one and only FilterManagementController instance
+		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly FilterManagementController instance = null;
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

@@ -1,12 +1,10 @@
-﻿using System.Threading.Tasks;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The PlaybackManagementController is the Controller for the MediaControl. It responds to MediaControl commands and maintains media player data in the
 	/// PlaybackManagerModel
 	/// </summary>
-	public static class PlaybackManagementController
+	class PlaybackManagementController
 	{
 		/// <summary>
 		/// Register for external playing list change messages
@@ -21,34 +19,18 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get the media control data. This consists of the Now Playing data and the currently playing song
-		/// If the data has already been obtained then notify view immediately.
-		/// Otherwise get the data from the database asynchronously
+		/// Get the Controller data
 		/// </summary>
-		/// <param name="libraryId"></param>
-		public static void GetMediaControlData( int libraryId )
-		{
-			// Check if the PlaylistGetMediaControlDataAsyncs details for the library have already been obtained
-			if ( ( PlaybackManagerModel.NowPlayingPlaylist == null ) || ( PlaybackManagerModel.LibraryId != libraryId ) )
-			{
-				PlaybackManagerModel.LibraryId = libraryId;
-
-				// All Playlists are read at startup. So wait until that is available and then carry out the rest of the initialisation
-				StorageController.RegisterInterestInDataAvailable( PlaylistDataAvailable );
-			}
-
-			// Publish this data unless it is still being obtained
-			if ( PlaybackManagerModel.DataValid == true )
-			{
-				Reporter?.MediaControlDataAvailable();
-			}
-		}
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
-		/// Called when the Playlist data is available to be displayed
+		/// Called when the playback data is available to be displayed
 		/// </summary>
-		private static void PlaylistDataAvailable( object _ = null )
+		private static void StorageDataAvailable()
 		{
+			// Save the libray being used locally to detect changes
+			PlaybackManagerModel.LibraryId = ConnectionDetailsModel.LibraryId;
+
 			// This is getting the same list as the NowPlayingController. So let it do any sorting.
 			PlaybackManagerModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( PlaybackManagerModel.LibraryId );
 
@@ -61,25 +43,20 @@ namespace DBTest
 			PlaybackManagerModel.DataValid = true;
 
 			// Let the views know that playback data is available
-			Reporter?.MediaControlDataAvailable();
+			DataReporter?.DataAvailable();
 
 			// If a play request has been received whilst accessing this data then process it now
 			if ( playRequestPending == true )
 			{
 				playRequestPending = false;
-				Reporter?.PlayRequested();
+				DataReporter?.PlayRequested();
 			}
 		}
 
 		/// <summary>
 		/// Set the selected song in the database and raise the SongSelectedMessage
 		/// </summary>
-		public static void SetSelectedSong( int songIndex )
-		{
-			Logger.Log( $"PlaybackManagementController.SetSelectedSong setting SongIndex to {songIndex} and sending SongSelectedMessage" );
-
-			Playback.SongIndex = songIndex;
-		}
+		public static void SetSelectedSong( int songIndex ) => Playback.SongIndex = songIndex;
 
 		/// <summary>
 		/// Called when a new song is being played by the service.
@@ -100,9 +77,8 @@ namespace DBTest
 			{
 				// Update the selected song in the model and report the selection
 				PlaybackManagerModel.CurrentSongIndex = Playback.SongIndex;
-				Logger.Log( $"PlaybackManagementController.SongSelected saving index in model {PlaybackManagerModel.CurrentSongIndex} and reporting" );
 
-				Reporter?.SongSelected();
+				DataReporter?.SongSelected();
 			}
 		}
 
@@ -116,7 +92,7 @@ namespace DBTest
 			if ( ( ( PlaylistSongsAddedMessage )message ).Playlist == PlaybackManagerModel.NowPlayingPlaylist )
 			{
 				PlaybackManagerModel.NowPlayingPlaylist = null;
-				GetMediaControlData( PlaybackManagerModel.LibraryId );
+				StorageDataAvailable();
 			}
 		}
 
@@ -137,26 +113,26 @@ namespace DBTest
 				if ( oldDevice != null )
 				{
 					PlaybackManagerModel.AvailableDevice = null;
-					Reporter?.SelectPlaybackDevice( oldDevice );
+					DataReporter?.SelectPlaybackDevice( oldDevice );
 				}
 			}
 			// If there was no available device then save the new device and report the change
 			else if ( oldDevice == null )
 			{
 				PlaybackManagerModel.AvailableDevice = newDevice;
-				Reporter?.SelectPlaybackDevice( oldDevice );
+				DataReporter?.SelectPlaybackDevice( oldDevice );
 			}
 			// If the old and new are different type (local/remote) then report the change
 			else if ( oldDevice.IsLocal != newDevice.IsLocal )
 			{
 				PlaybackManagerModel.AvailableDevice = newDevice;
-				Reporter?.SelectPlaybackDevice( oldDevice );
+				DataReporter?.SelectPlaybackDevice( oldDevice );
 			}
 			// If both devices are remote but different then report the change
 			else if ( ( oldDevice.IsLocal == false ) && ( newDevice.IsLocal == false ) && ( oldDevice.FriendlyName != newDevice.FriendlyName ) )
 			{
 				PlaybackManagerModel.AvailableDevice = newDevice;
-				Reporter?.SelectPlaybackDevice( oldDevice );
+				DataReporter?.SelectPlaybackDevice( oldDevice );
 			}
 		}
 
@@ -175,10 +151,10 @@ namespace DBTest
 			SetSelectedSong( -1 );
 
 			// Publish the data
-			Reporter?.MediaControlDataAvailable();
+			DataReporter?.DataAvailable();
 
 			// Reread the data
-			GetMediaControlData( PlaybackManagerModel.LibraryId );
+			StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -190,7 +166,7 @@ namespace DBTest
 			// If there is a current song then report this request
 			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
 			{
-				Reporter?.PlayRequested();
+				DataReporter?.PlayRequested();
 			}
 			else
 			{
@@ -199,24 +175,32 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public static IReporter Reporter { private get; set; } = null;
-
-		/// <summary>
 		/// Keep track of when a play request is received whilst the data is being read in
 		/// </summary>
 		private static bool playRequestPending = false;
 
 		/// <summary>
+		/// The interface instance used to report back controller results
+		/// </summary>
+		public static IPlaybackReporter DataReporter
+		{
+			get => ( IPlaybackReporter )dataReporter.Reporter;
+			set => dataReporter.Reporter = value;
+		}
+
+		/// <summary>
 		/// The interface used to report back controller results
 		/// </summary>
-		public interface IReporter
+		public interface IPlaybackReporter : DataReporter.IReporter
 		{
-			void MediaControlDataAvailable();
 			void SongSelected();
 			void SelectPlaybackDevice( PlaybackDevice oldSelectedDevice );
 			void PlayRequested();
 		}
+
+		/// <summary>
+		/// The DataReporter instance used to handle storage availability reporting
+		/// </summary>
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

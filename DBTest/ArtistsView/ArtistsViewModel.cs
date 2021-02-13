@@ -86,5 +86,10 @@ namespace DBTest
 		/// The FilterSelection used to select and apply filter to the Albums tab
 		/// </summary>
 		public static FilterSelection FilterSelector { get; } = new FilterSelection( ArtistsController.SetNewFilter );
+
+		/// <summary>
+		/// Should the album genres be displayed
+		/// </summary>
+		public static bool DisplayGenre { get; set; } = true;
 	}
 }

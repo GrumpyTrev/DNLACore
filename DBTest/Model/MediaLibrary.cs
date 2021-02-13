@@ -46,6 +46,14 @@ namespace DBTest
 		/// </summary>
 		[Column( "AutoPlayOn" )]
 		public bool DBAutoPlayOn { get; set; }
+
+		/// <summary>
+		/// Is the Genre currently being displayed
+		/// This is a display setting really, but until there are more such settings there's no point adding another
+		/// table. Obviously this may change
+		/// </summary>
+		[Column( "GenreDisplayOn" )]
+		public bool DBGenreDisplayOn { get; set; }
 	}
 
 	[Table( "Library" )]

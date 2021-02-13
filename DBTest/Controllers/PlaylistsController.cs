@@ -7,7 +7,7 @@ namespace DBTest
 	/// The PlaylistsController is the Controller for the PlaylistsView. It responds to PlaylistsView commands and maintains Playlist data in the
 	/// PlaylistsViewModel
 	/// /// </summary>
-	class PlaylistsController : BaseController
+	class PlaylistsController
 	{
 		/// <summary>
 		/// Public constructor providing the Database path and the interface instance used to report results
@@ -16,14 +16,13 @@ namespace DBTest
 		{
 			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-
-			instance = new PlaylistsController();
+			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 		}
 
 		/// <summary>
 		/// Get the Playlist data
 		/// </summary>
-		public static void GetControllerData() => instance.GetData();
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Delete the specified playlist and its contents
@@ -38,7 +37,7 @@ namespace DBTest
 			new PlaylistDeletedMessage().Send();
 
 			// Refresh the playlists held by the model and report the change
-			instance.StorageDataAvailable();
+			StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -70,7 +69,7 @@ namespace DBTest
 			new PlaylistAddedMessage().Send();
 
 			// Refresh the playlists held by the model and report the change
-			instance.StorageDataAvailable();
+			StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -82,7 +81,7 @@ namespace DBTest
 			playlist.Rename( newName );
 
 			// Refresh the playlists held by the model and report the change
-			instance.StorageDataAvailable();
+			StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -201,7 +200,7 @@ namespace DBTest
 		/// Called during startup, or library change, when the storage data is available
 		/// </summary>
 		/// <param name="message"></param>
-		protected override void StorageDataAvailable( object _ = null )
+		private static void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
 			PlaylistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
@@ -209,7 +208,10 @@ namespace DBTest
 			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId );
 			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
 
-			base.StorageDataAvailable();
+			// Get the display genre flag
+			PlaylistsViewModel.DisplayGenre = Playback.DisplayGenre;
+
+			DataReporter?.DataAvailable();
 		}
 
 		/// <summary>
@@ -230,8 +232,18 @@ namespace DBTest
 			PlaylistsViewModel.ClearModel();
 
 			// Reread the data
-			instance.dataValid = false;
-			instance.StorageDataAvailable();
+			StorageDataAvailable();
+		}
+
+		/// <summary>
+		/// Called when a DisplayGenreMessage is received.
+		/// Update the model and report the change
+		/// </summary>
+		/// <param name="message"></param>
+		private static void DisplayGenreChanged( object message )
+		{
+			PlaylistsViewModel.DisplayGenre = ( ( DisplayGenreMessage )message ).DisplayGenre;
+			DataReporter?.DisplayGenreChanged();
 		}
 
 		/// <summary>
@@ -239,21 +251,22 @@ namespace DBTest
 		/// </summary>
 		public static IPlaylistsReporter DataReporter
 		{
-			private get => ( IPlaylistsReporter )instance.Reporter;
-			set => instance.Reporter = value;
+			get => ( IPlaylistsReporter )dataReporter.Reporter;
+			set => dataReporter.Reporter = value;
 		}
 
 		/// <summary>
 		/// The interface used to report back controller results
 		/// </summary>
-		public interface IPlaylistsReporter : IReporter
+		public interface IPlaylistsReporter : DataReporter.IReporter
 		{
 			void PlaylistUpdated( Playlist playlist );
+			void DisplayGenreChanged();
 		}
 
 		/// <summary>
-		/// The one and only PlaylistsController instance
+		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly PlaylistsController instance = null;
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

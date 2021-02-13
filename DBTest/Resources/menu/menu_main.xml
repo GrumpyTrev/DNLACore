@@ -14,6 +14,11 @@
 		app:showAsAction="always"
 		android:title="Playback mode" />
 	<item
+		android:title="Toggle genre"
+		app:showAsAction="never"
+		android:id="@+id/genreOption" >
+	</item>
+	<item
 		android:title="Playback"
 		app:showAsAction="never" >
 		<menu>

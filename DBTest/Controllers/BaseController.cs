@@ -9,54 +9,6 @@ namespace DBTest
 	/// </summary>
 	class BaseController
 	{
-		protected bool dataValid = false;
-
-		protected virtual void GetData()
-		{
-			// Make sure that this data is not returned until all of it is available
-			dataValid = false;
-
-			// Wait until all relevant data has been read
-			StorageController.RegisterInterestInDataAvailable( StorageDataAvailable );
-		}
-
-		protected virtual void StorageDataAvailable( object _ = null )
-		{
-			// The data is now valid
-			dataValid = true;
-			Reporter?.DataAvailable();
-		}
-
-		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public IReporter Reporter
-		{
-			protected get => reporter;
-			set
-			{
-				// Save the interface and report back the data if available
-				reporter = value;
-				if ( dataValid == true )
-				{
-					Reporter?.DataAvailable();
-				}
-			}
-		}
-
-		/// <summary>
-		/// The interface instance
-		/// </summary>
-		private IReporter reporter = null;
-
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface IReporter
-		{
-			void DataAvailable();
-		}
-
 		/// <summary>
 		/// Add a list of Songs to the Now Playing list
 		/// </summary>

@@ -11,7 +11,7 @@ namespace DBTest
 	/// The PlaybackRouter is responsible for routing playback instruction to a particular playback device according to the 
 	/// current selection
 	/// </summary>
-	class PlaybackRouter: Java.Lang.Object, PlaybackManagementController.IReporter, IMediaPlayerControl, PlaybackConnection.IConnectionCallbacks, 
+	class PlaybackRouter: Java.Lang.Object, PlaybackManagementController.IPlaybackReporter, IMediaPlayerControl, PlaybackConnection.IConnectionCallbacks, 
 		IServiceConnection, MediaControlService.IServiceCallbacks
 	{
 		/// <summary>
@@ -36,9 +36,8 @@ namespace DBTest
 			remoteConnection = new PlaybackConnection( typeof( RemotePlaybackService ), contextForBinding, this );
 			remoteConnection.StartConnection();
 
-			// Initialise the PlaybackManagementController and request the playlist and current song details
-			PlaybackManagementController.Reporter = this;
-			PlaybackManagementController.GetMediaControlData( ConnectionDetailsModel.LibraryId );
+			// Link this router to the controller
+			PlaybackManagementController.DataReporter = this;
 
 			// Start the media control service
 			contextForBinding.StartService( new Intent( contextForBinding, typeof( MediaControlService ) ) );
@@ -58,7 +57,7 @@ namespace DBTest
 			remoteConnection.StopConnection( permanentStop );
 
 			// As this instance is being destroyed don't leave any references hanging around
-			PlaybackManagementController.Reporter = null;
+			PlaybackManagementController.DataReporter = null;
 
 			// Only access the media control service if still bound
 			if ( controlService != null )
@@ -99,7 +98,7 @@ namespace DBTest
 		/// Called when the media data has been received or updated
 		/// </summary>
 		/// <param name="songsReplaced"></param>
-		public void MediaControlDataAvailable()
+		public void DataAvailable()
 		{
 			// Pass on the media data to all connections
 			localConnection.MediaControlDataAvailable();

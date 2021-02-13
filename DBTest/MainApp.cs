@@ -75,9 +75,11 @@ namespace DBTest
 			NowPlayingController.GetControllerData();
 			LibraryNameDisplayController.GetControllerData();
 			FilterManagementController.GetControllerData();
-			PlaybackSelectionController.GetPlaybackDetails();
+			PlaybackSelectionController.GetControllerData();
 			AutoplayController.GetControllerData();
 			PlaybackModeController.GetControllerData();
+			PlaybackManagementController.GetControllerData();
+			DisplayGenreController.GetControllerData();
 		}
 
 		/// <summary>

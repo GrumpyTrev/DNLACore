@@ -13,12 +13,9 @@
 		}
 
 		/// <summary>
-		/// Get the playback details
+		/// Get the Controller data
 		/// </summary>
-		public static void GetPlaybackDetails()
-		{
-			StorageController.RegisterInterestInDataAvailable( PlaybackDataAvailable );
-		}
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Called when the user has selected a new playback device
@@ -45,7 +42,7 @@
 		/// Called when the Playback details have been read in from storage
 		/// </summary>
 		/// <param name="message"></param>
-		private static void PlaybackDataAvailable( object message )
+		private static void StorageDataAvailable()
 		{
 			// Initialise the locally held devices collection to hold the 'local' device
 			PlaybackSelectionModel.RemoteDevices.AddDevice( new PlaybackDevice() { CanPlayMedia = PlaybackDevice.CanPlayMediaType.Yes, IsLocal = true,
@@ -188,6 +185,9 @@
 		/// </summary>
 		private static readonly RemoteDeviceCallback deviceCallback = new RemoteDeviceCallback();
 
-
+		/// <summary>
+		/// The DataReporter instance used to handle storage availability reporting
+		/// </summary>
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

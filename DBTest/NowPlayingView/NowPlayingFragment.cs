@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace DBTest
 {
-	public class NowPlayingFragment: PagedFragment< PlaylistItem >, ExpandableListAdapter<PlaylistItem>.IGroupContentsProvider<PlaylistItem>, 
+	public class NowPlayingFragment : PagedFragment<PlaylistItem>, ExpandableListAdapter<PlaylistItem>.IGroupContentsProvider<PlaylistItem>,
 		NowPlayingController.INowPlayingReporter, NowPlayingAdapter.IActionHandler
 	{
 		/// <summary>
@@ -54,6 +54,13 @@ namespace DBTest
 		/// Pass on the changes to the adapter
 		/// </summary>
 		public void SongSelected() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.SelectedSong );
+
+		/// <summary>
+		/// Called when the DisplayGenre flag has been toggled
+		/// </summary>
+		public void DisplayGenreChanged()
+		{
+		}
 
 		/// <summary>
 		/// Called when the number of selected items (songs) has changed.

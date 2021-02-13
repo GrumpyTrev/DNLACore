@@ -1,56 +1,47 @@
-﻿namespace DBTest
+﻿using System;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The LibraryNameDisplayController is used to obtain the name of the current library and to react to library changes
 	/// </summary>
-	class LibraryNameDisplayController : BaseController
+	class LibraryNameDisplayController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
 		/// </summary>
 		static LibraryNameDisplayController()
 		{
-			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-
-			instance = new LibraryNameDisplayController();
+			// When a library change message is received save it and report
+			Mediator.RegisterPermanent( ( object _ ) => { StorageDataAvailable(); DataReporter?.DataAvailable(); } , typeof( SelectedLibraryChangedMessage ) );
 		}
 
 		/// <summary>
 		/// Get the library name data 
 		/// </summary>
-		public static void GetControllerData() => instance.GetData();
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
-		/// Called during startup, or library change, when the storage data is available
+		/// Called during startup when the storage data is available
 		/// </summary>
-		/// <param name="message"></param>
-		protected override void StorageDataAvailable( object _ = null )
+		private static void StorageDataAvailable()
 		{
-			// Save the current library name
 			LibraryNameViewModel.LibraryName = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).Name;
-
-			// Call the base class
-			base.StorageDataAvailable();
+			DataReporter?.DataAvailable();
 		}
-
-		/// <summary>
-		/// Called when a SelectedLibraryChangedMessage has been received
-		/// Use the StorageDataAvailable method to store the new librray name and report it
-		/// </summary>
-		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object _ ) => instance.StorageDataAvailable();
 
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter DataReporter
+		public static DataReporter.IReporter DataReporter
 		{
-			set => instance.Reporter = value;
+			get => dataReporter.Reporter;
+			set => dataReporter.Reporter = value;
 		}
 
 		/// <summary>
-		/// The one and only LibraryNameDisplayController instance
+		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly LibraryNameDisplayController instance = null;
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

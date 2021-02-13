@@ -8,7 +8,7 @@ namespace DBTest
 	/// The NowPlayingController is the Controller for the NowPlayingView. It responds to NowPlayingView commands and maintains Now Playing data in the
 	/// NowPlayingViewModel
 	/// </summary>
-	class NowPlayingController : BaseController
+	class NowPlayingController
 	{
 		/// <summary>
 		/// Register for external Now Playing list change messages
@@ -18,14 +18,13 @@ namespace DBTest
 			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-
-			instance = new NowPlayingController();
+			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 		}
 
 		/// <summary>
 		/// Get the Playlist data
 		/// </summary>
-		public static void GetControllerData() => instance.GetData();
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Set the selected song in the database and raise the SongSelectedMessage
@@ -33,15 +32,11 @@ namespace DBTest
 		/// </summary>
 		public static void SetSelectedSong( int songIndex, bool playSong = true )
 		{
-			Logger.Log( $"NowPlayingController.SetSelectedSong setting index to {songIndex} and sending a SongSelectedMessage" );
-
 			Playback.SongIndex = songIndex;
 
 			// Make sure the new song is played if requested
 			if ( ( songIndex != -1 ) && ( playSong == true ) )
 			{
-				Logger.Log( $"NowPlayingController.SetSelectedSong play song requested" );
-
 				new PlayCurrentSongMessage().Send();
 			}
 		}
@@ -152,7 +147,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the Playlist data is available to be displayed, or needs to be refreshed
 		/// </summary>
-		protected override void StorageDataAvailable( object _ = null )
+		private static void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
 			NowPlayingViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
@@ -163,7 +158,10 @@ namespace DBTest
 			// Get the selected song
 			NowPlayingViewModel.SelectedSong = Playback.SongIndex;
 
-			base.StorageDataAvailable();
+			// Get the display genre flag
+			NowPlayingViewModel.DisplayGenre = Playback.DisplayGenre;
+
+			DataReporter?.DataAvailable();
 		}
 
 		/// <summary>
@@ -179,8 +177,7 @@ namespace DBTest
 				NowPlayingViewModel.ClearModel();
 
 				// Reread the data
-				instance.dataValid = false;
-				instance.StorageDataAvailable();
+				StorageDataAvailable();
 			}
 		}
 
@@ -192,8 +189,6 @@ namespace DBTest
 		private static void SongSelected( object _message )
 		{
 			NowPlayingViewModel.SelectedSong = Playback.SongIndex;
-
-			Logger.Log( $"NowPlayingController.SongSelected passing index {NowPlayingViewModel.SelectedSong} to UI" );
 
 			DataReporter?.SongSelected();
 		}
@@ -209,8 +204,18 @@ namespace DBTest
 			NowPlayingViewModel.ClearModel();
 
 			// Reread the data
-			instance.dataValid = false;
-			instance.StorageDataAvailable();
+			StorageDataAvailable();
+		}
+
+		/// <summary>
+		/// Called when a DisplayGenreMessage is received.
+		/// Update the model and report the change
+		/// </summary>
+		/// <param name="message"></param>
+		private static void DisplayGenreChanged( object message )
+		{
+			NowPlayingViewModel.DisplayGenre = ( ( DisplayGenreMessage )message ).DisplayGenre;
+			DataReporter?.DisplayGenreChanged();
 		}
 
 		/// <summary>
@@ -225,7 +230,6 @@ namespace DBTest
 
 				if ( newSelectedIndex != NowPlayingViewModel.SelectedSong )
 				{
-					Logger.Log( $"NowPlayingController.AdjustSelectedSongIndex setting index to {newSelectedIndex}" );
 					SetSelectedSong( newSelectedIndex, false );
 				}
 			}
@@ -246,22 +250,23 @@ namespace DBTest
 		/// </summary>
 		public static INowPlayingReporter DataReporter
 		{
-			private get => ( INowPlayingReporter )instance.Reporter;
-			set => instance.Reporter = value;
+			private get => ( INowPlayingReporter )dataReporter.Reporter;
+			set => dataReporter.Reporter = value;
 		}
 
 		/// <summary>
 		/// The interface used to report back controller results
 		/// </summary>
-		public interface INowPlayingReporter : IReporter
+		public interface INowPlayingReporter : DataReporter.IReporter
 		{
 			void SongSelected();
 			void PlaylistUpdated();
+			void DisplayGenreChanged();
 		}
 
 		/// <summary>
-		/// The one and only NowPlayingController instance
+		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly NowPlayingController instance = null;
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

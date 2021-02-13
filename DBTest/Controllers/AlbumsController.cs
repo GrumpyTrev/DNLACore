@@ -9,7 +9,7 @@ namespace DBTest
 	/// The AlbumsController is the Controller for the AlbumsView. It responds to AlbumsView commands and maintains Albums data in the
 	/// AlbumsViewModel
 	/// </summary>
-	class AlbumsController : BaseController
+	class AlbumsController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
@@ -21,14 +21,13 @@ namespace DBTest
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
 			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
 			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
-
-			instance = new AlbumsController();
+			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 		}
 
 		/// <summary>
 		/// Get the Controller data
 		/// </summary>
-		public static void GetControllerData() => instance.GetData();
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Get the contents for the specified Album
@@ -181,14 +180,14 @@ namespace DBTest
 			} );
 
 			// Publish the data
-			instance.Reporter?.DataAvailable();
+			DataReporter?.DataAvailable();
 		}
 
 		/// <summary>
 		/// Called when the Album data has been read in from storage
 		/// </summary>
 		/// <param name="message"></param>
-		protected override async void StorageDataAvailable( object _ = null )
+		private static async void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
 			AlbumsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
@@ -196,11 +195,11 @@ namespace DBTest
 			// Get all the albums associated with the library
 			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
 
+			// Get the display genre flag
+			AlbumsViewModel.DisplayGenre = Playback.DisplayGenre;
+
 			// Apply the current filter
 			await ApplyFilterAsync();
-
-			// Let the base class do the reporting back
-			base.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -270,8 +269,7 @@ namespace DBTest
 			AlbumsViewModel.ClearModel();
 
 			// Reload the library specific album data
-			instance.dataValid = false;
-			instance.StorageDataAvailable();
+			StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -317,9 +315,20 @@ namespace DBTest
 				// Is this album being displayed
 				if ( AlbumsViewModel.Albums.Any( album => album.Id == changedAlbum.Id ) == true )
 				{
-					instance.Reporter?.DataAvailable();
+					DataReporter?.DataAvailable();
 				}
 			}
+		}
+
+		/// <summary>
+		/// Called when a DisplayGenreMessage is received.
+		/// Update the model and report the change
+		/// </summary>
+		/// <param name="message"></param>
+		private static void DisplayGenreChanged( object message )
+		{
+			AlbumsViewModel.DisplayGenre = ( ( DisplayGenreMessage )message ).DisplayGenre;
+			DataReporter?.DisplayGenreChanged();
 		}
 
 		/// <summary>
@@ -395,14 +404,23 @@ namespace DBTest
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter DataReporter
+		public static IAlbumsReporter DataReporter
 		{
-			set => instance.Reporter = value;
+			get => ( IAlbumsReporter )dataReporter.Reporter;
+			set => dataReporter.Reporter = value;
+		}
+		
+		/// <summary>
+		/// The interface used to report back controller results
+		/// </summary>
+		public interface IAlbumsReporter : DataReporter.IReporter
+		{
+			void DisplayGenreChanged();
 		}
 
 		/// <summary>
-		/// The one and only AlbumsController instance
+		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly AlbumsController instance = null;
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

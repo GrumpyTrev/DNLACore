@@ -74,6 +74,7 @@
     <Compile Include="CommandHandlers\DuplicatePlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\AutoplayOptionsCommandHandler.cs" />
     <Compile Include="CommandHandlers\AutoModeCommandHander.cs" />
+    <Compile Include="CommandHandlers\DisplayGenreCommandHander.cs" />
     <Compile Include="CommandHandlers\ShuffleModeCommandHander.cs" />
     <Compile Include="CommandHandlers\RepeatModeCommandHander.cs" />
     <Compile Include="CommandHandlers\StartAutoPlaylistCommandHandler.cs" />
@@ -98,7 +99,9 @@
     <Compile Include="Controllers\ArtistsController.cs" />
     <Compile Include="Controllers\AutoplayController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\DataReporter.cs" />
     <Compile Include="Controllers\FilterManagementController.cs" />
+    <Compile Include="Controllers\DisplayGenreController.cs" />
     <Compile Include="Controllers\PlaybackModeController.cs" />
     <Compile Include="Controllers\LibraryNameDisplayController.cs" />
     <Compile Include="Controllers\LibraryManagementController.cs" />
@@ -113,6 +116,7 @@
     <Compile Include="Controllers\PlaybackSelectionController.cs" />
     <Compile Include="Controllers\StorageController.cs" />
     <Compile Include="DbAccess\DbAccess.cs" />
+    <Compile Include="DisplayGenreView\DisplayGenreViewModel.cs" />
     <Compile Include="FilterManagement\DeleteConfirmationDialogFragment.cs" />
     <Compile Include="FilterManagement\FilterManagementModel.cs" />
     <Compile Include="FilterManagement\FilterSelectionDialogFragment.cs" />
@@ -146,6 +150,7 @@
     <Compile Include="MainApp.cs" />
     <Compile Include="Messages\AlbumsDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackModelChangedMessage.cs" />
+    <Compile Include="Messages\DisplayGenreMessage.cs" />
     <Compile Include="Messages\StorageDataAvailableMessage.cs" />
     <Compile Include="Messages\PlayCurrentSongMessage.cs" />
     <Compile Include="Messages\PlaylistAddedMessage.cs" />
@@ -437,9 +442,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\sort_by_year_descending.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\info.png" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\sort_by_genre_ascending.png" />

@@ -8,7 +8,7 @@ namespace DBTest
 	/// <summary>
 	/// The AutoplayController class is the controller for the AutoplayManagement
 	/// </summary>
-	class AutoplayController : BaseController
+	class AutoplayController
 	{
 		/// <summary>
 		/// Create the one and only instance of the controller
@@ -16,13 +16,12 @@ namespace DBTest
 		static AutoplayController()
 		{
 			Mediator.RegisterPermanent( SongSelectedAsync, typeof( SongSelectedMessage ) );
-			instance = new AutoplayController();
 		}
 
 		/// <summary>
 		/// Get the Controller data
 		/// </summary>
-		public static void GetControllerData() => instance.GetData();
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Start filling the NowPlaying list with the first set of songs
@@ -71,7 +70,7 @@ namespace DBTest
 		/// Get the Autoplay record for the current library
 		/// </summary>
 		/// <param name="message"></param>
-		protected override async void StorageDataAvailable( object _ = null )
+		private static async void StorageDataAvailable()
 		{
 			// Link the Autoplay records with their Populations
 			await Autoplays.LinkPopulationsAsync();
@@ -81,8 +80,6 @@ namespace DBTest
 
 			// Get the library's Autoplay
 			AutoplayModel.CurrentAutoplay = await Autoplays.GetAutoplayAsync( AutoplayModel.LibraryId );
-
-			base.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -135,7 +132,6 @@ namespace DBTest
 							break;
 						}
 					}
-
 				}
 				else
 				{
@@ -188,8 +184,6 @@ namespace DBTest
 				int currentSongIndex = Playback.SongIndex;
 				Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( AutoplayModel.LibraryId );
 
-				Logger.Log( $"AutoplayController.SongSelectedAsync setting currentSongIndex to {currentSongIndex}" );
-
 				if ( ( nowPlaying.PlaylistItems.Count - currentSongIndex ) < RefillLevel )
 				{
 					// Generate some songs and add to the Now Playing list
@@ -203,7 +197,6 @@ namespace DBTest
 					int songsToRemove = Math.Max(0, currentSongIndex - LeaveSongs );
 					if ( songsToRemove > 0 )
 					{
-						Logger.Log( $"AutoplayController.SongSelectedAsync removing {songsToRemove} songs" );
 						NowPlayingController.DeleteNowPlayingItems( nowPlaying.PlaylistItems.GetRange( 0, songsToRemove ) );
 					}
 				}
@@ -225,12 +218,12 @@ namespace DBTest
 		/// </summary>
 		private const int LeaveSongs = 10;
 
-		// The last population index used to select from
+		/// The last population index used to select from
 		private static int populationNumber = -1;
 
 		/// <summary>
-		/// The one and only AutoplayController instance
+		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly AutoplayController instance = null;
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

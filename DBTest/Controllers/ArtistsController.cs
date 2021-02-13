@@ -9,7 +9,7 @@ namespace DBTest
 	/// The ArtistsController is the Controller for the ArtistsView. It responds to ArtistsView commands and maintains Artists data in the
 	/// ArtistsViewModel
 	/// </summary>
-	class ArtistsController : BaseController
+	class ArtistsController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
@@ -21,14 +21,13 @@ namespace DBTest
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
 			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
 			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
-
-			instance = new ArtistsController(); 
+			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 		}
 
 		/// <summary>
 		/// Get the Artist data 
 		/// </summary>
-		public static void GetControllerData() => instance.GetData();
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Get the contents for the specified Artist
@@ -113,14 +112,14 @@ namespace DBTest
 			} );
 
 			// Publish the data
-			instance.Reporter?.DataAvailable();
+			DataReporter?.DataAvailable();
 		}
 
 		/// <summary>
 		/// Called during startup, or library change, when the storage data is available
 		/// </summary>
 		/// <param name="message"></param>
-		protected override async void StorageDataAvailable( object _ = null )
+		private static async void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
 			ArtistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
@@ -128,14 +127,14 @@ namespace DBTest
 			// Get the Artists we are interested in
 			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
 
+			// Get the display genre flag
+			ArtistsViewModel.DisplayGenre = Playback.DisplayGenre;
+			
 			// Do the sorting of ArtistAlbum entries off the UI thread
 			await SortArtistAlbumsAsync();
 
 			// Apply the current filter and get the data ready for display 
 			await ApplyFilterAsync();
-
-			// Call the base class
-			base.StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -236,8 +235,7 @@ namespace DBTest
 			ArtistsViewModel.ClearModel();
 
 			// Reload the library specific artist data
-			instance.dataValid = false;
-			instance.StorageDataAvailable();
+			StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -281,10 +279,21 @@ namespace DBTest
 			// It may be in another library if this is being called as part of a library synchronisation process
 			if ( changedAlbum.LibraryId == ArtistsViewModel.LibraryId )
 			{
-				instance.Reporter?.DataAvailable();
+				DataReporter?.DataAvailable();
 			}
 		}
-
+			
+		/// <summary>
+		/// Called when a DisplayGenreMessage is received.
+		/// Update the model and report the change
+		/// </summary>
+		/// <param name="message"></param>
+		private static void DisplayGenreChanged( object message )
+		{
+			ArtistsViewModel.DisplayGenre = ( ( DisplayGenreMessage )message ).DisplayGenre;
+			DataReporter?.DisplayGenreChanged();
+		}	
+		
 		/// <summary>
 		/// Generate the fast scroll indexes using the provided function to obtain the section name
 		/// The sorted albums have already been moved/copied to the ArtistsViewModel.ArtistsAndAlbums list
@@ -327,14 +336,23 @@ namespace DBTest
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter DataReporter
+		public static IArtistsReporter DataReporter
 		{
-			set => instance.Reporter = value;
+			private get => ( IArtistsReporter )dataReporter.Reporter;
+			set => dataReporter.Reporter = value;
 		}
 
 		/// <summary>
-		/// The one and only ArtistsController instance
+		/// The interface used to report back controller results
 		/// </summary>
-		private static readonly ArtistsController instance = null;
+		public interface IArtistsReporter : DataReporter.IReporter
+		{
+			void DisplayGenreChanged();
+		}
+
+		/// <summary>
+		/// The DataReporter instance used to handle storage availability reporting
+		/// </summary>
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

@@ -121,6 +121,25 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Access the Playback DisplayGenre flag
+		/// </summary>
+		[Ignore]
+		public static bool DisplayGenre
+		{
+			get => PlaybackInstance.DBGenreDisplayOn;
+			set
+			{
+				PlaybackInstance.DBGenreDisplayOn = value;
+
+				// No need to wait for the update to complete
+				DbAccess.UpdateAsync( PlaybackInstance );
+
+				// Let everyone know about this change
+				new DisplayGenreMessage() { DisplayGenre = value }.Send();
+			}
+		}
+
+		/// <summary>
 		/// The Playback object read from storage
 		/// </summary>
 		[Ignore]

@@ -40,6 +40,13 @@ namespace DBTest
 		public void PlaylistUpdated( Playlist playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
 
 		/// <summary>
+		/// Called when the DisplayGenre flag has been toggled
+		/// </summary>
+		public void DisplayGenreChanged()
+		{
+		}
+
+		/// <summary>
 		/// Called when the number of selected items has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>

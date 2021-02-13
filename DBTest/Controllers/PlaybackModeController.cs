@@ -10,13 +10,12 @@
 		/// </summary>
 		static PlaybackModeController()
 		{
-			instance = new PlaybackModeController();
 		}
 
 		/// <summary>
 		/// Get the playback mode data 
 		/// </summary>
-		public static void GetControllerData() => instance.GetData();
+		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Update the state of the Auto play flag
@@ -34,7 +33,7 @@
 					Playback.ShufflePlayOn = false;
 				}
 
-				instance.StorageDataAvailable();
+				StorageDataAvailable();
 			}
 		}
 
@@ -53,7 +52,7 @@
 					Playback.AutoPlayOn = false;
 				}
 
-				instance.StorageDataAvailable();
+				StorageDataAvailable();
 			}
 		}
 
@@ -72,7 +71,7 @@
 					Playback.AutoPlayOn = false;
 				}
 
-				instance.StorageDataAvailable();
+				StorageDataAvailable();
 			}
 		}
 
@@ -80,7 +79,7 @@
 		/// Called during startup, or library change, when the storage data is available
 		/// </summary>
 		/// <param name="message"></param>
-		protected override void StorageDataAvailable( object _ = null )
+		private static void StorageDataAvailable()
 		{
 			// Save the current playback mode obtained from the Playback object
 			PlaybackModeModel.AutoOn = Playback.AutoPlayOn;
@@ -90,21 +89,21 @@
 			// Update the summary state in the model
 			PlaybackModeModel.UpdateActivePlayMode();
 
-			// Call the base class
-			base.StorageDataAvailable();
+			DataReporter?.DataAvailable();
 		}
 
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IReporter DataReporter
+		public static DataReporter.IReporter DataReporter
 		{
-			set => instance.Reporter = value;
+			get => dataReporter.Reporter;
+			set => dataReporter.Reporter = value;
 		}
 
 		/// <summary>
-		/// The one and only PlaybackModeController instance
+		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly PlaybackModeController instance = null;
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

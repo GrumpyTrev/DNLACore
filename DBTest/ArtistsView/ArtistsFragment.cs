@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DBTest
 {
-	public class ArtistsFragment: PagedFragment<object>, ExpandableListAdapter<object>.IGroupContentsProvider<object>, ArtistsController.IReporter, 
+	public class ArtistsFragment: PagedFragment<object>, ExpandableListAdapter<object>.IGroupContentsProvider<object>, ArtistsController.IArtistsReporter, 
 		SortSelector.ISortReporter
 	{
 		/// <summary>
@@ -65,8 +65,16 @@ namespace DBTest
 
 				// Display the current sort order
 				ArtistsViewModel.SortSelector.DisplaySortIcon();
+
+				// Display or hide the genres
+				DisplayGenreChanged();
 			} );
 		}
+
+		/// <summary>
+		/// Called when the DisplayGen=re flag has been toggled
+		/// </summary>
+		public void DisplayGenreChanged() => ( ( ArtistsAdapter )Adapter ).ShowGenre( ArtistsViewModel.DisplayGenre );
 
 		/// <summary>
 		/// Called when the number of selected items (songs) has changed.
@@ -117,12 +125,6 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_artists;
-
-		/// <summary>
-		/// Show or hide genres
-		/// </summary>
-		/// <param name="showGenre"></param>
-		protected override void ShowGenre( bool showGenre ) => ( ( ArtistsAdapter )Adapter ).ShowGenre( showGenre );
 
 		/// <summary>
 		/// The FilterSelection object used by this fragment

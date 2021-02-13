@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The PlaybackModeView class displays the current playback mode and allows the user to change the playback mode
 	/// </summary>
-	class PlaybackModeView : BaseController.IReporter
+	class PlaybackModeView : DataReporter.IReporter
 	{
 		/// <summary>
 		/// Default constructor

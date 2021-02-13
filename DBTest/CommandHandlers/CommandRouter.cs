@@ -36,6 +36,7 @@ namespace DBTest
 			new AutoModeCommandHander().BindToRouter();
 			new RepeatModeCommandHander().BindToRouter();
 			new ShuffleModeCommandHander().BindToRouter();
+			new DisplayGenreCommandHander().BindToRouter();
 		}
 
 		/// <summary>

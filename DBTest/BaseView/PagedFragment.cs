@@ -95,11 +95,6 @@ namespace DBTest
 
 			// If there is a filter selector then bind to it
 			FilterSelector?.BindToMenu( menu.FindItem( Resource.Id.filter ) );
-
-			// Find the 'show genre' submenu option so that the text can be changed
-			genresOption = menu.FindItem( Resource.Id.info )?.SubMenu.FindItem( Resource.Id.genreOption ) ?? null;
-			SetGenresOptionText();
-			ShowGenre( GenresShown );
 		}
 
 		/// <summary>
@@ -127,14 +122,6 @@ namespace DBTest
 			else if ( id == Resource.Id.filter )
 			{
 				FilterSelector?.SelectFilter();
-			}
-			else if ( id == Resource.Id.genreOption )
-			{
-				GenresShown = !GenresShown;
-				SetGenresOptionText();
-				ShowGenre( GenresShown );
-
-				handled = true;
 			}
 
 			if ( handled == false )
@@ -379,12 +366,6 @@ namespace DBTest
 		protected void AppendToTabTitle() => FragmentTitles.AppendToTabTitle( FilterSelector?.TabString() ?? "", this );
 
 		/// <summary>
-		/// Base class method that can be overriden by derived classes to display or hide genre information
-		/// </summary>
-		/// <param name="showGenre"></param>
-		protected virtual void ShowGenre( bool showGenre ) { }
-
-		/// <summary>
 		/// The ExpandableListAdapter used to display the data for this fragment
 		/// </summary>
 		protected ExpandableListAdapter<T> Adapter { get; set; }
@@ -439,11 +420,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Set the text for the show/hide genres menu option
-		/// </summary>
-		private void SetGenresOptionText() => genresOption?.SetTitle( GenresShown ? "Hide genres" : "Show genres" );
-
-		/// <summary>
 		/// The Action Mode instance
 		/// </summary>
 		private ActionMode actionModeInstance = null;
@@ -472,16 +448,6 @@ namespace DBTest
 		/// The title to display in the action mode
 		/// </summary>
 		private string actionModeTitle = "";
-
-		/// <summary>
-		/// Are genres being displayed for albums
-		/// </summary>
-		private bool GenresShown { get; set; } = false;
-
-		/// <summary>
-		/// The optional menu item for the hide/show genres option
-		/// </summary>
-		private IMenuItem genresOption = null;
 
 		/// <summary>
 		/// The CommandHandlerCallback containing the action to call after a command has been handled
