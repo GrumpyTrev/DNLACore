@@ -66,6 +66,11 @@
 		public static void SongPlayed( Song songPlayed ) => new SongPlayedMessage() { SongPlayed = songPlayed }.Send();
 
 		/// <summary>
+		/// Called to show the playback conmtrols. Pass on to the router
+		/// </summary>
+		public static void ShowPlaybackControls() => DataReporter?.ShowPlaybackControls();
+
+		/// <summary>
 		/// Called when the SongSelectedMessage is received
 		/// Update the local model and inform the reporter 
 		/// </summary>
@@ -196,6 +201,7 @@
 			void SongSelected();
 			void SelectPlaybackDevice( PlaybackDevice oldSelectedDevice );
 			void PlayRequested();
+			void ShowPlaybackControls();
 		}
 
 		/// <summary>

@@ -10,40 +10,44 @@ namespace DBTest
 	class LibraryNameDisplay : DataReporter.IReporter
 	{
 		/// <summary>
-		/// Bind this class to the specified view
+		/// Bind to the specified menu item.
+		/// Replace the standard view associated with the menu item with out own reduced margin version
+		/// Store the AppCompatImageButton from the view
 		/// </summary>
-		public LibraryNameDisplay( View bindView, Context popupContext )
+		/// <param name="menu"></param>
+		public void BindToMenu( IMenu menu, Context context )
 		{
-			// Find the textview to display the library name and install a click handler
-			titleTextView = bindView.FindViewById<TextView>( Resource.Id.toolbar_title );
-
-			if ( titleTextView != null )
+			if ( menu != null )
 			{
-				// Create a Popup for this text view and route it's selections to the CommandRouter
-				titlePopup = new PopupMenu( popupContext, titleTextView );
-				titlePopup.Inflate( Resource.Menu.menu_library );
-				titlePopup.MenuItemClick += ( sender, args ) =>
+				// Find the playback_info menu item if it exists
+				IMenuItem boundMenuItem = menu.FindItem( Resource.Id.library_name );
+				if ( boundMenuItem != null )
 				{
-					CommandRouter.HandleCommand( args.Item.ItemId );
-				};
+					titleTextView = ( TextView )LayoutInflater.FromContext( context ).Inflate( Resource.Layout.toolbarText, null );
+					boundMenuItem.SetActionView( titleTextView );
 
-				// Show the popup when the textview is selected
-				titleTextView.Click += ( sender, args ) =>
-				{
-					titlePopup.Show();
-				};
+					// Create a Popup for this text view and route it's selections to the CommandRouter
+					titlePopup = new PopupMenu( context, titleTextView );
+					titlePopup.Inflate( Resource.Menu.menu_library );
+					titlePopup.MenuItemClick += ( sender, args ) =>
+					{
+						CommandRouter.HandleCommand( args.Item.ItemId );
+					};
 
-				LibraryNameDisplayController.DataReporter = this;
+					// Show the popup when the textview is selected
+					titleTextView.Click += ( sender, args ) =>
+					{
+						titlePopup.Show();
+					};
+
+					LibraryNameDisplayController.DataReporter = this;
+				}
 			}
-		}
-
-		/// <summary>
-		/// Remove this instance from the LibraryNameDisplayController
-		/// </summary>
-		public void UnBind()
-		{
-			LibraryNameDisplayController.DataReporter = null;
-			titlePopup = null;
+			else
+			{
+				titleTextView = null;
+				titlePopup = null;
+			}
 		}
 
 		/// <summary>

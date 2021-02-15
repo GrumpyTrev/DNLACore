@@ -32,12 +32,6 @@ namespace DBTest
 
 			// Initialise the newtwork monitoring
 			playbackCapabilities = new PlaybackCapabilities( Context );
-
-			// Initialise the playback device monitoring
-			playbackMonitoring = new PlaybackMonitor();
-
-			// Create the PlaybackModeView instance
-			playbackModeViewer = new PlaybackModeView();
 		}
 
 		/// Add the specified interface to the callback colletion
@@ -54,6 +48,7 @@ namespace DBTest
 		{
 			instance.playbackMonitoring.BindToMenu( menu, context );
 			instance.playbackModeViewer.BindToMenu( menu, context );
+			instance.libraryNameDisplay.BindToMenu( menu, context );
 		}
 
 		/// <summary>
@@ -154,11 +149,16 @@ namespace DBTest
 		/// <summary>
 		/// The PlaybackMonitor instance used to monitor the state of the playback system
 		/// </summary>
-		private readonly PlaybackMonitor playbackMonitoring = null;
+		private readonly PlaybackMonitor playbackMonitoring = new PlaybackMonitor();
 
 		/// <summary>
 		/// The PlaybackModeView instance used to display the playback mode and to allow it to be changed
 		/// </summary>
-		private readonly PlaybackModeView playbackModeViewer = null;
+		private readonly PlaybackModeView playbackModeViewer = new PlaybackModeView();
+
+		/// <summary>
+		/// The LibraryNameDisplay instance used to display the library name
+		/// </summary>
+		private readonly LibraryNameDisplay libraryNameDisplay = new LibraryNameDisplay();
 	}
 }

@@ -29,13 +29,11 @@ namespace DBTest
 	/// <summary>
 	/// The TagCreator class is used to handle new tag creation commands
 	/// </summary>
-	class TagCreator
+	static class TagCreator
 	{
 		/// <summary>
 		/// Allow the user to create a new tag
 		/// </summary>
-		/// <param name="activityContext"></param>
-		public static void AddNewTag( AppCompatActivity activityContext ) => 
-			TagEditorDialogFragment.ShowFragment( activityContext.SupportFragmentManager, "New tag details", "" );
+		public static void AddNewTag() => TagEditorDialogFragment.ShowFragment( CommandRouter.Manager, "New tag details", "" );
 	}
 }

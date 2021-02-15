@@ -1,0 +1,13 @@
+﻿<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+	<item
+		android:id="@+id/show_media_controls"
+		android:title="Show playback controls" />
+	<item
+		android:id="@+id/select_playback_device"
+		android:title="Select playback device" />
+	<item
+		android:id="@+id/shuffle_now_playing"
+		android:title="Shuffle now playing list" />
+</menu>

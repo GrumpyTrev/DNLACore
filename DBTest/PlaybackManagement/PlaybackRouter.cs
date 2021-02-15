@@ -271,36 +271,18 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Are the playback controls currently visible
+		/// Called to show the playback controls
 		/// </summary>
-		public bool PlaybackControlsVisible
+		public void ShowPlaybackControls()
 		{
-			get
+			// If this is a change and the controls are being shown then make the controller visible and record this in the model
+			if ( PlaybackManagerModel.MediaControllerVisible == false )
 			{
-				bool visible = false;
-
-				if ( ( mediaController != null ) && ( mediaController.Visibility == ViewStates.Visible ) )
+				if ( mediaController != null )
 				{
-					visible = true;
-				}
-
-				return visible;
-			}
-
-			set
-			{
-				// If this is a change and the controls are being shown then make the controller visible and record this in the model
-				if ( PlaybackControlsVisible != value )
-				{
-					if ( value == true )
-					{
-						if ( mediaController != null )
-						{
-							mediaController.Visibility = ViewStates.Visible;
-							mediaController.Show( 0 );
-							PlaybackManagerModel.MediaControllerVisible = true;
-						}
-					}
+					mediaController.Visibility = ViewStates.Visible;
+					mediaController.Show( 0 );
+					PlaybackManagerModel.MediaControllerVisible = true;
 				}
 			}
 		}

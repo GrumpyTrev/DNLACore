@@ -32,9 +32,6 @@ namespace DBTest
 			// Don't display the title as this is now done by the LibraryNameDisplay class (see below )
 			SupportActionBar.SetDisplayShowTitleEnabled( false );
 
-			// Link in to the LibraryNameDisplay so that the current library can be displayed
-			libraryDisplayer = new LibraryNameDisplay( toolbar, this );
-
 			// Set up logging
 			Logger.Reporter = this;
 
@@ -90,9 +87,6 @@ namespace DBTest
 		/// <returns></returns>
 		public override bool OnPrepareOptionsMenu( IMenu menu )
 		{
-			// Enable or disable the playback visible item according to the current media controller visibility
-			menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( playbackRouter.PlaybackControlsVisible == false );
-
 			// Populate the rename and delete tag menus with submenus containing the user tags items
 			int menuId = Menu.First;
 
@@ -127,23 +121,12 @@ namespace DBTest
 			{
 				handled = true;
 			}
-			// Check for the show media UI option
-			else if ( id == Resource.Id.show_media_controls )
-			{
-				playbackRouter.PlaybackControlsVisible = true;
-				handled = true;
-			}
 			else if ( tagEditCommandHandler.OnOptionsItemSelected( id, item.TitleFormatted.ToString() ) == true )
 			{
 				handled = true;
 			}
 			else if ( tagDeleteCommandHandler.OnOptionsItemSelected( id, item.TitleFormatted.ToString() ) == true )
 			{
-				handled = true;
-			}
-			else if ( id == Resource.Id.add_tag )
-			{
-				TagCreator.AddNewTag( this );
 				handled = true;
 			}
 
@@ -189,7 +172,6 @@ namespace DBTest
 
 			// Some of the managers need to remove themselves from the scene
 			FragmentTitles.ParentActivity = null;
-			libraryDisplayer.UnBind();
 
 			// Unbind from any process wide command handler or monitors that require a menu item
 			MainApp.BindMenu( null, this );
@@ -239,11 +221,6 @@ namespace DBTest
 		/// The handler for the tag editor command
 		/// </summary>
 		private TagEditor tagEditCommandHandler = null;
-
-		/// <summary>
-		/// The LibraryNameDisplay instance used to display the library name
-		/// </summary>
-		private LibraryNameDisplay libraryDisplayer = null;
 	}
 }
 

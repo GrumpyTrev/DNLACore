@@ -37,6 +37,8 @@ namespace DBTest
 			new RepeatModeCommandHander().BindToRouter();
 			new ShuffleModeCommandHander().BindToRouter();
 			new DisplayGenreCommandHander().BindToRouter();
+			new ShowPlaybackControlsCommandHander().BindToRouter();
+			new NewTabCommandHander().BindToRouter();
 		}
 
 		/// <summary>

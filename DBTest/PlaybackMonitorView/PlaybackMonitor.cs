@@ -21,7 +21,7 @@ namespace DBTest
 		/// Store the AppCompatImageButton from the view
 		/// </summary>
 		/// <param name="menu"></param>
-		public void BindToMenu( IMenu menu, Context _context )
+		public void BindToMenu( IMenu menu, Context context )
 		{
 			if ( menu != null )
 			{
@@ -31,12 +31,30 @@ namespace DBTest
 				{
 					boundMenuItem.SetActionView( Resource.Layout.toolbarButton );
 					imageButton = boundMenuItem.ActionView.FindViewById<AppCompatImageButton>( Resource.Id.toolbarSpecialButton );
+
+					// Create a Popup for this button and route it's selections to the CommandRouter
+					popupMenu = new PopupMenu( context, imageButton );
+					popupMenu.Inflate( Resource.Menu.menu_playback_options );
+					popupMenu.MenuItemClick += ( sender, args ) =>
+					{
+						CommandRouter.HandleCommand( args.Item.ItemId );
+					};
+
+					// Show the popup when the button is selected
+					imageButton.Click += ( sender, args ) =>
+					{
+						// Enable or disable the playback visible item according to the current media controller visibility
+						popupMenu.Menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( PlaybackManagerModel.MediaControllerVisible == false );
+						popupMenu.Show();
+					};
+
 					DisplayMonitorIcon();
 				}
 			}
 			else
 			{
 				imageButton = null;
+				popupMenu = null;
 			}
 		}
 
@@ -103,5 +121,10 @@ namespace DBTest
 		/// The button (icon) item that this monitor is bound to
 		/// </summary>
 		private AppCompatImageButton imageButton = null;
+
+		/// <summary>
+		/// The PopupMenu used to display the menu options available from the icon
+		/// </summary>
+		private PopupMenu popupMenu = null;
 	}
 }
