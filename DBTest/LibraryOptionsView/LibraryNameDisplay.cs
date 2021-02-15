@@ -7,25 +7,22 @@ namespace DBTest
 	/// <summary>
 	/// The LibraryNameDisplay class is used to display the name of the current library and to pass click events on to the appropriate command handler
 	/// </summary>
-	class LibraryNameDisplay : DataReporter.IReporter
+	class LibraryNameDisplay : BaseBoundControl, DataReporter.IReporter
 	{
 		/// <summary>
-		/// Bind to the specified menu item.
-		/// Replace the standard view associated with the menu item with out own reduced margin version
-		/// Store the AppCompatImageButton from the view
+		/// Bind to the specified view.
 		/// </summary>
 		/// <param name="menu"></param>
-		public void BindToMenu( IMenu menu, Context context )
+		public override void BindToView( View view, Context context )
 		{
-			if ( menu != null )
+			if ( view != null )
 			{
-				// Find the playback_info menu item if it exists
-				IMenuItem boundMenuItem = menu.FindItem( Resource.Id.library_name );
-				if ( boundMenuItem != null )
-				{
-					titleTextView = ( TextView )LayoutInflater.FromContext( context ).Inflate( Resource.Layout.toolbarText, null );
-					boundMenuItem.SetActionView( titleTextView );
+				// Find the textview to display the library name and install a click handler
+				titleTextView = view.FindViewById<TextView>( Resource.Id.toolbar_title );
 
+				// Find the playback_info menu item if it exists
+				if ( titleTextView != null )
+				{
 					// Create a Popup for this text view and route it's selections to the CommandRouter
 					titlePopup = new PopupMenu( context, titleTextView );
 					titlePopup.Inflate( Resource.Menu.menu_library );

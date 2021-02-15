@@ -41,7 +41,7 @@ namespace DBTest
 			instance.playbackCapabilities.RegisterCallback( callback );
 
 		/// <summary>
-		/// Bind the playback monitor and playback mode viewer to the specified menu
+		/// Bind the controls to the menu
 		/// </summary>
 		/// <param name="menu"></param>
 		public static void BindMenu( IMenu menu, Context context )
@@ -49,6 +49,18 @@ namespace DBTest
 			instance.playbackMonitoring.BindToMenu( menu, context );
 			instance.playbackModeViewer.BindToMenu( menu, context );
 			instance.libraryNameDisplay.BindToMenu( menu, context );
+		}
+
+		/// <summary>
+		/// Bind the controls to the view
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="context"></param>
+		public static void BindView( View view, Context context )
+		{
+			instance.playbackMonitoring.BindToView( view, context );
+			instance.playbackModeViewer.BindToView( view, context );
+			instance.libraryNameDisplay.BindToView( view, context );
 		}
 
 		/// <summary>

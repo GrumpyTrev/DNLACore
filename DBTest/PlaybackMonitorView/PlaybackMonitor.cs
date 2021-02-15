@@ -8,7 +8,7 @@ namespace DBTest
 	/// The PlaybackMonitor monitors the availability of the currently selected playback device and of the wifi network and
 	/// displays a summary as an icon
 	/// </summary>
-	class PlaybackMonitor
+	class PlaybackMonitor : BaseBoundControl
 	{
 		/// <summary>
 		/// Get a notiification whenever the PlaybackSelectionModel changes
@@ -21,7 +21,7 @@ namespace DBTest
 		/// Store the AppCompatImageButton from the view
 		/// </summary>
 		/// <param name="menu"></param>
-		public void BindToMenu( IMenu menu, Context context )
+		public override void BindToMenu( IMenu menu, Context context )
 		{
 			if ( menu != null )
 			{

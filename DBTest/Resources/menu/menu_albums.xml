@@ -4,19 +4,19 @@
 	<item
 		android:id="@+id/action_collapse"
 		android:icon="@drawable/collapse"
-		android:orderInCategory="1"
+		android:orderInCategory="10"
 		app:showAsAction="always"
 		android:title="Collapse"/>
 	<item
 		android:id="@+id/filter"
 		android:icon="@drawable/filter_off"
-		android:orderInCategory="1"
+		android:orderInCategory="11"
 		app:showAsAction="always"
 		android:title="Filter"/>
 	<item
 		android:id="@+id/sort"
 		android:icon="@drawable/sort_by_alpha_descending"
-		android:orderInCategory="1"
+		android:orderInCategory="12"
 		app:showAsAction="always"
 		android:title="Filter"/>
 </menu>

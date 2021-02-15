@@ -7,15 +7,8 @@ namespace DBTest
 	/// <summary>
 	/// The PlaybackModeView class displays the current playback mode and allows the user to change the playback mode
 	/// </summary>
-	class PlaybackModeView : DataReporter.IReporter
+	class PlaybackModeView : BaseBoundControl, DataReporter.IReporter
 	{
-		/// <summary>
-		/// Default constructor
-		/// </summary>
-		public PlaybackModeView()
-		{
-		}
-
 		/// <summary>
 		/// Bind to the specified menu item.
 		/// Replace the standard view associated with the menu item with our own reduced margin version
@@ -23,7 +16,7 @@ namespace DBTest
 		/// Add an event handler for the button.
 		/// </summary>
 		/// <param name="menu"></param>
-		public void BindToMenu( IMenu menu, Context context )
+		public override void BindToMenu( IMenu menu, Context context )
 		{
 			if ( menu != null )
 			{

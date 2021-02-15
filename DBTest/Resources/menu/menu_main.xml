@@ -4,19 +4,15 @@
 	<item
 		android:id="@+id/playback_info"
 		android:icon="@drawable/local_playback_no_wifi"
-		android:orderInCategory="2"
+		android:orderInCategory="1"
 		app:showAsAction="always"
 		android:title="Filter"/>
 	<item
 		android:id="@+id/playback_mode"
 		android:icon="@drawable/linear_play"
-		android:orderInCategory="3"
+		android:orderInCategory="2"
 		app:showAsAction="always"
 		android:title="Playback mode" />
-	<item
-		android:id="@+id/library_name"
-		android:orderInCategory="1"
-		app:showAsAction="always" />
 	<item
 		android:title="Toggle genre"
 		app:showAsAction="never"

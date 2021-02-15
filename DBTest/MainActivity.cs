@@ -32,6 +32,9 @@ namespace DBTest
 			// Don't display the title as this is now done by the LibraryNameDisplay class (see below )
 			SupportActionBar.SetDisplayShowTitleEnabled( false );
 
+			// Allow controls to bind to items on the toolbar
+			MainApp.BindView( toolbar, this );
+
 			// Set up logging
 			Logger.Reporter = this;
 
@@ -74,7 +77,7 @@ namespace DBTest
 		{
 			MenuInflater.Inflate( Resource.Menu.menu_main, menu );
 
-			// Bind to any process wide command handler or monitors that require a menu item
+			// Bind to any process wide controls using a menu item
 			MainApp.BindMenu( menu, this );
 
 			return true;
@@ -175,6 +178,7 @@ namespace DBTest
 
 			// Unbind from any process wide command handler or monitors that require a menu item
 			MainApp.BindMenu( null, this );
+			MainApp.BindView( null, this );
 
 			base.OnDestroy();
 		}

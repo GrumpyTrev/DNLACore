@@ -65,6 +65,7 @@
     <Compile Include="AlbumsView\AlbumsViewModel.cs" />
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="AutoplayManagement\AutoplayModel.cs" />
+    <Compile Include="BaseView\BaseBoundControl.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
     <Compile Include="CommandHandlers\ShowPlaybackControlsCommandHander.cs" />
@@ -561,12 +562,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\menu\menu_playback_options.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\toolbarText.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
