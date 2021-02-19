@@ -22,6 +22,8 @@
 			{
 				// Delete all of the unmatched songs. Don't wait for this to finish, the DeleteFinished method will be called when it has finished. 
 				commandState = CommandStateType.Deleting;
+				LibraryScanController.DeleteReporter = this;
+
 				LibraryScanController.DeleteSongsAsync();
 			}
 			// If the ScanProgressDialogFragment is available then we can proceed with the next stage of the process

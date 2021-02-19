@@ -102,7 +102,7 @@ namespace DBTest
 			await Task.Run( async () =>
 			{
 				// Delete all the Songs.
-				DbAccess.DeleteAsync( LibraryScanModel.UnmatchedSongs );
+				DbAccess.DeleteItemsAsync( LibraryScanModel.UnmatchedSongs );
 
 				// Delete all the PlaylistItems associated with the songs. No need to wait for this
 				Playlists.DeletePlaylistItems( LibraryScanModel.UnmatchedSongs.Select( song => song.Id ).ToList() );

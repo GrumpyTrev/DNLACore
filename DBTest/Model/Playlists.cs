@@ -76,7 +76,7 @@ namespace DBTest
 
 			// Delete the PlaylistItem entries from the database.
 			// No need to wait for this to finish
-			DbAccess.DeleteAsync( playlistToDelete.PlaylistItems );
+			DbAccess.DeleteItemsAsync( playlistToDelete.PlaylistItems );
 
 			// Now delete the playlist itself. No need to wait for this to finish
 			DbAccess.DeleteAsync( playlistToDelete );

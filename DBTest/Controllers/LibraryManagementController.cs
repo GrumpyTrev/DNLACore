@@ -67,7 +67,7 @@ namespace DBTest
 			foreach ( Source source in sources )
 			{
 				List<Song> songs = await DbAccess.GetSongsForSourceAsync( source.Id );
-				DbAccess.DeleteAsync( songs );
+				DbAccess.DeleteItemsAsync( songs );
 			}
 		}
 	}

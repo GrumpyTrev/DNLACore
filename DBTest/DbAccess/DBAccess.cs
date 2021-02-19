@@ -38,7 +38,7 @@ namespace DBTest
 		/// Delete the specified list of items
 		/// </summary>
 		/// <param name="items"></param>
-		public static void DeleteAsync<T>( IEnumerable<T> items )
+		public static void DeleteItemsAsync<T>( IEnumerable<T> items )
 		{
 			foreach ( T item in items )
 			{

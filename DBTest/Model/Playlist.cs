@@ -41,7 +41,7 @@ namespace DBTest
 				PlaylistItems.Remove( item );
 			}
 
-			DbAccess.DeleteAsync( items );
+			DbAccess.DeleteItemsAsync( items );
 		}
 
 		/// <summary>
