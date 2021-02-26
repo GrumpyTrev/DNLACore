@@ -1,4 +1,4 @@
-﻿using Android.App;
+﻿using Android.Content;
 using Android.Media;
 using Android.OS;
 using Android.Runtime;
@@ -7,27 +7,24 @@ using System;
 namespace DBTest
 {
 	/// <summary>
-	/// The LocalPlaybackService is a service used to control the local playing of music using an Android MusicPlayer component
+	/// The LocalPlayback class is used to control the local playing of music using an Android MusicPlayer component
 	/// </summary>
-	[Service]
-	public class LocalPlaybackService: BasePlaybackService, MediaPlayer.IOnPreparedListener, MediaPlayer.IOnErrorListener, MediaPlayer.IOnCompletionListener
+	public class LocalPlayback: BasePlayback, MediaPlayer.IOnPreparedListener, MediaPlayer.IOnErrorListener, MediaPlayer.IOnCompletionListener
 	{
 		/// <summary>
-		/// Called whewn the service is first created
+		/// Called when the class instance is first created
 		/// Initialise the Android MediaPlayer instance user to actually play the songs
 		/// </summary>
-		public override void OnCreate()
+		public LocalPlayback( Context context)
 		{
-			base.OnCreate();
-
-			InitialiseMediaPlayer();
+			InitialiseMediaPlayer( context );
 		}
 
 		/// <summary>
 		/// Called when the MediaPlayer has finished playing the current song
 		/// </summary>
 		/// <param name="mp"></param>
-		public void OnCompletion( MediaPlayer mp )
+		public void OnCompletion( MediaPlayer _mp )
 		{
 			IsPlaying = false;
 
@@ -49,7 +46,7 @@ namespace DBTest
 		/// <param name="what"></param>
 		/// <param name="extra"></param>
 		/// <returns></returns>
-		public bool OnError( MediaPlayer mp, [GeneratedEnum] MediaError what, int extra )
+		public bool OnError( MediaPlayer _mp, [GeneratedEnum] MediaError what, int extra )
 		{
 			localPlayer.Reset();
 			isPreparing = false;
@@ -63,7 +60,7 @@ namespace DBTest
 		/// Called when the MediaPlayer has finished preparing a song source and is now ready to play the song
 		/// </summary>
 		/// <param name="mp"></param>
-		public void OnPrepared( MediaPlayer mp )
+		public void OnPrepared( MediaPlayer _mp )
 		{
 			localPlayer.Start();
 			IsPlaying = true;
@@ -81,8 +78,6 @@ namespace DBTest
 			localPlayer.Release();
 
 			IsPlaying = false;
-
-			StopSelf();
 		}
 
 		/// <summary>
@@ -90,7 +85,7 @@ namespace DBTest
 		/// </summary>
 		public override void Play()
 		{
-			Logger.Log( $"LocalPlaybackService.Play requested with index {CurrentSongIndex} and isPreparing {isPreparing}" );
+			base.Play();
 
 			// Prevent this from being called again until it has been processed
 			if ( isPreparing == false )
@@ -162,12 +157,12 @@ namespace DBTest
 		/// Seek to the specified position
 		/// </summary>
 		/// <param name="position"></param>
-		public override void Seek( int position ) => localPlayer.SeekTo( position );
+		public override void SeekTo( int position ) => localPlayer.SeekTo( position );
 
 		/// <summary>
 		/// Get the current position of the playing song
 		/// </summary>
-		public override int Position
+		public override int CurrentPosition
 		{
 			get
 			{
@@ -201,10 +196,10 @@ namespace DBTest
 		/// <summary>
 		/// Initialise the Android MediaPlayer component
 		/// </summary>
-		private void InitialiseMediaPlayer()
+		private void InitialiseMediaPlayer( Context context )
 		{
 			localPlayer = new MediaPlayer();
-			localPlayer.SetWakeMode( ApplicationContext, WakeLockFlags.Partial );
+			localPlayer.SetWakeMode( context, WakeLockFlags.Partial );
 
 			// SetAudioAttributes requires API 21 == Lollipop
 			if ( Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop )
@@ -214,9 +209,7 @@ namespace DBTest
 			else
 			{
 				// Forced to use deprecated SetAudioStreamType for API < 21
-				#pragma warning disable 0618
 				localPlayer.SetAudioStreamType( Stream.Music );
-				#pragma warning restore 0618
 			}
 			localPlayer.SetOnPreparedListener( this );
 			localPlayer.SetOnErrorListener( this );

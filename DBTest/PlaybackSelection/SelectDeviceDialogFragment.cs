@@ -82,8 +82,8 @@ namespace DBTest
 		/// </summary>
 		public override void OnPause()
 		{
-			base.OnPause();
 			binder.Invoke( null );
+			base.OnPause();
 		}
 
 		/// <summary>
@@ -92,8 +92,8 @@ namespace DBTest
 		/// </summary>
 		public void PlaybackDevicesChanged()
 		{
-			// Make sure that this runs on the UI thread
-			Activity.RunOnUiThread( () =>
+			// Double check that the Dialog is still around
+			if ( Dialog != null )
 			{
 				AlertDialog alert = ( AlertDialog )Dialog;
 				ArrayAdapter<string> adapter = ( ArrayAdapter<string> )alert.ListView.Adapter;
@@ -107,7 +107,7 @@ namespace DBTest
 				// This may have changed the index of the currently selected device, so work it out and tell the ListView
 				initialDeviceIndex = devices.IndexOf( PlaybackSelectionModel.SelectedDeviceName );
 				alert.ListView.SetSelection( initialDeviceIndex );
-			} );
+			}
 		}
 
 		/// <summary>

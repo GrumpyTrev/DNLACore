@@ -16,6 +16,11 @@
 			Mediator.RegisterPermanent( DeviceAvailable, typeof( PlaybackDeviceAvailableMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 			Mediator.RegisterPermanent( PlayRequested, typeof( PlayCurrentSongMessage ) );
+			Mediator.RegisterPermanent( MediaControlPause, typeof( MediaControlPauseMessage ) );
+			Mediator.RegisterPermanent( MediaControlPlayNext, typeof( MediaControlPlayNextMessage ) );
+			Mediator.RegisterPermanent( MediaControlPlayPrevious, typeof( MediaControlPlayPreviousMessage ) );
+			Mediator.RegisterPermanent( MediaControlSeekTo, typeof( MediaControlSeekToMessage ) );
+			Mediator.RegisterPermanent( MediaControlStart, typeof( MediaControlStartMessage ) );
 		}
 
 		/// <summary>
@@ -64,11 +69,6 @@
 		/// </summary>
 		/// <param name="songPlayed"></param>
 		public static void SongPlayed( Song songPlayed ) => new SongPlayedMessage() { SongPlayed = songPlayed }.Send();
-
-		/// <summary>
-		/// Called to show the playback conmtrols. Pass on to the router
-		/// </summary>
-		public static void ShowPlaybackControls() => DataReporter?.ShowPlaybackControls();
 
 		/// <summary>
 		/// Called when the SongSelectedMessage is received
@@ -180,6 +180,36 @@
 		}
 
 		/// <summary>
+		/// Pass on a pause request to the reporter
+		/// </summary>
+		/// <param name="_message"></param>
+		private static void MediaControlPause( object _message ) => DataReporter?.Pause();
+
+		/// <summary>
+		/// Pass on a play next request to the reporter
+		/// </summary>
+		/// <param name="_message"></param>
+		private static void MediaControlPlayNext( object _message ) => DataReporter?.PlayNext();
+
+		/// <summary>
+		/// Pass on a play previous request to the reporter
+		/// </summary>
+		/// <param name="_message"></param>
+		private static void MediaControlPlayPrevious( object _message ) => DataReporter?.PlayPrevious();
+
+		/// <summary>
+		/// Pass on a seek request to the reporter
+		/// </summary>
+		/// <param name="_message"></param>
+		private static void MediaControlSeekTo( object message ) => DataReporter?.SeekTo( ( ( MediaControlSeekToMessage )message ).Position );
+
+		/// <summary>
+		/// Pass on a play previous request to the reporter
+		/// </summary>
+		/// <param name="_message"></param>
+		private static void MediaControlStart( object _message ) => DataReporter?.Start();
+
+		/// <summary>
 		/// Keep track of when a play request is received whilst the data is being read in
 		/// </summary>
 		private static bool playRequestPending = false;
@@ -201,7 +231,11 @@
 			void SongSelected();
 			void SelectPlaybackDevice( PlaybackDevice oldSelectedDevice );
 			void PlayRequested();
-			void ShowPlaybackControls();
+			void Pause();
+			void SeekTo( int position );
+			void Start();
+			void PlayNext();
+			void PlayPrevious();
 		}
 
 		/// <summary>

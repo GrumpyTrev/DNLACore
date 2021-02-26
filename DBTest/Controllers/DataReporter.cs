@@ -20,7 +20,7 @@ namespace DBTest
 		public void GetData()
 		{
 			// Make sure that this data is not returned until all of it is available
-			dataAvailable = false;
+			DataAvailable = false;
 
 			// Wait until all relevant data has been read
 			StorageController.RegisterInterestInDataAvailable( StorageDataAvailable );
@@ -34,7 +34,7 @@ namespace DBTest
 		private void StorageDataAvailable( object _ = null )
 		{
 			// The data is now valid
-			dataAvailable = true;
+			DataAvailable = true;
 
 			// Call the delegate provided by the controller
 			availabilityAction?.Invoke();
@@ -43,7 +43,7 @@ namespace DBTest
 		/// <summary>
 		/// Flag used to ensure that data is only reported when it is available
 		/// </summary>
-		protected bool dataAvailable = false;
+		public bool DataAvailable { get; private set; } = false;
 
 		/// <summary>
 		/// The interface instance used to report back controller results
@@ -55,7 +55,7 @@ namespace DBTest
 			{
 				// Save the interface and report back the data if available
 				reporter = value;
-				if ( dataAvailable == true )
+				if ( DataAvailable == true )
 				{
 					Reporter?.DataAvailable();
 				}

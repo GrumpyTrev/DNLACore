@@ -6,14 +6,14 @@ namespace DBTest
 	/// <summary>
 	/// The BaseBoundControl class provides a couple of binding interfaces, one of whioch derived types can override
 	/// </summary>
-	class BaseBoundControl
+	class BaseBoundControl : Java.Lang.Object
 	{
 		/// <summary>
 		/// Allow derived classes to bind to the menu
 		/// </summary>
 		/// <param name="menu"></param>
 		/// <param name="context"></param>
-		public virtual void BindToMenu( IMenu menu, Context context )
+		public virtual void BindToMenu( IMenu menu, Context context, View activityContent )
 		{
 		}
 

@@ -22,8 +22,8 @@ namespace DBTest
 			base.OnCreate( savedInstanceState );
 
 			// Create the view hierarchy
-			View view = LayoutInflater.Inflate( Resource.Layout.activity_main, null );
-			SetContentView( view );
+			contentView = LayoutInflater.Inflate( Resource.Layout.activity_main, null );
+			SetContentView( contentView );
 
 			// Set the main top toolbar
 			Android.Support.V7.Widget.Toolbar toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.toolbar );
@@ -44,18 +44,9 @@ namespace DBTest
 			// Initialise the fragments showing the selected library
 			InitialiseFragments();
 
-			// Initialise the PlaybackRouter
-			playbackRouter = new PlaybackRouter( this, FindViewById<LinearLayout>( Resource.Id.mainLayout ) );
-
 			// Initialise the tag command handlers
 			tagDeleteCommandHandler = new TagDeletor( this );
 			tagEditCommandHandler = new TagEditor( this );
-
-			// Start the router and selector - via a Post so that any response comes back after the UI has been created
-			// This didn't work when placed in OnStart() or OnResume(). Not sure why.
-			view.Post( () => {
-				playbackRouter.StartRouter();
-			} );
 
 			if ( Build.VERSION.SdkInt >= BuildVersionCodes.M )
 			{
@@ -78,7 +69,7 @@ namespace DBTest
 			MenuInflater.Inflate( Resource.Menu.menu_main, menu );
 
 			// Bind to any process wide controls using a menu item
-			MainApp.BindMenu( menu, this );
+			MainApp.BindMenu( menu, this, contentView );
 
 			return true;
 		}
@@ -167,18 +158,12 @@ namespace DBTest
 		/// </summary>
 		protected override void OnDestroy()
 		{
-			// Remove any registrations made by components that are just about to be destroyed
-			Mediator.RemoveTemporaryRegistrations();
-
-			// Stop any media playback
-			playbackRouter.StopRouter( ( IsFinishing == true ) );
-
 			// Some of the managers need to remove themselves from the scene
 			FragmentTitles.ParentActivity = null;
 
 			// Unbind from any process wide command handler or monitors that require a menu item
-			MainApp.BindMenu( null, this );
-			MainApp.BindView( null, this );
+			MainApp.BindMenu( null, null, null );
+			MainApp.BindView( null, null );
 
 			base.OnDestroy();
 		}
@@ -212,11 +197,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// The PlaybackRouter used to route playback commands to the selected device
-		/// </summary>
-		private PlaybackRouter playbackRouter = null;
-
-		/// <summary>
 		/// The handler for the tag deletion command
 		/// </summary>
 		private TagDeletor tagDeleteCommandHandler = null;
@@ -225,6 +205,10 @@ namespace DBTest
 		/// The handler for the tag editor command
 		/// </summary>
 		private TagEditor tagEditCommandHandler = null;
+
+		/// <summary>
+		/// Make the main view for the activity accessible so that it can be passed to controls requireing to be bound to it
+		/// </summary>
+		private View contentView = null;
 	}
 }
-

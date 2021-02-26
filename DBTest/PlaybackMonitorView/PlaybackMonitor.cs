@@ -21,7 +21,7 @@ namespace DBTest
 		/// Store the AppCompatImageButton from the view
 		/// </summary>
 		/// <param name="menu"></param>
-		public override void BindToMenu( IMenu menu, Context context )
+		public override void BindToMenu( IMenu menu, Context context, View activityContent )
 		{
 			if ( menu != null )
 			{
@@ -44,7 +44,7 @@ namespace DBTest
 					imageButton.Click += ( sender, args ) =>
 					{
 						// Enable or disable the playback visible item according to the current media controller visibility
-						popupMenu.Menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( PlaybackManagerModel.MediaControllerVisible == false );
+						popupMenu.Menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( MediaControllerViewModel.MediaControllerHiddenByUser == true );
 						popupMenu.Show();
 					};
 

@@ -16,7 +16,7 @@ namespace DBTest
 		/// Add an event handler for the button.
 		/// </summary>
 		/// <param name="menu"></param>
-		public override void BindToMenu( IMenu menu, Context context )
+		public override void BindToMenu( IMenu menu, Context context, View activityContent )
 		{
 			if ( menu != null )
 			{

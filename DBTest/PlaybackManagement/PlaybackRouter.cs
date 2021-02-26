@@ -1,9 +1,4 @@
-﻿using System;
-using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Views;
-using static Android.Widget.MediaController;
+﻿using Android.Content;
 
 namespace DBTest
 {
@@ -11,88 +6,32 @@ namespace DBTest
 	/// The PlaybackRouter is responsible for routing playback instruction to a particular playback device according to the 
 	/// current selection
 	/// </summary>
-	class PlaybackRouter: Java.Lang.Object, PlaybackManagementController.IPlaybackReporter, IMediaPlayerControl, PlaybackConnection.IConnectionCallbacks, 
-		IServiceConnection, MediaControlService.IServiceCallbacks
+	class PlaybackRouter: PlaybackManagementController.IPlaybackReporter, BasePlayback.IPlaybackCallbacks
 	{
 		/// <summary>
 		/// PlaybackRouter constructor
-		/// Save the supplied context for binding later on
 		/// </summary>
-		/// <param name="bindContext"></param>
-		public PlaybackRouter( Activity bindContext, View anchorView )
+		public PlaybackRouter( Context context )
 		{
-			contextForBinding = bindContext;
-			anchor = anchorView;
-		}
-
-		/// <summary>
-		/// Initialise the Router by creating the local and remote connections and accessing the playback data 
-		/// </summary>
-		public void StartRouter()
-		{
-			localConnection = new PlaybackConnection( typeof( LocalPlaybackService ), contextForBinding, this );
-			localConnection.StartConnection();
-
-			remoteConnection = new PlaybackConnection( typeof( RemotePlaybackService ), contextForBinding, this );
-			remoteConnection.StartConnection();
+			localPlayback = new LocalPlayback( context ) { Reporter = this };
+			remotePlayback = new RemotePlayback( context ) { Reporter = this };
 
 			// Link this router to the controller
 			PlaybackManagementController.DataReporter = this;
-
-			// Start the media control service
-			contextForBinding.StartService( new Intent( contextForBinding, typeof( MediaControlService ) ) );
-
-			// Bind to the service
-			contextForBinding.BindService( new Intent( contextForBinding, typeof( MediaControlService ) ), this, Bind.None );
 		}
 
 		/// <summary>
 		/// Called when the owner of this router is being closed down.
-		/// Pass this request on to the connections
+		/// Pass this request on to the playback instances
 		/// </summary>
-		/// <param name="permanentStop"></param>
-		public void StopRouter( bool permanentStop )
+		public void StopRouter()
 		{
-			localConnection.StopConnection( permanentStop );
-			remoteConnection.StopConnection( permanentStop );
+			localPlayback.StopConnection();
+			remotePlayback.StopConnection();
 
 			// As this instance is being destroyed don't leave any references hanging around
 			PlaybackManagementController.DataReporter = null;
-
-			// Only access the media control service if still bound
-			if ( controlService != null )
-			{
-				controlService.Reporter = null;
-
-				contextForBinding.UnbindService( this );
-
-				if ( permanentStop == true )
-				{
-					controlService.PlayStopped();
-
-					controlService = null;
-				}
-			}
 		}
-
-		/// <summary>
-		/// Called when the running service has connected to this manager
-		/// Retain a reference to the service for commands and provide this instance as the service's callback interface
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="service"></param>
-		public void OnServiceConnected( ComponentName name, IBinder service )
-		{
-			controlService = ( ( MediaControlService.MediaControlServiceBinder )service ).Service;
-			controlService.Reporter = this;
-		}
-
-		/// <summary>
-		/// Called when the service has disconnected
-		/// This only happens when something unexpected has happened at the service end
-		/// </summary>
-		/// <param name="name"></param>
-		public void OnServiceDisconnected( ComponentName name ) => controlService = null;
 
 		/// <summary>
 		/// Called when the media data has been received or updated
@@ -100,12 +39,12 @@ namespace DBTest
 		/// <param name="songsReplaced"></param>
 		public void DataAvailable()
 		{
-			// Pass on the media data to all connections
-			localConnection.MediaControlDataAvailable();
-			remoteConnection.MediaControlDataAvailable();
+			// Pass on the media data to all playback instances
+			localPlayback.MediaControlDataAvailable();
+			remotePlayback.MediaControlDataAvailable();
 
-			// If a playback device has already been selected in the model but not in this instance then select it now
-			if ( ( PlaybackManagerModel.AvailableDevice != null ) && ( selectedConnection == null ) )
+			// If a playback device has already been selected in the model then select it now
+			if ( PlaybackManagerModel.AvailableDevice != null )
 			{
 				SelectPlaybackDevice( null );
 			}
@@ -116,17 +55,15 @@ namespace DBTest
 		/// </summary>
 		public void SongSelected()
 		{
-			Logger.Log( $"PlaybackRouter.SongSelected {PlaybackManagerModel.CurrentSongIndex} reported. Passing on to connections" );
+			// Pass this on to the playback instances
+			localPlayback.SongSelected();
+			remotePlayback.SongSelected();
 
-			// Make sure the connections pass the index on to their services
-			localConnection.SongSelected();
-			remoteConnection.SongSelected();
-
-			// If the new index is not set (-1) then tell the selected connection to stop playing
+			// If the new index is not set (-1) then tell the selected playback to stop playing
 			// If it is set to a valid value and it should be played then the PlayRequested method will be called 
 			if ( PlaybackManagerModel.CurrentSongIndex == -1 )
 			{
-				selectedConnection?.Stop();
+				selectedPlayback?.Stop();
 			}
 		}
 
@@ -137,103 +74,70 @@ namespace DBTest
 		{
 			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
 			{
-					selectedConnection?.Stop();
-					selectedConnection?.Play();
+				selectedPlayback?.Stop();
+				selectedPlayback?.Play();
 			}
 		}
 
 		/// <summary>
 		/// Called when the selected device is available
-		/// Use the device details to switch connections
+		/// Use the device details to switch playback instances
 		/// </summary>
 		/// <param name="oldSelectedDevice"></param>
 		public void SelectPlaybackDevice( PlaybackDevice oldSelectedDevice )
 		{
-			contextForBinding.RunOnUiThread( () =>
+			// Don't select a device if the full data has not been read in yet.
+			// This can happen if a local device was last selected
+			if ( PlaybackManagerModel.DataValid == true )
 			{
-				// Deselect the old connection if there was one
+				// Deselect the old playback instance if there was one
 				if ( oldSelectedDevice != null )
 				{
-					selectedConnection?.DeselectController();
+					selectedPlayback?.DeselectController();
 				}
 
-				// If there is no new device then clear the selection and hide the media controller
+				// If there is no new device then clear the selection
 				if ( PlaybackManagerModel.AvailableDevice == null )
 				{
-					selectedConnection = null;
-
-					if ( mediaController != null )
-					{
-						mediaController.Visibility = ViewStates.Gone;
-					}
+					selectedPlayback = null;
 				}
 				else
 				{
-					selectedConnection = ( PlaybackManagerModel.AvailableDevice.IsLocal == true ) ? localConnection : remoteConnection;
+					selectedPlayback = ( PlaybackManagerModel.AvailableDevice.IsLocal == true ) ? localPlayback : remotePlayback;
 
-					selectedConnection.SelectController();
-
-					if ( mediaController == null )
-					{
-						SetController();
-					}
-
-					// Only show the Media Controller if it has not been previously hidden
-					if ( PlaybackManagerModel.MediaControllerVisible == true )
-					{
-						mediaController.Show();
-					}
-					else
-					{
-						mediaController.Visibility = ViewStates.Gone;
-					}
-				}
-			} );
-		}
-
-		/// <summary>
-		/// Called when the Selected connection's service has connected
-		/// </summary>
-		/// <param name="connection"></param>
-		public void ServiceConnected( PlaybackConnection connection )
-		{
-			if ( connection == selectedConnection )
-			{
-				if ( PlaybackManagerModel.MediaControllerVisible == true )
-				{
-					mediaController.Show();
+					selectedPlayback.SelectController();
 				}
 			}
 		}
 
 		/// <summary>
-		/// Can the selected connection be paused
+		/// Can the selected playback be paused
 		/// </summary>
 		/// <returns></returns>
-		public bool CanPause() => selectedConnection?.CanPause() ?? false;
+		public bool CanPause() => selectedPlayback?.CanPause() ?? false;
 
 		/// <summary>
-		/// Does the selected connection support seeking forward
+		/// Does the selected playback support seeking forward
 		/// </summary>
 		/// <returns></returns>
-		public bool CanSeekBackward() => selectedConnection?.CanSeekBackward() ?? false;
+		public bool CanSeekBackward() => selectedPlayback?.CanSeekBackward() ?? false;
 
 		/// <summary>
-		/// Does the selected connection support seeking backward
+		/// Does the selected playback support seeking backward
 		/// </summary>
 		/// <returns></returns>
-		public bool CanSeekForward() => selectedConnection?.CanSeekForward() ?? false;
+		public bool CanSeekForward() => selectedPlayback?.CanSeekForward() ?? false;
 
 		/// <summary>
-		/// Pause the selected connection
+		/// Pause the selected playback
 		/// </summary>
-		public void Pause() => selectedConnection?.Pause();
+		public void Pause() => selectedPlayback?.Pause();
 
 		/// <summary>
 		/// Seek to the specified position
 		/// </summary>
 		/// <param name="pos"></param>
-		public void SeekTo( int pos ) => selectedConnection?.SeekTo( pos );
+		public void SeekTo( int pos ) => selectedPlayback?.SeekTo( pos );
 
 		/// <summary>
 		/// Start or resume playback
@@ -248,176 +152,57 @@ namespace DBTest
 
 			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
 			{
-				selectedConnection?.Start();
+				selectedPlayback?.Start();
 			}
 		}
 
 		/// <summary>
-		/// Called when the service has changed the song index
+		/// Called when the playback instance has changed the song index
 		/// Pass this on to the controller
 		/// </summary>
-		public void SongIndexChanged( int songIndex ) => 
-			contextForBinding.RunOnUiThread( () => { PlaybackManagementController.SetSelectedSong( songIndex ); } );
+		public void SongIndexChanged( int songIndex ) => PlaybackManagementController.SetSelectedSong( songIndex );
 
 		/// <summary>
 		/// Called when a new song is being played. Pass this on to the controller
 		/// </summary>
 		/// <param name="songPlayed"></param>
-		public void SongPlayed( Song songPlayed )
-		{
-			PlaybackManagementController.SongPlayed( songPlayed );
-
-			controlService?.SongPlayed( songPlayed );
-		}
+		public void SongPlayed( Song songPlayed ) => PlaybackManagementController.SongPlayed( songPlayed );
 
 		/// <summary>
-		/// Called to show the playback controls
+		/// Called by the current playback to report the current position and duration
 		/// </summary>
-		public void ShowPlaybackControls()
-		{
-			// If this is a change and the controls are being shown then make the controller visible and record this in the model
-			if ( PlaybackManagerModel.MediaControllerVisible == false )
-			{
-				if ( mediaController != null )
-				{
-					mediaController.Visibility = ViewStates.Visible;
-					mediaController.Show( 0 );
-					PlaybackManagerModel.MediaControllerVisible = true;
-				}
-			}
-		}
+		/// <param name="position"></param>
+		/// <param name="duration"></param>
+		public void ProgressReport( int position, int duration ) => new MediaProgressMessage() { CurrentPosition = position, Duration = duration }.Send();
 
 		/// <summary>
-		/// Called when the playback has started
+		/// Called when the playback has started or stopped
 		/// </summary>
-		public void PlayStateChanged()
-		{
-			if ( mediaController != null )
-			{
-				contextForBinding.RunOnUiThread( () => { mediaController?.Show(); } );
-			}
-
-			controlService?.IsPlaying( selectedConnection?.IsPlaying ?? false );
-		}
-
-		/// <summary>
-		/// Called by the MediaControlService to play a paused song
-		/// </summary>
-		public void MediaPlay()
-		{
-			selectedConnection?.Start();
-		}
-
-		/// <summary>
-		/// Called by the MediaControlService to pause a playing song
-		/// </summary>
-		public void MediaPause()
-		{
-			selectedConnection?.Pause();
-		}
-
-		/// <summary>
-		/// Initialise the MediaController component
-		/// </summary>
-		private void SetController()
-		{
-			mediaController = new MediaControllerNoHide( contextForBinding );
-
-			mediaController.SetPrevNextListeners(
-				new ClickHandler() { OnClickAction = () => { PlayNext(); } },
-				new ClickHandler() { OnClickAction = () => { PlayPrevious(); } } );
-			mediaController.SetMediaPlayer( this );
-
-			mediaController.SetAnchorView( anchor );
-
-			mediaController.Enabled = true;
-		}
+		public void PlayStateChanged( bool isPlaying ) => new MediaPlayingMessage() { IsPlaying = isPlaying }.Send();
 
 		/// <summary>
 		/// Play the next track
 		/// </summary>
-		private void PlayNext() => selectedConnection?.PlayNext();
+		public void PlayNext() => selectedPlayback?.PlayNext();
 
 		/// <summary>
 		/// Play the previous track
 		/// </summary>
-		private void PlayPrevious() => selectedConnection?.PlayPrevious();
+		public void PlayPrevious() => selectedPlayback?.PlayPrevious();
 
 		/// <summary>
-		/// Class required to implement the View.IOnClickListener interface
+		/// The local playback instance
 		/// </summary>
-		private class ClickHandler: Java.Lang.Object, View.IOnClickListener
-		{
-			/// <summary>
-			/// Called when a click has been detected
-			/// </summary>
-			/// <param name="v"></param>
-			public void OnClick( View v ) => OnClickAction();
-
-			/// <summary>
-			/// The Action to be performed when a click has been detected
-			/// </summary>
-			public Action OnClickAction;
-		}
+		private readonly BasePlayback localPlayback = null;
 
 		/// <summary>
-		/// Get the audio session id for the connection
+		/// The remote (DLNA) playback instance
 		/// </summary>
-		public int AudioSessionId => throw new NotImplementedException();
+		private readonly BasePlayback remotePlayback = null;
 
 		/// <summary>
-		/// Buffer percentage - not used
+		/// The currently selected Playback instance
 		/// </summary>
-		public int BufferPercentage => 0;
-
-		/// <summary>
-		/// The current playback position in milliseconds
-		/// </summary>
-		public int CurrentPosition => selectedConnection?.CurrentPosition ?? 0;
-
-		/// <summary>
-		/// The total duration of the track in milliseconds
-		/// </summary>
-		public int Duration => selectedConnection?.Duration ?? 0;
-
-		/// <summary>
-		/// Is the track being played
-		/// </summary>
-		public bool IsPlaying => selectedConnection?.IsPlaying ?? false;
-
-		/// <summary>
-		/// The context to pass on to the PlaybackConnections to bind their services
-		/// </summary>
-		private readonly Activity contextForBinding = null;
-
-		/// <summary>
-		/// The View to be used to anchor the MediaControllers
-		/// </summary>
-		private readonly View anchor = null;
-
-		/// <summary>
-		/// The connection to the local playback service
-		/// </summary>
-		private PlaybackConnection localConnection = null;
-
-		/// <summary>
-		/// The connection to the remote (DLNA) playback service
-		/// </summary>
-		private PlaybackConnection remoteConnection = null;
-
-		/// <summary>
-		/// The currently selected PlaybackConnection
-		/// </summary>
-		private PlaybackConnection selectedConnection = null;
-
-		/// <summary>
-		/// The MediaController to use to display the UI
-		/// </summary>
-		private MediaControllerNoHide mediaController = null;
-
-		/// <summary>
-		/// The service carrying out the notification media controls
-		/// </summary>
-		private MediaControlService controlService = null;
+		private BasePlayback selectedPlayback = null;
 	}
 }

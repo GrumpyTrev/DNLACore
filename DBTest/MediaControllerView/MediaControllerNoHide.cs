@@ -43,7 +43,7 @@ namespace DBTest
 
 				base.Hide();
 
-				PlaybackManagerModel.MediaControllerVisible = false;
+				MediaControllerViewModel.MediaControllerHiddenByUser = true;
 
 				// Don't pass this event on
 				handled = true;

@@ -2,39 +2,90 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Runtime;
+using System.Threading;
 
 namespace DBTest
 {
 	/// <summary>
 	/// Base functionality for a playback service
 	/// </summary>
-	[Service]
-	public abstract class BasePlaybackService: Service
+	public abstract class BasePlayback : Java.Lang.Object
 	{
 		/// <summary>
-		/// Called when the service has been created to return the IBinder instance for the service
+		/// Start the position check timer. This will only be processed by derived classes if they are playing
 		/// </summary>
-		/// <param name="intent"></param>
-		/// <returns></returns>
-		public override IBinder OnBind( Intent intent ) => serviceBinder;
-
-		/// <summary>
-		/// Called when the service is first created. Create the binder to pass back the service instance
-		/// </summary>
-		public override void OnCreate()
+		public BasePlayback()
 		{
-			base.OnCreate();
+			// Create and start the position/progress timer 
+			positionTimer = new Timer( timer => PositionTimerElapsed(), null, TimerPeriod, TimerPeriod );
+		}		
+		
+		/// <summary>
+		/// Called when the playback system is being shutdown.
+		/// Allow derived classes to release system resources
+		/// </summary>
+		public void StopConnection()
+		{
+			Reporter = null;
 
-			serviceBinder = new PlaybackBinder( this );
+			Shutdown();
 		}
 
-		[return: GeneratedEnum]
-		public override StartCommandResult OnStartCommand( Intent intent, [GeneratedEnum] StartCommandFlags flags, int startId ) => 
-			base.OnStartCommand( intent, flags, startId );
+		/// <summary>
+		/// Called when this controller is selected for playback
+		/// </summary>
+		public void SelectController()
+		{
+			PlaybackDevice = PlaybackManagerModel.AvailableDevice;
+
+			treatResumeAsPlay = true;
+
+			Selected = true;
+		}
+
+		/// <summary>
+		/// Called when this controller is deselected
+		/// </summary>
+		public void DeselectController()
+		{
+			Stop();
+			Reset();
+
+			Selected = false;
+		}
+
+		/// <summary>
+		/// Called when the Media Control data has been read
+		/// Pass the data on to the service if connected
+		/// </summary>
+		public void MediaControlDataAvailable()
+		{
+			Playlist = PlaybackManagerModel.NowPlayingPlaylist;
+			Sources = PlaybackManagerModel.Sources;
+			CurrentSongIndex = PlaybackManagerModel.CurrentSongIndex;
+			PlaybackDevice = PlaybackManagerModel.AvailableDevice;
+		}
+
+		/// <summary>
+		/// Called when the selected song has been changed
+		/// Pass it on to the service
+		/// </summary>
+		public void SongSelected() => CurrentSongIndex = PlaybackManagerModel.CurrentSongIndex;
+
+		/// <summary>
+		/// Start playback
+		/// </summary>
+		public void Start()
+		{
+			if ( treatResumeAsPlay == true )
+			{
+				Play();
+			}
+			else
+			{
+				Resume();
+			}
+		}
 
 		/// <summary>
 		/// Play the previous song in the list wrapping back to the end if required
@@ -73,7 +124,10 @@ namespace DBTest
 		/// <summary>
 		/// Play the currently selected song
 		/// </summary>
-		public abstract void Play();
+		public virtual void Play()
+		{
+			treatResumeAsPlay = false;
+		}
 
 		/// <summary>
 		/// Stop playing the current song
@@ -99,7 +153,7 @@ namespace DBTest
 		/// Seek to the specified position
 		/// </summary>
 		/// <param name="position"></param>
-		public abstract void Seek( int position );
+		public abstract void SeekTo( int position );
 
 		/// <summary>
 		/// Called when the associated application is shutting down.
@@ -110,7 +164,7 @@ namespace DBTest
 		/// <summary>
 		/// Get the current position of the playing song
 		/// </summary>
-		public abstract int Position { get; }
+		public abstract int CurrentPosition { get; }
 
 		/// <summary>
 		/// Get the duration of the current song
@@ -129,10 +183,51 @@ namespace DBTest
 				if ( playing != value )
 				{
 					playing = value;
-					Reporter?.PlayStateChanged();
+					Reporter?.PlayStateChanged( playing );
 				}
 			}
 		}
+
+		/// <summary>
+		/// Can the service be paused
+		/// </summary>
+		/// <returns></returns>
+		public bool CanPause() => true;
+
+		/// <summary>
+		/// Does the service support seeking backward
+		/// </summary>
+		/// <returns></returns>
+		public bool CanSeekBackward() => true;
+
+		/// <summary>
+		/// Does the service support seeking forward
+		/// </summary>
+		/// <returns></returns>
+		public bool CanSeekForward() => true;
+
+		/// <summary>
+		/// Called when the position timer has elapsed
+		/// The base class response is to report back the current duration and position
+		/// Derived class can perform other processing - such as actually obtaining the duration and position
+		/// </summary>
+		protected virtual void PositionTimerElapsed()
+		{
+			if ( IsPlaying == true )
+			{
+				Reporter?.ProgressReport( CurrentPosition, Duration );
+			}
+		}
+
+		/// <summary>
+		/// Start the progress timer
+		/// </summary>
+		protected void StartTimer() => positionTimer.Change( TimerPeriod, TimerPeriod );
+
+		/// <summary>
+		/// Stop the progress timer
+		/// </summary>
+		protected void StopTimer() => positionTimer.Change( Timeout.Infinite, Timeout.Infinite );
 
 		/// <summary>
 		/// Get the source path for the currently playing song
@@ -144,8 +239,6 @@ namespace DBTest
 
 			if ( ( Playlist != null ) && ( CurrentSongIndex < Playlist.PlaylistItems.Count ) )
 			{
-				Logger.Log( $"BasePlaybackService.GetSongResource requested with index {CurrentSongIndex}" );
-
 				Song songToPlay = Playlist.PlaylistItems[ CurrentSongIndex ].Song;
 
 				// Find the Source associated with this song
@@ -205,9 +298,6 @@ namespace DBTest
 			if ( CurrentSongIndex < ( Playlist.PlaylistItems.Count - 1 ) )
 			{
 				CurrentSongIndex++;
-
-				Logger.Log( $"BasePlaybackService.CanPlayNextSong CurrentSongIndex is now {CurrentSongIndex}" );
-
 				Reporter?.SongIndexChanged( CurrentSongIndex );
 			}
 			else if ( ( PlaybackModeModel.RepeatOn == true ) && ( Playlist.PlaylistItems.Count > 0 ) )
@@ -247,12 +337,7 @@ namespace DBTest
 		/// <summary>
 		/// The instance used to report back significant events
 		/// </summary>
-		public IServiceCallbacks Reporter { get; set; } = null;
-
-		/// <summary>
-		/// The IBinder instance for this service
-		/// </summary>
-		private IBinder serviceBinder = null;
+		public IPlaybackCallbacks Reporter { get; set; } = null;
 
 		/// <summary>
 		/// Is the service currently playing
@@ -260,26 +345,34 @@ namespace DBTest
 		private bool playing = false;
 
 		/// <summary>
-		/// The Binder class for this service defining the interface betweeen the service and the appication
+		/// Keep track of the selection state of this connection
 		/// </summary>
-		public class PlaybackBinder: Binder
-		{
-			public PlaybackBinder( BasePlaybackService theService ) => Service = theService;
+		private bool Selected { get; set; } = false;
 
-			/// <summary>
-			/// The service instance passed back to the application
-			/// </summary>
-			public BasePlaybackService Service { get; } = null;
-		}
+		/// <summary>
+		/// At startup the Resume button should be treated as Play.
+		/// </summary>
+		private bool treatResumeAsPlay = false;
+
+		/// <summary>
+		/// The timer used to check the progress of the song
+		/// </summary>
+		private Timer positionTimer = null;
+
+		/// <summary>
+		/// The position timer period in milliseconds
+		/// </summary>
+		private const int TimerPeriod = 1000;
 
 		/// <summary>
 		/// The interface defining the calls back to the application
 		/// </summary>
-		public interface IServiceCallbacks
+		public interface IPlaybackCallbacks
 		{
 			void SongIndexChanged( int songIndex );
-			void PlayStateChanged();
+			void PlayStateChanged( bool isPlaying );
 			void SongPlayed( Song songPlayed );
+			void ProgressReport( int position, int duration );
 		}
 	}
 }

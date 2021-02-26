@@ -30,8 +30,17 @@ namespace DBTest
 			// Configure the controllers
 			ConfigureControllers();
 
-			// Initialise the newtwork monitoring
+			// Initialise the network monitoring
 			playbackCapabilities = new PlaybackCapabilities( Context );
+
+			// Create a PlaybackRouter.
+			playbackRouter = new PlaybackRouter( Context );
+
+			// Start the MediaNotificationService
+			mediaNotificationServiceInterface = new MediaNotificationServiceInterface( Context );
+
+			// Start the ApplicationShutdownService
+			applicationShutdownInterface = new ApplicationShutdownInterface( Context );
 		}
 
 		/// Add the specified interface to the callback colletion
@@ -44,11 +53,12 @@ namespace DBTest
 		/// Bind the controls to the menu
 		/// </summary>
 		/// <param name="menu"></param>
-		public static void BindMenu( IMenu menu, Context context )
+		public static void BindMenu( IMenu menu, Context context, View activityContent )
 		{
-			instance.playbackMonitoring.BindToMenu( menu, context );
-			instance.playbackModeViewer.BindToMenu( menu, context );
-			instance.libraryNameDisplay.BindToMenu( menu, context );
+			instance.playbackMonitoring.BindToMenu( menu, context, activityContent );
+			instance.playbackModeViewer.BindToMenu( menu, context, activityContent );
+			instance.libraryNameDisplay.BindToMenu( menu, context, activityContent );
+			instance.mediaControllerInterface.BindToMenu( menu, context, activityContent );
 		}
 
 		/// <summary>
@@ -61,6 +71,7 @@ namespace DBTest
 			instance.playbackMonitoring.BindToView( view, context );
 			instance.playbackModeViewer.BindToView( view, context );
 			instance.libraryNameDisplay.BindToView( view, context );
+			instance.mediaControllerInterface.BindToView( view, context );
 		}
 
 		/// <summary>
@@ -69,6 +80,15 @@ namespace DBTest
 		public override void OnCreate()
 		{
 			base.OnCreate();
+		}
+
+		/// <summary>
+		/// Called when the application shutdown service has detected this applicaton being removed from the system
+		/// </summary>
+		public static void Shutdown()
+		{
+			instance.playbackRouter.StopRouter();
+			instance.mediaNotificationServiceInterface.StopService();
 		}
 
 		/// <summary>
@@ -87,6 +107,8 @@ namespace DBTest
 			PlaybackModeController.GetControllerData();
 			PlaybackManagementController.GetControllerData();
 			DisplayGenreController.GetControllerData();
+			MediaControllerController.GetControllerData();
+			MediaNotificationController.GetControllerData();
 		}
 
 		/// <summary>
@@ -172,5 +194,25 @@ namespace DBTest
 		/// The LibraryNameDisplay instance used to display the library name
 		/// </summary>
 		private readonly LibraryNameDisplay libraryNameDisplay = new LibraryNameDisplay();
+
+		/// <summary>
+		/// The control user to interface to the media controller
+		/// </summary>
+		private readonly MediaControllerInterface mediaControllerInterface = new MediaControllerInterface();
+
+		/// <summary>
+		/// The PlaybackRouter used to pass playback requests to the the correct playback device
+		/// </summary>
+		private readonly PlaybackRouter playbackRouter = null;
+
+		/// <summary>
+		/// The control used to interface to the media notification service
+		/// </summary>
+		private readonly MediaNotificationServiceInterface mediaNotificationServiceInterface = null;
+
+		/// <summary>
+		/// The control used to interface to the application shutdwon service
+		/// </summary>
+		private readonly ApplicationShutdownInterface applicationShutdownInterface = null;
 	}
 }

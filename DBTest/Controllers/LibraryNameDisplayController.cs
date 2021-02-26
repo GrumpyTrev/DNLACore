@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The LibraryNameDisplayController is used to obtain the name of the current library and to react to library changes

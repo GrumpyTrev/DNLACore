@@ -10,10 +10,10 @@ using static Android.Support.V4.Media.Session.MediaControllerCompat;
 namespace DBTest
 {
 	/// <summary>
-	/// The MediaControlService is used to display notifications of the currently playing song and to respond to controls from the notification
+	/// The MediaNotificationService is used to display notifications of the currently playing song and to respond to controls from the notification
 	/// </summary>
 	[Service]
-	class MediaControlService : Service
+	class MediaNotificationService : Service
 	{
 		/// <summary>
 		/// Called when the service has been created to return the IBinder instance for the service
@@ -29,18 +29,17 @@ namespace DBTest
 		{
 			base.OnCreate();
 
-			serviceBinder = new MediaControlServiceBinder( this );
+			serviceBinder = new MediaNotificationServiceBinder( this );
 		}
 
 		/// <summary>
-		/// Called when all connections to the service have disconnected.
-		/// Remove the notification
+		/// Called when the service is no longer required
+		/// Remove the notification and stop the service
 		/// </summary>
-		public override void OnDestroy()
+		public void Stop()
 		{
-			base.OnDestroy();
-
 			RemoveNotification();
+			StopSelf();
 		}
 
 		/// <summary>
@@ -179,7 +178,7 @@ namespace DBTest
 		/// <param name="actionName"></param>
 		/// <returns></returns>
 		private PendingIntent PlaybackAction( string actionName ) => 
-			PendingIntent.GetService( this, 0, new Intent( this, typeof( MediaControlService ) ).SetAction( actionName ), 0 );
+			PendingIntent.GetService( this, 0, new Intent( this, typeof( MediaNotificationService ) ).SetAction( actionName ), 0 );
 
 		/// <summary>
 		/// The instance used to report back significant events
@@ -189,18 +188,18 @@ namespace DBTest
 		/// <summary>
 		/// The Binder class for this service defining the interface betweeen the service and the appication
 		/// </summary>
-		public class MediaControlServiceBinder: Binder
+		public class MediaNotificationServiceBinder: Binder
 		{
 			/// <summary>
 			/// Create the binder and save the service instance
 			/// </summary>
 			/// <param name="theService"></param>
-			public MediaControlServiceBinder( MediaControlService theService ) => Service = theService;
+			public MediaNotificationServiceBinder( MediaNotificationService theService ) => Service = theService;
 
 			/// <summary>
 			/// The service instance passed back to the application
 			/// </summary>
-			public MediaControlService Service { get; } = null;
+			public MediaNotificationService Service { get; } = null;
 		}
 
 		/// <summary>
@@ -234,9 +233,9 @@ namespace DBTest
 			}
 
 			/// <summary>
-			/// The MediaControlService used to carry out the actions 
+			/// The MediaNotificationService used to carry out the actions 
 			/// </summary>
-			public MediaControlService Service { private get; set; }
+			public MediaNotificationService Service { private get; set; }
 		}
 
 		/// <summary>

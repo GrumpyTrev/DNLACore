@@ -1,10 +1,8 @@
-﻿using Android.App;
-using Android.Content;
+﻿using Android.Content;
 using Android.OS;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
-using System.Timers;
 
 namespace DBTest
 {
@@ -13,30 +11,25 @@ namespace DBTest
 	/// Remember that all DLNA requests are likely to be called from the UI thread, so do all DNLA work in a worker thread and
 	/// try and report back results on the original request thread.
 	/// </summary>
-	[Service]
-	public class RemotePlaybackService: BasePlaybackService
+	public class RemotePlayback : BasePlayback
 	{
 		/// <summary>
-		/// Override the base OnCreate in order to create a timer to use to poll the device for position information
+		/// Class constructor. Use the supplied Context to obtain a WakeLock
 		/// </summary>
-		public override void OnCreate()
+		public RemotePlayback( Context context )
 		{
-			base.OnCreate();
-
-			positionTimer = new Timer();
-			positionTimer.Elapsed += PositionTimerElapsed;
-			positionTimer.Interval = 1000;
-
 			// Get an instance of the PowerManager to aquire a wake lock
-			PowerManager pm = ( PowerManager )GetSystemService( Context.PowerService );
+			PowerManager pm = PowerManager.FromContext( context );
 			wakeLock = pm.NewWakeLock( WakeLockFlags.Partial, "DBTest" );
 		}
 
 		/// <summary>
 		/// Play the currently selected song
 		/// </summary>
-		public async override void Play()
+		public override async void Play()
 		{
+			base.Play();
+
 			// Prevent this from being called again until it has been processed
 			if ( isPreparing == false )
 			{
@@ -52,7 +45,6 @@ namespace DBTest
 						if ( await PlaySong() == true )
 						{
 							IsPlaying = true;
-							StartTimer();
 							AquireLock();
 
 							ReportSongPlayed();
@@ -71,7 +63,6 @@ namespace DBTest
 		{
 			// Assume the DLMA request will complte and clear some state variables first
 			IsPlaying = false;
-			StopTimer();
 			ReleaseLock();
 
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Stop" );
@@ -92,14 +83,12 @@ namespace DBTest
 			{
 				Stop();
 			}
-
-			StopSelf();
 		}
 
 		/// <summary>
 		/// Report the position obtained from the remote device
 		/// </summary>
-		public override int Position => positionMilliseconds;
+		public override int CurrentPosition => positionMilliseconds;
 
 		/// <summary>
 		/// Report the duration obtained from the remote device
@@ -122,12 +111,11 @@ namespace DBTest
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 			{
 				IsPlaying = false;
-				StopTimer();
 				ReleaseLock();
 			}
 		}
 
-		public override void Seek( int position )
+		public override void SeekTo( int position )
 		{
 		}
 
@@ -143,7 +131,6 @@ namespace DBTest
 			if ( await PlaySong() == true )
 			{
 				IsPlaying = true;
-				StartTimer();
 				AquireLock();
 			}
 		}
@@ -206,94 +193,92 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private async void PositionTimerElapsed( object sender, ElapsedEventArgs e )
+		protected override async void PositionTimerElapsed()
 		{
-			StopTimer();
-
-			// Send the GetPositionInfo request and get the response
-			// Run off the calling thread
-			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice,
-				DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
-					PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo" ) ) ) );
-
-			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
+			// Only process the timer if a song is being played
+			if ( IsPlaying == true )
 			{
-				durationMilliseconds = TimeStringToMilliseconds( response.TrimStart( "<TrackDuration>" ).TrimAfter( "</TrackDuration>" ) );
-				positionMilliseconds = TimeStringToMilliseconds( response.TrimStart( "<RelTime>" ).TrimAfter( "</RelTime>" ) );
+				// Stop the timer whilst getting the position as it may take a while
+				StopTimer();
 
-				Logger.Log( $"Position: {positionMilliseconds}, Duration {durationMilliseconds}" );
+				// Send the GetPositionInfo request and get the response
+				// Run off the calling thread
+				string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice,
+					DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
+						PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo" ) ) ) );
 
-				// Assume the track has not finished
-				bool nextTrack = false;
-
-				// If a chnage has already been schedukled then do it now
-				if ( changeTrackNextTime == true )
+				if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 				{
-					nextTrack = true;
-					changeTrackNextTime = false;
-				}
-				else
-				{
-					// If the duration is 0 this could be due to missing the end of a song, or it can also happen at the 
-					// very start of a track. So keep track of this and if it happens a few times switch to the next track
-					if ( durationMilliseconds == 0 )
+					durationMilliseconds = TimeStringToMilliseconds( response.TrimStart( "<TrackDuration>" ).TrimAfter( "</TrackDuration>" ) );
+					positionMilliseconds = TimeStringToMilliseconds( response.TrimStart( "<RelTime>" ).TrimAfter( "</RelTime>" ) );
+
+					Logger.Log( $"Position: {positionMilliseconds}, Duration {durationMilliseconds}" );
+
+					// Assume the track has not finished
+					bool nextTrack = false;
+
+					// If a chnage has already been schedukled then do it now
+					if ( changeTrackNextTime == true )
 					{
-						if ( ++noPlayCount > 3 )
+						nextTrack = true;
+						changeTrackNextTime = false;
+					}
+					else
+					{
+						// If the duration is 0 this could be due to missing the end of a song, or it can also happen at the 
+						// very start of a track. So keep track of this and if it happens a few times switch to the next track
+						if ( durationMilliseconds == 0 )
 						{
-							nextTrack = true;
+							if ( ++noPlayCount > 3 )
+							{
+								nextTrack = true;
+								noPlayCount = 0;
+							}
+						}
+						else
+						{
 							noPlayCount = 0;
+
+							// If the position is within 1/4 second of the duration when assume this track has finished and move on to the next track.
+							// If the position is around 1 second of the duration then move on to the next track the next time this position is obtained
+							int timeLeft = Math.Abs( durationMilliseconds - positionMilliseconds );
+
+							if ( timeLeft < 250 )
+							{
+								nextTrack = true;
+							}
+							else if ( timeLeft < 1050 )
+							{
+								changeTrackNextTime = true;
+							}
 						}
 					}
-					else
+
+					if ( nextTrack == true )
 					{
-						noPlayCount = 0;
+						IsPlaying = false;
 
-						// If the position is within 1/4 second of the duration when assume this track has finished and move on to the next track.
-						// If the position is around 1 second of the duration then move on to the next track the next time this position is obtained
-						int timeLeft = Math.Abs( durationMilliseconds - positionMilliseconds );
-
-						if ( timeLeft < 250 )
+						// Play the next song if there is one
+						if ( CanPlayNextSong() == true )
 						{
-							nextTrack = true;
+							Play();
 						}
-						else if ( timeLeft < 1050 )
+						else
 						{
-							changeTrackNextTime = true;
+							ReleaseLock();
 						}
-					}
-				}
-
-				if ( nextTrack == true )
-				{
-					IsPlaying = false;
-
-					// Play the next song if there is one
-					if ( CanPlayNextSong() == true )
-					{
-						Play();
-					}
-					else
-					{
-						ReleaseLock();
 					}
 				}
 				else
 				{
-					if ( IsPlaying == true )
-					{
-						StartTimer();
-					}
+					// Failed to get the response - report this and try again when the timer expires
+					Logger.Error( "Failed to get PositionInfo" );
 				}
+
+				StartTimer();
 			}
-			else
-			{
-				// Failed to get the response - report this and try again when the timer expires
-				Logger.Error( "Failed to get PositionInfo" );
-				if ( IsPlaying == true )
-				{
-					StartTimer();
-				}
-			}
+
+			base.PositionTimerElapsed();
 		}
 
 		/// <summary>
@@ -312,15 +297,6 @@ namespace DBTest
 			return ( int )ts.TotalMilliseconds;
 		}
 
-		/// <summary>
-		/// Start the progress timer
-		/// </summary>
-		private void StartTimer() => positionTimer.Start();
-
-		/// <summary>
-		/// Stop the progress timer
-		/// </summary>
-		private void StopTimer() => positionTimer.Stop();
 
 		/// <summary>
 		/// Aquire the wakelock if not already held
@@ -368,11 +344,6 @@ namespace DBTest
 		/// Flag indicating that the next track should be played the next time the position is obtained
 		/// </summary>
 		private bool changeTrackNextTime = false;
-
-		/// <summary>
-		/// The timer used to check the progress of the song
-		/// </summary>
-		private Timer positionTimer = null;
 
 		/// <summary>
 		/// Lock used to keep the app alive

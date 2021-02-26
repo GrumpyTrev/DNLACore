@@ -6,10 +6,10 @@
 	class ShowPlaybackControlsCommandHander : CommandHandler
 	{
 		/// <summary>
-		/// Called to handle the command. Pass on to the PlaybackManagementController
+		/// Called to handle the command. Pass on to the MediaControllerController
 		/// </summary>
 		/// <param name="commandIdentity"></param>
-		public override void HandleCommand( int commandIdentity ) => PlaybackManagementController.ShowPlaybackControls();
+		public override void HandleCommand( int _commandIdentity ) => MediaControllerController.ShowMediaController();
 
 		/// <summary>
 		/// The command identity associated with this handler
