@@ -143,7 +143,7 @@ namespace DBTest
 		{
 			if ( convertView == null )
 			{
-				convertView = inflator.Inflate( Resource.Layout.playlistitem_layout, null );
+				convertView = inflator.Inflate( Resource.Layout.playlists_song_layout, null );
 				convertView.Tag = new SongViewHolder()
 				{
 					SelectionBox = GetSelectionBox( convertView ),

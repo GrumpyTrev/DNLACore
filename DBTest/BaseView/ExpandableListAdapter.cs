@@ -776,16 +776,6 @@ namespace DBTest
 		protected Java.Lang.Object[] javaSections = null;
 
 		/// <summary>
-		/// This is the base class for all ViewHolder classes used by the derived adapters
-		/// All ViewHolders have a tag to identify the index of the view and a reference to the view's checkbox, if there is one
-		/// </summary>
-		protected class ExpandableListViewHolder : Java.Lang.Object
-		{
-			public int ItemTag { get; set; } = -1;
-			public CheckBox SelectionBox { get; set; } = null;
-		}
-
-		/// <summary>
 		/// The TagHolder class holds the tag for the view's Checkbox
 		/// An object holding an int is used rather that an int directly to avoid casting and Java object garbage collection problems (that may not
 		/// actually exist)

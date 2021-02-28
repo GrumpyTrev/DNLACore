@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -33,9 +34,6 @@ namespace DBTest
 			// Delete the playlist and then refresh the data held by the model
 			Playlists.DeletePlaylist( thePlaylist );
 
-			// Let other controllers know
-			new PlaylistDeletedMessage().Send();
-
 			// Refresh the playlists held by the model and report the change
 			StorageDataAvailable();
 		}
@@ -64,9 +62,6 @@ namespace DBTest
 		public static void AddPlaylist( string playlistName )
 		{
 			Playlists.AddPlaylist( new Playlist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId } );
-
-			// Let other controllers know
-			new PlaylistAddedMessage().Send();
 
 			// Refresh the playlists held by the model and report the change
 			StorageDataAvailable();
@@ -200,16 +195,35 @@ namespace DBTest
 		/// Called during startup, or library change, when the storage data is available
 		/// </summary>
 		/// <param name="message"></param>
-		private static void StorageDataAvailable()
+		private static async void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
 			PlaylistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
 
-			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId );
+			// Get the Playlists and playlist names. Make sure a copy of the list is used as we're going to sort it 
+			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId ).ToList();
 			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
+
+			// Get the user Tags
+			PlaylistsViewModel.Tags = Tags.TagsCollection.Where( ta => ta.UserTag == true ).ToList();
 
 			// Get the display genre flag
 			PlaylistsViewModel.DisplayGenre = Playback.DisplayGenre;
+
+			// To generate the data to be displayed the Playlists and Tags need to be sorted alphabetically and then combined into 
+			// a list of objects. Do this off the UI thread
+			await Task.Run( () =>
+			{
+				// Sort the playlists by name
+				PlaylistsViewModel.Playlists.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
+
+				// Sort the tags by name
+				PlaylistsViewModel.Tags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
+
+				// Now copy to the combined list
+				PlaylistsViewModel.CombinedList.AddRange( PlaylistsViewModel.Playlists );
+				PlaylistsViewModel.CombinedList.AddRange( PlaylistsViewModel.Tags );
+			} );
 
 			DataReporter?.DataAvailable();
 		}

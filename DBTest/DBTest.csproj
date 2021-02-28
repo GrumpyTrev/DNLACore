@@ -67,7 +67,9 @@
     <Compile Include="Application\ApplicationShutdownService.cs" />
     <Compile Include="Application\ApplicationShutdownInterface.cs" />
     <Compile Include="AutoplayManagement\AutoplayModel.cs" />
+    <Compile Include="BaseView\AlbumViewHolder.cs" />
     <Compile Include="BaseView\BaseBoundControl.cs" />
+    <Compile Include="BaseView\ExpandableListViewHolder.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
     <Compile Include="CommandHandlers\ShowPlaybackControlsCommandHander.cs" />
@@ -175,8 +177,6 @@
     <Compile Include="Messages\DisplayGenreMessage.cs" />
     <Compile Include="Messages\StorageDataAvailableMessage.cs" />
     <Compile Include="Messages\PlayCurrentSongMessage.cs" />
-    <Compile Include="Messages\PlaylistAddedMessage.cs" />
-    <Compile Include="Messages\PlaylistDeletedMessage.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
     <Compile Include="Messages\SelectedLibraryChangedMessage.cs" />
     <Compile Include="Messages\AlbumPlayedStateChangedMessage.cs" />
@@ -319,12 +319,12 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\playlist_layout.axml">
+    <AndroidResource Include="Resources\layout\playlists_playlist_layout.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\playlistitem_layout.axml">
+    <AndroidResource Include="Resources\layout\playlists_song_layout.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
@@ -444,7 +444,7 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\artists_album_group_layout.axml">
+    <AndroidResource Include="Resources\layout\artists_album_layout.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
@@ -576,6 +576,18 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\menu\menu_playback_options.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\playlists_tag_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\playlists_album_layout.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>

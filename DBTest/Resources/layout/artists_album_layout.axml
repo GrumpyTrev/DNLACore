@@ -48,13 +48,15 @@
 		android:id="@+id/genreLayout">
 		<TextView
 			android:id="@+id/genre"
-			android:layout_width="fill_parent"
+			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="Genre"
-			android:layout_marginLeft="40dp"
 			android:textColor="@color/colorAlbumGenre"
 			android:textSize="15dp"
-			android:layout_marginTop="-5dp" 
+			android:layout_marginTop="-5dp"
+			android:layout_alignParentLeft="true"
+			android:layout_toLeftOf="@+id/albumGenreYear"
+			android:layout_marginLeft="40dp" 
 		/>
 		<TextView
 			android:id="@+id/albumGenreYear"

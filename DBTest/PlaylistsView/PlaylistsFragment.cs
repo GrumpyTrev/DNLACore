@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace DBTest
 {
-	public class PlaylistsFragment: PagedFragment<Playlist>, ExpandableListAdapter< Playlist >.IGroupContentsProvider< Playlist >, 
+	public class PlaylistsFragment: PagedFragment<object>, ExpandableListAdapter< object >.IGroupContentsProvider< object >, 
 		PlaylistsController.IPlaylistsReporter
 	{
 		/// <summary>
@@ -19,9 +19,7 @@ namespace DBTest
 		/// Playlist items are now read at startup. So this is no longer required
 		/// </summary>
 		/// <param name="thePlayList"></param>
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-		public async Task ProvideGroupContentsAsync( Playlist _ )
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+		public async Task ProvideGroupContentsAsync( object _ )
 		{
 		}
 
@@ -30,7 +28,13 @@ namespace DBTest
 		/// Display the data held in the Playlists view model
 		/// </summary>
 		/// <param name="message"></param>
-		public void DataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
+		public void DataAvailable()
+		{
+			Adapter.SetData( PlaylistsViewModel.CombinedList.ToList(), SortSelector.SortType.alphabetic );
+
+			// Display or hide the genres in Tag playlists
+			DisplayGenreChanged();
+		}
 
 		/// <summary>
 		/// Called when a specific playlist has been updated
@@ -42,9 +46,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the DisplayGenre flag has been toggled
 		/// </summary>
-		public void DisplayGenreChanged()
-		{
-		}
+		public void DisplayGenreChanged() => ( ( PlaylistsAdapter )Adapter ).ShowGenre( PlaylistsViewModel.DisplayGenre );
 
 		/// <summary>
 		/// Called when the number of selected items has changed.

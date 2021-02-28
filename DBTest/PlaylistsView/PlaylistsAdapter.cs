@@ -6,7 +6,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class PlaylistsAdapter: ExpandableListAdapter< Playlist >
+	class PlaylistsAdapter: ExpandableListAdapter< object >
 	{
 		/// <summary>
 		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
@@ -14,42 +14,59 @@ namespace DBTest
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< Playlist > provider, IAdapterActionHandler actionHandler ) :
+		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< object > provider, IAdapterActionHandler actionHandler ) :
 			base( context, parentView, provider,  PlaylistsAdapterModel.BaseModel, actionHandler )
 		{
 		}
 
 		/// <summary>
 		/// Number of child items of selected group
+		/// If the group is a Playlist then return the number of PlaylistItem entries.
+		/// If the group is a Tag then return the number of TaggedAlbum entries
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].PlaylistItems?.Count ?? 0;
+		public override int GetChildrenCount( int groupPosition )
+		{
+			int count = 0;
+
+			if ( Groups[ groupPosition ] is Playlist playlist )
+			{
+				count = playlist.PlaylistItems.Count;
+			}
+			else
+			{
+				count = ( ( Tag )Groups[ groupPosition ] ).TaggedAlbums.Count;
+			}
+
+			return count;
+		}
 
 		/// <summary>
-		/// There is only one Child Type - the songs
+		/// There are two child types. The PlaylistItem and TaggedAlbum
 		/// </summary>
-		public override int ChildTypeCount => 1;
+		public override int ChildTypeCount => 2;
 
 		/// <summary>
-		/// As there is only one Child Type always return 0
+		/// The child type depends on the group type.
+		/// For Playlists the child type is 0. For Tags the child type is 1
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		public override int GetChildType( int groupPosition, int childPosition ) => 0;
+		public override int GetChildType( int groupPosition, int childPosition ) => Groups[ groupPosition ] is Playlist ? 0 : 1;
 
 		/// <summary>
-		/// There is one group type, the playlist
+		/// There are two group types. Playlists and Tags
 		/// </summary>
-		public override int GroupTypeCount => 1;
+		public override int GroupTypeCount => 2;
 
 		/// <summary>
-		/// As there is only one group Type always return 0
+		/// Return 0 for Playlists and 1 for Tags
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetGroupType( int groupPosition ) => 0;
+		public override int GetGroupType( int groupPosition ) => Groups[ groupPosition ] is Playlist ? 0 : 1;
 
 		/// <summary>
 		/// Called when songs have been added to or deleted from a playlist
@@ -69,7 +86,7 @@ namespace DBTest
 				if ( ActionMode == true )
 				{
 					// Form a collection of the playlist items and their tags and use it to update the selection tags
-					UpdateSelectionTags( Groups[ groupPosition ].PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
+					UpdateSelectionTags( ( ( Playlist )Groups[ groupPosition ] ).PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
 				}
 
 				// Is this group expanded
@@ -78,6 +95,16 @@ namespace DBTest
 					NotifyDataSetChanged();
 				}
 			}
+		}
+
+		/// <summary>
+		/// Show or hide the genre information
+		/// </summary>
+		/// <param name="show"></param>
+		public void ShowGenre( bool show )
+		{
+			showGenre = show;
+			NotifyDataSetChanged();
 		}
 
 		/// <summary>
@@ -92,21 +119,46 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
-			// If no view supplied then create a new one
-			if ( convertView == null )
+			if ( Groups[ groupPosition ] is Playlist playlist )
 			{
-				convertView = inflator.Inflate( Resource.Layout.playlistitem_layout, null );
-				convertView.Tag = new SongViewHolder()
+				// If no view supplied then create a new one
+				if ( convertView == null )
 				{
-					SelectionBox = GetSelectionBox( convertView ),
-					Artist = convertView.FindViewById<TextView>( Resource.Id.artist ),
-					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
-					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
-				};
-			}
+					convertView = inflator.Inflate( Resource.Layout.playlists_song_layout, null );
+					convertView.Tag = new SongViewHolder()
+					{
+						SelectionBox = GetSelectionBox( convertView ),
+						Artist = convertView.FindViewById<TextView>( Resource.Id.artist ),
+						Title = convertView.FindViewById<TextView>( Resource.Id.title ),
+						Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
+					};
+				}
 
-			// Display the Title, Duration and Artist
-			( ( SongViewHolder )convertView.Tag ).DisplaySong( Groups[ groupPosition ].PlaylistItems[ childPosition ] );
+				// Display the PlaylistItem
+				( ( SongViewHolder )convertView.Tag ).DisplaySong( playlist.PlaylistItems[ childPosition ] );
+			}
+			else
+			{
+				// If the supplied view is null then create one
+				if ( convertView == null )
+				{
+					convertView = inflator.Inflate( Resource.Layout.playlists_album_layout, null );
+					convertView.Tag = new AlbumViewHolder()
+					{
+						SelectionBox = GetSelectionBox( convertView ),
+						AlbumName = convertView.FindViewById<TextView>( Resource.Id.albumName ),
+						ArtistName = convertView.FindViewById<TextView>( Resource.Id.artist ),
+						Year = convertView.FindViewById<TextView>( Resource.Id.year ),
+						Genre = convertView.FindViewById<TextView>( Resource.Id.genre ),
+						GenreYear = convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ),
+						GenreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout )
+					};
+				}
+
+				// Display the album
+				Album album = ( ( Tag )Groups[ groupPosition ] ).TaggedAlbums[ childPosition ].Album;
+				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, showGenre, album.Genre );
+			}
 
 			return convertView;
 		}
@@ -138,25 +190,44 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
-			// If no view supplied then create a new one
-			if ( convertView == null )
+			if ( Groups[ groupPosition ] is Playlist playlist )
 			{
-				convertView = inflator.Inflate( Resource.Layout.playlist_layout, null );
-				convertView.Tag = new PlaylistViewHolder()
+				// If no view supplied then create a new one
+				if ( convertView == null )
 				{
-					SelectionBox = GetSelectionBox( convertView ),
-					Name = convertView.FindViewById<TextView>( Resource.Id.playListName )
-				};
-			}
+					convertView = inflator.Inflate( Resource.Layout.playlists_playlist_layout, null );
+					convertView.Tag = new PlaylistViewHolder()
+					{
+						SelectionBox = GetSelectionBox( convertView ),
+						Name = convertView.FindViewById<TextView>( Resource.Id.playListName )
+					};
+				}
 
-			// Display the playlist's name
-			( ( PlaylistViewHolder )convertView.Tag ).DisplayPlaylist( Groups[ groupPosition ] );
+				// Display the playlist's name
+				( ( PlaylistViewHolder )convertView.Tag ).DisplayPlaylist( playlist );
+			}
+			else
+			{
+				// If no view supplied then create a new one
+				if ( convertView == null )
+				{
+					convertView = inflator.Inflate( Resource.Layout.playlists_tag_layout, null );
+					convertView.Tag = new TagViewHolder()
+					{
+						SelectionBox = GetSelectionBox( convertView ),
+						Name = convertView.FindViewById<TextView>( Resource.Id.tagName )
+					};
+				}
+
+				// Display the playlist's name
+				( ( TagViewHolder )convertView.Tag ).DisplayTag( (Tag)Groups[ groupPosition ] );
+			}
 
 			return convertView;
 		}
 
 		/// <summary>
-		/// View holder for the child Song items
+		/// View holder for the group Playlist items
 		/// </summary>
 		private class PlaylistViewHolder : ExpandableListViewHolder
 		{
@@ -166,13 +237,39 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get the data item at teh specified position. If the childPosition is -1 then the group item is required
+		/// View holder for the group Tag items
+		/// </summary>
+		private class TagViewHolder : ExpandableListViewHolder
+		{
+			public void DisplayTag( Tag tag ) => Name.Text = tag.Name;
+
+			public TextView Name { get; set; }
+		}
+
+		/// <summary>
+		/// Get the data item at the specified position. If the childPosition is -1 then the group item is required
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition ) => 
-			( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : ( object )Groups[ groupPosition ].PlaylistItems[ childPosition ];
+		protected override object GetItemAt( int groupPosition, int childPosition )
+		{
+			object item = null;
+			if ( childPosition == 0XFFFF )
+			{
+				item = Groups[ groupPosition ];
+			}
+			else if ( Groups[ groupPosition ] is Playlist playlist )
+			{
+				item = playlist.PlaylistItems[ childPosition ];
+			}
+			else
+			{
+				item = ( ( Tag )Groups[ groupPosition ] ).TaggedAlbums[ childPosition ];
+			}
+
+			return item;
+		}
 
 		/// <summary>
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
@@ -180,5 +277,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		protected override bool SelectLongClickedItem( int tag ) => true;
+
+		/// <summary>
+		/// Is genre information to be displayed
+		/// </summary>
+		private bool showGenre = false;
 	}
 }

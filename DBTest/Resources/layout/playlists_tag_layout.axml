@@ -16,13 +16,21 @@
 		android:layout_marginTop="-2dp" />
 	
 	<TextView
-		android:id="@+id/playListName"
+		android:id="@+id/tagType"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="PlayList"
-		android:textStyle="bold"
+		android:text="[T]"
 		android:layout_marginLeft="30dp"
+		android:layout_marginRight="10dp"
 		android:layout_toRightOf="@+id/checkBox"
+		android:textSize="20dp" 
+	/>	<TextView
+		android:id="@+id/tagName"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="tagName"
+		android:textStyle="bold"
+		android:layout_toRightOf="@+id/tagType"
 		android:textSize="20dp" 
 	/>
 </RelativeLayout>

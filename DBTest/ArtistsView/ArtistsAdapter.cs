@@ -230,7 +230,7 @@ namespace DBTest
 				// If no view supplied then create a new view
 				if ( convertView == null )
 				{
-					convertView = inflator.Inflate( Resource.Layout.artists_album_group_layout, null );
+					convertView = inflator.Inflate( Resource.Layout.artists_album_layout, null );
 					convertView.Tag = new AlbumViewHolder()
 					{
 						SelectionBox = GetSelectionBox( convertView ),
@@ -295,8 +295,9 @@ namespace DBTest
 					GenreLayout.Visibility = ViewStates.Visible;
 					Year.Visibility = ViewStates.Gone;
 
-					// Display the genre name. Alter the left margin according to whether the checkbox id being displayed ( ActonMode on)
-					Genre.Text = artistAlbum.Album.Genre;
+					// Display the genres. Replace any spaces in the genres with non-breaking space characters. This prevents a long genres string with a 
+					// space near the start being broken at the start, It just looks funny.
+					Genre.Text = artistAlbum.Album.Genre.Replace( ' ', '\u00a0' );
 
 					// Set the year
 					GenreYear.Text = yearText;
