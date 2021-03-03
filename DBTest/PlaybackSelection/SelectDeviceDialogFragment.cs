@@ -100,7 +100,7 @@ namespace DBTest
 
 				// Clear and then reload the data
 				adapter.Clear();
-				List<string> devices = PlaybackSelectionModel.RemoteDevices.ConnectedDevices();
+				devices = PlaybackSelectionModel.RemoteDevices.ConnectedDevices();
 				adapter.AddAll( devices );
 				adapter.NotifyDataSetChanged();
 
