@@ -40,6 +40,19 @@ namespace DBTest
 					}
 				}
 			}
+			else if ( selectedObjects.TaggedAlbums.Count > 0 )
+			{
+				Tag firstTag = Tags.TagsCollection.Single( tag => tag.Id == selectedObjects.TaggedAlbums[ 0 ].TagId );
+
+				if ( commandIdentity == Resource.Id.move_up )
+				{
+					PlaylistsController.MoveItemsUp( firstTag, selectedObjects.TaggedAlbums );
+				}
+				else
+				{
+					PlaylistsController.MoveItemsDown( firstTag, selectedObjects.TaggedAlbums );
+				}
+			}
 		}
 
 		/// <summary>
@@ -61,7 +74,8 @@ namespace DBTest
 		{
 			bool isValid = false;
 
-			if ( selectedObjects.PlaylistItems.Count > 0 )
+			// Check for song playlists first
+			if ( ( selectedObjects.PlaylistItems.Count > 0 ) && ( selectedObjects.TaggedAlbums.Count == 0 ) )
 			{
 				// Determine which is the key playlistitem to check for selection
 				int keyItemId = ( commandIdentity == Resource.Id.move_up ) ? selectedObjects.ParentPlaylist.PlaylistItems[ 0 ].Id :
@@ -83,6 +97,18 @@ namespace DBTest
 					{
 						isValid = ( selectedObjects.PlaylistItems.Any( item => ( item.Id == keyItemId ) ) == false );
 					}
+				}
+			}
+			else if ( ( selectedObjects.TaggedAlbums.Count > 0 ) && ( selectedObjects.PlaylistItems.Count == 0 ) )
+			{
+				Tag firstTag = Tags.TagsCollection.Single( tag => tag.Id == selectedObjects.TaggedAlbums[ 0 ].TagId );
+
+				// The move up / move down is available if all TaggedAlbums are from a single Tag and that Tag is not selected.
+				bool itemsfromSingleTag = selectedObjects.TaggedAlbums.Any( item => item.TagId != firstTag.Id ) == false;
+				if ( ( itemsfromSingleTag == true ) && ( selectedObjects.Tags.Any( tag => tag.Id == firstTag.Id ) == false ) )
+				{
+					int keyItemId = ( commandIdentity == Resource.Id.move_up ) ? firstTag.TaggedAlbums[ 0 ].Id : firstTag.TaggedAlbums.Last().Id;
+					isValid = ( selectedObjects.TaggedAlbums.Any( ta => ta.Id == keyItemId ) == false );
 				}
 			}
 

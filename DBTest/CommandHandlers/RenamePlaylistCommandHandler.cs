@@ -19,10 +19,33 @@ namespace DBTest
 
 		/// <summary>
 		/// Is the command valid given the selected objects
+		/// This command is valid if just a single Playlist is selected and all other selected items are members of that Playlist
 		/// </summary>
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Playlists.Count() == 1 );
+		protected override bool IsSelectionValidForCommand( int _ )
+		{
+			bool valid = false;
+
+			// Only one playlist selected
+			if ( selectedObjects.Playlists.Count == 1 )
+			{
+				// Are all the selected PlaylistItems from the same playlist (which must be this one)
+				bool itemsFromSinglePlaylist = ( selectedObjects.PlaylistItems.Count > 0 ) &&
+					( selectedObjects.PlaylistItems.All( item => ( item.PlaylistId == selectedObjects.ParentPlaylist.Id ) ) == true );
+
+				if ( itemsFromSinglePlaylist == true )
+				{
+					// Make sure no other items are selected
+					if ( selectedObjects.SelectedObjects.Count() == ( selectedObjects.PlaylistItems.Count + 1 ) )
+					{
+						valid = true;
+					}
+				}
+			}
+
+			return valid;
+		}
 
 		/// <summary>
 		/// Called when a library has been selected.

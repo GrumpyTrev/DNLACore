@@ -47,6 +47,14 @@ namespace DBTest
 				{
 					Genres.Add( str );
 				}
+				else if ( selectedObject is Tag tag )
+				{
+					Tags.Add( tag );
+				}
+				else if ( selectedObject is TaggedAlbum taggedAlbum )
+				{
+					TaggedAlbums.Add( taggedAlbum );
+				}
 			}
 
 			// Determine if there is a parent playlist
@@ -90,6 +98,16 @@ namespace DBTest
 		/// The set of genres in the selected objects
 		/// </summary>
 		public List<string> Genres { get; } = new List<string>();
+
+		/// <summary>
+		/// The set of tags in the selected objects
+		/// </summary>
+		public List<Tag> Tags { get; } = new List<Tag>();
+
+		/// <summary>
+		/// The set of taggedalbums in the selected objects
+		/// </summary>
+		public List<TaggedAlbum> TaggedAlbums { get; } = new List<TaggedAlbum>();
 
 		/// <summary>
 		/// The parent playlist of selected playlistitems, if there is one

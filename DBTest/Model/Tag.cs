@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using SQLite;
 
 namespace DBTest
@@ -51,7 +52,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// 
+		/// Update the existing tag with new properties
 		/// </summary>
 		/// <param name="newTagDetails"></param>
 		public void UpdateTagDetails( Tag newTagDetails )
@@ -77,6 +78,56 @@ namespace DBTest
 
 			// Let everyone know about this
 			new TagDetailsChangedMessage() { ChangedTag = this }.Send();
+		}
+
+		/// <summary>
+		/// Move a set of selected items down and update the tag indexes
+		/// </summary>
+		/// <param name="items"></param>
+		public void MoveItemsDown( IEnumerable<TaggedAlbum> items )
+		{
+			// There must be at least one TaggedAlbum entry beyond those that are selected. That entry needs to be moved to above the start of the selection
+			TaggedAlbum itemToMove = TaggedAlbums[ items.Last().TagIndex + 1 ];
+			TaggedAlbums.RemoveAt( items.Last().TagIndex + 1 );
+			TaggedAlbums.Insert( items.First().TagIndex, itemToMove );
+
+			// Now the tag index numbers in the TaggedAlbum entries must be updated to match their index in the collection
+			AdjustTagIndexes();
+		}
+
+		/// <summary>
+		/// Move a set of selected items up and update the track numbers
+		/// </summary>
+		/// <param name="items"></param>
+		public void MoveItemsUp( IEnumerable<TaggedAlbum> items )
+		{
+			// There must be at least one TaggedAlbum entry above those that are selected. That entry needs to be moved to below the end of the selection
+			TaggedAlbum itemToMove = TaggedAlbums[ items.First().TagIndex - 1 ];
+			TaggedAlbums.RemoveAt( items.First().TagIndex - 1 );
+			TaggedAlbums.Insert( items.Last().TagIndex, itemToMove );
+
+			// Now the tag index numbers in the TaggedAlbum entries must be updated to match their index in the collection
+			AdjustTagIndexes();
+		}
+
+		/// <summary>
+		/// Adjust the tag index numbers to match the indexes in the collection
+		/// </summary>
+		/// <param name="thePlaylist"></param>
+		public void AdjustTagIndexes()
+		{
+			// The track numbers in the PlaylistItems must be updated to match their index in the collection
+			for ( int index = 0; index < TaggedAlbums.Count; ++index )
+			{
+				TaggedAlbum itemToCheck = TaggedAlbums[ index ];
+				if ( itemToCheck.TagIndex != index )
+				{
+					itemToCheck.TagIndex = index;
+
+					// Update the item in the model. No need to wait for this.
+					DbAccess.UpdateAsync( itemToCheck );
+				}
+			}
 		}
 
 		/// <summary>

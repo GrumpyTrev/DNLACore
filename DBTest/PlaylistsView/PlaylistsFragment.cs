@@ -15,12 +15,25 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get all the PlaylistItem entries associated with a specified Playlist.
-		/// Playlist items are now read at startup. So this is no longer required
+		/// Get all the entries associated with a specified Playlist or Tag.
+		/// Playlist items are now read at startup. So this is no longer required for them
+		/// Tag contents are also obtained on startup, but the Songs in the TaggedAlbums are not and they MAY be required.
+		/// There is currently no way to hook into child selection and get the Songs when required. Check for any visual
+		/// problems with doing it here
 		/// </summary>
-		/// <param name="thePlayList"></param>
-		public async Task ProvideGroupContentsAsync( object _ )
+		/// <param name="selectedGroup_"></param>
+		public async Task ProvideGroupContentsAsync( object selectedGroup )
 		{
+			if ( selectedGroup is Tag tag )
+			{
+				foreach ( TaggedAlbum taggedAlbum in tag.TaggedAlbums )
+				{
+					if ( taggedAlbum.Album.Songs == null )
+					{
+						await AlbumsController.GetAlbumContentsAsync( taggedAlbum.Album );
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -44,6 +57,13 @@ namespace DBTest
 		public void PlaylistUpdated( Playlist playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
 
 		/// <summary>
+		/// Called when a specific playlist has been updated
+		/// Pass on the changes to the adpater
+		/// </summary>
+		/// <param name="message"></param>
+		public void PlaylistUpdated( Tag albumPlaylist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( albumPlaylist );
+
+		/// <summary>
 		/// Called when the DisplayGenre flag has been toggled
 		/// </summary>
 		public void DisplayGenreChanged() => ( ( PlaylistsAdapter )Adapter ).ShowGenre( PlaylistsViewModel.DisplayGenre );
@@ -52,8 +72,24 @@ namespace DBTest
 		/// Called when the number of selected items has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
-			SetActionBarTitle( selectedObjects.PlaylistItems.Count, selectedObjects.Playlists.Count );
+		protected override void SelectedItemsChanged( GroupedSelection selectedObjects )
+		{
+			if ( ( selectedObjects.PlaylistItems.Count == 0 ) && ( selectedObjects.Playlists.Count == 0 ) && 
+				( selectedObjects.Tags.Count == 0 ) && ( selectedObjects.TaggedAlbums.Count == 0 ) )
+			{
+				ActionModeTitle = NoItemsSelectedText;
+			}
+			else
+			{
+				int playlistCount = selectedObjects.Playlists.Count + selectedObjects.Tags.Count;
+				int songCount = selectedObjects.PlaylistItems.Count + selectedObjects.TaggedAlbums.SelectMany( list => list.Album.Songs ).Count();
+
+				string playlistText = ( playlistCount > 0 ) ? string.Format( "{0} playlist{1} ", playlistCount, ( playlistCount == 1 ) ? "" : "s" ) : "";
+				string songsText = ( songCount > 0 ) ? string.Format( "{0} song{1} ", songCount, ( songCount == 1 ) ? "" : "s" ) : "";
+
+				ActionModeTitle = string.Format( ItemsSelectedText, playlistText, songsText );
+			}
+		}
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment
@@ -85,26 +121,6 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_playlists;
-
-		/// <summary>
-		/// Set the title for the Action Bar according to the number of songs and playlists selected
-		/// </summary>
-		/// <param name="songCount"></param>
-		/// <param name="playlitsCount"></param>
-		private void SetActionBarTitle( int songCount, int playlistCount )
-		{
-			if ( ( songCount == 0 ) && ( playlistCount == 0 ) )
-			{
-				ActionModeTitle = NoItemsSelectedText;
-			}
-			else
-			{
-				string playlistText = ( playlistCount > 0 ) ? string.Format( "{0} playlist{1} ", playlistCount, ( playlistCount == 1 ) ? "" : "s" ) : "";
-				string songsText = ( songCount > 0 ) ? string.Format( "{0} song{1} ", songCount, ( songCount == 1 ) ? "" : "s" ) : "";
-
-				ActionModeTitle = string.Format( ItemsSelectedText, playlistText, songsText );
-			}
-		}
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

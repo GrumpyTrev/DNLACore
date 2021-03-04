@@ -135,6 +135,11 @@ namespace DBTest
 		public bool TagOrderFlag { get => CurrentFilter?.TagOrder ?? false; }
 
 		/// <summary>
+		/// Get the UserTag flag of the current filter
+		/// </summary>
+		public bool UserTagFlag { get => CurrentFilter?.UserTag ?? false; }
+
+		/// <summary>
 		/// Does the current filter contain any of the specified tag names
 		/// </summary>
 		/// <param name="tagNames"></param>

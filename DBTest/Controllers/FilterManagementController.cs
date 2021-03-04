@@ -254,6 +254,12 @@ namespace DBTest
 					taggedAlbum.Album = Albums.GetAlbumById( taggedAlbum.AlbumId );
 					tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
 				};
+
+				// Sort the TaggedAlbums collecton for each Tag into TagIndex order rather than the order held in storage
+				foreach ( Tag tag in Tags.TagsCollection )
+				{
+					tag.TaggedAlbums.Sort( ( a, b ) => { return a.TagIndex.CompareTo( b.TagIndex ); } );
+				}
 			} );
 		}
 

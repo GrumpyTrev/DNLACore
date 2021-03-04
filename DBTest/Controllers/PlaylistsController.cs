@@ -111,6 +111,36 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Move a set of selected items down the specified playlist and update the tag index numbers
+		/// </summary>
+		/// <param name="theTag"></param>
+		/// <param name="items"></param>
+		public static void MoveItemsDown( Tag theTag, IEnumerable<TaggedAlbum> items )
+		{
+			theTag.MoveItemsDown( items );
+
+			DataReporter?.PlaylistUpdated( theTag );
+
+			// Report this tag change
+			new TagMembershipChangedMessage() { ChangedTags = new List<string>() { theTag.Name } }.Send();
+		}
+
+		/// <summary>
+		/// Move a set of selected items up the specified playlist and update the tag index numbers
+		/// </summary>
+		/// <param name="theTag"></param>
+		/// <param name="items"></param>
+		public static void MoveItemsUp( Tag theTag, IEnumerable<TaggedAlbum> items )
+		{
+			theTag.MoveItemsUp( items );
+
+			DataReporter?.PlaylistUpdated( theTag );
+
+			// Report this tag change
+			new TagMembershipChangedMessage() { ChangedTags = new List<string>() { theTag.Name } }.Send();
+		}
+
+		/// <summary>
 		/// Check if the specified playlist exists in other libraries
 		/// </summary>
 		/// <param name="name"></param>
@@ -275,6 +305,7 @@ namespace DBTest
 		public interface IPlaylistsReporter : DataReporter.IReporter
 		{
 			void PlaylistUpdated( Playlist playlist );
+			void PlaylistUpdated( Tag tag );
 			void DisplayGenreChanged();
 		}
 

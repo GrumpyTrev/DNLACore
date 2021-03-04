@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Android.Content;
 using Android.Views;
 using Android.Widget;
@@ -75,10 +76,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="list"></param>
 		/// <param name="songs"></param>
-		public void PlaylistUpdated( Playlist playlist )
+		public void PlaylistUpdated( object updatedObject )
 		{
 			// Find the group holding the playlist
-			int groupPosition = Groups.IndexOf( playlist );
+			int groupPosition = Groups.IndexOf( updatedObject );
 
 			if ( groupPosition != -1 )
 			{
@@ -86,7 +87,15 @@ namespace DBTest
 				if ( ActionMode == true )
 				{
 					// Form a collection of the playlist items and their tags and use it to update the selection tags
-					UpdateSelectionTags( ( ( Playlist )Groups[ groupPosition ] ).PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
+					if ( updatedObject is Playlist playlist )
+					{
+						UpdateSelectionTags( playlist.PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
+					}
+					else
+					{
+						Tag albumPlaylist = ( Tag )updatedObject;
+						UpdateSelectionTags( albumPlaylist.TaggedAlbums.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
+					}
 				}
 
 				// Is this group expanded
@@ -224,6 +233,22 @@ namespace DBTest
 			}
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// Called when a group has been selected or deselected to allow derived classes to perform their own processing
+		/// If this is a Tag and is being selected then make sure that all the TaggedAlbum entries have their Song entries set
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="selected"></param>
+		protected override async Task<bool> GroupSelectionHasChanged( int groupPosition, bool selected )
+		{
+			if ( selected == true )
+			{
+				await contentsProvider.ProvideGroupContentsAsync( Groups[ groupPosition ] );
+			}
+
+			return false;
 		}
 
 		/// <summary>

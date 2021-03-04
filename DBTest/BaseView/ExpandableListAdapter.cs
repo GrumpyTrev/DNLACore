@@ -758,7 +758,7 @@ namespace DBTest
 		/// <summary>
 		/// Interface used to obtain Artist details
 		/// </summary>
-		private readonly IGroupContentsProvider<T> contentsProvider = null;
+		protected readonly IGroupContentsProvider<T> contentsProvider = null;
 
 		/// <summary>
 		/// The parent ExpandableListView

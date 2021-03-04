@@ -452,6 +452,6 @@ namespace DBTest
 		/// <summary>
 		/// The CommandHandlerCallback containing the action to call after a command has been handled
 		/// </summary>
-		static private CommandRouter.CommandHandlerCallback commandCallback = new CommandRouter.CommandHandlerCallback();
+		private CommandRouter.CommandHandlerCallback commandCallback = new CommandRouter.CommandHandlerCallback();
 	}
 }
