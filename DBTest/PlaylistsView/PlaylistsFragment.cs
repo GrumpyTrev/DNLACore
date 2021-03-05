@@ -54,14 +54,7 @@ namespace DBTest
 		/// Pass on the changes to the adpater
 		/// </summary>
 		/// <param name="message"></param>
-		public void PlaylistUpdated( Playlist playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
-
-		/// <summary>
-		/// Called when a specific playlist has been updated
-		/// Pass on the changes to the adpater
-		/// </summary>
-		/// <param name="message"></param>
-		public void PlaylistUpdated( Tag albumPlaylist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( albumPlaylist );
+		public void PlaylistUpdated( object playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
 
 		/// <summary>
 		/// Called when the DisplayGenre flag has been toggled

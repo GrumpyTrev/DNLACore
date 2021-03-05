@@ -76,6 +76,7 @@
     <Compile Include="CommandHandlers\NewTabCommandHander.cs" />
     <Compile Include="Controllers\MediaNotificationController.cs" />
     <Compile Include="Controllers\MediaControllerController.cs" />
+    <Compile Include="BaseView\ConfirmationDialogFragment.cs" />
     <Compile Include="MediaControllerView\MediaControllerInterface.cs" />
     <Compile Include="MediaControllerView\MediaControllerViewModel.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationViewModel.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Messages\MediaControlPauseMessage.cs" />
     <Compile Include="Messages\MediaPlayingMessage.cs" />
     <Compile Include="Messages\MediaProgressMessage.cs" />
+    <Compile Include="Messages\TagAddedMessage.cs" />
     <Compile Include="PlaybackManagement\BasePlayback.cs" />
     <Compile Include="PlaybackManagement\LocalPlayback.cs" />
     <Compile Include="PlaybackManagement\PlaybackRouter.cs" />
@@ -141,7 +143,6 @@
     <Compile Include="Controllers\StorageController.cs" />
     <Compile Include="DbAccess\DbAccess.cs" />
     <Compile Include="DisplayGenreView\DisplayGenreViewModel.cs" />
-    <Compile Include="FilterManagement\DeleteConfirmationDialogFragment.cs" />
     <Compile Include="FilterManagement\FilterManagementModel.cs" />
     <Compile Include="FilterManagement\FilterSelectionDialogFragment.cs" />
     <Compile Include="FilterManagement\TagApplicationDialogFragment.cs" />
@@ -155,7 +156,6 @@
     <Compile Include="LibraryManagement\LibrarySelectionDialogFragment.cs" />
     <Compile Include="LibraryManagement\SourceDisplayAdapter.cs" />
     <Compile Include="LibraryManagement\SourceSelectionDialogFragment.cs" />
-    <Compile Include="LibraryManagement\ClearConfirmationDialogFragment.cs" />
     <Compile Include="LibraryManagement\ClearProgressDialogFragment.cs" />
     <Compile Include="LibraryManagement\LibraryScanModel.cs" />
     <Compile Include="LibraryManagement\ScanProgressDialogFragment.cs" />
@@ -223,9 +223,7 @@
     <Compile Include="PlaybackModeView\PlaybackModeModel.cs" />
     <Compile Include="PlaybackModeView\PlaybackModeView.cs" />
     <Compile Include="PlaybackSelection\SelectDeviceDialogFragment.cs" />
-    <Compile Include="PlaylistsView\DuplicatePlaylistDialogFragment.cs" />
     <Compile Include="PlaylistsView\NewPlaylistNameDialogFragment.cs" />
-    <Compile Include="PlaylistsView\DeletePlaylistDialogFragment.cs" />
     <Compile Include="PlaylistsView\PlaylistsAdapter.cs" />
     <Compile Include="ArtistsView\ArtistsAdapterModel.cs" />
     <Compile Include="PlaylistsView\PlaylistsAdapterModel.cs" />

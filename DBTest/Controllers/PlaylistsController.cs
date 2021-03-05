@@ -18,6 +18,9 @@ namespace DBTest
 			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
+			Mediator.RegisterPermanent( TagAddedOrDeleted, typeof( TagAddedMessage ) );
+			Mediator.RegisterPermanent( TagAddedOrDeleted, typeof( TagDeletedMessage ) );
+			Mediator.RegisterPermanent( TagChanged, typeof( TagMembershipChangedMessage ) );
 		}
 
 		/// <summary>
@@ -122,6 +125,7 @@ namespace DBTest
 			DataReporter?.PlaylistUpdated( theTag );
 
 			// Report this tag change
+			sendByMe = true;
 			new TagMembershipChangedMessage() { ChangedTags = new List<string>() { theTag.Name } }.Send();
 		}
 
@@ -137,6 +141,7 @@ namespace DBTest
 			DataReporter?.PlaylistUpdated( theTag );
 
 			// Report this tag change
+			sendByMe = true;
 			new TagMembershipChangedMessage() { ChangedTags = new List<string>() { theTag.Name } }.Send();
 		}
 
@@ -214,7 +219,7 @@ namespace DBTest
 
 					if ( songsToAdd.Count > 0 )
 					{
-						// Add the songs to the new Playlist. No need to wait for this
+						// Add the songs to the new Playlist.
 						duplicatedPlaylist.AddSongs( songsToAdd );
 					}
 				}
@@ -251,6 +256,7 @@ namespace DBTest
 				PlaylistsViewModel.Tags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
 
 				// Now copy to the combined list
+				PlaylistsViewModel.CombinedList.Clear();
 				PlaylistsViewModel.CombinedList.AddRange( PlaylistsViewModel.Playlists );
 				PlaylistsViewModel.CombinedList.AddRange( PlaylistsViewModel.Tags );
 			} );
@@ -270,7 +276,7 @@ namespace DBTest
 		/// Clear the current data then reload
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object message )
+		private static void SelectedLibraryChanged( object _ )
 		{
 			// Clear the displayed data
 			PlaylistsViewModel.ClearModel();
@@ -291,6 +297,47 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when a TagAddedMessage or TagDeletedMessage has been received
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagAddedOrDeleted( object message )
+		{
+			if ( ( ( message is TagAddedMessage tagAdded ) && ( tagAdded.AddedTag.UserTag == true ) ) || 
+				( ( message is TagDeletedMessage tagDeleted ) && ( tagDeleted.DeletedTag.UserTag == true ) ) )
+			{
+				// Reread the data as the source Tags collection has changed
+				StorageDataAvailable();
+			}
+		}
+
+		/// <summary>
+		/// Called when a TagMembershipChangedMessage has been received
+		/// If this is a tag currently being displayed then report it.
+		/// Currently this controller as well as others generates the same message, so for now use the 'sentByMe' flag to control
+		/// whether or not this message is processed
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagChanged( object message )
+		{
+			if ( sendByMe == true )
+			{
+				sendByMe = false;
+			}
+			else
+			{
+				List<string> changedTags = ( ( TagMembershipChangedMessage )message ).ChangedTags;
+				foreach ( string tagName in changedTags )
+				{
+					Tag changedTag = Tags.GetTagByName( tagName );
+					if ( ( changedTag != null ) && ( changedTag.UserTag == true ) )
+					{
+						DataReporter?.PlaylistUpdated( changedTag );
+					}
+				}
+			}
+		}
+
+		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
 		public static IPlaylistsReporter DataReporter
@@ -304,8 +351,7 @@ namespace DBTest
 		/// </summary>
 		public interface IPlaylistsReporter : DataReporter.IReporter
 		{
-			void PlaylistUpdated( Playlist playlist );
-			void PlaylistUpdated( Tag tag );
+			void PlaylistUpdated( object playlist );
 			void DisplayGenreChanged();
 		}
 
@@ -313,5 +359,11 @@ namespace DBTest
 		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
 		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+
+		/// <summary>
+		/// Flag set when this controller sends TagMembershipChangedMessage messages to prevent them being processed here
+		/// This should only be temporary.
+		/// </summary>
+		private static bool sendByMe = false;
 	}
 }

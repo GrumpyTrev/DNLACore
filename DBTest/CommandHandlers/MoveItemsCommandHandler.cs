@@ -89,26 +89,25 @@ namespace DBTest
 				}
 				else
 				{
-					// The move up / move down is available if all the songs are from a single playlist and that playlist is not selected, i.e. not all
-					// of its songs are selected
-					bool itemsFromSinglePlaylist = selectedObjects.PlaylistItems.Any( item => ( item.PlaylistId != selectedObjects.ParentPlaylist.Id ) ) == false;
-
-					if ( ( itemsFromSinglePlaylist == true ) && ( selectedObjects.Playlists.Any( list => ( list.Id == selectedObjects.ParentPlaylist.Id ) ) == false ) )
+					// The move up / move down is available if all the songs are from a single playlist and that playlist is not selected
+					if ( selectedObjects.Playlists.Count == 0 )
 					{
-						isValid = ( selectedObjects.PlaylistItems.Any( item => ( item.Id == keyItemId ) ) == false );
+						isValid = ( selectedObjects.PlaylistItems.Any( item => ( item.PlaylistId != selectedObjects.ParentPlaylist.Id ) ) == false ) &&
+							( selectedObjects.PlaylistItems.Any( item => ( item.Id == keyItemId ) ) == false );
 					}
 				}
 			}
 			else if ( ( selectedObjects.TaggedAlbums.Count > 0 ) && ( selectedObjects.PlaylistItems.Count == 0 ) )
 			{
-				Tag firstTag = Tags.TagsCollection.Single( tag => tag.Id == selectedObjects.TaggedAlbums[ 0 ].TagId );
-
 				// The move up / move down is available if all TaggedAlbums are from a single Tag and that Tag is not selected.
-				bool itemsfromSingleTag = selectedObjects.TaggedAlbums.Any( item => item.TagId != firstTag.Id ) == false;
-				if ( ( itemsfromSingleTag == true ) && ( selectedObjects.Tags.Any( tag => tag.Id == firstTag.Id ) == false ) )
+				if ( selectedObjects.Tags.Count == 0 )
 				{
-					int keyItemId = ( commandIdentity == Resource.Id.move_up ) ? firstTag.TaggedAlbums[ 0 ].Id : firstTag.TaggedAlbums.Last().Id;
-					isValid = ( selectedObjects.TaggedAlbums.Any( ta => ta.Id == keyItemId ) == false );
+					Tag parentTag = Tags.GetTagById( selectedObjects.TaggedAlbums[ 0 ].TagId );
+					if ( selectedObjects.TaggedAlbums.Any( item => item.TagId != parentTag.Id ) == false )
+					{
+						int keyItemId = ( commandIdentity == Resource.Id.move_up ) ? parentTag.TaggedAlbums[ 0 ].Id : parentTag.TaggedAlbums.Last().Id;
+						isValid = ( selectedObjects.TaggedAlbums.Any( ta => ta.Id == keyItemId ) == false );
+					}
 				}
 			}
 

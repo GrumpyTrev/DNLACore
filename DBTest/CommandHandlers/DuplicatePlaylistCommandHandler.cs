@@ -15,10 +15,12 @@ namespace DBTest
 		public override void HandleCommand( int commandIdentity )
 		{
 			// If the playlist already exists in other libraries then prompt for deletion
-			Playlist playlistToDuplicate = selectedObjects.Playlists.First();
+			Playlist playlistToDuplicate = selectedObjects.Playlists[ 0 ];
 			if ( PlaylistsController.CheckForOtherPlaylists( playlistToDuplicate.Name, ConnectionDetailsModel.LibraryId ) == true )
 			{
-				DuplicatePlaylistDialogFragment.ShowFragment( CommandRouter.Manager, playlistToDuplicate, DuplicateSelected );
+				ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, 
+					( bool confirm ) => { if ( confirm == true ) PlaylistsController.DuplicatePlaylistAsync( playlistToDuplicate ); }, 
+					"The playlist already exists in other libraries. Are you sure you want to duplicate it?" );
 			}
 			else
 			{
@@ -35,11 +37,6 @@ namespace DBTest
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
 		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Playlists.Count() == 1 );
-
-		/// <summary>
-		/// Called when the user has decided to duplicate the playlist even if it already exists in another library
-		/// </summary>
-		private void DuplicateSelected() => PlaylistsController.DuplicatePlaylistAsync( selectedObjects.Playlists.First() );
 
 		/// <summary>
 		/// The command identity associated with this handler

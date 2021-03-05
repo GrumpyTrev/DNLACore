@@ -159,6 +159,17 @@ namespace DBTest
 		public static void DeleteTag( Tag tagToDelete ) => Tags.DeleteTag( tagToDelete );
 
 		/// <summary>
+		/// Remove the specified TaggedAlbums from a Tag
+		/// </summary>
+		/// <param name="tagToDeleteFrom"></param>
+		/// <param name="taggedAlbumsToDelete"></param>
+		public static void DeleteTaggedAlbums( Tag tagToDeleteFrom, List<TaggedAlbum> taggedAlbumsToDelete )
+		{
+			tagToDeleteFrom.DeleteTaggedAlbums( taggedAlbumsToDelete );
+			new TagMembershipChangedMessage() { ChangedTags = new List<string>() { tagToDeleteFrom.Name } }.Send();
+		}
+
+		/// <summary>
 		/// Form Tags and associated TaggedAlbum entries for each genre
 		/// </summary>
 		/// <returns></returns>
@@ -258,7 +269,11 @@ namespace DBTest
 				// Sort the TaggedAlbums collecton for each Tag into TagIndex order rather than the order held in storage
 				foreach ( Tag tag in Tags.TagsCollection )
 				{
-					tag.TaggedAlbums.Sort( ( a, b ) => { return a.TagIndex.CompareTo( b.TagIndex ); } );
+					// Only for User tags so that we don't have to keep on reordering the Recently Played tag
+					if ( tag.UserTag == true )
+					{
+						tag.TaggedAlbums.Sort( ( a, b ) => { return a.TagIndex.CompareTo( b.TagIndex ); } );
+					}
 				}
 			} );
 		}

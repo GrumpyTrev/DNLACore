@@ -28,19 +28,23 @@
 		public void LibrarySelected( Library selectedLibrary )
 		{
 			libraryToClear = selectedLibrary;
-			ClearConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, libraryToClear.Name, ClearConfirmed );
+			ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, ClearConfirmed, 
+				string.Format( "Are you sure you want to clear the {0} library", libraryToClear.Name ) );
 		}
 
 		/// <summary>
 		/// Called when the library clearance has been confirmed
 		/// </summary>
-		public void ClearConfirmed()
+		public void ClearConfirmed( bool confirmed )
 		{
-			// Start the clear process, but don't wait for it to finish
-			ClearLibraryAsync();
+			if ( confirmed == true )
+			{
+				// Start the clear process, but don't wait for it to finish
+				ClearLibraryAsync();
 
-			// Let the user know what's going on
-			ClearProgressDialogFragment.ShowFragment( CommandRouter.Manager, libraryToClear.Name, BindDialog );
+				// Let the user know what's going on
+				ClearProgressDialogFragment.ShowFragment( CommandRouter.Manager, libraryToClear.Name, BindDialog );
+			}
 		}
 
 		/// <summary>

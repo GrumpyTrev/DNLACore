@@ -3,7 +3,7 @@
 namespace DBTest
 {
 	/// <summary>
-	/// The DeletePlaylistItemsCommandHandler class is used to delete songs from a playlist
+	/// The DeletePlaylistItemsCommandHandler class is used to delete songs and albums from a playlist
 	/// The same handler is used for both the Now Playing and user playlists, but they need different processing.
 	/// </summary>
 	class DeletePlaylistItemsCommandHandler : CommandHandler
@@ -24,23 +24,44 @@ namespace DBTest
 			}
 			else
 			{
-				Playlist playlistSelected = selectedObjects.Playlists.FirstOrDefault();
-
-				// If a playlist as well as songs are selected then prompt the user to check if the playlist entry should be deleted as well
-				if ( ( selectedObjects.PlaylistItems.Count > 0 ) && ( playlistSelected != null ) )
+				if ( selectedObjects.PlaylistItems.Count > 0 )
 				{
-					DeletePlaylistDialogFragment.ShowFragment( CommandRouter.Manager, playlistSelected, selectedObjects.PlaylistItems, DeleteSelected );
+					if ( selectedObjects.Playlists.Count == 1 )
+					{
+						// Deletion of songs and playlist - confirm first
+						ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, PlaylistDeleteSelected, "Do you want to delete the Playlist?" );
+					}
+					else
+					{
+						// Deletion of songs from a playlist
+						PlaylistsController.DeletePlaylistItems( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
+						commandCallback.PerformAction();
+					}
 				}
-				else if ( selectedObjects.PlaylistItems.Count > 0 )
+				else if ( selectedObjects.Playlists.Count == 1 )
 				{
-					// Deletion of songs from a playlist
-					PlaylistsController.DeletePlaylistItems( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
+					// Deletion of a playlist with no songs
+					PlaylistsController.DeletePlaylist( selectedObjects.Playlists[ 0 ] );
 					commandCallback.PerformAction();
+				}
+				else if ( selectedObjects.TaggedAlbums.Count > 0 )
+				{
+					if ( selectedObjects.Tags.Count == 1 )
+					{
+						// Deletion of TaggedAlbums and Tag - confirm first
+						ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, TagDeleteSelected, "Do you want to delete the Tag?" );
+					}
+					else
+					{
+						// Deletion of TaggedAlbums from a Tag
+						FilterManagementController.DeleteTaggedAlbums( Tags.GetTagById( selectedObjects.TaggedAlbums[ 0 ].TagId ), selectedObjects.TaggedAlbums );
+						commandCallback.PerformAction();
+					}
 				}
 				else
 				{
-					// Deletion of a playlist with no songs
-					PlaylistsController.DeletePlaylist( playlistSelected );
+					// Deletion of an empty Tag
+					FilterManagementController.DeleteTag( selectedObjects.Tags[ 0 ] );
 					commandCallback.PerformAction();
 				}
 			}
@@ -63,14 +84,26 @@ namespace DBTest
 			}
 			else
 			{
-				// The Delete command is only available if the selected playlistitems are from a single playlist and only one playlist is selected.
-				// Or if just a single empty playlist is selected
+				// The Delete command is only available if the selected items (PlaylistItem or TaggedAlbum) are from a single Playlist or Tag and only one 
+				// Playlist or Tag is selected. Or if just a single empty Playlist or Tag is selected
 				// Remember the playlist could be empty
-				bool itemsFromSinglePlaylist = ( selectedObjects.PlaylistItems.Count > 0 ) &&
-					( selectedObjects.PlaylistItems.All( item => ( item.PlaylistId == selectedObjects.ParentPlaylist.Id ) ) == true );
-				
-				isValid = ( ( itemsFromSinglePlaylist == true ) && ( selectedObjects.Playlists.Count < 2 ) ) || 
-					( ( selectedObjects.PlaylistItems.Count == 0 ) && ( selectedObjects.Playlists.Count == 1 ) );
+
+				// Check for Playlists and PlaylistItems first
+				if ( ( ( selectedObjects.Playlists.Count > 0 ) || ( selectedObjects.PlaylistItems.Count > 0 ) ) &&
+					( selectedObjects.Tags.Count == 0 ) && ( selectedObjects.TaggedAlbums.Count == 0 ) )
+				{
+					isValid = ( selectedObjects.Playlists.Count < 2 ) && ( ( selectedObjects.PlaylistItems.Count == 0 ) ||
+						( selectedObjects.PlaylistItems.All( item => ( item.PlaylistId == selectedObjects.ParentPlaylist.Id ) ) == true ) );
+				}
+				// Now the same for Tags and TaggedAlbums
+				else if ( ( ( selectedObjects.Tags.Count > 0 ) || ( selectedObjects.TaggedAlbums.Count > 0 ) ) &&
+					( selectedObjects.Playlists.Count == 0 ) && ( selectedObjects.PlaylistItems.Count == 0 ) )
+				{
+					int parentTagId = ( selectedObjects.TaggedAlbums.Count > 0 ) ? Tags.GetTagById( selectedObjects.TaggedAlbums[ 0 ].TagId ).Id : -1;
+
+					isValid = ( selectedObjects.Tags.Count < 2 ) && ( ( selectedObjects.TaggedAlbums.Count == 0 ) ||
+						( selectedObjects.TaggedAlbums.All( item => ( item.TagId == parentTagId ) ) == true ) );
+				}
 			}
 
 			return isValid;
@@ -80,16 +113,33 @@ namespace DBTest
 		/// Called when the user has decided whether to delete the entire playlist or just the items in it
 		/// </summary>
 		/// <param name="deletePlaylist"></param>
-		private void DeleteSelected( bool deletePlaylist )
+		private void PlaylistDeleteSelected( bool deletePlaylist )
 		{
-			Playlist playlist = selectedObjects.Playlists.First();
 			if ( deletePlaylist == true )
 			{
-				PlaylistsController.DeletePlaylist( playlist );
+				PlaylistsController.DeletePlaylist( selectedObjects.Playlists[ 0 ] );
 			}
 			else
 			{
-				PlaylistsController.DeletePlaylistItems( playlist, selectedObjects.PlaylistItems );
+				PlaylistsController.DeletePlaylistItems( selectedObjects.Playlists[ 0 ], selectedObjects.PlaylistItems );
+			}
+
+			commandCallback.PerformAction();
+		}
+
+		/// <summary>
+		/// Called when the user has decided whether to delete the entire tag or just the items in it
+		/// </summary>
+		/// <param name="deleteTag"></param>
+		private void TagDeleteSelected( bool deleteTag )
+		{
+			if ( deleteTag == true )
+			{
+				FilterManagementController.DeleteTag( selectedObjects.Tags[ 0 ] );
+			}
+			else
+			{
+				FilterManagementController.DeleteTaggedAlbums( selectedObjects.Tags[ 0 ], selectedObjects.TaggedAlbums );
 			}
 
 			commandCallback.PerformAction();

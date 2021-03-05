@@ -39,6 +39,13 @@ namespace DBTest
 		public static Tag GetTagByShortName( string shortName ) => ShortNameLookup.GetValueOrDefault( shortName );
 
 		/// <summary>
+		/// Return the Tag with the specified id
+		/// </summary>
+		/// <param name="identity"></param>
+		/// <returns></returns>
+		public static Tag GetTagById( int identity ) => TagsCollection.Where( tag => tag.Id == identity ).FirstOrDefault();
+
+		/// <summary>
 		/// Add a new tag to the storage and the local collections
 		/// </summary>
 		/// <param name="albumToAdd"></param>
@@ -54,6 +61,8 @@ namespace DBTest
 
 			NameLookup[ tagToAdd.Name ] = tagToAdd;
 			ShortNameLookup[ tagToAdd.ShortName ] = tagToAdd;
+
+			new TagAddedMessage() { AddedTag = tagToAdd }.Send();
 		}
 
 		/// <summary>

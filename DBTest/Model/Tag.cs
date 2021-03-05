@@ -42,6 +42,8 @@ namespace DBTest
 		/// <param name="album"></param>
 		public void AddTaggedAlbum( TaggedAlbum album )
 		{
+			album.TagIndex = TaggedAlbums.Count;
+
 			if ( PersistTag == true )
 			{
 				DBTest.TaggedAlbums.AddTaggedAlbum( album );
