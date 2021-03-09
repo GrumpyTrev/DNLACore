@@ -71,13 +71,6 @@ namespace DBTest
 		public override int GetPositionForSection( int sectionIndex ) => AlbumsViewModel.FastScrollSections[ sectionIndex ].Item2;
 
 		/// <summary>
-		/// Get the section that the specified position is in
-		/// </summary>
-		/// <param name="position"></param>
-		/// <returns></returns>
-		public override int GetSectionForPosition( int position ) => AlbumsViewModel.FastScrollSectionLookup[ position ];
-
-		/// <summary>
 		/// Return the names of all the sections
 		/// </summary>
 		/// <returns></returns>
@@ -182,6 +175,11 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		protected override bool SelectLongClickedItem( int tag ) => true;
+
+		/// <summary>
+		/// The section lookup used for fast scrolling
+		/// </summary>
+		protected override int[] FastScrollLookup { get; } = AlbumsViewModel.FastScrollSectionLookup;
 
 		/// <summary>
 		/// This is called by the base class when new data has been provided in order to create some of the fast scroll data.

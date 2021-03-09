@@ -81,13 +81,6 @@ namespace DBTest
 		public override int GetPositionForSection( int sectionIndex ) => ArtistsViewModel.FastScrollSections[ sectionIndex ].Item2;
 
 		/// <summary>
-		/// Get the section that the specified position is in
-		/// </summary>
-		/// <param name="position"></param>
-		/// <returns></returns>
-		public override int GetSectionForPosition( int position ) => ArtistsViewModel.FastScrollSectionLookup[ position ];
-
-		/// <summary>
 		/// Return the names of all the sections
 		/// </summary>
 		/// <returns></returns>
@@ -424,6 +417,11 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		protected override bool SelectLongClickedItem( int tag ) => ( IsGroupTag( tag ) == false ) || ( Groups[ GetGroupFromTag( tag ) ] is ArtistAlbum );
+
+		/// <summary>
+		/// The section lookup used for fast scrolling
+		/// </summary>
+		protected override int[] FastScrollLookup { get; } = ArtistsViewModel.FastScrollSectionLookup;
 
 		/// <summary>
 		/// Find the Artist index associated with the specified ArtistAlbum index

@@ -8,7 +8,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	public abstract class ExpandableListAdapter< T > : BaseExpandableListAdapter, AdapterView.IOnItemLongClickListener, 
+	public abstract class ExpandableListAdapter<T> : BaseExpandableListAdapter, AdapterView.IOnItemLongClickListener,
 		ExpandableListView.IOnChildClickListener, ExpandableListView.IOnGroupClickListener, ISectionIndexer
 	{
 		/// <summary>
@@ -17,7 +17,7 @@ namespace DBTest
 		/// <param name="context"></param>
 		/// <param name="view"></param>
 		/// <param name="provider"></param>
-		public ExpandableListAdapter( Context context, ExpandableListView view, IGroupContentsProvider< T > provider, 
+		public ExpandableListAdapter( Context context, ExpandableListView view, IGroupContentsProvider<T> provider,
 			ExpandableListAdapterModel model, IAdapterActionHandler stateChange )
 		{
 			// Save the parameters
@@ -133,7 +133,7 @@ namespace DBTest
 		/// Update the data and associated sections displayed by the list view
 		/// </summary>
 		/// <param name="newData"></param>
-		public void SetData( List< T > newData, SortSelector.SortType sortType )
+		public void SetData( List<T> newData, SortSelector.SortType sortType )
 		{
 			// If this is the first time data has been set then restore group expansions and the Action Mode.
 			// If data is being replaced then clear all state data related to the previous data
@@ -332,7 +332,17 @@ namespace DBTest
 		/// </summary>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		public virtual int GetSectionForPosition( int position ) => 0;
+		public int GetSectionForPosition( int position )
+		{
+			int section = 0;
+
+			if ( FastScrollLookup != null )
+			{
+				section = ( position < FastScrollLookup.Length ) ? FastScrollLookup[ position ] : FastScrollLookup[ FastScrollLookup.Length - 1 ];
+			}
+
+			return section;
+		}
 
 		/// <summary>
 		/// Return the names of all the sections
@@ -531,7 +541,7 @@ namespace DBTest
 		/// <summary>
 		/// Overriden in derived classes to generate an index for the group
 		/// </summary>
-		protected virtual void SetGroupIndex() {}
+		protected virtual void SetGroupIndex() { }
 
 		/// <summary>
 		/// Form a tag for a group item
@@ -580,6 +590,12 @@ namespace DBTest
 
 			return selectionBox;
 		}
+
+		/// <summary>
+		/// The FastScrollSectionLookup provided by the derived adapter
+		/// </summary>
+		/// <returns></returns>
+		protected virtual int[] FastScrollLookup{ get; } = null;
 
 		/// <summary>
 		/// Called to perform the actual group collapse or expansion asynchronously

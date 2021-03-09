@@ -36,6 +36,13 @@ namespace DBTest
 		public static async Task GetArtistContentsAsync( Artist theArtist ) => await theArtist.GetSongsAsync();
 
 		/// <summary>
+		/// Get the contents for the specified ArtistAlbum
+		/// </summary>
+		/// <param name="artistAlbum"></param>
+		/// <returns></returns>
+		public static async Task GetArtistAlbumContentsAsync( ArtistAlbum artistAlbum ) => await artistAlbum.Artist.GetArtistAlbumSongs( artistAlbum );
+
+		/// <summary>
 		/// Add a list of Songs to a specified playlist
 		/// </summary>
 		/// <param name="songsToAdd"></param>

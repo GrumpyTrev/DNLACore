@@ -28,8 +28,17 @@ namespace DBTest
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public async Task ProvideGroupContentsAsync( object theArtist ) => 
-			await ArtistsController.GetArtistContentsAsync( ( theArtist is ArtistAlbum ) ? ( ( ArtistAlbum )theArtist ).Artist : ( Artist )theArtist );
+		public async Task ProvideGroupContentsAsync( object artistOrArtistAlbum )
+		{
+			if ( artistOrArtistAlbum is ArtistAlbum artistAlbum )
+			{
+				await ArtistsController.GetArtistAlbumContentsAsync( artistAlbum );
+			}
+			else
+			{
+				await ArtistsController.GetArtistContentsAsync( ( Artist )artistOrArtistAlbum );
+			}
+		}
 
 		/// <summary>
 		/// Called when a menu item on the Contextual Action Bar has been selected

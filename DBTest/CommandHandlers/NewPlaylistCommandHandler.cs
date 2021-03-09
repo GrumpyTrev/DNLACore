@@ -12,13 +12,13 @@
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) => 
-			NewPlaylistNameDialogFragment.ShowFragment( CommandRouter.Manager, NameEntered, "New playlist", Resource.Layout.new_playlist_dialogue_layout, "" );
+			NewPlaylistNameDialogFragment.ShowFragment( CommandRouter.Manager, NameEntered, "New playlist", "" );
 
 		/// <summary>
 		/// Called when a library has been selected.
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
-		private void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment )
+		private void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment, bool _ )
 		{
 			string alertText = "";
 
@@ -32,7 +32,8 @@
 			}
 			else
 			{
-				PlaylistsController.AddPlaylist( playlistName );
+				// No need to wait for this as the playlist is not going to be used straight away
+				PlaylistsController.AddPlaylistAsync( playlistName );
 				playlistNameFragment.Dismiss();
 			}
 

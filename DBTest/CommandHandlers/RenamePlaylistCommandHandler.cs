@@ -14,8 +14,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) => 
-			NewPlaylistNameDialogFragment.ShowFragment( CommandRouter.Manager, NameEntered, "Rename playlist", Resource.Layout.rename_playlist_dialogue_layout,
-				selectedObjects.Playlists.First().Name );
+			NewPlaylistNameDialogFragment.ShowFragment( CommandRouter.Manager, NameEntered, "Rename playlist", selectedObjects.Playlists[ 0 ].Name );
 
 		/// <summary>
 		/// Is the command valid given the selected objects
@@ -51,7 +50,7 @@ namespace DBTest
 		/// Called when a library has been selected.
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
-		private void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment )
+		private void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment, bool _ )
 		{
 			string alertText = "";
 
