@@ -62,12 +62,16 @@ namespace DBTest
 		/// Add a new playlist with the specified name to the current library
 		/// </summary>
 		/// <param name="playlistName"></param>
-		public static void AddPlaylist( string playlistName )
+		public static async Task<Playlist> AddPlaylistAsync( string playlistName )
 		{
-			Playlists.AddPlaylist( new Playlist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId } );
+			Playlist newPlaylist = new Playlist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
+
+			await Playlists.AddPlaylistAsync( newPlaylist );
 
 			// Refresh the playlists held by the model and report the change
 			StorageDataAvailable();
+
+			return newPlaylist;
 		}
 
 		/// <summary>
@@ -176,7 +180,7 @@ namespace DBTest
 
 					// Now create a new playlist in the library with the same name
 					Playlist duplicatedPlaylist = new Playlist() { Name = playlistToDuplicate.Name, LibraryId = library.Id };
-					Playlists.AddPlaylist( duplicatedPlaylist );
+					await Playlists.AddPlaylistAsync( duplicatedPlaylist );
 
 					// Attempt to find matching songs for each PlaylistItem in the Playlist
 					// Need to access the songs via the Sources associated with the Library

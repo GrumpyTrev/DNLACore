@@ -61,7 +61,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="newTag"></param>
 		/// <param name="tagDelegate"></param>
-		public static void CreateTag( Tag newTag, TagUpdatedDelegate tagDelegate )
+		public static async Task CreateTagAsync( Tag newTag, TagUpdatedDelegate tagDelegate )
 		{
 			// Check if the new name and short name are valid
 			bool createdOk = Tags.CheckNamesAreValid( newTag.Name, newTag.ShortName );
@@ -70,7 +70,7 @@ namespace DBTest
 			{
 				// Add the new tag to the tag collection
 				newTag.UserTag = true;
-				Tags.AddTag( newTag );
+				await Tags.AddTagAsync( newTag );
 			}
 
 			// Let the delegate know
@@ -190,7 +190,7 @@ namespace DBTest
 					// If this album has no genre then add it to the unknown tag
 					if ( album.Genre.Length == 0 )
 					{
-						unknownTag.TaggedAlbums.Add( new TaggedAlbum() { Album = album, AlbumId = album.Id, TagIndex = unknownTag.TaggedAlbums.Count } );
+						unknownTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id } );
 					}
 					else
 					{
@@ -207,7 +207,7 @@ namespace DBTest
 							}
 
 							// Add a TaggedAlbum for this album
-							genreTag.TaggedAlbums.Add( new TaggedAlbum() { Album = album, AlbumId = album.Id, TagIndex = genreTag.TaggedAlbums.Count } );
+							genreTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id } );
 						}
 					}
 				}
@@ -231,6 +231,56 @@ namespace DBTest
 					}
 				}
 			} );
+		}
+
+		/// <summary>
+		/// Add a TaggedAlbum entry for the album to the tag
+		/// </summary>
+		/// <param name="toTag"></param>
+		/// <param name="albumToAdd"></param>
+		public static void AddAlbumToTag( Tag toTag, Album albumToAdd, bool synchronise = true )
+		{
+			// Get the set of TaggedAlbum entries in this tag for the album's library
+			List<TaggedAlbum> tagEntriesInSameLibrary = toTag.TaggedAlbums.Where( ta => ta.Album.LibraryId == albumToAdd.LibraryId ).ToList();
+
+			// Check whether or not this album is already in the tag.
+			int index = tagEntriesInSameLibrary.FindIndex( ta => ( ta.AlbumId == albumToAdd.Id ) );
+			if ( index != -1 )
+			{
+				// If this Tag is ordered by tag id and this existing entry is not the most recently added then
+				// the existing entry will have to be removed and a new entry added at the end
+				if ( ( toTag.TagOrder == true ) && ( index < ( tagEntriesInSameLibrary.Count - 1 ) ) )
+				{
+					// Can't just move the entry in the list as we are using the entry's id to order the list when loaded
+					toTag.DeleteTaggedAlbum( tagEntriesInSameLibrary[ index ] );
+					toTag.AddTaggedAlbum( new TaggedAlbum() { AlbumId = albumToAdd.Id, Album = albumToAdd } );
+				}
+			}
+			else
+			{
+				toTag.AddTaggedAlbum( new TaggedAlbum() { AlbumId = albumToAdd.Id, Album = albumToAdd } );
+			}
+
+			// If this is the JustPlayed tag and the Played flag is not set for the album then set it now
+			CheckAlbumAddedToJustPlayingTag( toTag, albumToAdd );
+
+			// If this tag is synchronised across libraries then find any matching albums in the other libraries and add them to the tag if not already present
+			// Sychronise whether or not a new entry was added as we may need to reorder an existing tag item in other libraries
+			if ( ( synchronise == true ) && ( toTag.Synchronise == true ) )
+			{
+				foreach ( Library library in Libraries.LibraryCollection )
+				{
+					if ( library.Id != albumToAdd.LibraryId )
+					{
+						// Access this Album from the library as it may not be already be available anywhere, as it is a different library
+						Album albumToSynch = Albums.GetAlbumInLibrary( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
+						if ( albumToSynch != null )
+						{
+							AddAlbumToTag( toTag, albumToSynch, false );
+						}
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -260,11 +310,27 @@ namespace DBTest
 				// Link these to their Tags
 				Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
 
+				List<TaggedAlbum> lostTags = new List<TaggedAlbum>();
+
 				foreach ( TaggedAlbum taggedAlbum in TaggedAlbums.TaggedAlbumCollection )
 				{
 					taggedAlbum.Album = Albums.GetAlbumById( taggedAlbum.AlbumId );
-					tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
+
+					Tag tag = tagLookup.GetValueOrDefault( taggedAlbum.TagId );
+					if ( tag != null )
+					{
+						tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
+					}
+					else
+					{
+						lostTags.Add( taggedAlbum );
+					}
 				};
+
+				foreach ( TaggedAlbum taggedAlbum in lostTags )
+				{
+					TaggedAlbums.DeleteTaggedAlbum( taggedAlbum );
+				}
 
 				// Sort the TaggedAlbums collecton for each Tag into TagIndex order rather than the order held in storage
 				foreach ( Tag tag in Tags.TagsCollection )
@@ -290,7 +356,7 @@ namespace DBTest
 				FilterManagementModel.NotPlayedTag = new Tag() { Name = NotPlayedTagName, ShortName = NotPlayedTagName, PersistTag = false,
 					TagOrder = true, UserTag = false, Synchronise = true };
 
-				Tags.AddTag( FilterManagementModel.NotPlayedTag );
+				Tags.AddTagAsync( FilterManagementModel.NotPlayedTag );
 
 				// Now add all albums to this tag that are not in the Just Played tag
 				HashSet<int> justPlayedAlbumIds = FilterManagementModel.JustPlayedTag.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
@@ -299,8 +365,7 @@ namespace DBTest
 				{
 					if ( justPlayedAlbumIds.Contains( album.Id ) == false )
 					{
-						FilterManagementModel.NotPlayedTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id,
-							TagIndex = FilterManagementModel.NotPlayedTag.TaggedAlbums.Count } );
+						FilterManagementModel.NotPlayedTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id } );
 					}
 				}
 			} );
@@ -335,7 +400,7 @@ namespace DBTest
 							Album albumToTag = Albums.GetAlbumInLibrary( distinctAlbum.Name, distinctAlbum.ArtistName, library.Id );
 							if ( albumToTag != null )
 							{
-								tagToSynchronise.AddTaggedAlbum( new TaggedAlbum() { TagId = tagToSynchronise.Id, AlbumId = albumToTag.Id, Album = albumToTag } );
+								tagToSynchronise.AddTaggedAlbum( new TaggedAlbum() { AlbumId = albumToTag.Id, Album = albumToTag } );
 
 								// If this is the JustPlayed tag and the Played flag is not set for the album then set it now
 								CheckAlbumAddedToJustPlayingTag( tagToSynchronise, albumToTag );
@@ -389,56 +454,6 @@ namespace DBTest
 				if ( fromTag == FilterManagementModel.JustPlayedTag )
 				{
 					albumToRemove.SetPlayedFlag( false );
-				}
-			}
-		}
-
-		/// <summary>
-		/// Add a TaggedAlbum entry for the album to the tag
-		/// </summary>
-		/// <param name="toTag"></param>
-		/// <param name="albumToAdd"></param>
-		private static void AddAlbumToTag( Tag toTag, Album albumToAdd, bool synchronise = true )
-		{
-			// Get the set of TaggedAlbum entries in this tag for the album's library
-			List<TaggedAlbum> tagEntriesInSameLibrary = toTag.TaggedAlbums.Where( ta => ta.Album.LibraryId == albumToAdd.LibraryId ).ToList();
-
-			// Check whether or not this album is already in the tag.
-			int index = tagEntriesInSameLibrary.FindIndex( ta => ( ta.AlbumId == albumToAdd.Id ) );
-			if ( index != -1 )
-			{
-				// If this Tag is ordered by tag id and this existing entry is not the most recently added then
-				// the existing entry will have to be removed and a new entry added at the end
-				if ( ( toTag.TagOrder == true ) && ( index < ( tagEntriesInSameLibrary.Count - 1 ) ) )
-				{
-					// Can't just move the entry in the list as we are using the entry's id to order the list when loaded
-					toTag.DeleteTaggedAlbum( tagEntriesInSameLibrary[ index ] );
-					toTag.AddTaggedAlbum( new TaggedAlbum() { TagId = toTag.Id, AlbumId = albumToAdd.Id, Album = albumToAdd } );
-				}
-			}
-			else
-			{
-				toTag.AddTaggedAlbum( new TaggedAlbum() { TagId = toTag.Id, AlbumId = albumToAdd.Id, Album = albumToAdd } );
-			}
-
-			// If this is the JustPlayed tag and the Played flag is not set for the album then set it now
-			CheckAlbumAddedToJustPlayingTag( toTag, albumToAdd );
-
-			// If this tag is synchronised across libraries then find any matching albums in the other libraries and add them to the tag if not already present
-			// Sychronise whether or not a new entry was added as we may need to reorder an existing tag item in other libraries
-			if ( ( synchronise == true ) && ( toTag.Synchronise == true ) )
-			{
-				foreach ( Library library in Libraries.LibraryCollection )
-				{
-					if ( library.Id != albumToAdd.LibraryId )
-					{
-						// Access this Album from the library as it may not be already be available anywhere, as it is a different library
-						Album albumToSynch = Albums.GetAlbumInLibrary( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
-						if ( albumToSynch != null )
-						{
-							AddAlbumToTag( toTag, albumToSynch, false );
-						}
-					}
 				}
 			}
 		}

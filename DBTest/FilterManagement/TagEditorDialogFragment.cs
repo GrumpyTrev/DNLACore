@@ -132,7 +132,7 @@ namespace DBTest
 					else
 					{
 						// Attempt to add a new tag
-						FilterManagementController.CreateTag( newOrUpdatedTag, TagUpdated );
+						FilterManagementController.CreateTagAsync( newOrUpdatedTag, TagUpdated );
 					}
 				}
 			};

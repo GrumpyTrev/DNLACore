@@ -49,14 +49,14 @@ namespace DBTest
 		/// Add a new tag to the storage and the local collections
 		/// </summary>
 		/// <param name="albumToAdd"></param>
-		public static void AddTag( Tag tagToAdd )
+		public static async Task AddTagAsync( Tag tagToAdd )
 		{
 			TagsCollection.Add( tagToAdd );
 
 			if ( tagToAdd.PersistTag == true )
 			{
-				// No need to wait for this as we are not using its identity
-				DbAccess.InsertAsync( tagToAdd );
+				// We need to wait for this in case the caller want to use the Tag Id
+				await DbAccess.InsertAsync( tagToAdd );
 			}
 
 			NameLookup[ tagToAdd.Name ] = tagToAdd;

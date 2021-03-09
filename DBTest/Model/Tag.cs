@@ -43,6 +43,7 @@ namespace DBTest
 		public void AddTaggedAlbum( TaggedAlbum album )
 		{
 			album.TagIndex = TaggedAlbums.Count;
+			album.TagId = Id;
 
 			if ( PersistTag == true )
 			{

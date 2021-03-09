@@ -84,14 +84,13 @@ namespace DBTest
 
 		/// <summary>
 		/// Add a playlist to the local and storage collections.
-		/// No need to wait for the Playlist to be added to the storage as it's Id is not accessed
-		/// straight away
+		/// Wait for the storage to complete in case the called requires access to the stored Id
 		/// </summary>
 		/// <param name="playlistToAdd"></param>
-		public static void AddPlaylist( Playlist playlistToAdd )
+		public static async Task AddPlaylistAsync( Playlist playlistToAdd )
 		{
 			PlaylistCollection.Add( playlistToAdd );
-			DbAccess.InsertAsync( playlistToAdd );
+			await DbAccess.InsertAsync( playlistToAdd );
 		}
 
 		/// <summary>

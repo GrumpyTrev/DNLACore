@@ -20,12 +20,14 @@ namespace DBTest
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, NameEntered nameCallback, string dialogTitle, int layoutResource, string playlistName )
+		public static void ShowFragment( FragmentManager manager, NameEntered nameCallback, string dialogTitle, string playlistName, 
+			bool albumPlaylistChoice = false, bool initialAlbum = true )
 		{
 			reporter = nameCallback;
 			title = dialogTitle;
-			layout = layoutResource;
 			name = playlistName;
+			allowAlbumPlaylistCreationChoice = albumPlaylistChoice;
+			initialChoiceIsAlbum = initialAlbum;
 
 			new NewPlaylistNameDialogFragment().Show( manager, "fragment_new_playlist_name" );
 		}
@@ -48,10 +50,26 @@ namespace DBTest
 			// This prevents the default Dismiss action after the buttons are clicked
 			View editView = LayoutInflater.From( Context ).Inflate( Resource.Layout.new_playlist_dialogue_layout, null );
 			playListName = editView.FindViewById<EditText>( Resource.Id.playlistName );
+			albumCheckbox = editView.FindViewById<CheckBox>( Resource.Id.albumCheckbox );
 
-			if ( ( savedInstanceState == null ) && ( name.Length > 0 ) )
+			// Hide the checkbox if the user is not given the choice
+			if ( allowAlbumPlaylistCreationChoice == false )
 			{
-				playListName.Text = name;
+				albumCheckbox.Visibility = ViewStates.Gone;
+			}
+
+			// If not restoring initialise the playlist name and the checkbox content
+			if ( savedInstanceState == null )
+			{
+				if ( name.Length > 0 )
+				{
+					playListName.Text = name;
+				}
+
+				if ( allowAlbumPlaylistCreationChoice == true )
+				{
+					albumCheckbox.Checked = initialChoiceIsAlbum;
+				}
 			}
 
 			return new AlertDialog.Builder( Context )
@@ -77,7 +95,7 @@ namespace DBTest
 			// Install a handler for the Ok button that performs the validation and playlist creation
 			alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) =>
 			{
-				reporter?.Invoke( playListName.Text, this );
+				reporter?.Invoke( playListName.Text, this, allowAlbumPlaylistCreationChoice ? albumCheckbox.Checked : false );
 			};
 		}
 
@@ -100,7 +118,7 @@ namespace DBTest
 		/// <summary>
 		/// Delegate type used to report back the playlist name
 		/// </summary>
-		public delegate void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment );
+		public delegate void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment, bool isAlbum );
 
 		/// <summary>
 		/// The control holding the name of the new playlist
@@ -108,18 +126,28 @@ namespace DBTest
 		private EditText playListName = null;
 
 		/// <summary>
+		/// The control allowing the user to choose album or song playlists
+		/// </summary>
+		private CheckBox albumCheckbox = null;
+
+		/// <summary>
 		/// The title for this dialogue
 		/// </summary>
 		private static string title = "";
 
 		/// <summary>
-		/// The layout resource for the dialogue
-		/// </summary>
-		private static int layout = -1;
-
-		/// <summary>
 		/// The name to preload the playlist name field with
 		/// </summary>
 		private static string name = "";
+
+		/// <summary>
+		/// Is the uers allowed to create an album playlist
+		/// </summary>
+		private static bool allowAlbumPlaylistCreationChoice = false;
+
+		/// <summary>
+		/// If the user can create album playlists what if the initial setting
+		/// </summary>
+		private static bool initialChoiceIsAlbum = true;
 	}
 }
