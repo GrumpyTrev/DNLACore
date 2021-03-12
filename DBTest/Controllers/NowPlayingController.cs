@@ -32,7 +32,7 @@ namespace DBTest
 		/// </summary>
 		public static void SetSelectedSong( int songIndex, bool playSong = true )
 		{
-			Playback.SongIndex = songIndex;
+			Playlists.CurrentSong = songIndex;
 
 			// Make sure the new song is played if requested
 			if ( ( songIndex != -1 ) && ( playSong == true ) )
@@ -156,7 +156,7 @@ namespace DBTest
 			NowPlayingViewModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( NowPlayingViewModel.LibraryId );
 
 			// Get the selected song
-			NowPlayingViewModel.SelectedSong = Playback.SongIndex;
+			NowPlayingViewModel.SelectedSong = Playlists.CurrentSong;
 
 			// Get the display genre flag
 			NowPlayingViewModel.DisplayGenre = Playback.DisplayGenre;
@@ -188,7 +188,7 @@ namespace DBTest
 		/// <param name="message"></param>
 		private static void SongSelected( object _message )
 		{
-			NowPlayingViewModel.SelectedSong = Playback.SongIndex;
+			NowPlayingViewModel.SelectedSong = Playlists.CurrentSong;
 
 			DataReporter?.SongSelected();
 		}

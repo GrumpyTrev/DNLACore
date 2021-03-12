@@ -20,7 +20,7 @@ namespace DBTest
 			if ( clearFirst == true )
 			{
 				// Before clearing it reset the selected song index to stop the current song being played
-				Playback.SongIndex = -1;
+				Playlists.CurrentSong = -1;
 
 				// Now clear the Now Playing list 
 				NowPlayingViewModel.NowPlayingPlaylist.Clear();
@@ -32,7 +32,7 @@ namespace DBTest
 			// If the list was cleared and there are now some items in the list select the first entry
 			if ( ( clearFirst == true ) & ( songsToAdd.Count() > 0 ) )
 			{
-				Playback.SongIndex = 0;
+				Playlists.CurrentSong = 0;
 
 				// Make sure the new song is played
 				new PlayCurrentSongMessage().Send();

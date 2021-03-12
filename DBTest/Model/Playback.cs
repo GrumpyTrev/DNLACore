@@ -21,26 +21,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Access the Playback SongIndex
-		/// </summary>
-		[Ignore]
-		public static int SongIndex
-		{
-			get => PlaybackInstance.DBSongIndex;
-
-			set
-			{
-				PlaybackInstance.DBSongIndex = value;
-
-				// No need to wait for the update to complete
-				DbAccess.UpdateAsync( PlaybackInstance );
-
-				// Inform controllers about this
-				new SongSelectedMessage().Send();
-			}
-		}
-
-		/// <summary>
 		/// Access the Playback PlaybackDeviceName
 		/// </summary>
 		[Ignore]

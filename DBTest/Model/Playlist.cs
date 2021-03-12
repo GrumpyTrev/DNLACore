@@ -141,6 +141,23 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Access the SongIndex
+		/// </summary>
+		[Ignore]
+		public int SongIndex
+		{
+			get => DBSongIndex;
+
+			set
+			{
+				DBSongIndex = value;
+
+				// No need to wait for the update to complete
+				DbAccess.UpdateAsync( this );
+			}
+		}
+
+		/// <summary>
 		/// The PlaylistItems associated with this playlist
 		/// </summary>
 		[Ignore]

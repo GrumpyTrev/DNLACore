@@ -40,7 +40,7 @@
 			PlaybackManagerModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( PlaybackManagerModel.LibraryId );
 
 			// Get the selected song
-			PlaybackManagerModel.CurrentSongIndex = Playback.SongIndex;
+			PlaybackManagerModel.CurrentSongIndex = Playlists.CurrentSong;
 
 			// Get the sources associated with the library
 			PlaybackManagerModel.Sources = Sources.GetSourcesForLibrary( PlaybackManagerModel.LibraryId );
@@ -61,7 +61,7 @@
 		/// <summary>
 		/// Set the selected song in the database and raise the SongSelectedMessage
 		/// </summary>
-		public static void SetSelectedSong( int songIndex ) => Playback.SongIndex = songIndex;
+		public static void SetSelectedSong( int songIndex ) => Playlists.CurrentSong = songIndex;
 
 		/// <summary>
 		/// Called when a new song is being played by the service.
@@ -81,7 +81,7 @@
 			if ( PlaybackManagerModel.NowPlayingPlaylist != null )
 			{
 				// Update the selected song in the model and report the selection
-				PlaybackManagerModel.CurrentSongIndex = Playback.SongIndex;
+				PlaybackManagerModel.CurrentSongIndex = Playlists.CurrentSong;
 
 				DataReporter?.SongSelected();
 			}
@@ -143,22 +143,12 @@
 
 		/// <summary>
 		/// Called when a SelectedLibraryChangedMessage has been received
-		/// Clear the current data and the filter and then reload
+		/// Inform the reporter and reload the playback data
 		/// </summary>
 		/// <param name="message"></param>
 		private static void SelectedLibraryChanged( object message )
 		{
-			// Set the new library
-			PlaybackManagerModel.LibraryId = ( message as SelectedLibraryChangedMessage ).SelectedLibrary;
-
-			// Clear the now playing data and reset the selected song
-			PlaybackManagerModel.NowPlayingPlaylist = null;
-			SetSelectedSong( -1 );
-
-			// Publish the data
-			DataReporter?.DataAvailable();
-
-			// Reread the data
+			DataReporter?.LibraryChanged();
 			StorageDataAvailable();
 		}
 
@@ -236,6 +226,7 @@
 			void Start();
 			void PlayNext();
 			void PlayPrevious();
+			void LibraryChanged();
 		}
 
 		/// <summary>

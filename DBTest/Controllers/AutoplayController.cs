@@ -181,7 +181,7 @@ namespace DBTest
 		{
 			if ( PlaybackModeModel.AutoOn == true )
 			{
-				int currentSongIndex = Playback.SongIndex;
+				int currentSongIndex = Playlists.CurrentSong;
 				Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( AutoplayModel.LibraryId );
 
 				if ( ( nowPlaying.PlaylistItems.Count - currentSongIndex ) < RefillLevel )

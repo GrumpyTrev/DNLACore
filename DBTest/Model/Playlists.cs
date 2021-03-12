@@ -107,6 +107,22 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Access the NowPlaying playlist's SongIndex
+		/// </summary>
+		public static int CurrentSong
+		{
+			get => GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId ).SongIndex;
+
+			set
+			{
+				GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId ).SongIndex = value;
+
+				// Inform controllers about this
+				new SongSelectedMessage().Send();
+			}
+		}
+
+		/// <summary>
 		/// The set of Playlists currently held in storage
 		/// </summary>
 		public static List<Playlist> PlaylistCollection { get; set; } = null;

@@ -68,6 +68,12 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when the selected library has changed
+		/// Stop any current playback as the playback data is aboput to be reploaed
+		/// </summary>
+		public void LibraryChanged() => selectedPlayback?.Stop();
+
+		/// <summary>
 		/// Called when a request has been received via the controller to play the currently selected song
 		/// </summary>
 		public void PlayRequested()

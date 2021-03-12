@@ -221,13 +221,18 @@ namespace DBTest
 				genres.Tags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
 
 				// Display all the tags and the number of albums associated with them
-				foreach ( Tag tag in genres.Tags )
-				{
-					Logger.Log( $"Genre [{tag.Name}] albums {tag.TaggedAlbums.Count}" );
+				bool displayTags = false;
 
-					foreach ( TaggedAlbum taggedAlbum in tag.TaggedAlbums )
+				if ( displayTags == true )
+				{
+					foreach ( Tag tag in genres.Tags )
 					{
-						Logger.Log( $"Artist: {taggedAlbum.Album.ArtistName} Album: {taggedAlbum.Album.Name} genres {taggedAlbum.Album.Genre}" );
+						Logger.Log( $"Genre [{tag.Name}] albums {tag.TaggedAlbums.Count}" );
+
+						foreach ( TaggedAlbum taggedAlbum in tag.TaggedAlbums )
+						{
+							Logger.Log( $"Artist: {taggedAlbum.Album.ArtistName} Album: {taggedAlbum.Album.Name} genres {taggedAlbum.Album.Genre}" );
+						}
 					}
 				}
 			} );
