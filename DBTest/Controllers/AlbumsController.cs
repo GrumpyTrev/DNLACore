@@ -35,9 +35,7 @@ namespace DBTest
 		/// <param name="theAlbum"></param>
 		public static async Task GetAlbumContentsAsync( Album theAlbum )
 		{
-			Logger.Log( string.Format( "Getting Songs for {0}", theAlbum.Name ) );
 			await theAlbum.GetSongsAsync();
-			Logger.Log( string.Format( "Got them" ) );
 
 			// Sort the songs by track number - UI thread but not many entries
 			theAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );

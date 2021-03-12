@@ -2,14 +2,16 @@
 using System.IO;
 using Android.App;
 using Android.Content;
+using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Android.Widget;
 using SQLite;
 
 namespace DBTest
 {
 	[Application]
-	class MainApp : Application
+	class MainApp : Application, Logger.ILogger
 	{
 		/// <summary>
 		/// Base constructor which must be implemented if it is to successfully inherit from the Application
@@ -20,6 +22,9 @@ namespace DBTest
 		public MainApp( IntPtr handle, JniHandleOwnership transfer ) : base( handle, transfer )
 		{
 			instance = this;
+
+			// Set up logging
+			Logger.Reporter = this;
 
 			// Initialise the storage
 			InitialiseStorage();
@@ -48,6 +53,24 @@ namespace DBTest
 		/// <param name="callback"></param>
 		public static void RegisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback ) => 
 			instance.playbackCapabilities.RegisterCallback( callback );
+
+		/// <summary>
+		/// Log a message
+		/// </summary>
+		/// <param name="message"></param>
+		public void Log( string message ) => Android.Util.Log.WriteLine( Android.Util.LogPriority.Debug, "DBTest", message );
+
+		/// <summary>
+		/// Report an event 
+		/// </summary>
+		/// <param name="message"></param>
+		public void Event( string message ) => UiSwitchingHandler.Post( () => Toast.MakeText( this, message, ToastLength.Short ).Show() );
+
+		/// <summary>
+		/// Report an error
+		/// </summary>
+		/// <param name="message"></param>
+		public void Error( string message ) => UiSwitchingHandler.Post( () => Toast.MakeText( this, message, ToastLength.Long ).Show() );
 
 		/// <summary>
 		/// Bind the controls to the menu
@@ -119,8 +142,18 @@ namespace DBTest
 			// Path to the locally stored database
 			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
 
+			// The synchronous and aynchronous connectionn
 			ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
 			ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath );
+
+			// Tracing when required
+			ConnectionDetailsModel.AsynchConnection.Tracer = ( message ) =>
+			{
+				Logger.Log( message );
+			};
+
+			// Tracing not currently required
+			ConnectionDetailsModel.AsynchConnection.Trace = false;
 
 			// Initialise the rest of the ConnectionDetailsModel if required
 			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
@@ -164,6 +197,11 @@ namespace DBTest
 
 			return currentLibraryId;
 		}
+
+		/// <summary>
+		/// Context to use for switching to the UI thread
+		/// </summary>
+		private static Handler UiSwitchingHandler { get; } = new Handler( Looper.MainLooper ); 
 
 		/// <summary>
 		/// THe one and only MainApp

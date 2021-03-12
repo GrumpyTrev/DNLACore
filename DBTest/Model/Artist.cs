@@ -20,11 +20,8 @@ namespace DBTest
 			{
 				foreach ( ArtistAlbum artistAlbum in ArtistAlbums )
 				{
-					Logger.Log( string.Format( "GetSongsAsync: Getting Songs for {0}", artistAlbum.Name ) );
 					artistAlbum.Songs = await DbAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
-					Logger.Log( string.Format( "GetSongsAsync: Got them, now sorting" ) );
 					artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
-					Logger.Log( string.Format( "GetSongsAsync: Sorted" ) );
 				}
 			}
 
@@ -35,16 +32,12 @@ namespace DBTest
 		{
 			if ( artistAlbum.Songs == null )
 			{
-				Logger.Log( string.Format( "GetArtistAlbumSongs: Getting Songs for {0}", artistAlbum.Name ) );
 				artistAlbum.Songs = await DbAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
-				Logger.Log( string.Format( "GetArtistAlbumSongs: Got them, now sorting" ) );
 				artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
-				Logger.Log( string.Format( "GetArtistAlbumSongs: Sorted" ) );
 			}
 		}
 
-			
-			[Ignore]
+		[Ignore]
 		public List<ArtistAlbum> ArtistAlbums { get; set; } = new List<ArtistAlbum>();
 
 		/// <summary>

@@ -6,12 +6,11 @@ using Android.Support.Design.Widget;
 using Android.Support.V4.View;
 using Android.Support.V7.App;
 using Android.Views;
-using Android.Widget;
 
 namespace DBTest
 {
 	[Activity( Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true )]
-	public class MainActivity: AppCompatActivity, Logger.ILogger
+	public class MainActivity: AppCompatActivity
 	{
 		/// <summary>
 		/// Called to create the UI components of the activity
@@ -34,9 +33,6 @@ namespace DBTest
 
 			// Allow controls to bind to items on the toolbar
 			MainApp.BindView( toolbar, this );
-
-			// Set up logging
-			Logger.Reporter = this;
 
 			// Pass on the fragment manager to the CommandRouter
 			CommandRouter.Manager = SupportFragmentManager;
@@ -132,24 +128,6 @@ namespace DBTest
 
 			return handled;
 		}
-
-		/// <summary>
-		/// Log a message
-		/// </summary>
-		/// <param name="message"></param>
-		public void Log( string message ) => Android.Util.Log.WriteLine( Android.Util.LogPriority.Debug, "DBTest", message );
-
-		/// <summary>
-		/// Report an event 
-		/// </summary>
-		/// <param name="message"></param>
-		public void Event( string message ) => RunOnUiThread( () => Toast.MakeText( this, message, ToastLength.Short ).Show() );
-
-		/// <summary>
-		/// Report an error
-		/// </summary>
-		/// <param name="message"></param>
-		public void Error( string message ) => RunOnUiThread( () => Toast.MakeText( this, message, ToastLength.Long ).Show() );
 
 		/// <summary>
 		/// Called when the activity is being closed down.

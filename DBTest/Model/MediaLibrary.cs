@@ -18,12 +18,6 @@ namespace DBTest
 		public int DBLibraryId { get; set; }
 
 		/// <summary>
-		/// The index of the song curently selected in the Now Playing Playlist
-		/// </summary>
-		[Column( "SongIndex" ) ]
-		public int DBSongIndex { get; set; }
-
-		/// <summary>
 		/// The name of the currently selected playback device
 		/// </summary>
 		[Column( "PlaybackDeviceName" )]
@@ -200,6 +194,10 @@ namespace DBTest
 		public Artist Artist { get; set; }
 	}
 
+	/// <summary>
+	/// The Playlist class contains an ordered collection of songs wrapped up in 
+	/// PlaylistItems
+	/// </summary>
 	[Table( "PlayList" )]
 	public partial class Playlist
 	{
@@ -209,6 +207,14 @@ namespace DBTest
 		public string Name { get; set; }
 
 		public int LibraryId { get; set; }
+
+		/// <summary>
+		/// The index of the song curently selected in the Playlist
+		/// For the NowPlaying playlist this is the song being played, for all other playlists this is the song 
+		/// that was being played when that playlist was playing.
+		/// </summary>
+		[Column( "SongIndex" )]
+		public int DBSongIndex { get; set; }
 	}
 
 	[Table( "PlayListItem" )]
@@ -270,7 +276,7 @@ namespace DBTest
 		/// <summary>
 		/// Should this tag be persisted in storage
 		/// </summary>
-		public bool PersistTag { get; set; } = true;
+		public bool PersistTag { get; set; } = false;
 	}
 
 	[Table( "TaggedAlbum" )]
