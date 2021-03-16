@@ -29,7 +29,6 @@ namespace DBTest
 			new TagAlbumsCommandHandler().BindToRouter();
 			new StartAutoPlaylistCommandHandler().BindToRouter();
 			new DuplicatePlaylistCommandHandler().BindToRouter();
-			new NewPlaylistCommandHandler().BindToRouter();
 			new RenamePlaylistCommandHandler().BindToRouter();
 			new AutoplayCommandHandler().BindToRouter();
 			new AutoplayOptionsCommandHandler().BindToRouter();

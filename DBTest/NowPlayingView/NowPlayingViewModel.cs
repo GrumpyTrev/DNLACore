@@ -16,7 +16,7 @@
 
 		/// The Now Playing playlist that has been obtained from the database
 		/// </summary>
-		public static Playlist NowPlayingPlaylist { get; set; } = new Playlist();
+		public static SongPlaylist NowPlayingPlaylist { get; set; } = null;
 
 		/// <summary>
 		/// Index of the selected song

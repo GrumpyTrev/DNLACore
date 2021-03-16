@@ -22,7 +22,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get the Playlist data
+		/// Get the SongPlaylist data
 		/// </summary>
 		public static void GetControllerData() => dataReporter.GetData();
 
@@ -49,7 +49,7 @@ namespace DBTest
 			SetSelectedSong( -1 );
 
 			// Extract the songs from the playlist and shuffle them
-			List<Song> songs = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Select( item => item.Song ).ToList();
+			List<Song> songs = NowPlayingViewModel.NowPlayingPlaylist.GetSongs();
 
 			int n = songs.Count;
 			while ( n > 1 )
@@ -81,7 +81,7 @@ namespace DBTest
 			if ( NowPlayingViewModel.SelectedSong != -1 )
 			{
 				// Check if the items to delete contains the currently selected song
-				if ( items.Any( item => ( item.Track == ( NowPlayingViewModel.SelectedSong + 1 ) ) ) == true )
+				if ( items.Any( item => ( item.Index == NowPlayingViewModel.SelectedSong ) ) == true )
 				{
 					// The currently selected song is going to be deleted. Set it to invalid
 					SetSelectedSong( -1 );
@@ -113,7 +113,7 @@ namespace DBTest
 		public static void MoveItemsDown( IEnumerable<PlaylistItem> items )
 		{
 			// Record the currently selected song so its track number can be checked after the move
-			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null
+			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.SelectedSong == -1 ) ? null 
 				: NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.SelectedSong ];
 
 			NowPlayingViewModel.NowPlayingPlaylist.MoveItemsDown( items );
@@ -145,7 +145,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the Playlist data is available to be displayed, or needs to be refreshed
+		/// Called when the SongPlaylist data is available to be displayed, or needs to be refreshed
 		/// </summary>
 		private static void StorageDataAvailable()
 		{
@@ -153,7 +153,7 @@ namespace DBTest
 			NowPlayingViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
 
 			// Get the NowPlaying playlist.
-			NowPlayingViewModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( NowPlayingViewModel.LibraryId );
+			NowPlayingViewModel.NowPlayingPlaylist = ( SongPlaylist )Playlists.GetNowPlayingPlaylist( NowPlayingViewModel.LibraryId );
 
 			// Get the selected song
 			NowPlayingViewModel.SelectedSong = Playlists.CurrentSong;
@@ -226,7 +226,7 @@ namespace DBTest
 		{
 			if ( selectedSong != null )
 			{
-				int newSelectedIndex = selectedSong.Track - 1;
+				int newSelectedIndex = selectedSong.Index;
 
 				if ( newSelectedIndex != NowPlayingViewModel.SelectedSong )
 				{

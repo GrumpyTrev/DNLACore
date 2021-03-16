@@ -3,7 +3,7 @@
 namespace DBTest
 {
 	/// <summary>
-	/// The PlaylistsViewModel holds the Playlist data obtained from the PlaylistsController
+	/// The PlaylistsViewModel holds the SongPlaylist data obtained from the PlaylistsController
 	/// </summary>
 	static class PlaylistsViewModel
 	{
@@ -13,9 +13,9 @@ namespace DBTest
 		public static void ClearModel()
 		{
 			Playlists.Clear();
+			SongPlaylists.Clear();
+			AlbumPlaylists.Clear();
 			PlaylistNames.Clear();
-			Tags.Clear();
-			CombinedList.Clear();
 			LibraryId = -1;
 		}
 
@@ -25,19 +25,19 @@ namespace DBTest
 		public static List<Playlist> Playlists { get; set; } = new List<Playlist>();
 
 		/// <summary>
+		/// The SongPlaylist entries in the Playlists collection
+		/// </summary>
+		public static List<SongPlaylist> SongPlaylists { get; set; } = new List<SongPlaylist>();
+
+		/// <summary>
+		/// The AlbumPlaylist entries in the Playlists collection
+		/// </summary>
+		public static List<AlbumPlaylist> AlbumPlaylists { get; set; } = new List<AlbumPlaylist>();
+
+		/// <summary>
 		/// The names of the playlists associated with the current library
 		/// </summary>
 		public static List<string> PlaylistNames { get; set; } = new List<string>();
-
-		/// <summary>
-		/// The list of (user) Tags that has been obtained from storage
-		/// </summary>
-		public static List<Tag> Tags { get; set; } = new List<Tag>();
-
-		/// <summary>
-		/// The combined list of Playlists and Tags actually displayed
-		/// </summary>
-		public static List<object> CombinedList { get; set; } = new List<object>();
 
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained

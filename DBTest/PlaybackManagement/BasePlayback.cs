@@ -239,7 +239,7 @@ namespace DBTest
 
 			if ( ( Playlist != null ) && ( CurrentSongIndex < Playlist.PlaylistItems.Count ) )
 			{
-				Song songToPlay = Playlist.PlaylistItems[ CurrentSongIndex ].Song;
+				Song songToPlay = ( ( SongPlaylistItem )Playlist.PlaylistItems[ CurrentSongIndex ] ).Song;
 
 				// Find the Source associated with this song
 				Source songSource = Sources.SingleOrDefault( d => ( d.Id == songToPlay.SourceId ) );
@@ -285,7 +285,7 @@ namespace DBTest
 		/// <summary>
 		/// Report that the current song is being played
 		/// </summary>
-		protected void ReportSongPlayed() => Reporter?.SongPlayed( Playlist.PlaylistItems[ CurrentSongIndex ].Song );
+		protected void ReportSongPlayed() => Reporter?.SongPlayed( ( ( SongPlaylistItem )Playlist.PlaylistItems[ CurrentSongIndex ] ).Song );
 
 		/// <summary>
 		/// Select the next song to play based on whether or not repeat is on and the number of songs in the playlist

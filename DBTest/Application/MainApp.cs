@@ -153,7 +153,7 @@ namespace DBTest
 			};
 
 			// Tracing not currently required
-			ConnectionDetailsModel.AsynchConnection.Trace = false;
+			ConnectionDetailsModel.AsynchConnection.Trace = true;
 
 			// Initialise the rest of the ConnectionDetailsModel if required
 			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
@@ -179,13 +179,15 @@ namespace DBTest
 					ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Playlist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<PlaylistItem>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylist>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylistItem>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<Autoplay>();
 					ConnectionDetailsModel.SynchConnection.CreateTable<GenrePopulation>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylist>();
+					ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylistItem>();
 				}
 
 				// Check for a Playback record which will tell us the currently selected library

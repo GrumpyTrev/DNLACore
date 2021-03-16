@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace DBTest
 {
-	public class PlaylistsFragment: PagedFragment<object>, ExpandableListAdapter< object >.IGroupContentsProvider< object >, 
+	public class PlaylistsFragment: PagedFragment<Playlist>, ExpandableListAdapter<Playlist>.IGroupContentsProvider<Playlist>, 
 		PlaylistsController.IPlaylistsReporter
 	{
 		/// <summary>
@@ -15,22 +15,22 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Get all the entries associated with a specified Playlist or Tag.
-		/// Playlist items are now read at startup. So this is no longer required for them
-		/// Tag contents are also obtained on startup, but the Songs in the TaggedAlbums are not and they MAY be required.
+		/// Get all the entries associated with a specified SongPlaylist or AlbumPlaylist.
+		/// SongPlaylist items are now read at startup. So this is no longer required for them
+		/// AlbumPlaylist contents are also obtained on startup, but the Songs in the AlbumPlaylistItems are not and they will be required.
 		/// There is currently no way to hook into child selection and get the Songs when required. Check for any visual
 		/// problems with doing it here
 		/// </summary>
 		/// <param name="selectedGroup_"></param>
-		public async Task ProvideGroupContentsAsync( object selectedGroup )
+		public async Task ProvideGroupContentsAsync( Playlist selectedGroup )
 		{
-			if ( selectedGroup is Tag tag )
+			if ( selectedGroup is AlbumPlaylist albumPlaylist )
 			{
-				foreach ( TaggedAlbum taggedAlbum in tag.TaggedAlbums )
+				foreach ( AlbumPlaylistItem albumPlaylistItem in albumPlaylist.PlaylistItems )
 				{
-					if ( taggedAlbum.Album.Songs == null )
+					if ( albumPlaylistItem.Album.Songs == null )
 					{
-						await AlbumsController.GetAlbumContentsAsync( taggedAlbum.Album );
+						await AlbumsController.GetAlbumContentsAsync( albumPlaylistItem.Album );
 					}
 				}
 			}
@@ -43,7 +43,7 @@ namespace DBTest
 		/// <param name="message"></param>
 		public void DataAvailable()
 		{
-			Adapter.SetData( PlaylistsViewModel.CombinedList.ToList(), SortSelector.SortType.alphabetic );
+			Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
 
 			// Display or hide the genres in Tag playlists
 			DisplayGenreChanged();
@@ -54,7 +54,7 @@ namespace DBTest
 		/// Pass on the changes to the adpater
 		/// </summary>
 		/// <param name="message"></param>
-		public void PlaylistUpdated( object playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
+		public void PlaylistUpdated( Playlist playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
 
 		/// <summary>
 		/// Called when the DisplayGenre flag has been toggled
@@ -67,15 +67,15 @@ namespace DBTest
 		/// </summary>
 		protected override void SelectedItemsChanged( GroupedSelection selectedObjects )
 		{
-			if ( ( selectedObjects.PlaylistItems.Count == 0 ) && ( selectedObjects.Playlists.Count == 0 ) && 
-				( selectedObjects.Tags.Count == 0 ) && ( selectedObjects.TaggedAlbums.Count == 0 ) )
+			if ( ( selectedObjects.PlaylistItems.Count == 0 ) && ( selectedObjects.Playlists.Count == 0 ) )
 			{
 				ActionModeTitle = NoItemsSelectedText;
 			}
 			else
 			{
-				int playlistCount = selectedObjects.Playlists.Count + selectedObjects.Tags.Count;
-				int songCount = selectedObjects.PlaylistItems.Count + selectedObjects.TaggedAlbums.SelectMany( list => list.Album.Songs ).Count();
+				int playlistCount = selectedObjects.Playlists.Count;
+				int songCount = selectedObjects.PlaylistItems.Count( item => item is SongPlaylistItem ) + 
+					selectedObjects.PlaylistItems.Where( item => item is AlbumPlaylistItem ).SelectMany( list => ( ( AlbumPlaylistItem )list ).Album.Songs ).Count();
 
 				string playlistText = ( playlistCount > 0 ) ? string.Format( "{0} playlist{1} ", playlistCount, ( playlistCount == 1 ) ? "" : "s" ) : "";
 				string songsText = ( songCount > 0 ) ? string.Format( "{0} song{1} ", songCount, ( songCount == 1 ) ? "" : "s" ) : "";

@@ -42,13 +42,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Add a list of Songs to a specified playlist
-		/// </summary>
-		/// <param name="songsToAdd"></param>
-		/// <param name="playlist"></param>
-		public static void AddSongsToPlaylist( List<Song> songsToAdd, Playlist playlist ) => playlist.AddSongs( songsToAdd );
-
-		/// <summary>
 		/// Apply the specified filter to the data being displayed
 		/// </summary>
 		/// <param name="newFilter"></param>

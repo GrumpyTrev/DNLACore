@@ -89,6 +89,8 @@
     <Compile Include="Messages\MediaPlayingMessage.cs" />
     <Compile Include="Messages\MediaProgressMessage.cs" />
     <Compile Include="Messages\TagAddedMessage.cs" />
+    <Compile Include="Model\Playlist.cs" />
+    <Compile Include="Model\AlbumPlaylist.cs" />
     <Compile Include="PlaybackManagement\BasePlayback.cs" />
     <Compile Include="PlaybackManagement\LocalPlayback.cs" />
     <Compile Include="PlaybackManagement\PlaybackRouter.cs" />
@@ -107,7 +109,6 @@
     <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\GroupedSelection.cs" />
     <Compile Include="CommandHandlers\RenamePlaylistCommandHandler.cs" />
-    <Compile Include="CommandHandlers\NewPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\TagAlbumsCommandHandler.cs" />
     <Compile Include="CommandHandlers\MoveItemsCommandHandler.cs" />
     <Compile Include="CommandHandlers\DeletePlaylistItemsCommandHandler.cs" />
@@ -194,7 +195,7 @@
     <Compile Include="Model\Artist.cs" />
     <Compile Include="Model\Autoplay.cs" />
     <Compile Include="Model\Autoplays.cs" />
-    <Compile Include="Model\Playlist.cs" />
+    <Compile Include="Model\SongPlaylist.cs" />
     <Compile Include="Model\Playlists.cs" />
     <Compile Include="Model\Libraries.cs" />
     <Compile Include="Model\ArtistAlbums.cs" />
@@ -360,9 +361,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\move_up.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\new_playlist.png" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\filter_off.png" />
@@ -568,12 +566,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\menu\menu_playback_options.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\playlists_tag_layout.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>

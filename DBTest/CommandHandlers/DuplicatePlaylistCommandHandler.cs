@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The DuplicatePlaylistCommandHandler class is used to duplicate a playlist in other libraries
@@ -32,11 +30,11 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Is the command valid given the selected objects
+		/// Is the command valid given the selected objects.
 		/// </summary>
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Playlists.Count() == 1 );
+		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Playlists.Count == 1 );
 
 		/// <summary>
 		/// The command identity associated with this handler

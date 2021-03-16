@@ -105,7 +105,7 @@ namespace DBTest
 		/// Called when the order of the songs in the playlist have changed
 		/// </summary>
 		/// <param name="list"></param>
-		public void PlaylistUpdated( List< PlaylistItem > newData )
+		public void PlaylistUpdated( List<PlaylistItem> newData )
 		{
 			Groups = newData;
 
@@ -154,7 +154,7 @@ namespace DBTest
 			}
 
 			// Display the Title, Duration and Artist
-			( ( SongViewHolder )convertView.Tag ).DisplaySong( Groups[ groupPosition ] );
+			( ( SongViewHolder )convertView.Tag ).DisplaySong( (SongPlaylistItem) Groups[ groupPosition ] );
 
 			// If this song is currently being played then show with a different background
 			convertView.SetBackgroundColor( ( NowPlayingAdapterModel.SongPlayingIndex == groupPosition ) ? Color.AliceBlue : Color.Transparent );
@@ -167,7 +167,7 @@ namespace DBTest
 		/// </summary>
 		private class SongViewHolder : ExpandableListViewHolder
 		{
-			public void DisplaySong( PlaylistItem playlistItem )
+			public void DisplaySong( SongPlaylistItem playlistItem )
 			{
 				Title.Text = playlistItem.Song.Title;
 				Duration.Text = TimeSpan.FromSeconds( playlistItem.Song.Length ).ToString( @"mm\:ss" );

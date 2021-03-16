@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 namespace DBTest
 {
 	/// <summary>
-	/// The Playlists class holds a collection of all the Playlist entries read from storage.
-	/// It allows access to Playlist entries and automatically persists changes back to storage
+	/// The Playlists class holds a collection of all the SongPlaylist and AlbumPlaylist entries read from storage.
+	/// It allows access to these entries and automatically persists changes back to storage
 	/// </summary>	
 	static class Playlists
 	{
@@ -18,19 +18,35 @@ namespace DBTest
 		{
 			if ( PlaylistCollection == null )
 			{
-				// Get the current set of Playlists
-				PlaylistCollection = await DbAccess.LoadAsync<Playlist>();
+				PlaylistCollection = new List<Playlist>();
 
-				// Get all the content for the playlists
 				await Task.Run( async () =>
 				{
-					// Get all the PlaylistItems
-					List<PlaylistItem> playlistItems = await DbAccess.LoadAsync<PlaylistItem>();
+					// Get the current set of SongPlaylists
+					List< SongPlaylist > songPlaylists = await DbAccess.LoadAsync<SongPlaylist>();
 
-					foreach ( Playlist playlist in PlaylistCollection )
+					// Get all the SongPlaylistItems
+					List<SongPlaylistItem> songPlaylistItems = await DbAccess.LoadAsync<SongPlaylistItem>();
+
+					foreach ( SongPlaylist playlist in songPlaylists )
 					{
-						await playlist.GetContentsAsync( playlistItems );
+						await playlist.GetContentsAsync( songPlaylistItems );
 					}
+
+					PlaylistCollection.AddRange( songPlaylists );
+
+					// Now do the same for the AlbumPlaylists
+					List<AlbumPlaylist> albumPlaylists = await DbAccess.LoadAsync<AlbumPlaylist>();
+
+					// Get all the PlaylistItems
+					List<AlbumPlaylistItem> albumPlaylistItems = await DbAccess.LoadAsync<AlbumPlaylistItem>();
+
+					foreach ( AlbumPlaylist playlist in albumPlaylists )
+					{
+						playlist.GetContents( albumPlaylistItems );
+					}
+
+					PlaylistCollection.AddRange( albumPlaylists );
 				} );
 			}
 		}
@@ -60,21 +76,21 @@ namespace DBTest
 			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name == name ) ).FirstOrDefault();
 
 		/// <summary>
-		/// Get a pl;aylist givent its identity
+		/// Get a playlist givent its identity
 		/// </summary>
 		/// <param name="playlistId"></param>
 		/// <returns></returns>
 		public static Playlist GetPlaylist( int playlistId ) => PlaylistCollection.Where( play => play.Id == playlistId ).FirstOrDefault();
 
 		/// <summary>
-		/// Delete the specified Playlist from the collections and from the storage
+		/// Delete the specified SongPlaylist from the collections and from the storage
 		/// </summary>
 		/// <param name="playlistToDelete"></param>
 		public static void DeletePlaylist( Playlist playlistToDelete )
 		{
 			PlaylistCollection.Remove( playlistToDelete );
 
-			// Delete the PlaylistItem entries from the database.
+			// Delete the SongPlaylistItem entries from the database.
 			// No need to wait for this to finish
 			DbAccess.DeleteItemsAsync( playlistToDelete.PlaylistItems );
 
@@ -94,7 +110,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Delete any PlaylistItem objects associated with the list of songs
+		/// Delete any SongPlaylistItem objects associated with the list of songs
 		/// </summary>
 		/// <param name="songIds"></param>
 		/// <returns></returns>
@@ -102,7 +118,10 @@ namespace DBTest
 		{
 			foreach ( Playlist playlist in PlaylistCollection )
 			{
-				playlist.DeletePlaylistItems( playlist.PlaylistItems.Where( item => songIds.Contains( item.SongId ) == true ).ToList() );
+				if ( playlist is SongPlaylist songPlaylist )
+				{
+					songPlaylist.DeleteMatchingSongs( songIds );
+				}
 			}
 		}
 

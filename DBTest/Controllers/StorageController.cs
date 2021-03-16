@@ -69,9 +69,8 @@ namespace DBTest
 		private static async Task PopulateArtistsAsync()
 		{
 			// Do the linking of ArtistAlbum entries off the UI thread
-			await Task.Run( async () =>
+			await Task.Run( () =>
 			{
-
 				// Link the Albums from the AlbumModel to the ArtistAlbums and link the ArtistAlbums to their associated Artists. 
 				foreach ( ArtistAlbum artAlbum in ArtistAlbums.ArtistAlbumCollection )
 				{

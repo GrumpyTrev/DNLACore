@@ -195,10 +195,27 @@ namespace DBTest
 	}
 
 	/// <summary>
-	/// The Playlist class contains an ordered collection of songs wrapped up in 
+	/// The SongPlaylist class contains an ordered collection of songs wrapped up in 
 	/// PlaylistItems
 	/// </summary>
 	[Table( "PlayList" )]
+	public partial class SongPlaylist : Playlist
+	{
+	}
+
+	/// <summary>
+	/// The AlbumPlaylist class contains an ordered collection of albums wrapped up in 
+	/// AlbumPlaylistItems
+	/// </summary>
+	[Table( "AlbumPlayList" )]
+	public partial class AlbumPlaylist : Playlist
+	{
+	}
+
+	/// <summary>
+	/// The SongPlaylist class contains an ordered collection of songs wrapped up in 
+	/// PlaylistItems
+	/// </summary>
 	public partial class Playlist
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
@@ -209,7 +226,7 @@ namespace DBTest
 		public int LibraryId { get; set; }
 
 		/// <summary>
-		/// The index of the song curently selected in the Playlist
+		/// The index of the song curently selected in the SongPlaylist
 		/// For the NowPlaying playlist this is the song being played, for all other playlists this is the song 
 		/// that was being played when that playlist was playing.
 		/// </summary>
@@ -218,15 +235,8 @@ namespace DBTest
 	}
 
 	[Table( "PlayListItem" )]
-	public partial class PlaylistItem
+	public partial class SongPlaylistItem : PlaylistItem
 	{
-		[PrimaryKey, AutoIncrement, Column( "_id" )]
-		public int Id { get; set; }
-
-		public int Track { get; set; }
-
-		public int PlaylistId { get; set; }
-
 		public int SongId { get; set; }
 
 		[Ignore]
@@ -237,6 +247,29 @@ namespace DBTest
 		/// </summary>
 		[Ignore]
 		public Artist Artist { get; set; }
+	}
+
+	[Table( "AlbumPlayListItem" )]
+	public partial class AlbumPlaylistItem : PlaylistItem
+	{
+		public int AlbumId { get; set; }
+
+		[Ignore]
+		public Album Album { get; set; }
+	}
+
+	/// <summary>
+	/// The PlaylistItem is the base class for both the SongPlaylistItem and AlbumPlaylistItem classes
+	/// </summary>
+	public partial class PlaylistItem
+	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		[Column( "Track" )]
+		public int Index { get; set; }
+
+		public int PlaylistId { get; set; }
 	}
 
 	/// <summary>

@@ -7,7 +7,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class PlaylistsAdapter: ExpandableListAdapter< object >
+	class PlaylistsAdapter: ExpandableListAdapter< Playlist >
 	{
 		/// <summary>
 		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
@@ -15,59 +15,45 @@ namespace DBTest
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< object > provider, IAdapterActionHandler actionHandler ) :
+		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Playlist> provider, IAdapterActionHandler actionHandler ) :
 			base( context, parentView, provider,  PlaylistsAdapterModel.BaseModel, actionHandler )
 		{
 		}
 
 		/// <summary>
 		/// Number of child items of selected group
-		/// If the group is a Playlist then return the number of PlaylistItem entries.
+		/// If the group is a SongPlaylist then return the number of SongPlaylistItem entries.
 		/// If the group is a Tag then return the number of TaggedAlbum entries
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetChildrenCount( int groupPosition )
-		{
-			int count = 0;
-
-			if ( Groups[ groupPosition ] is Playlist playlist )
-			{
-				count = playlist.PlaylistItems.Count;
-			}
-			else
-			{
-				count = ( ( Tag )Groups[ groupPosition ] ).TaggedAlbums.Count;
-			}
-
-			return count;
-		}
+		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].PlaylistItems.Count;
 
 		/// <summary>
-		/// There are two child types. The PlaylistItem and TaggedAlbum
+		/// There are two child types. The SongPlaylistItem and AlbumPlaylistItem
 		/// </summary>
 		public override int ChildTypeCount => 2;
 
 		/// <summary>
 		/// The child type depends on the group type.
-		/// For Playlists the child type is 0. For Tags the child type is 1
+		/// For SongPlaylists the child type is 0. For AlbumPlayLists the child type is 1
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		public override int GetChildType( int groupPosition, int childPosition ) => Groups[ groupPosition ] is Playlist ? 0 : 1;
+		public override int GetChildType( int groupPosition, int childPosition ) => Groups[ groupPosition ] is SongPlaylist ? 0 : 1;
 
 		/// <summary>
-		/// There are two group types. Playlists and Tags
+		/// There is only a single group type IPlaylist
 		/// </summary>
-		public override int GroupTypeCount => 2;
+		public override int GroupTypeCount => 1;
 
 		/// <summary>
-		/// Return 0 for Playlists and 1 for Tags
+		/// Return 0 as only 1 group type
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
-		public override int GetGroupType( int groupPosition ) => Groups[ groupPosition ] is Playlist ? 0 : 1;
+		public override int GetGroupType( int groupPosition ) => 0;
 
 		/// <summary>
 		/// Called when songs have been added to or deleted from a playlist
@@ -76,7 +62,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="list"></param>
 		/// <param name="songs"></param>
-		public void PlaylistUpdated( object updatedObject )
+		public void PlaylistUpdated( Playlist updatedObject )
 		{
 			// Find the group holding the playlist
 			int groupPosition = Groups.IndexOf( updatedObject );
@@ -87,15 +73,7 @@ namespace DBTest
 				if ( ActionMode == true )
 				{
 					// Form a collection of the playlist items and their tags and use it to update the selection tags
-					if ( updatedObject is Playlist playlist )
-					{
-						UpdateSelectionTags( playlist.PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
-					}
-					else
-					{
-						Tag albumPlaylist = ( Tag )updatedObject;
-						UpdateSelectionTags( albumPlaylist.TaggedAlbums.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
-					}
+					UpdateSelectionTags( updatedObject.PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
 				}
 
 				// Is this group expanded
@@ -128,7 +106,7 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
 		{
-			if ( Groups[ groupPosition ] is Playlist playlist )
+			if ( Groups[ groupPosition ] is SongPlaylist playlist )
 			{
 				// If no view supplied then create a new one
 				if ( convertView == null )
@@ -143,8 +121,8 @@ namespace DBTest
 					};
 				}
 
-				// Display the PlaylistItem
-				( ( SongViewHolder )convertView.Tag ).DisplaySong( playlist.PlaylistItems[ childPosition ] );
+				// Display the SongPlaylistItem
+				( ( SongViewHolder )convertView.Tag ).DisplaySong( ( SongPlaylistItem )playlist.PlaylistItems[ childPosition ] );
 			}
 			else
 			{
@@ -165,7 +143,7 @@ namespace DBTest
 				}
 
 				// Display the album
-				Album album = ( ( Tag )Groups[ groupPosition ] ).TaggedAlbums[ childPosition ].Album;
+				Album album = ( (AlbumPlaylistItem)( ( AlbumPlaylist )Groups[ groupPosition ] ).PlaylistItems[ childPosition ] ).Album;
 				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, showGenre, album.Genre );
 			}
 
@@ -177,7 +155,7 @@ namespace DBTest
 		/// </summary>
 		private class SongViewHolder : ExpandableListViewHolder
 		{
-			public void DisplaySong( PlaylistItem playlistItem )
+			public void DisplaySong( SongPlaylistItem playlistItem )
 			{
 				Title.Text = playlistItem.Song.Title;
 				Duration.Text = TimeSpan.FromSeconds( playlistItem.Song.Length ).ToString( @"mm\:ss" );
@@ -199,40 +177,31 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
-			if ( Groups[ groupPosition ] is Playlist playlist )
+			// If no view supplied then create a new one
+			if ( convertView == null )
 			{
-				// If no view supplied then create a new one
-				if ( convertView == null )
+				convertView = inflator.Inflate( Resource.Layout.playlists_playlist_layout, null );
+				convertView.Tag = new PlaylistViewHolder()
 				{
-					convertView = inflator.Inflate( Resource.Layout.playlists_playlist_layout, null );
-					convertView.Tag = new PlaylistViewHolder()
-					{
-						SelectionBox = GetSelectionBox( convertView ),
-						Name = convertView.FindViewById<TextView>( Resource.Id.playListName )
-					};
-				}
-
-				// Display the playlist's name
-				( ( PlaylistViewHolder )convertView.Tag ).DisplayPlaylist( playlist );
+					SelectionBox = GetSelectionBox( convertView ),
+					Name = convertView.FindViewById<TextView>( Resource.Id.playListName )
+				};
 			}
-			else
-			{
-				// If no view supplied then create a new one
-				if ( convertView == null )
-				{
-					convertView = inflator.Inflate( Resource.Layout.playlists_tag_layout, null );
-					convertView.Tag = new TagViewHolder()
-					{
-						SelectionBox = GetSelectionBox( convertView ),
-						Name = convertView.FindViewById<TextView>( Resource.Id.tagName )
-					};
-				}
 
-				// Display the playlist's name
-				( ( TagViewHolder )convertView.Tag ).DisplayTag( (Tag)Groups[ groupPosition ] );
-			}
+			// Display the playlist's name
+			( ( PlaylistViewHolder )convertView.Tag ).DisplayPlaylist( Groups[ groupPosition ] );
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// View holder for the group SongPlaylist items
+		/// </summary>
+		private class PlaylistViewHolder : ExpandableListViewHolder
+		{
+			public void DisplayPlaylist( Playlist playlist ) => Name.Text = string.Format( "[{0}] {1}", ( playlist is SongPlaylist ) ? "S" : "A", playlist.Name );
+
+			public TextView Name { get; set; }
 		}
 
 		/// <summary>
@@ -252,49 +221,13 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// View holder for the group Playlist items
-		/// </summary>
-		private class PlaylistViewHolder : ExpandableListViewHolder
-		{
-			public void DisplayPlaylist( Playlist playlist ) => Name.Text = playlist.Name;
-
-			public TextView Name { get; set; }
-		}
-
-		/// <summary>
-		/// View holder for the group Tag items
-		/// </summary>
-		private class TagViewHolder : ExpandableListViewHolder
-		{
-			public void DisplayTag( Tag tag ) => Name.Text = tag.Name;
-
-			public TextView Name { get; set; }
-		}
-
-		/// <summary>
 		/// Get the data item at the specified position. If the childPosition is -1 then the group item is required
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition )
-		{
-			object item = null;
-			if ( childPosition == 0XFFFF )
-			{
-				item = Groups[ groupPosition ];
-			}
-			else if ( Groups[ groupPosition ] is Playlist playlist )
-			{
-				item = playlist.PlaylistItems[ childPosition ];
-			}
-			else
-			{
-				item = ( ( Tag )Groups[ groupPosition ] ).TaggedAlbums[ childPosition ];
-			}
-
-			return item;
-		}
+		protected override object GetItemAt( int groupPosition, int childPosition ) => 
+			( childPosition == 0XFFFF ) ? ( object )Groups[ groupPosition ] : ( ( Playlist )Groups[ groupPosition ] ).PlaylistItems[ childPosition ];
 
 		/// <summary>
 		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour

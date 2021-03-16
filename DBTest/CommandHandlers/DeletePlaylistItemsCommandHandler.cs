@@ -12,8 +12,8 @@ namespace DBTest
 		/// Called to handle the command. 
 		/// Determine the subject of this, either the Now Playing playlist or a user playlist
 		/// </summary>
-		/// <param name="commandIdentity"></param>
-		public override void HandleCommand( int commandIdentity )
+		/// <param name="_"></param>
+		public override void HandleCommand( int _ )
 		{
 			// If this is a Now Playing command then the parent of the first selected song will have the NowPlayingPlaylistName
 			if ( ( selectedObjects.ParentPlaylist != null ) && ( selectedObjects.ParentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName ) )
@@ -33,7 +33,7 @@ namespace DBTest
 					}
 					else
 					{
-						// Deletion of songs from a playlist
+						// Deletion of items from a playlist
 						PlaylistsController.DeletePlaylistItems( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
 						commandCallback.PerformAction();
 					}
@@ -42,26 +42,6 @@ namespace DBTest
 				{
 					// Deletion of a playlist with no songs
 					PlaylistsController.DeletePlaylist( selectedObjects.Playlists[ 0 ] );
-					commandCallback.PerformAction();
-				}
-				else if ( selectedObjects.TaggedAlbums.Count > 0 )
-				{
-					if ( selectedObjects.Tags.Count == 1 )
-					{
-						// Deletion of TaggedAlbums and Tag - confirm first
-						ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, TagDeleteSelected, "Do you want to delete the Tag?" );
-					}
-					else
-					{
-						// Deletion of TaggedAlbums from a Tag
-						FilterManagementController.DeleteTaggedAlbums( Tags.GetTagById( selectedObjects.TaggedAlbums[ 0 ].TagId ), selectedObjects.TaggedAlbums );
-						commandCallback.PerformAction();
-					}
-				}
-				else
-				{
-					// Deletion of an empty Tag
-					FilterManagementController.DeleteTag( selectedObjects.Tags[ 0 ] );
 					commandCallback.PerformAction();
 				}
 			}
@@ -84,25 +64,13 @@ namespace DBTest
 			}
 			else
 			{
-				// The Delete command is only available if the selected items (PlaylistItem or TaggedAlbum) are from a single Playlist or Tag and only one 
-				// Playlist or Tag is selected. Or if just a single empty Playlist or Tag is selected
+				// The Delete command is only available if the selected items PlaylistItem are from a single Playlist and only one 
+				// Playlist is selected. Or if just a single empty IPlaylist
 				// Remember the playlist could be empty
-
-				// Check for Playlists and PlaylistItems first
-				if ( ( ( selectedObjects.Playlists.Count > 0 ) || ( selectedObjects.PlaylistItems.Count > 0 ) ) &&
-					( selectedObjects.Tags.Count == 0 ) && ( selectedObjects.TaggedAlbums.Count == 0 ) )
+				if ( ( selectedObjects.Playlists.Count > 0 ) || ( selectedObjects.PlaylistItems.Count > 0 ) )
 				{
 					isValid = ( selectedObjects.Playlists.Count < 2 ) && ( ( selectedObjects.PlaylistItems.Count == 0 ) ||
 						( selectedObjects.PlaylistItems.All( item => ( item.PlaylistId == selectedObjects.ParentPlaylist.Id ) ) == true ) );
-				}
-				// Now the same for Tags and TaggedAlbums
-				else if ( ( ( selectedObjects.Tags.Count > 0 ) || ( selectedObjects.TaggedAlbums.Count > 0 ) ) &&
-					( selectedObjects.Playlists.Count == 0 ) && ( selectedObjects.PlaylistItems.Count == 0 ) )
-				{
-					int parentTagId = ( selectedObjects.TaggedAlbums.Count > 0 ) ? Tags.GetTagById( selectedObjects.TaggedAlbums[ 0 ].TagId ).Id : -1;
-
-					isValid = ( selectedObjects.Tags.Count < 2 ) && ( ( selectedObjects.TaggedAlbums.Count == 0 ) ||
-						( selectedObjects.TaggedAlbums.All( item => ( item.TagId == parentTagId ) ) == true ) );
 				}
 			}
 
@@ -122,24 +90,6 @@ namespace DBTest
 			else
 			{
 				PlaylistsController.DeletePlaylistItems( selectedObjects.Playlists[ 0 ], selectedObjects.PlaylistItems );
-			}
-
-			commandCallback.PerformAction();
-		}
-
-		/// <summary>
-		/// Called when the user has decided whether to delete the entire tag or just the items in it
-		/// </summary>
-		/// <param name="deleteTag"></param>
-		private void TagDeleteSelected( bool deleteTag )
-		{
-			if ( deleteTag == true )
-			{
-				FilterManagementController.DeleteTag( selectedObjects.Tags[ 0 ] );
-			}
-			else
-			{
-				FilterManagementController.DeleteTaggedAlbums( selectedObjects.Tags[ 0 ], selectedObjects.TaggedAlbums );
 			}
 
 			commandCallback.PerformAction();

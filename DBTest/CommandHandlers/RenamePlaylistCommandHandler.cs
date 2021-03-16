@@ -58,7 +58,7 @@ namespace DBTest
 			{
 				alertText = "An empty name is not valid.";
 			}
-			else if ( playlistName == selectedObjects.Playlists.First().Name )
+			else if ( playlistName == selectedObjects.Playlists[ 0 ].Name )
 			{
 				alertText = "Name not changed.";
 			}
@@ -68,7 +68,7 @@ namespace DBTest
 			}
 			else
 			{
-				PlaylistsController.RenamePlaylist( selectedObjects.Playlists.First(), playlistName );
+				PlaylistsController.RenamePlaylist( selectedObjects.Playlists[ 0 ], playlistName );
 				playlistNameFragment.Dismiss();
 				commandCallback.PerformAction();
 			}

@@ -16,7 +16,7 @@ namespace DBTest
 			// Save the unprocessed objects.
 			SelectedObjects = selectedObjects;
 
-			// Group the objects into sets of Song, PlaylistItem, Playlist, Artist, ArtistAlbum, Album and Genre (string) items
+			// Group the objects into sets of Song, PlaylistItem, IPlaylist, Artist, ArtistAlbum, Album and Genre (string) items
 			foreach ( object selectedObject in selectedObjects )
 			{
 				if ( selectedObject is Song song )
@@ -46,14 +46,6 @@ namespace DBTest
 				else if ( selectedObject is string str )
 				{
 					Genres.Add( str );
-				}
-				else if ( selectedObject is Tag tag )
-				{
-					Tags.Add( tag );
-				}
-				else if ( selectedObject is TaggedAlbum taggedAlbum )
-				{
-					TaggedAlbums.Add( taggedAlbum );
 				}
 			}
 
@@ -98,16 +90,6 @@ namespace DBTest
 		/// The set of genres in the selected objects
 		/// </summary>
 		public List<string> Genres { get; } = new List<string>();
-
-		/// <summary>
-		/// The set of tags in the selected objects
-		/// </summary>
-		public List<Tag> Tags { get; } = new List<Tag>();
-
-		/// <summary>
-		/// The set of taggedalbums in the selected objects
-		/// </summary>
-		public List<TaggedAlbum> TaggedAlbums { get; } = new List<TaggedAlbum>();
 
 		/// <summary>
 		/// The parent playlist of selected playlistitems, if there is one

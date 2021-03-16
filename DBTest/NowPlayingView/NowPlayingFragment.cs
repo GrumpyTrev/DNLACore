@@ -1,5 +1,4 @@
 ﻿using Android.Widget;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DBTest
@@ -13,13 +12,11 @@ namespace DBTest
 		public NowPlayingFragment() => ActionModeTitle = NoItemsSelectedText;
 
 		/// <summary>
-		/// Get all the PlaylistItem entries associated with the Now Playing playlist.
+		/// Get all the SongPlaylistItem entries associated with the Now Playing playlist.
 		/// No group content required. Just run an empty task to prevent compiler warnings
 		/// </summary>
 		/// <param name="thePlayList"></param>
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 		public async Task ProvideGroupContentsAsync( PlaylistItem _ )
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 		{
 		}
 
@@ -30,7 +27,7 @@ namespace DBTest
 		/// <param name="message"></param>
 		public void DataAvailable()
 		{
-			Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.ToList(), SortSelector.SortType.alphabetic );
+			Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems, SortSelector.SortType.alphabetic );
 
 			( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.SelectedSong );
 		}
@@ -40,7 +37,7 @@ namespace DBTest
 		/// Pass on the changes to the adpater
 		/// </summary>
 		/// <param name="message"></param>
-		public void PlaylistUpdated() => ( ( NowPlayingAdapter )Adapter ).PlaylistUpdated( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.ToList() );
+		public void PlaylistUpdated() => ( ( NowPlayingAdapter )Adapter ).PlaylistUpdated( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems );
 
 		/// <summary>
 		/// Called when a song has been selected by the user

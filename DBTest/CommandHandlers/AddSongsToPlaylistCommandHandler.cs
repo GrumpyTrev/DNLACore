@@ -16,7 +16,7 @@ namespace DBTest
 		public override async void HandleCommand( int commandIdentity )
 		{
 			// The options available depend on which objects have been selected.
-			// If and only if complete albums have been selected then the option to add albums to the album playlists (tags) is presented.
+			// If and only if complete albums have been selected then the option to add albums to the album playlists is presented.
 			// Otherwise the presented options are restricted to song playlists
 			// From the Artists tab ArtistAlbum entries are selected (as well as Songs)
 			// From the Albums tab Albums entries are selected (as well as Songs)
@@ -30,11 +30,11 @@ namespace DBTest
 			// Check if all the selected songs are from selected albums
 			await CheckForCompleteAlbumsAsync();
 
-			// Create a Popup menu containing the song and tag playlist names
+			// Create a Popup menu containing the song and album playlist names
 			PopupMenu playlistsMenu = new PopupMenu( commandButton.Context, commandButton );
 
 			// Add the fixed menu items with menu ids above the range used for the actual playlists
-			int nonPlaybackIndex = PlaylistsViewModel.Playlists.Count + PlaylistsViewModel.Tags.Count;
+			int nonPlaybackIndex = PlaylistsViewModel.Playlists.Count;
 			playlistsMenu.Menu.Add( 0, nonPlaybackIndex++, 0, "New playlist..." );
 
 			// If both the song and album playlist names are going to be displayed then submenus need to be added
@@ -42,11 +42,11 @@ namespace DBTest
 			if ( completeAlbums == true )
 			{
 				// Create the submenus and add the playlist names to them
-				ISubMenu playlistSubMenu = playlistsMenu.Menu.AddSubMenu( 0, nonPlaybackIndex++, 0, "Add to song playlists" );
-				ISubMenu tagsSubMenu = playlistsMenu.Menu.AddSubMenu( 0, nonPlaybackIndex++, 0, "Add to albums playlists" );
+				ISubMenu songsSubMenu = playlistsMenu.Menu.AddSubMenu( 0, nonPlaybackIndex++, 0, "Add to song playlists" );
+				ISubMenu alpbumsSubMenu = playlistsMenu.Menu.AddSubMenu( 0, nonPlaybackIndex++, 0, "Add to albums playlists" );
 
-				PlaylistsViewModel.Playlists.ForEach( list => playlistSubMenu.Add( 0, itemId++, 0, list.Name ) );
-				PlaylistsViewModel.Tags.ForEach( list => tagsSubMenu.Add( 0, itemId++, 0, list.Name ) );
+				PlaylistsViewModel.SongPlaylists.ForEach( list => songsSubMenu.Add( 0, itemId++, 0, list.Name ) );
+				PlaylistsViewModel.AlbumPlaylists.ForEach( list => alpbumsSubMenu.Add( 0, itemId++, 0, list.Name ) );
 			}
 			else
 			{
@@ -81,27 +81,22 @@ namespace DBTest
 		{
 			// Use the menu id to determine what has been selected
 			int menuId = args.Item.ItemId;
-			if ( menuId < PlaylistsViewModel.Playlists.Count )
+			if ( menuId < PlaylistsViewModel.SongPlaylists.Count )
 			{
 				// Add the selected songs to the selected playlist
-				PlaylistsController.AddSongsToPlaylist( selectedObjects.Songs, PlaylistsViewModel.Playlists[ menuId ] );
+				PlaylistsController.AddSongsToPlaylist( selectedObjects.Songs, PlaylistsViewModel.SongPlaylists[ menuId ] );
 				commandCallback.PerformAction();
 			}
-			else if ( menuId < ( PlaylistsViewModel.Playlists.Count + PlaylistsViewModel.Tags.Count ) )
+			else if ( menuId < PlaylistsViewModel.Playlists.Count )
 			{
-				// Add the selected albums to the selected Tag
-				Tag toTag = PlaylistsViewModel.Tags[ menuId - PlaylistsViewModel.Playlists.Count ];
-				foreach ( Album album in selectedObjects.Albums )
-				{
-					FilterManagementController.AddAlbumToTag( toTag, album, true );
-				}
-
+				// Add the selected albumns to the selected playlist
+				PlaylistsController.AddAlbumsToPlaylist( selectedObjects.Albums, PlaylistsViewModel.AlbumPlaylists[ menuId - PlaylistsViewModel.SongPlaylists.Count ] );
 				commandCallback.PerformAction();
 			}
 			else
 			{
-				// Finally check for a New Playlist command
-				if ( menuId == ( PlaylistsViewModel.Playlists.Count + PlaylistsViewModel.Tags.Count ) )
+				// Finally check for a New SongPlaylist command
+				if ( menuId == PlaylistsViewModel.Playlists.Count )
 				{
 					// Display a NewPlaylistNameDialogFragment to request a playlist name
 					// If complete albums have been selected then try to choose an appropriate name for the new album playlist
@@ -132,7 +127,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a playlist anme has been entered has been selected.
+		/// Called when a playlist name has been entered has been selected.
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
 		private async void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment, bool isAlbum )
@@ -146,41 +141,26 @@ namespace DBTest
 			}
 			else
 			{
-				// Is this a new album playlist
-				if ( isAlbum == false )
+				// Check for a duplicate
+				if ( PlaylistsViewModel.PlaylistNames.Contains( playlistName ) == true )
 				{
-					// Its a song playlist, check if the name already exists
-					if ( PlaylistsViewModel.PlaylistNames.Contains( playlistName ) == true )
-					{
-						alertText = DuplicatePlaylistError;
-					}
-					else
-					{
-						// Create the playlist and add the songs to it
-						// Need to wait for the playlist to be stored as we are going to access it's Id straight away
-						Playlist newPlaylist = await PlaylistsController.AddPlaylistAsync( playlistName );
-						PlaylistsController.AddSongsToPlaylist( selectedObjects.Songs, newPlaylist );
-					}
+					alertText = DuplicatePlaylistError;
 				}
 				else
 				{
-					// Is an album playlist (Tag). Attempt to create a new Tag and check the result
-					Tag newTag = new Tag() { Name = playlistName, ShortName = playlistName, TagOrder = false, Synchronise = false, UserTag = true };
-					await FilterManagementController.CreateTagAsync( newTag, ( bool created ) => 
+					// Create a SongPlaylist or AlbumPlaylist as appropriate and add the Songs/Albums to it
+					if ( isAlbum == false )
 					{
-						if ( created == false )
-						{
-							alertText = DuplicatePlaylistError;
-						}
-						else
-						{
-							// The new Tag has been created, so add the albums to it
-							foreach ( Album album in selectedObjects.Albums )
-							{
-								FilterManagementController.AddAlbumToTag( newTag, album, true );
-							}
-						}
-					} );
+						// Create the playlist and add the songs to it
+						// Need to wait for the playlist to be stored as we are going to access it's Id straight away
+						SongPlaylist newPlaylist = await PlaylistsController.AddSongPlaylistAsync( playlistName );
+						PlaylistsController.AddSongsToPlaylist( selectedObjects.Songs, newPlaylist );
+					}
+					else
+					{
+						AlbumPlaylist newPlaylist = await PlaylistsController.AddAlbumPlaylistAsync( playlistName );
+						PlaylistsController.AddAlbumsToPlaylist( selectedObjects.Albums, newPlaylist );
+					}
 				}
 			}
 
@@ -207,7 +187,7 @@ namespace DBTest
 
 			if ( selectedObjects.Albums.Count > 0 )
 			{
-				// Form a HashSet from all the selected albums and check if any are not included in the selected albums
+				// Form a HashSet from all the selected songs and check if any are not included in the selected albums
 				HashSet<int> selectedSongs = selectedObjects.Songs.Select( song => song.Id ).ToHashSet();
 
 				foreach ( Album album in selectedObjects.Albums )

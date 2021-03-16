@@ -40,7 +40,7 @@ namespace DBTest
 					isPreparing = true;
 
 					// Prepare and start playing the song
-					if ( await PrepareSong( filename, Playlist.PlaylistItems[ CurrentSongIndex ].Song ) == true )
+					if ( await PrepareSong( filename, ( ( SongPlaylistItem )Playlist.PlaylistItems[ CurrentSongIndex ] ).Song ) == true )
 					{
 						if ( await PlaySong() == true )
 						{

@@ -7,10 +7,4 @@
 		android:orderInCategory="10"
 		app:showAsAction="always"
 		android:title="Collapse"/>
-	<item
-		android:id="@+id/new_playlist"
-		android:icon="@drawable/new_playlist"
-		android:orderInCategory="11"
-		app:showAsAction="always"
-		android:title="Collapse"/>
 </menu>
