@@ -21,18 +21,22 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Set or clear the played flag
+		/// The Album's Played flag
 		/// </summary>
-		/// <param name="newState"></param>
-		public void SetPlayedFlag( bool newState )
+		[Ignore]
+		public bool Played
 		{
-			Played = newState;
+			get => DBPlayed;
+			set
+			{
+				DBPlayed = value;
 
-			// No need to wait for the storage to complete
-			DbAccess.UpdateAsync( this );
+				// No need to wait for the storage to complete
+				DbAccess.UpdateAsync( this );
 
-			// Report the change
-			new AlbumPlayedStateChangedMessage() { AlbumChanged = this }.Send();
+				// Report the change
+				new AlbumPlayedStateChangedMessage() { AlbumChanged = this }.Send();
+			}
 		}
 
 		[Ignore]

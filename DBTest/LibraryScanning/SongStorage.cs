@@ -109,8 +109,8 @@ namespace DBTest
 				}
 
 				// REQUIRED TO INITIALLY GET GENRES STORED CORRECTLY
-//				scanRequired = true;
-	//			matchedSong.ScanAction = Song.ScanActionType.Differ;
+				scanRequired = true;
+				matchedSong.ScanAction = Song.ScanActionType.Differ;
 			}
 
 			return scanRequired;

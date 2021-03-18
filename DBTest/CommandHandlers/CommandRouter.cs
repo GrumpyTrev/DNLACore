@@ -26,7 +26,6 @@ namespace DBTest
 			new AddSongsToPlaylistCommandHandler().BindToRouter();
 			new MoveItemsCommandHandler().BindToRouter();
 			new DeletePlaylistItemsCommandHandler().BindToRouter();
-			new TagAlbumsCommandHandler().BindToRouter();
 			new StartAutoPlaylistCommandHandler().BindToRouter();
 			new DuplicatePlaylistCommandHandler().BindToRouter();
 			new RenamePlaylistCommandHandler().BindToRouter();
@@ -37,7 +36,7 @@ namespace DBTest
 			new ShuffleModeCommandHander().BindToRouter();
 			new DisplayGenreCommandHander().BindToRouter();
 			new ShowPlaybackControlsCommandHander().BindToRouter();
-			new NewTabCommandHander().BindToRouter();
+			new MarkAlbumsCommandHandler().BindToRouter();
 		}
 
 		/// <summary>

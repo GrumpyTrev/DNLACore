@@ -227,13 +227,6 @@ namespace DBTest
 					if ( AlbumsViewModel.FilterSelector.TagOrderFlag == true )
 					{
 						AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
-
-						// By default when the sort type is SortType.identity the items are initially displayed highest entry first.
-						// This is not required for user filters, so
-						if ( AlbumsViewModel.FilterSelector.UserTagFlag == true )
-						{
-							AlbumsViewModel.SortSelector.SelectNext();
-						}
 					}
 				} );
 			}

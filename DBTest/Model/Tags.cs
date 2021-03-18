@@ -97,27 +97,6 @@ namespace DBTest
 			ShortNameLookup[ changedTag.ShortName ] = changedTag;
 		}
 
-		public static bool CheckNamesAreValid( string name, string shortName, Tag existingTag = null )
-		{
-			bool namesValid = true;
-
-			// Check for a name change
-			if ( ( existingTag == null ) || ( name != existingTag.Name ) )
-			{
-				// Check that there is not another tag with the new name
-				namesValid = ( GetTagByName( name ) == null );
-			}
-
-			// Check for a short name change
-			if ( ( namesValid == true ) && ( ( existingTag == null ) || ( shortName != existingTag.ShortName ) ) )
-			{
-				// Check that there is not another tag with the new short name
-				namesValid = ( GetTagByShortName( shortName ) == null );
-			}
-
-			return namesValid;
-		}
-
 		/// <summary>
 		/// The set of Tags currently held in storage
 		/// </summary>

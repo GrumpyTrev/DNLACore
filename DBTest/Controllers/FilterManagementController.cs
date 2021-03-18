@@ -24,150 +24,10 @@ namespace DBTest
 		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
-		/// Return a list of the names of all the tags. Order the tags so the system tags are displayed first
+		/// Return a list of the names of all the tags.
 		/// </summary>
 		/// <returns></returns>
-		public static List<string> GetTagNames() => Tags.TagsCollection?.OrderBy( tag => tag.UserTag ).Select( tag => tag.Name ).ToList() ?? new List<string>();
-
-		/// <summary>
-		/// Update an existing Tag with updated values.
-		/// </summary>
-		/// <param name="existingTag"></param>
-		/// <param name="updatedTag"></param>
-		/// <param name="tagDelegate"></param>
-		public static void UpdateTag( Tag existingTag, Tag updatedTag, TagUpdatedDelegate tagDelegate )
-		{
-			// Check if the new name and short name are valid
-			bool updateOk = Tags.CheckNamesAreValid( updatedTag.Name, updatedTag.ShortName, existingTag ) ;
-
-			if ( updateOk == true )
-			{
-				// If the synchronise libraries flag has just been set then attempt to synchronise the contents of this tag across all libraries
-				if ( ( updatedTag.Synchronise != existingTag.Synchronise ) && ( updatedTag.Synchronise == true ) )
-				{
-					SynchroniseTagAcrossLibraries( existingTag );
-				}
-
-				// Update the details for the existing Tag and save it
-				existingTag.UpdateTagDetails( updatedTag );
-			}
-
-			// Let the delegate know
-			tagDelegate( updateOk );
-		}
-
-		/// <summary>
-		/// Create a new tag
-		/// </summary>
-		/// <param name="newTag"></param>
-		/// <param name="tagDelegate"></param>
-		public static async Task CreateTagAsync( Tag newTag, TagUpdatedDelegate tagDelegate )
-		{
-			// Check if the new name and short name are valid
-			bool createdOk = Tags.CheckNamesAreValid( newTag.Name, newTag.ShortName );
-
-			if ( createdOk == true )
-			{
-				// Add the new tag to the tag collection
-				newTag.UserTag = true;
-				await Tags.AddTagAsync( newTag );
-			}
-
-			// Let the delegate know
-			tagDelegate( createdOk );
-		}
-
-		/// <summary>
-		/// Apply the list of selected albums to the Tags data to produce a list of all available tags and an indication of 
-		/// whether the tag has been applied to none, all or some of the albums
-		/// </summary>
-		/// <param name="selectedAlbums"></param>
-		public static async void GetAppliedTagsAsync( IEnumerable<Album> selectedAlbums, AppliedTagsDelegate tagsDelegate )
-		{
-			List<AppliedTag> appliedTags = new List<AppliedTag>();
-
-			await Task.Run( () => 
-			{
-				// Form a lookup table for the selected album ids
-				HashSet<int> albumLookup = selectedAlbums.Select( alb => alb.Id ).ToHashSet();
-
-				foreach ( Tag tag in Tags.TagsCollection )
-				{
-					// Check if all, none or some of the selected albums are tagged with this tag
-					int taggedCount = tag.TaggedAlbums.Count( artistAlbum => albumLookup.Contains( artistAlbum.AlbumId ) );
-					AppliedTag.AppliedType selectionApplied = ( taggedCount == 0 ) ? AppliedTag.AppliedType.None :
-							( ( taggedCount == selectedAlbums.Count() ) ? AppliedTag.AppliedType.All : AppliedTag.AppliedType.Some );
-
-					appliedTags.Add( new AppliedTag() { SourceTag = tag, Applied = selectionApplied, OriginalApplied = selectionApplied } );
-				}
-			} );
-
-			// Pass back the results.
-			tagsDelegate( appliedTags );
-		}
-
-		/// <summary>
-		/// Apply any tag changes to the selected albums
-		/// </summary>
-		/// <param name="selectedAlbums"></param>
-		/// <param name="appliedTags"></param>
-		public static async void ApplyTagsAsync( IEnumerable<Album> selectedAlbums, List<AppliedTag> appliedTags )
-		{
-			// Keep track of which tags have been changed so that this can be sent to other controllers
-			List<string> changedTags = new List<string>();
-
-			await Task.Run( () =>
-			{
-				foreach ( AppliedTag appliedTag in appliedTags )
-				{
-					// Has there been a change to this tag
-					if ( appliedTag.Applied != appliedTag.OriginalApplied )
-					{
-						changedTags.Add( appliedTag.SourceTag.Name );
-
-						if ( appliedTag.Applied == AppliedTag.AppliedType.None )
-						{
-							// Remove the selected albums from this tag
-							foreach ( Album selectedAlbum in selectedAlbums )
-							{
-								RemoveAlbumFromTag( appliedTag.SourceTag, selectedAlbum );
-							}
-						}
-						else if ( appliedTag.Applied == AppliedTag.AppliedType.All )
-						{
-							// Add the selected albums to this tag
-							foreach ( Album selectedAlbum in selectedAlbums )
-							{
-								AddAlbumToTag( appliedTag.SourceTag, selectedAlbum );
-							}
-						}
-					}
-				}
-			} );
-
-			// Report any tags that have changed
-			if ( changedTags.Count > 0 )
-			{
-				new TagMembershipChangedMessage() { ChangedTags = changedTags }.Send();
-			}
-		}
-
-		/// <summary>
-		/// Delete the specified Tag 
-		/// </summary>
-		/// <param name="tagtoDelete"></param>
-		public static void DeleteTag( Tag tagToDelete ) => Tags.DeleteTag( tagToDelete );
-
-		/// <summary>
-		/// Remove the specified TaggedAlbums from a Tag
-		/// </summary>
-		/// <param name="tagToDeleteFrom"></param>
-		/// <param name="taggedAlbumsToDelete"></param>
-		public static void DeleteTaggedAlbums( Tag tagToDeleteFrom, List<TaggedAlbum> taggedAlbumsToDelete )
-		{
-			tagToDeleteFrom.DeleteTaggedAlbums( taggedAlbumsToDelete );
-			new TagMembershipChangedMessage() { ChangedTags = new List<string>() { tagToDeleteFrom.Name } }.Send();
-		}
+		public static List<string> GetTagNames() => Tags.TagsCollection?.Select( tag => tag.Name ).ToList() ?? new List<string>();
 
 		/// <summary>
 		/// Form Tags and associated TaggedAlbum entries for each genre
@@ -181,7 +41,7 @@ namespace DBTest
 				Dictionary<string, Tag> tagLookup = new Dictionary<string, Tag>();
 
 				// Add a tag for unknown genre
-				Tag unknownTag = new Tag() { Name = "Unknown", UserTag = false, ShortName = "Unknown" };
+				Tag unknownTag = new Tag() { Name = "Unknown", ShortName = "Unknown" };
 				tagLookup[ "" ] = unknownTag;
 
 				// Now link in the albums using TaggedAlbum entries
@@ -202,7 +62,7 @@ namespace DBTest
 							Tag genreTag = tagLookup.GetValueOrDefault( genreString );
 							if ( genreTag == null )
 							{
-								genreTag = new Tag() { Name = genreString, UserTag = false, ShortName = genreString };
+								genreTag = new Tag() { Name = genreString, ShortName = genreString };
 								tagLookup[ genreString ] = genreTag;
 							}
 
@@ -266,8 +126,17 @@ namespace DBTest
 				toTag.AddTaggedAlbum( new TaggedAlbum() { AlbumId = albumToAdd.Id, Album = albumToAdd } );
 			}
 
-			// If this is the JustPlayed tag and the Played flag is not set for the album then set it now
-			CheckAlbumAddedToJustPlayingTag( toTag, albumToAdd );
+			// If this is the JustPlayed tag remove the album from the Not Played tag and check for the album's Played flag
+			if ( toTag == FilterManagementModel.JustPlayedTag )
+			{
+				// Make sure that the Played flag is set
+				if ( albumToAdd.Played == false )
+				{
+					albumToAdd.Played = true;
+				}
+
+				RemoveAlbumFromTag( FilterManagementModel.NotPlayedTag, albumToAdd );
+			}
 
 			// If this tag is synchronised across libraries then find any matching albums in the other libraries and add them to the tag if not already present
 			// Sychronise whether or not a new entry was added as we may need to reorder an existing tag item in other libraries
@@ -277,7 +146,7 @@ namespace DBTest
 				{
 					if ( library.Id != albumToAdd.LibraryId )
 					{
-						// Access this Album from the library as it may not be already be available anywhere, as it is a different library
+						// Access this Album from the library
 						Album albumToSynch = Albums.GetAlbumInLibrary( albumToAdd.Name, albumToAdd.ArtistName, library.Id );
 						if ( albumToSynch != null )
 						{
@@ -285,6 +154,46 @@ namespace DBTest
 						}
 					}
 				}
+			}
+
+			// Report this tag change. Only report on the firest call, not on synchonisation
+			if ( synchronise == true )
+			{
+				new TagMembershipChangedMessage() { ChangedTags = new List<string>() { toTag.Name } }.Send();
+			}
+		}
+
+		/// <summary>
+		/// Remove the TaggedAlbum associated with the album from the tag
+		/// </summary>
+		/// <param name="fromTag"></param>
+		/// <param name="albumId"></param>
+		public static void RemoveAlbumFromTag( Tag fromTag, Album albumToRemove )
+		{
+			// Check if the album is actually tagged
+			TaggedAlbum taggedAlbum = fromTag.TaggedAlbums.SingleOrDefault( tag => ( tag.AlbumId == albumToRemove.Id ) );
+			if ( taggedAlbum != null )
+			{
+				// If this tag is synchronised across libraries then remove all instances of this album
+				if ( fromTag.Synchronise == true )
+				{
+					fromTag.DeleteTaggedAlbums( fromTag.TaggedAlbums.
+						Where( tag => ( tag.Album.Name == taggedAlbum.Album.Name ) && ( tag.Album.ArtistName == taggedAlbum.Album.ArtistName ) ).ToList() );
+				}
+				else
+				{
+					// Just delete the single TaggedAlbum
+					fromTag.DeleteTaggedAlbum( taggedAlbum );
+				}
+
+				// If this is the JustPlayed tag then clear the Played flag and add the album to the Not Played tag
+				if ( fromTag == FilterManagementModel.JustPlayedTag )
+				{
+					albumToRemove.Played = false;
+					AddAlbumToTag( FilterManagementModel.NotPlayedTag, albumToRemove );
+				}
+
+				new TagMembershipChangedMessage() { ChangedTags = new List<string>() { fromTag.Name } }.Send();
 			}
 		}
 
@@ -312,9 +221,10 @@ namespace DBTest
 		{
 			await Task.Run( () =>
 			{
-				// Link these to their Tags
+				// Tags indexed by their ids
 				Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
 
+				// Keep track of any TaggedAlbums that are not associated with valid tags
 				List<TaggedAlbum> lostTags = new List<TaggedAlbum>();
 
 				foreach ( TaggedAlbum taggedAlbum in TaggedAlbums.TaggedAlbumCollection )
@@ -332,19 +242,10 @@ namespace DBTest
 					}
 				};
 
+				// Delete the lost TaggedAlbum entries
 				foreach ( TaggedAlbum taggedAlbum in lostTags )
 				{
 					TaggedAlbums.DeleteTaggedAlbum( taggedAlbum );
-				}
-
-				// Sort the TaggedAlbums collecton for each Tag into TagIndex order rather than the order held in storage
-				foreach ( Tag tag in Tags.TagsCollection )
-				{
-					// Only for User tags so that we don't have to keep on reordering the Recently Played tag
-					if ( tag.UserTag == true )
-					{
-						tag.TaggedAlbums.Sort( ( a, b ) => { return a.TagIndex.CompareTo( b.TagIndex ); } );
-					}
 				}
 			} );
 		}
@@ -358,9 +259,9 @@ namespace DBTest
 			await Task.Run( () =>
 			{
 				// Create a new Not Played tag
-				FilterManagementModel.NotPlayedTag = new Tag() { Name = NotPlayedTagName, ShortName = NotPlayedTagName, PersistTag = false,
-					TagOrder = true, UserTag = false, Synchronise = true };
+				FilterManagementModel.NotPlayedTag = new Tag() { Name = NotPlayedTagName, ShortName = NotPlayedTagName, Synchronise = true };
 
+				// No need to weait for this as it is not persisted
 				Tags.AddTagAsync( FilterManagementModel.NotPlayedTag );
 
 				// Now add all albums to this tag that are not in the Just Played tag
@@ -374,93 +275,6 @@ namespace DBTest
 					}
 				}
 			} );
-		}
-
-		/// <summary>
-		/// Synchronise the Tag across all libraries.
-		/// Determine the unique Album/Artist combinations in the Tag and ensure that each combination is tagged in all libraries
-		/// </summary>
-		/// <param name="tagToSynchronise"></param>
-		private static void SynchroniseTagAcrossLibraries( Tag tagToSynchronise )
-		{
-			// Find all the unique Album/Artist name combinations associated with the tag
-			var distinctAlbums = tagToSynchronise.TaggedAlbums.Select( tagged => new { tagged.Album.Name, tagged.Album.ArtistName } ).Distinct();
-
-			// Now check that each distinct album is tagged in each library, if present in the library
-			foreach ( var distinctAlbum in distinctAlbums )
-			{
-				// If there are as many tagged albums with matching name and artist name as there are libraries then no work is required
-				IEnumerable<TaggedAlbum> matchingAlbums = tagToSynchronise.TaggedAlbums
-					.Where( tagged => ( tagged.Album.Name == distinctAlbum.Name ) && ( tagged.Album.ArtistName == distinctAlbum.ArtistName ) );
-
-				if ( matchingAlbums.Count() != Libraries.LibraryCollection.Count )
-				{
-					// Need to work out which albums are missing and then check if that album is actually in its library
-					foreach ( Library library in Libraries.LibraryCollection )
-					{
-						if ( matchingAlbums.FirstOrDefault( tagged => ( tagged.Album.LibraryId == library.Id ) ) == null )
-						{
-							// No tag found for the album in the current library.
-							// Does the album/artist combination exist in the library
-							Album albumToTag = Albums.GetAlbumInLibrary( distinctAlbum.Name, distinctAlbum.ArtistName, library.Id );
-							if ( albumToTag != null )
-							{
-								tagToSynchronise.AddTaggedAlbum( new TaggedAlbum() { AlbumId = albumToTag.Id, Album = albumToTag } );
-
-								// If this is the JustPlayed tag and the Played flag is not set for the album then set it now
-								CheckAlbumAddedToJustPlayingTag( tagToSynchronise, albumToTag );
-							}
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// If this is the JustPlayed tag and the Played flag is not set for the album then set it now
-		/// </summary>
-		/// <param name="tag"></param>
-		/// <param name="album"></param>
-		private static void CheckAlbumAddedToJustPlayingTag( Tag tag, Album album )
-		{
-			if ( tag == FilterManagementModel.JustPlayedTag )
-			{
-				if ( album.Played == false )
-				{
-					album.SetPlayedFlag( true );
-				}
-			}
-		}
-
-		/// <summary>
-		/// Remove the TaggedAlbum associated with the album from the tag
-		/// </summary>
-		/// <param name="fromTag"></param>
-		/// <param name="albumId"></param>
-		private static void RemoveAlbumFromTag( Tag fromTag, Album albumToRemove )
-		{
-			// Check if the album is actually tagged
-			TaggedAlbum taggedAlbum = fromTag.TaggedAlbums.SingleOrDefault( tag => ( tag.AlbumId == albumToRemove.Id ) );
-			if ( taggedAlbum != null )
-			{
-				// If this tag is synchronised across libraries then remove all instances of this album
-				if ( fromTag.Synchronise == true )
-				{
-					fromTag.DeleteTaggedAlbums( fromTag.TaggedAlbums.
-						Where( tag => ( tag.Album.Name == taggedAlbum.Album.Name ) && ( tag.Album.ArtistName == taggedAlbum.Album.ArtistName ) ).ToList() );
-				}
-				else
-				{
-					// Just delete the single TaggedAlbum
-					fromTag.DeleteTaggedAlbum( taggedAlbum );
-				}
-
-				// If this is the JustPlayed tag and the Played flag is set for the album then clear it
-				if ( fromTag == FilterManagementModel.JustPlayedTag )
-				{
-					albumToRemove.SetPlayedFlag( false );
-				}
-			}
 		}
 
 		/// <summary>
@@ -505,12 +319,6 @@ namespace DBTest
 			if ( addTag == true )
 			{
 				AddAlbumToTag( FilterManagementModel.JustPlayedTag, songAlbum );
-
-				// Delete this album from the Not Played tag
-				RemoveAlbumFromTag( FilterManagementModel.NotPlayedTag, songAlbum );
-
-				// Report these filter change
-				new TagMembershipChangedMessage() { ChangedTags = new List<string>() { JustPlayedTagName, NotPlayedTagName } }.Send();
 			}
 		}
 
@@ -563,18 +371,6 @@ namespace DBTest
 				}
 			}
 		}
-
-		/// <summary>
-		/// Definition of delegate to call when the set of applied tags has been determined
-		/// </summary>
-		/// <param name="appliedTags"></param>
-		public delegate void AppliedTagsDelegate( List<AppliedTag> appliedTags );
-
-		/// <summary>
-		/// Definition of delegate to call when a Tag has been updated or created
-		/// </summary>
-		/// <returns></returns>
-		public delegate void TagUpdatedDelegate( bool updateOk );
 
 		/// <summary>
 		/// The name given to the "Just played" tag

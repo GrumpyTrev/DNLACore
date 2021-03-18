@@ -154,7 +154,8 @@ namespace DBTest
 
 		public string ArtistName { get; set; }
 
-		public bool Played { get; set; } = false;
+		[Column( "Played" )]
+		public bool DBPlayed { get; set; } = false;
 
 		public int Year { get; set; } = 0;
 
@@ -290,11 +291,6 @@ namespace DBTest
 		/// Name to be displayed in tab when filter applied
 		/// </summary>
 		public string ShortName { get; set; }
-
-		/// <summary>
-		/// Is this a user or system tag
-		/// </summary>
-		public bool UserTag { get; set; } = true;
 
 		/// <summary>
 		/// Sort tagged albums by tag id

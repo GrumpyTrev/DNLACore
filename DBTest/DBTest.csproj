@@ -72,8 +72,8 @@
     <Compile Include="BaseView\ExpandableListViewHolder.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
+    <Compile Include="CommandHandlers\MarkAlbumsCommandHandler.cs" />
     <Compile Include="CommandHandlers\ShowPlaybackControlsCommandHander.cs" />
-    <Compile Include="CommandHandlers\NewTabCommandHander.cs" />
     <Compile Include="Controllers\MediaNotificationController.cs" />
     <Compile Include="Controllers\MediaControllerController.cs" />
     <Compile Include="BaseView\ConfirmationDialogFragment.cs" />
@@ -109,7 +109,6 @@
     <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\GroupedSelection.cs" />
     <Compile Include="CommandHandlers\RenamePlaylistCommandHandler.cs" />
-    <Compile Include="CommandHandlers\TagAlbumsCommandHandler.cs" />
     <Compile Include="CommandHandlers\MoveItemsCommandHandler.cs" />
     <Compile Include="CommandHandlers\DeletePlaylistItemsCommandHandler.cs" />
     <Compile Include="CommandHandlers\ShuffleNowPlayingCommandHandler.cs" />
@@ -146,14 +145,8 @@
     <Compile Include="DisplayGenreView\DisplayGenreViewModel.cs" />
     <Compile Include="FilterManagement\FilterManagementModel.cs" />
     <Compile Include="FilterManagement\FilterSelectionDialogFragment.cs" />
-    <Compile Include="FilterManagement\TagApplicationDialogFragment.cs" />
-    <Compile Include="FilterManagement\TagCommandHandler.cs" />
-    <Compile Include="FilterManagement\TagDeletor.cs" />
-    <Compile Include="FilterManagement\TagEditor.cs" />
-    <Compile Include="FilterManagement\TagEditorDialogFragment.cs" />
     <Compile Include="FilterManagement\TagGroup.cs" />
     <Compile Include="FilterManagement\FilterSelection.cs" />
-    <Compile Include="FilterManagement\TagDataAdapter.cs" />
     <Compile Include="LibraryManagement\LibrarySelectionDialogFragment.cs" />
     <Compile Include="LibraryManagement\SourceDisplayAdapter.cs" />
     <Compile Include="LibraryManagement\SourceSelectionDialogFragment.cs" />
@@ -369,19 +362,6 @@
     <AndroidResource Include="Resources\drawable\filter_on.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\tag.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\tag_item_layout.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\tag_dialogue_layout.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\indeterminate.png" />
   </ItemGroup>
   <ItemGroup>
@@ -424,11 +404,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\sort_by_id_descending.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\tag_details_dialogue_layout.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\repeat.png" />
@@ -575,6 +550,9 @@
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\mark.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

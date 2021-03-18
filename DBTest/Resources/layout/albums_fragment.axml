@@ -20,7 +20,7 @@
 		app:theme="@style/AppTheme"
 		app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-		<include android:id="@+id/tag"
+		<include android:id="@+id/mark"
 			layout="@layout/bottom_button"/>
 
 		<include android:id="@+id/auto_gen"

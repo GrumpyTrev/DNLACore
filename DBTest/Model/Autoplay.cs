@@ -161,8 +161,15 @@ namespace DBTest
 			// Get all the albums associated with the genres
 			foreach ( string genre in genres )
 			{
-				albums.AddRange( FilterManagementModel.GenreTags.Tags.Single( tag => tag.Name == genre ).TaggedAlbums
-					.Where( alb => AlbumsAlreadyIncluded.Add( alb.AlbumId ) == true ).Select( ta => ta.Album ) );
+				Tag genreTag = FilterManagementModel.GenreTags.Tags.SingleOrDefault( tag => tag.Name == genre );
+				if ( genreTag != null )
+				{
+					albums.AddRange( FilterManagementModel.GenreTags.Tags.Single( tag => tag.Name == genre ).TaggedAlbums
+						.Where( alb => AlbumsAlreadyIncluded.Add( alb.AlbumId ) == true ).Select( ta => ta.Album ) );
+				}
+				else
+				{
+				}
 			}
 
 			return albums;

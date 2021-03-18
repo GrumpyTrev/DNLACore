@@ -40,10 +40,6 @@ namespace DBTest
 			// Initialise the fragments showing the selected library
 			InitialiseFragments();
 
-			// Initialise the tag command handlers
-			tagDeleteCommandHandler = new TagDeletor( this );
-			tagEditCommandHandler = new TagEditor( this );
-
 			if ( Build.VERSION.SdkInt >= BuildVersionCodes.M )
 			{
 				// Make sure that this application is not subject to battery optimisations
@@ -71,31 +67,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called just before the options menu is shown
-		/// </summary>
-		/// <param name="menu"></param>
-		/// <returns></returns>
-		public override bool OnPrepareOptionsMenu( IMenu menu )
-		{
-			// Populate the rename and delete tag menus with submenus containing the user tags items
-			int menuId = Menu.First;
-
-			IMenuItem renameTag = menu.FindItem( Resource.Id.edit_tag );
-			if ( renameTag != null )
-			{
-				tagEditCommandHandler.PrepareMenu( renameTag, ref menuId );
-			}
-
-			IMenuItem deleteTag = menu.FindItem( Resource.Id.delete_tag );
-			if ( deleteTag != null )
-			{
-				tagDeleteCommandHandler.PrepareMenu( deleteTag, ref menuId );
-			}
-
-			return base.OnPrepareOptionsMenu( menu );
-		}
-
-		/// <summary>
 		/// Called when one of the main toolbar menu items has been selected
 		/// </summary>
 		/// <param name="item"></param>
@@ -108,14 +79,6 @@ namespace DBTest
 
 			// Let the CommandRouter have first go
 			if ( CommandRouter.HandleCommand( id ) == true )
-			{
-				handled = true;
-			}
-			else if ( tagEditCommandHandler.OnOptionsItemSelected( id, item.TitleFormatted.ToString() ) == true )
-			{
-				handled = true;
-			}
-			else if ( tagDeleteCommandHandler.OnOptionsItemSelected( id, item.TitleFormatted.ToString() ) == true )
 			{
 				handled = true;
 			}
@@ -173,16 +136,6 @@ namespace DBTest
 			// Now that everything's been linked together let the FragmentTitles do some of it own initialisation
 			FragmentTitles.ParentActivity = this;
 		}
-
-		/// <summary>
-		/// The handler for the tag deletion command
-		/// </summary>
-		private TagDeletor tagDeleteCommandHandler = null;
-
-		/// <summary>
-		/// The handler for the tag editor command
-		/// </summary>
-		private TagEditor tagEditCommandHandler = null;
 
 		/// <summary>
 		/// Make the main view for the activity accessible so that it can be passed to controls requireing to be bound to it

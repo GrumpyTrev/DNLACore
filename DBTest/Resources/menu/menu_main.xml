@@ -18,27 +18,4 @@
 		app:showAsAction="never"
 		android:id="@+id/genreOption" >
 	</item>
-	<item
-		android:title="Tagging"
-		app:showAsAction="never" >
-		<menu>
-			<item
-				android:id="@+id/add_tag"
-				android:title="Add a new tag" />
-			<item
-				android:id="@+id/edit_tag"
-				android:title="Edit tag" >
-				<menu
-					android:id="@+id/rename_tag_submenu">
-				</menu>
-			</item>	
-			<item
-				android:id="@+id/delete_tag"
-				android:title="Delete tag" >
-				<menu
-					android:id="@+id/delete_tag_submenu">
-				</menu>
-			</item>
-		</menu>
-	</item>
 </menu>
