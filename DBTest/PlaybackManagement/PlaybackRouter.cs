@@ -39,31 +39,10 @@ namespace DBTest
 		/// <param name="songsReplaced"></param>
 		public void DataAvailable()
 		{
-			// Pass on the media data to all playback instances
-			localPlayback.MediaControlDataAvailable();
-			remotePlayback.MediaControlDataAvailable();
-
 			// If a playback device has already been selected in the model then select it now
 			if ( PlaybackManagerModel.AvailableDevice != null )
 			{
 				SelectPlaybackDevice( null );
-			}
-		}
-
-		/// <summary>
-		/// Called when the selected song index has been changed via the UI
-		/// </summary>
-		public void SongSelected()
-		{
-			// Pass this on to the playback instances
-			localPlayback.SongSelected();
-			remotePlayback.SongSelected();
-
-			// If the new index is not set (-1) then tell the selected playback to stop playing
-			// If it is set to a valid value and it should be played then the PlayRequested method will be called 
-			if ( PlaybackManagerModel.CurrentSongIndex == -1 )
-			{
-				selectedPlayback?.Stop();
 			}
 		}
 
@@ -76,9 +55,9 @@ namespace DBTest
 		/// <summary>
 		/// Called when a request has been received via the controller to play the currently selected song
 		/// </summary>
-		public void PlayRequested()
+		public void PlayCurrentSong()
 		{
-			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
+			if ( PlaybackManagerModel.CurrentSong != null )
 			{
 				selectedPlayback?.Stop();
 				selectedPlayback?.Play();
@@ -99,7 +78,7 @@ namespace DBTest
 				// Deselect the old playback instance if there was one
 				if ( oldSelectedDevice != null )
 				{
-					selectedPlayback?.DeselectController();
+					selectedPlayback?.Deselect();
 				}
 
 				// If there is no new device then clear the selection
@@ -111,7 +90,7 @@ namespace DBTest
 				{
 					selectedPlayback = ( PlaybackManagerModel.AvailableDevice.IsLocal == true ) ? localPlayback : remotePlayback;
 
-					selectedPlayback.SelectController();
+					selectedPlayback.Select();
 				}
 			}
 		}
@@ -150,29 +129,26 @@ namespace DBTest
 		/// </summary>
 		public void Start()
 		{
-			// If no song is currently selected and there is a song available then select it
-			if ( ( PlaybackManagerModel.CurrentSongIndex == -1 ) && ( ( PlaybackManagerModel.NowPlayingPlaylist?.PlaylistItems.Count ?? 0 ) > 0 ) )
-			{
-				PlaybackManagementController.SetSelectedSong( 0 );
-			}
-
-			if ( PlaybackManagerModel.CurrentSongIndex != -1 )
+			if ( PlaybackManagerModel.CurrentSong != null )
 			{
 				selectedPlayback?.Start();
 			}
 		}
 
 		/// <summary>
-		/// Called when the playback instance has changed the song index
-		/// Pass this on to the controller
+		/// Stop playing the current song
 		/// </summary>
-		public void SongIndexChanged( int songIndex ) => PlaybackManagementController.SetSelectedSong( songIndex );
+		public void Stop() => selectedPlayback?.Stop();
 
 		/// <summary>
 		/// Called when a new song is being played. Pass this on to the controller
 		/// </summary>
-		/// <param name="songPlayed"></param>
-		public void SongPlayed( Song songPlayed ) => PlaybackManagementController.SongPlayed( songPlayed );
+		public void SongStarted() => PlaybackManagementController.SongStarted();
+
+		/// <summary>
+		/// Called when the current song has finished being played
+		/// </summary>
+		public void SongFinished() => PlaybackManagementController.SongFinished();
 
 		/// <summary>
 		/// Called by the current playback to report the current position and duration
@@ -185,16 +161,6 @@ namespace DBTest
 		/// Called when the playback has started or stopped
 		/// </summary>
 		public void PlayStateChanged( bool isPlaying ) => new MediaPlayingMessage() { IsPlaying = isPlaying }.Send();
-
-		/// <summary>
-		/// Play the next track
-		/// </summary>
-		public void PlayNext() => selectedPlayback?.PlayNext();
-
-		/// <summary>
-		/// Play the previous track
-		/// </summary>
-		public void PlayPrevious() => selectedPlayback?.PlayPrevious();
 
 		/// <summary>
 		/// The local playback instance

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -32,45 +31,25 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when this controller is selected for playback
+		/// Called when this instance is selected for playback
 		/// </summary>
-		public void SelectController()
+		public void Select()
 		{
-			PlaybackDevice = PlaybackManagerModel.AvailableDevice;
-
 			treatResumeAsPlay = true;
 
 			Selected = true;
 		}
 
 		/// <summary>
-		/// Called when this controller is deselected
+		/// Called when this instance is deselected
 		/// </summary>
-		public void DeselectController()
+		public void Deselect()
 		{
 			Stop();
 			Reset();
 
 			Selected = false;
 		}
-
-		/// <summary>
-		/// Called when the Media Control data has been read
-		/// Pass the data on to the service if connected
-		/// </summary>
-		public void MediaControlDataAvailable()
-		{
-			Playlist = PlaybackManagerModel.NowPlayingPlaylist;
-			Sources = PlaybackManagerModel.Sources;
-			CurrentSongIndex = PlaybackManagerModel.CurrentSongIndex;
-			PlaybackDevice = PlaybackManagerModel.AvailableDevice;
-		}
-
-		/// <summary>
-		/// Called when the selected song has been changed
-		/// Pass it on to the service
-		/// </summary>
-		public void SongSelected() => CurrentSongIndex = PlaybackManagerModel.CurrentSongIndex;
 
 		/// <summary>
 		/// Start playback
@@ -85,40 +64,6 @@ namespace DBTest
 			{
 				Resume();
 			}
-		}
-
-		/// <summary>
-		/// Play the previous song in the list wrapping back to the end if required
-		/// </summary>
-		public void PlayPrevious()
-		{
-			IsPlaying = false;
-
-			CurrentSongIndex--;
-			if ( CurrentSongIndex < 0 )
-			{
-				CurrentSongIndex = Playlist.PlaylistItems.Count - 1;
-			}
-
-			Reporter?.SongIndexChanged( CurrentSongIndex );
-			Play();
-		}
-
-		/// <summary>
-		/// Play the next song in the list wrapping back to the start if required
-		/// </summary>
-		public void PlayNext()
-		{
-			IsPlaying = false;
-
-			CurrentSongIndex++;
-			if ( CurrentSongIndex >= Playlist.PlaylistItems.Count )
-			{
-				CurrentSongIndex = 0;
-			}
-
-			Reporter?.SongIndexChanged( CurrentSongIndex );
-			Play();
 		}
 
 		/// <summary>
@@ -237,16 +182,14 @@ namespace DBTest
 		{
 			string resource = "";
 
-			if ( ( Playlist != null ) && ( CurrentSongIndex < Playlist.PlaylistItems.Count ) )
+			if ( PlaybackManagerModel.CurrentSong != null )
 			{
-				Song songToPlay = ( ( SongPlaylistItem )Playlist.PlaylistItems[ CurrentSongIndex ] ).Song;
-
 				// Find the Source associated with this song
-				Source songSource = Sources.SingleOrDefault( d => ( d.Id == songToPlay.SourceId ) );
+				Source songSource = PlaybackManagerModel.Sources.SingleOrDefault( d => ( d.Id == PlaybackManagerModel.CurrentSong.SourceId ) );
 
 				if ( songSource != null )
 				{
-					resource = FormSourceName( songSource, songToPlay.Path, local );
+					resource = FormSourceName( songSource, PlaybackManagerModel.CurrentSong.Path, local );
 				}
 			}
 
@@ -285,54 +228,12 @@ namespace DBTest
 		/// <summary>
 		/// Report that the current song is being played
 		/// </summary>
-		protected void ReportSongPlayed() => Reporter?.SongPlayed( ( ( SongPlaylistItem )Playlist.PlaylistItems[ CurrentSongIndex ] ).Song );
+		protected void ReportSongStarted() => Reporter?.SongStarted();
 
 		/// <summary>
-		/// Select the next song to play based on whether or not repeat is on and the number of songs in the playlist
+		/// Report that the current song has finished
 		/// </summary>
-		/// <returns></returns>
-		protected bool CanPlayNextSong()
-		{
-			bool canPlay = true;
-
-			if ( CurrentSongIndex < ( Playlist.PlaylistItems.Count - 1 ) )
-			{
-				CurrentSongIndex++;
-				Reporter?.SongIndexChanged( CurrentSongIndex );
-			}
-			else if ( ( PlaybackModeModel.RepeatOn == true ) && ( Playlist.PlaylistItems.Count > 0 ) )
-			{
-				// Play the first song
-				CurrentSongIndex = 0;
-				Reporter?.SongIndexChanged( CurrentSongIndex );
-			}
-			else
-			{
-				canPlay = false;
-			}
-
-			return canPlay;
-		}
-
-		/// <summary>
-		/// The playlist of songs to play
-		/// </summary>
-		public Playlist Playlist { get; set; } = null;
-
-		/// <summary>
-		/// The sources associated with the songs
-		/// </summary>
-		public List<Source> Sources { get; set; } = null;
-
-		/// <summary>
-		/// The index of the song currently being played
-		/// </summary>
-		public int CurrentSongIndex { get; set; } = -1;
-
-		/// <summary>
-		/// Details of the playback device
-		/// </summary>
-		public PlaybackDevice PlaybackDevice { get; set; } = null;
+		protected void ReportSongFinished() => Reporter.SongFinished();
 
 		/// <summary>
 		/// The instance used to report back significant events
@@ -369,9 +270,9 @@ namespace DBTest
 		/// </summary>
 		public interface IPlaybackCallbacks
 		{
-			void SongIndexChanged( int songIndex );
 			void PlayStateChanged( bool isPlaying );
-			void SongPlayed( Song songPlayed );
+			void SongStarted();
+			void SongFinished();
 			void ProgressReport( int position, int duration );
 		}
 	}

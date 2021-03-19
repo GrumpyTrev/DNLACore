@@ -24,19 +24,11 @@ namespace DBTest
 		/// Called when the MediaPlayer has finished playing the current song
 		/// </summary>
 		/// <param name="mp"></param>
-		public void OnCompletion( MediaPlayer _mp )
+		public void OnCompletion( MediaPlayer _ )
 		{
 			IsPlaying = false;
-
-			// Play the next song if there is one
-			if ( CanPlayNextSong() == true )
-			{
-				Play();
-			}
-			else
-			{
-				localPlayer.Reset();
-			}
+			localPlayer.Reset();
+			ReportSongFinished();
 		}
 
 		/// <summary>
@@ -46,7 +38,7 @@ namespace DBTest
 		/// <param name="what"></param>
 		/// <param name="extra"></param>
 		/// <returns></returns>
-		public bool OnError( MediaPlayer _mp, [GeneratedEnum] MediaError what, int extra )
+		public bool OnError( MediaPlayer _, [GeneratedEnum] MediaError what, int extra )
 		{
 			localPlayer.Reset();
 			isPreparing = false;
@@ -60,13 +52,13 @@ namespace DBTest
 		/// Called when the MediaPlayer has finished preparing a song source and is now ready to play the song
 		/// </summary>
 		/// <param name="mp"></param>
-		public void OnPrepared( MediaPlayer _mp )
+		public void OnPrepared( MediaPlayer _ )
 		{
 			localPlayer.Start();
 			IsPlaying = true;
 			isPreparing = false;
 
-			ReportSongPlayed();
+			ReportSongStarted();
 		}
 
 		/// <summary>

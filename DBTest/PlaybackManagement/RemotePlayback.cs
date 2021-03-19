@@ -40,14 +40,14 @@ namespace DBTest
 					isPreparing = true;
 
 					// Prepare and start playing the song
-					if ( await PrepareSong( filename, ( ( SongPlaylistItem )Playlist.PlaylistItems[ CurrentSongIndex ] ).Song ) == true )
+					if ( await PrepareSong( filename, PlaybackManagerModel.CurrentSong ) == true )
 					{
 						if ( await PlaySong() == true )
 						{
 							IsPlaying = true;
 							AquireLock();
 
-							ReportSongPlayed();
+							ReportSongStarted();
 						}
 					}
 
@@ -67,11 +67,11 @@ namespace DBTest
 
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Stop" );
 
-			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Stop",
-				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
+			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackManagerModel.AvailableDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Stop",
+				PlaybackManagerModel.AvailableDevice.IPAddress, PlaybackManagerModel.AvailableDevice.Port, soapContent );
 
 			// Run off the calling thread
-			string response = await Task.Run( () =>	DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
+			string response = await Task.Run( () =>	DlnaRequestHelper.SendRequest( PlaybackManagerModel.AvailableDevice, request ) );
 		}
 
 		/// <summary>
@@ -102,11 +102,11 @@ namespace DBTest
 		{
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Pause" );
 
-			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Pause",
-				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
+			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackManagerModel.AvailableDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Pause",
+				PlaybackManagerModel.AvailableDevice.IPAddress, PlaybackManagerModel.AvailableDevice.Port, soapContent );
 
 			// Run off the calling thread
-			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
+			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackManagerModel.AvailableDevice, request ) );
 
 			if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 			{
@@ -145,11 +145,12 @@ namespace DBTest
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "SetAVTransportURI",
 				$"<CurrentURI>{fileName}</CurrentURI>\r\n<CurrentURIMetaData>{Desc( fileName, songToPlay )}</CurrentURIMetaData>\r\n" );
 
-			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl,
-				"urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI", PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
+			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackManagerModel.AvailableDevice.PlayUrl,
+				"urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI", PlaybackManagerModel.AvailableDevice.IPAddress, 
+				PlaybackManagerModel.AvailableDevice.Port, soapContent );
 
 			// Run off the calling thread
-			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
+			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackManagerModel.AvailableDevice, request ) );
 
 			return ( DlnaRequestHelper.GetResponseCode( response ) == 200 );
 		}
@@ -178,11 +179,11 @@ namespace DBTest
 		{
 			string soapContent = DlnaRequestHelper.MakeSoapRequest( "Play", "<Speed>1</Speed>\r\n" );
 
-			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Play",
-				PlaybackDevice.IPAddress, PlaybackDevice.Port, soapContent );
+			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackManagerModel.AvailableDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Play",
+				PlaybackManagerModel.AvailableDevice.IPAddress, PlaybackManagerModel.AvailableDevice.Port, soapContent );
 
 			// Run off the calling thread
-			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
+			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackManagerModel.AvailableDevice, request ) );
 
 			return ( DlnaRequestHelper.GetResponseCode( response ) == 200 );
 		}
@@ -203,9 +204,10 @@ namespace DBTest
 
 				// Send the GetPositionInfo request and get the response
 				// Run off the calling thread
-				string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice,
-					DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
-						PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo" ) ) ) );
+				string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackManagerModel.AvailableDevice,
+					DlnaRequestHelper.MakeRequest( "POST", PlaybackManagerModel.AvailableDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
+						PlaybackManagerModel.AvailableDevice.IPAddress, PlaybackManagerModel.AvailableDevice.Port, 
+						DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo" ) ) ) );
 
 				if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
 				{
@@ -257,16 +259,8 @@ namespace DBTest
 					if ( nextTrack == true )
 					{
 						IsPlaying = false;
-
-						// Play the next song if there is one
-						if ( CanPlayNextSong() == true )
-						{
-							Play();
-						}
-						else
-						{
-							ReleaseLock();
-						}
+						ReleaseLock();
+						ReportSongFinished();
 					}
 				}
 				else
