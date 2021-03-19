@@ -88,6 +88,7 @@
     <Compile Include="Messages\MediaControlPauseMessage.cs" />
     <Compile Include="Messages\MediaPlayingMessage.cs" />
     <Compile Include="Messages\MediaProgressMessage.cs" />
+    <Compile Include="Messages\SongFinishedMessage.cs" />
     <Compile Include="Messages\TagAddedMessage.cs" />
     <Compile Include="Model\Playlist.cs" />
     <Compile Include="Model\AlbumPlaylist.cs" />
@@ -174,7 +175,7 @@
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
     <Compile Include="Messages\SelectedLibraryChangedMessage.cs" />
     <Compile Include="Messages\AlbumPlayedStateChangedMessage.cs" />
-    <Compile Include="Messages\SongPlayedMessage.cs" />
+    <Compile Include="Messages\SongStartedMessage.cs" />
     <Compile Include="Messages\TagDeletedMessage.cs" />
     <Compile Include="Messages\TagDetailsChangedMessage.cs" />
     <Compile Include="Messages\TagMembershipChangedMessage.cs" />

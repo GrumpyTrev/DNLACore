@@ -63,7 +63,7 @@
 		/// Pass this on to the relevant controller, not this one
 		/// </summary>
 		/// <param name="songPlayed"></param>
-		public static void SongStarted() => new SongPlayedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
+		public static void SongStarted() => new SongStartedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
 
 		/// <summary>
 		/// Called when the current song has finished being played.
@@ -72,6 +72,8 @@
 		/// <param name="songPlayed"></param>
 		public static void SongFinished()
 		{
+			new SongFinishedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
+
 			if ( PlaybackManagerModel.CurrentSongIndex < ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) )
 			{
 				// Play the next song

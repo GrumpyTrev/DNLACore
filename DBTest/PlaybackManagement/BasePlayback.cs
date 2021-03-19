@@ -35,6 +35,8 @@ namespace DBTest
 		/// </summary>
 		public void Select()
 		{
+			PlaybackDevice = PlaybackManagerModel.AvailableDevice;
+
 			treatResumeAsPlay = true;
 
 			Selected = true;
@@ -239,6 +241,11 @@ namespace DBTest
 		/// The instance used to report back significant events
 		/// </summary>
 		public IPlaybackCallbacks Reporter { get; set; } = null;
+
+		/// <summary>
+		/// Details of the playback device at the time of selection
+		/// </summary>
+		protected PlaybackDevice PlaybackDevice { get; set; } = null;
 
 		/// <summary>
 		/// Is the service currently playing

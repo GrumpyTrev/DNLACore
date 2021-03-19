@@ -14,7 +14,7 @@ namespace DBTest
 		/// </summary>
 		static FilterManagementController()
 		{
-			Mediator.RegisterPermanent( SongPlayed, typeof( SongPlayedMessage ) );
+			Mediator.RegisterPermanent( SongStarted, typeof( SongStartedMessage ) );
 			Mediator.RegisterPermanent( AlbumsDeleted, typeof( AlbumsDeletedMessage ) );
 		}
 
@@ -278,17 +278,17 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the SongPlayedMessage is received
+		/// Called when the SongStartedMessage is received
 		/// Add the associated album to the Just Played tag 
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongPlayed( object message )
+		private static void SongStarted( object message )
 		{
 			// Assume that the album does not need adding to the tag
 			bool addTag = false;
 
 			// Get the Album from the Albums collection
-			Album songAlbum = Albums.GetAlbumById( ( message as SongPlayedMessage ).SongPlayed.AlbumId );
+			Album songAlbum = Albums.GetAlbumById( ( message as SongStartedMessage ).SongPlayed.AlbumId );
 
 			// Determine if this album should be marked as having been played
 			if ( songAlbum.Played == false )

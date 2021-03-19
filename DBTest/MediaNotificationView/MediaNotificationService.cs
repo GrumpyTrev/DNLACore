@@ -68,10 +68,19 @@ namespace DBTest
 		/// Called when a new song is being played. Update the notification
 		/// </summary>
 		/// <param name="songPlayed"></param>
-		public void SongPlayed( Song songPlayed )
+		public void SongStarted( Song songPlayed )
 		{
 			songBeingPlayed = songPlayed;
 			UpdateNotification();
+		}
+
+		/// <summary>
+		/// Called when a song has finished playing
+		/// </summary>
+		public void SongFinished()
+		{
+			SongPlaying = false;
+			RemoveNotification();
 		}
 
 		/// <summary>

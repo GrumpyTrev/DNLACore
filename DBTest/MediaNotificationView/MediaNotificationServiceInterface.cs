@@ -44,8 +44,13 @@ namespace DBTest
 		/// Called when the song being played has changed
 		/// </summary>
 		/// <param name="song"></param>
-		public void SongPlayed( Song song ) => controlService.SongPlayed( song );
+		public void SongStarted( Song song ) => controlService.SongStarted( song );
 
+		/// <summary>
+		/// Called when the song being played has finished
+		/// </summary>
+		public void SongFinished() => controlService.SongFinished();		
+		
 		/// <summary>
 		/// Called when the playing state of the song changes
 		/// </summary>
