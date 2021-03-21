@@ -85,16 +85,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Show or hide the genre information
-		/// </summary>
-		/// <param name="show"></param>
-		public void ShowGenre( bool show )
-		{
-			showGenre = show;
-			NotifyDataSetChanged();
-		}
-
-		/// <summary>
 		/// Provide a view containing either album or song details at the specified position
 		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
 		/// </summary>
@@ -137,14 +127,12 @@ namespace DBTest
 						ArtistName = convertView.FindViewById<TextView>( Resource.Id.artist ),
 						Year = convertView.FindViewById<TextView>( Resource.Id.year ),
 						Genre = convertView.FindViewById<TextView>( Resource.Id.genre ),
-						GenreYear = convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ),
-						GenreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout )
 					};
 				}
 
 				// Display the album
 				Album album = ( (AlbumPlaylistItem)( ( AlbumPlaylist )Groups[ groupPosition ] ).PlaylistItems[ childPosition ] ).Album;
-				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, showGenre, album.Genre );
+				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, album.Genre );
 			}
 
 			return convertView;
@@ -235,10 +223,5 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		protected override bool SelectLongClickedItem( int tag ) => true;
-
-		/// <summary>
-		/// Is genre information to be displayed
-		/// </summary>
-		private bool showGenre = false;
 	}
 }

@@ -33,10 +33,5 @@
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
 		public static int LibraryId { get; set; } = -1;
-
-		/// <summary>
-		/// Should the album genres be displayed
-		/// </summary>
-		public static bool DisplayGenre { get; set; } = true;
 	}
 }

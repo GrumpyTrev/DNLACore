@@ -129,7 +129,6 @@ namespace DBTest
 			AutoplayController.GetControllerData();
 			PlaybackModeController.GetControllerData();
 			PlaybackManagementController.GetControllerData();
-			DisplayGenreController.GetControllerData();
 			MediaControllerController.GetControllerData();
 			MediaNotificationController.GetControllerData();
 		}

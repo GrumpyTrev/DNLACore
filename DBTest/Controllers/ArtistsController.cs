@@ -21,7 +21,6 @@ namespace DBTest
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
 			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
 			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
-			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 		}
 
 		/// <summary>
@@ -126,9 +125,6 @@ namespace DBTest
 
 			// Get the Artists we are interested in
 			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
-
-			// Get the display genre flag
-			ArtistsViewModel.DisplayGenre = Playback.DisplayGenre;
 			
 			// Do the sorting of ArtistAlbum entries off the UI thread
 			await SortArtistAlbumsAsync();
@@ -282,17 +278,6 @@ namespace DBTest
 				DataReporter?.DataAvailable();
 			}
 		}
-			
-		/// <summary>
-		/// Called when a DisplayGenreMessage is received.
-		/// Update the model and report the change
-		/// </summary>
-		/// <param name="message"></param>
-		private static void DisplayGenreChanged( object message )
-		{
-			ArtistsViewModel.DisplayGenre = ( ( DisplayGenreMessage )message ).DisplayGenre;
-			DataReporter?.DisplayGenreChanged();
-		}	
 		
 		/// <summary>
 		/// Generate the fast scroll indexes using the provided function to obtain the section name
@@ -336,18 +321,10 @@ namespace DBTest
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IArtistsReporter DataReporter
+		public static DataReporter.IReporter DataReporter
 		{
-			private get => ( IArtistsReporter )dataReporter.Reporter;
+			private get => dataReporter.Reporter;
 			set => dataReporter.Reporter = value;
-		}
-
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface IArtistsReporter : DataReporter.IReporter
-		{
-			void DisplayGenreChanged();
 		}
 
 		/// <summary>

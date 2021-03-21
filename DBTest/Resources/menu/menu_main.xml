@@ -13,9 +13,4 @@
 		android:orderInCategory="2"
 		app:showAsAction="always"
 		android:title="Playback mode" />
-	<item
-		android:title="Toggle genre"
-		app:showAsAction="never"
-		android:id="@+id/genreOption" >
-	</item>
 </menu>

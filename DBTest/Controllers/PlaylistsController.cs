@@ -16,7 +16,6 @@ namespace DBTest
 		static PlaylistsController()
 		{
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 		}
 
 		/// <summary>
@@ -290,9 +289,6 @@ namespace DBTest
 			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId ).ToList();
 			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
 
-			// Get the display genre flag
-			PlaylistsViewModel.DisplayGenre = Playback.DisplayGenre;
-
 			// To generate the data to be displayed the Playlists need to be sorted. Not a simple sort of course, but the SongPlaylists followed by the 
 			// AlbumPlaylists
 			await Task.Run( () =>
@@ -340,17 +336,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a DisplayGenreMessage is received.
-		/// Update the model and report the change
-		/// </summary>
-		/// <param name="message"></param>
-		private static void DisplayGenreChanged( object message )
-		{
-			PlaylistsViewModel.DisplayGenre = ( ( DisplayGenreMessage )message ).DisplayGenre;
-			DataReporter?.DisplayGenreChanged();
-		}
-
-		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
 		public static IPlaylistsReporter DataReporter
@@ -365,7 +350,6 @@ namespace DBTest
 		public interface IPlaylistsReporter : DataReporter.IReporter
 		{
 			void PlaylistUpdated( Playlist playlist );
-			void DisplayGenreChanged();
 		}
 
 		/// <summary>

@@ -41,13 +41,7 @@ namespace DBTest
 		/// Display the data held in the Playlists view model
 		/// </summary>
 		/// <param name="message"></param>
-		public void DataAvailable()
-		{
-			Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
-
-			// Display or hide the genres in Tag playlists
-			DisplayGenreChanged();
-		}
+		public void DataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
 
 		/// <summary>
 		/// Called when a specific playlist has been updated
@@ -55,11 +49,6 @@ namespace DBTest
 		/// </summary>
 		/// <param name="message"></param>
 		public void PlaylistUpdated( Playlist playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
-
-		/// <summary>
-		/// Called when the DisplayGenre flag has been toggled
-		/// </summary>
-		public void DisplayGenreChanged() => ( ( PlaylistsAdapter )Adapter ).ShowGenre( PlaylistsViewModel.DisplayGenre );
 
 		/// <summary>
 		/// Called when the number of selected items has changed.

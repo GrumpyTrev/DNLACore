@@ -21,7 +21,6 @@ namespace DBTest
 			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
 			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
 			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
-			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 		}
 
 		/// <summary>
@@ -188,9 +187,6 @@ namespace DBTest
 			// Get all the albums associated with the library
 			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
 
-			// Get the display genre flag
-			AlbumsViewModel.DisplayGenre = Playback.DisplayGenre;
-
 			// Apply the current filter
 			await ApplyFilterAsync();
 		}
@@ -314,17 +310,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a DisplayGenreMessage is received.
-		/// Update the model and report the change
-		/// </summary>
-		/// <param name="message"></param>
-		private static void DisplayGenreChanged( object message )
-		{
-			AlbumsViewModel.DisplayGenre = ( ( DisplayGenreMessage )message ).DisplayGenre;
-			DataReporter?.DisplayGenreChanged();
-		}
-
-		/// <summary>
 		/// Form a new Albums collection where albums with multiple genres are given multiple entries. The Albums will be in genre order
 		/// </summary>
 		private static void GenerateGenreAlbumList()
@@ -397,18 +382,10 @@ namespace DBTest
 		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
-		public static IAlbumsReporter DataReporter
+		public static DataReporter.IReporter DataReporter
 		{
-			get => ( IAlbumsReporter )dataReporter.Reporter;
+			get => dataReporter.Reporter;
 			set => dataReporter.Reporter = value;
-		}
-		
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface IAlbumsReporter : DataReporter.IReporter
-		{
-			void DisplayGenreChanged();
 		}
 
 		/// <summary>

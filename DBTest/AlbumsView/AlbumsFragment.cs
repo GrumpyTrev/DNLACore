@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DBTest
 {
-	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>, AlbumsController.IAlbumsReporter, 
+	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>, DataReporter.IReporter, 
 		SortSelector.ISortReporter
 	{
 		/// <summary>
@@ -69,16 +69,8 @@ namespace DBTest
 
 				// Display the current sort order
 				AlbumsViewModel.SortSelector.DisplaySortIcon();
-
-				// Display or hide the genres
-				DisplayGenreChanged();
 			} );
 		}
-
-		/// <summary>
-		/// Called when the DisplayGenre flag has been toggled
-		/// </summary>
-		public void DisplayGenreChanged() => ( ( AlbumsAdapter )Adapter ).ShowGenre( AlbumsViewModel.DisplayGenre );
 
 		/// <summary>
 		/// Called when the number of selected items (songs) has changed.

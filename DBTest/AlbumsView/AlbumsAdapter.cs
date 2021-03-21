@@ -29,16 +29,6 @@ namespace DBTest
 		public override int GetChildrenCount( int groupPosition ) => Groups[ groupPosition ].Songs?.Count ?? 0;
 
 		/// <summary>
-		/// Show or hide the genre information
-		/// </summary>
-		/// <param name="show"></param>
-		public void ShowGenre( bool show )
-		{
-			showGenre = show;
-			NotifyDataSetChanged();
-		}
-
-		/// <summary>
 		/// There is only one Child Type - the songs
 		/// </summary>
 		public override int ChildTypeCount => 1;
@@ -145,8 +135,6 @@ namespace DBTest
 					ArtistName = convertView.FindViewById<TextView>( Resource.Id.artist ),
 					Year = convertView.FindViewById<TextView>( Resource.Id.year ),
 					Genre = convertView.FindViewById<TextView>( Resource.Id.genre ),
-					GenreYear = convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ),
-					GenreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout )
 				};
 			}
 
@@ -155,7 +143,7 @@ namespace DBTest
 			string genreText = ( SortType != SortSelector.SortType.genre ) ? album.Genre
 				: AlbumsViewModel.FastScrollSections[ AlbumsViewModel.FastScrollSectionLookup[ groupPosition ] ].Item1;
 
-			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, showGenre, genreText );
+			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, genreText );
 
 			return convertView;
 		}
@@ -201,10 +189,5 @@ namespace DBTest
 				}
 			}
 		}
-
-		/// <summary>
-		/// Is genre information to be displayed
-		/// </summary>
-		private bool showGenre = false;
 	}
 }

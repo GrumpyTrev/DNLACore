@@ -28,24 +28,11 @@
 			android:layout_alignParentLeft="true"
 			android:textColor="@color/colorArtistAlbum"
 		/>
-		<TextView
-			android:id="@+id/albumYear"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:text="Year"
-			android:textColor="@color/colorAlbumYear"
-			android:textSize="15dp"
-			android:layout_alignParentRight="true"
-			android:layout_marginRight="10dp"
-			android:gravity="right"
-			android:maxLines="1" 
-		/>
 	</RelativeLayout>
 	<RelativeLayout
 		android:orientation="vertical"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:id="@+id/genreLayout">
+		android:layout_height="wrap_content">
 		<TextView
 			android:id="@+id/genre"
 			android:layout_width="wrap_content"
@@ -55,11 +42,11 @@
 			android:textSize="15dp"
 			android:layout_marginTop="-5dp"
 			android:layout_alignParentLeft="true"
-			android:layout_toLeftOf="@+id/albumGenreYear"
+			android:layout_toLeftOf="@+id/year"
 			android:layout_marginLeft="40dp" 
 		/>
 		<TextView
-			android:id="@+id/albumGenreYear"
+			android:id="@+id/year"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="Year"

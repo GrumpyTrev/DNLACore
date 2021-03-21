@@ -21,16 +21,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Show or hide the genre information
-		/// </summary>
-		/// <param name="show"></param>
-		public void ShowGenre( bool show )
-		{
-			showGenre = show;
-			NotifyDataSetChanged();
-		}
-
-		/// <summary>
 		/// Number of child items of selected group
 		/// </summary>
 		/// <param name="groupPosition"></param>
@@ -228,15 +218,13 @@ namespace DBTest
 					{
 						SelectionBox = GetSelectionBox( convertView ),
 						AlbumName = convertView.FindViewById<TextView>( Resource.Id.albumName ),
-						Year = convertView.FindViewById<TextView>( Resource.Id.albumYear ),
+						Year = convertView.FindViewById<TextView>( Resource.Id.year ),
 						Genre = convertView.FindViewById<TextView>( Resource.Id.genre ),
-						GenreYear = convertView.FindViewById<TextView>( Resource.Id.albumGenreYear ),
-						GenreLayout = convertView.FindViewById<RelativeLayout>( Resource.Id.genreLayout )
 					};
 				}
 
 				// Display the album
-				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( ( ArtistAlbum )Groups[ groupPosition ], ActionMode, showGenre );
+				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( ( ArtistAlbum )Groups[ groupPosition ], ActionMode );
 			}
 
 			return convertView;
@@ -260,7 +248,7 @@ namespace DBTest
 		/// </summary>
 		private class AlbumViewHolder : ExpandableListViewHolder
 		{
-			public void DisplayAlbum( ArtistAlbum artistAlbum, bool actionMode, bool showGenre )
+			public void DisplayAlbum( ArtistAlbum artistAlbum, bool actionMode )
 			{
 				// Save the default colour if not already done so
 				if ( albumNameColour == Color.Fuchsia )
@@ -278,37 +266,16 @@ namespace DBTest
 				( ( RelativeLayout.LayoutParams )AlbumName.LayoutParameters ).AddRule( LayoutRules.AlignParentLeft, ( actionMode == true ) ? 0 : 1 );
 
 				// Set the year text
-				string yearText = ( artistAlbum.Album.Year > 0 ) ? artistAlbum.Album.Year.ToString() : " ";
+				Year.Text = ( artistAlbum.Album.Year > 0 ) ? artistAlbum.Album.Year.ToString() : " ";
 
-				// If genres are being displayed then show the genre layout and set the genre name
-				// Get the genre layout view so we can show or hide it
-				if ( ( showGenre == true ) && ( artistAlbum.Album.Genre.Length > 0 ) )
-				{
-					// When genres are displayed the genre and year are displayed on their own line. So hide the year field that sit on the album anme line
-					GenreLayout.Visibility = ViewStates.Visible;
-					Year.Visibility = ViewStates.Gone;
-
-					// Display the genres. Replace any spaces in the genres with non-breaking space characters. This prevents a long genres string with a 
-					// space near the start being broken at the start, It just looks funny.
-					Genre.Text = artistAlbum.Album.Genre.Replace( ' ', '\u00a0' );
-
-					// Set the year
-					GenreYear.Text = yearText;
-				}
-				else
-				{
-					// Hide the seperate genre line and make sure the year field is shown on the album name line
-					GenreLayout.Visibility = ViewStates.Gone;
-					Year.Visibility = ViewStates.Visible;
-					Year.Text = yearText;
-				}
+				// Display the genres. Replace any spaces in the genres with non-breaking space characters. This prevents a long genres string with a 
+				// space near the start being broken at the start, It just looks funny.
+				Genre.Text = artistAlbum.Album.Genre.Replace( ' ', '\u00a0' );
 			}
 
 			public TextView AlbumName { get; set; }
 			public TextView Year { get; set; }
-			public TextView GenreYear { get; set; }
 			public TextView Genre { get; set; }
-			public RelativeLayout GenreLayout { get; set; }
 
 			/// <summary>
 			/// The Colour used to display the name of an album. Initialised to a colour we're never going to use
@@ -470,10 +437,5 @@ namespace DBTest
 
 			return allArtistAlbumsFulfillCondition;
 		}
-
-		/// <summary>
-		/// Is genre information to be displayed
-		/// </summary>
-		private bool showGenre = false;
 	}
 }

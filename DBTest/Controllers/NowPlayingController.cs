@@ -17,7 +17,6 @@ namespace DBTest
 		{
 			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 			Mediator.RegisterPermanent( ShuffleModeChanged, typeof( ShuffleModeChangedMessage ) );
 			Mediator.RegisterPermanent( MediaControlPlayNext, typeof( MediaControlPlayNextMessage ) );
 			Mediator.RegisterPermanent( MediaControlPlayPrevious, typeof( MediaControlPlayPreviousMessage ) );
@@ -174,9 +173,6 @@ namespace DBTest
 			// Get the NowPlaying playlist.
 			NowPlayingViewModel.NowPlayingPlaylist = ( SongPlaylist )Playlists.GetNowPlayingPlaylist( NowPlayingViewModel.LibraryId );
 
-			// Get the display genre flag
-			NowPlayingViewModel.DisplayGenre = Playback.DisplayGenre;
-
 			// Let the playback manager know the current song but don't play it yet
 			NowPlayingViewModel.CurrentSongIndex = Playlists.CurrentSongIndex;
 			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong, DontPlay = true }.Send();
@@ -196,18 +192,7 @@ namespace DBTest
 		/// Reload the data
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object message ) => StorageDataAvailable();
-
-		/// <summary>
-		/// Called when a DisplayGenreMessage is received.
-		/// Update the model and report the change
-		/// </summary>
-		/// <param name="message"></param>
-		private static void DisplayGenreChanged( object message )
-		{
-			NowPlayingViewModel.DisplayGenre = ( ( DisplayGenreMessage )message ).DisplayGenre;
-			DataReporter?.DisplayGenreChanged();
-		}
+		private static void SelectedLibraryChanged( object _ ) => StorageDataAvailable();
 
 		/// <summary>
 		/// Called when a ShuffleModeChangedMessage is received.
@@ -354,7 +339,6 @@ namespace DBTest
 		{
 			void SongSelected();
 			void PlaylistUpdated();
-			void DisplayGenreChanged();
 		}
 
 		/// <summary>
