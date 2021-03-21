@@ -29,7 +29,7 @@ namespace DBTest
 		{
 			Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems, SortSelector.SortType.alphabetic );
 
-			( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.SelectedSong );
+			( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex );
 		}
 
 		/// <summary>
@@ -44,13 +44,13 @@ namespace DBTest
 		/// Pass this change to the controller
 		/// </summary>
 		/// <param name="itemNo"></param>
-		public void SongSelected( int itemNo ) => NowPlayingController.SetSelectedSong( itemNo );
+		public void SongSelected( int itemNo ) => NowPlayingController.UserSongSelected( itemNo );
 
 		/// <summary>
 		/// Called when song selection has been reported by the controller
 		/// Pass on the changes to the adapter
 		/// </summary>
-		public void SongSelected() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.SelectedSong );
+		public void SongSelected() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex );
 
 		/// <summary>
 		/// Called when the DisplayGenre flag has been toggled

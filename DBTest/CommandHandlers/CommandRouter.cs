@@ -21,7 +21,6 @@ namespace DBTest
 			new ClearLibraryCommandHandler().BindToRouter();
 			new EditLibraryCommandHandler().BindToRouter();
 			new SelectDeviceCommandHandler().BindToRouter();
-			new ShuffleNowPlayingCommandHandler().BindToRouter();
 			new AddSongsToNowPlayingListCommandHandler().BindToRouter();
 			new AddSongsToPlaylistCommandHandler().BindToRouter();
 			new MoveItemsCommandHandler().BindToRouter();

@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The PlaybackModeController is used to obtain the playback mode and respond to user and system initiated playback mode changes 
 	/// </summary>
-	class PlaybackModeController : BaseController
+	class PlaybackModeController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
@@ -70,6 +70,8 @@
 				{
 					Playback.AutoPlayOn = false;
 				}
+
+				new ShuffleModeChangedMessage().Send();
 
 				StorageDataAvailable();
 			}

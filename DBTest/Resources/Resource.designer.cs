@@ -3023,9 +3023,6 @@ namespace DBTest
 			// aapt resource value: 0x7f080104
 			public const int show_media_controls = 2131230980;
 			
-			// aapt resource value: 0x7f080106
-			public const int shuffle_now_playing = 2131230982;
-			
 			// aapt resource value: 0x7f080102
 			public const int shuffle_on_off = 2131230978;
 			

@@ -88,6 +88,7 @@
     <Compile Include="Messages\MediaControlPauseMessage.cs" />
     <Compile Include="Messages\MediaPlayingMessage.cs" />
     <Compile Include="Messages\MediaProgressMessage.cs" />
+    <Compile Include="Messages\ShuffleModeChangedMessage.cs" />
     <Compile Include="Messages\SongFinishedMessage.cs" />
     <Compile Include="Messages\TagAddedMessage.cs" />
     <Compile Include="Model\Playlist.cs" />
@@ -112,7 +113,6 @@
     <Compile Include="CommandHandlers\RenamePlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\MoveItemsCommandHandler.cs" />
     <Compile Include="CommandHandlers\DeletePlaylistItemsCommandHandler.cs" />
-    <Compile Include="CommandHandlers\ShuffleNowPlayingCommandHandler.cs" />
     <Compile Include="CommandHandlers\SelectDeviceCommandHandler.cs" />
     <Compile Include="CommandHandlers\EditLibraryCommandHandler.cs" />
     <Compile Include="CommandHandlers\CommandHandler.cs" />
@@ -125,7 +125,6 @@
     <Compile Include="Controllers\AlbumsController.cs" />
     <Compile Include="Controllers\ArtistsController.cs" />
     <Compile Include="Controllers\AutoplayController.cs" />
-    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\DataReporter.cs" />
     <Compile Include="Controllers\FilterManagementController.cs" />
     <Compile Include="Controllers\DisplayGenreController.cs" />
@@ -171,7 +170,7 @@
     <Compile Include="Messages\PlaybackModelChangedMessage.cs" />
     <Compile Include="Messages\DisplayGenreMessage.cs" />
     <Compile Include="Messages\StorageDataAvailableMessage.cs" />
-    <Compile Include="Messages\PlayCurrentSongMessage.cs" />
+    <Compile Include="Messages\PlaySongMessage.cs" />
     <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
     <Compile Include="Messages\SelectedLibraryChangedMessage.cs" />
     <Compile Include="Messages\AlbumPlayedStateChangedMessage.cs" />
@@ -210,7 +209,6 @@
     <Compile Include="Mediation\MultiDictionary.cs" />
     <Compile Include="Messages\BaseMessage.cs" />
     <Compile Include="Messages\SongSelectedMessage.cs" />
-    <Compile Include="Messages\PlaylistSongsAddedMessage.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapter.cs" />
     <Compile Include="NowPlayingView\NowPlayingFragment.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapterModel.cs" />

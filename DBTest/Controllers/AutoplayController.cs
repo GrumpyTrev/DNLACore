@@ -59,7 +59,7 @@ namespace DBTest
 			await GenerateSongsAsync( songs );
 
 			// Add these songs to the NowPlaying list either replacing or just adding them to the list
-			BaseController.AddSongsToNowPlayingList( songs, playNow );
+			NowPlayingController.AddSongsToNowPlayingList( songs, playNow );
 
 			// Set Autoplay active 
 			PlaybackModeController.AutoOn = true;
@@ -181,7 +181,7 @@ namespace DBTest
 		{
 			if ( PlaybackModeModel.AutoOn == true )
 			{
-				int currentSongIndex = Playlists.CurrentSong;
+				int currentSongIndex = Playlists.CurrentSongIndex;
 				Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( AutoplayModel.LibraryId );
 
 				if ( ( nowPlaying.PlaylistItems.Count - currentSongIndex ) < RefillLevel )
@@ -191,7 +191,7 @@ namespace DBTest
 					await GenerateSongsAsync( songs );
 
 					// Add these songs to the NowPlaying list
-					BaseController.AddSongsToNowPlayingList( songs, false );
+					NowPlayingController.AddSongsToNowPlayingList( songs, false );
 
 					// Remove 'played' songs
 					int songsToRemove = Math.Max(0, currentSongIndex - LeaveSongs );

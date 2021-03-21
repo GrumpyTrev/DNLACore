@@ -15,7 +15,6 @@ namespace DBTest
 		/// </summary>
 		static PlaylistsController()
 		{
-			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
 			Mediator.RegisterPermanent( DisplayGenreChanged, typeof( DisplayGenreMessage ) );
 		}
@@ -104,14 +103,26 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="playlist"></param>
-		public static void AddSongsToPlaylist( IEnumerable<Song> songsToAdd, SongPlaylist playlist ) => playlist.AddSongs( songsToAdd );
+		public static void AddSongsToPlaylist( IEnumerable<Song> songsToAdd, SongPlaylist playlist )
+		{
+			playlist.AddSongs( songsToAdd );
+
+			// Report the change
+			DataReporter?.PlaylistUpdated( playlist );
+		}
 
 		/// <summary>
 		/// Add a list of Albums to a specified playlist
 		/// </summary>
 		/// <param name="albumsToAdd"></param>
 		/// <param name="playlist"></param>
-		public static void AddAlbumsToPlaylist( IEnumerable<Album> albumsToAdd, AlbumPlaylist playlist ) => playlist.AddAlbums( albumsToAdd );
+		public static void AddAlbumsToPlaylist( IEnumerable<Album> albumsToAdd, AlbumPlaylist playlist )
+		{
+			playlist.AddAlbums( albumsToAdd );
+
+			// Report the change
+			DataReporter?.PlaylistUpdated( playlist );
+		}
 
 		/// <summary>
 		/// Move a set of selected items down the specified playlist and update the track numbers
@@ -313,13 +324,6 @@ namespace DBTest
 
 			DataReporter?.DataAvailable();
 		}
-
-		/// <summary>
-		/// Called when the PlaylistSongsAddedMessage is received
-		/// Let the view know
-		/// </summary>
-		/// <param name="message"></param>
-		private static void SongsAdded( object message ) => DataReporter?.PlaylistUpdated( ( ( PlaylistSongsAddedMessage )message ).Playlist );
 
 		/// <summary>
 		/// Called when a SelectedLibraryChangedMessage has been received

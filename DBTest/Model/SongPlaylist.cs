@@ -51,8 +51,6 @@ namespace DBTest
 
 				AddItem( itemToAdd );
 			}
-
-			new PlaylistSongsAddedMessage() { Playlist = this }.Send();
 		}
 
 		/// <summary>

@@ -4,7 +4,7 @@ using System.Linq;
 namespace DBTest
 {
 	/// <summary>
-	/// The SongPlaylist class contains an ordered collection of songs wrapped up in SongPlaylistItems
+	/// The AlbumPlaylist class contains an ordered collection of songs wrapped up in SongPlaylistItems
 	/// </summary>
 	public partial class AlbumPlaylist : Playlist
 	{
@@ -44,8 +44,6 @@ namespace DBTest
 
 				AddItem( itemToAdd );
 			}
-
-			new PlaylistSongsAddedMessage() { Playlist = this }.Send();
 		}
 	}
 }

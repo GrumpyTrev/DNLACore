@@ -7,7 +7,4 @@
 	<item
 		android:id="@+id/select_playback_device"
 		android:title="Select playback device" />
-	<item
-		android:id="@+id/shuffle_now_playing"
-		android:title="Shuffle now playing list" />
 </menu>

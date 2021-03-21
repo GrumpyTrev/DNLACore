@@ -32,12 +32,12 @@ namespace DBTest
 					}
 				}
 
-				BaseController.AddSongsToNowPlayingList( selectedSongs, ( commandIdentity == Resource.Id.play_now ) );
+				NowPlayingController.AddSongsToNowPlayingList( selectedSongs, ( commandIdentity == Resource.Id.play_now ) );
 			}
 			// Otherwise just use the selected songs themselves
 			else
 			{
-				BaseController.AddSongsToNowPlayingList( selectedObjects.Songs, ( commandIdentity == Resource.Id.play_now ) );
+				NowPlayingController.AddSongsToNowPlayingList( selectedObjects.Songs, ( commandIdentity == Resource.Id.play_now ) );
 			}
 
 			commandCallback.PerformAction();

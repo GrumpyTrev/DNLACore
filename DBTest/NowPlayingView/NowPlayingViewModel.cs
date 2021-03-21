@@ -5,23 +5,29 @@
 	/// </summary>
 	static class NowPlayingViewModel
 	{
-		/// <summary>
-		/// Clear the data held by this model
-		/// </summary>
-		public static void ClearModel()
-		{
-			NowPlayingPlaylist = null;
-			LibraryId = -1;
-		}
-
 		/// The Now Playing playlist that has been obtained from the database
 		/// </summary>
 		public static SongPlaylist NowPlayingPlaylist { get; set; } = null;
 
 		/// <summary>
-		/// Index of the selected song
+		/// The index of the song currently being played
 		/// </summary>
-		public static int SelectedSong { get; set; } = -1;
+		public static int CurrentSongIndex
+		{
+			get => Playlists.CurrentSongIndex;
+			set
+			{
+				Playlists.CurrentSongIndex = value;
+
+				CurrentSong = ( ( Playlists.CurrentSongIndex == -1 ) || ( NowPlayingPlaylist == null ) ) ? null :
+					( ( SongPlaylistItem )NowPlayingPlaylist.PlaylistItems[ Playlists.CurrentSongIndex ] ).Song;
+			}
+		}
+
+		/// <summary>
+		/// The current song being played
+		/// </summary>
+		public static Song CurrentSong { get; set; } = null;
 
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained

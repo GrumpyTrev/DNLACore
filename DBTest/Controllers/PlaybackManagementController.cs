@@ -11,14 +11,10 @@
 		/// </summary>
 		static PlaybackManagementController()
 		{
-			Mediator.RegisterPermanent( SongsAdded, typeof( PlaylistSongsAddedMessage ) );
-			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
 			Mediator.RegisterPermanent( DeviceAvailable, typeof( PlaybackDeviceAvailableMessage ) );
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-			Mediator.RegisterPermanent( PlayCurrentSong, typeof( PlayCurrentSongMessage ) );
+			Mediator.RegisterPermanent( PlaySong, typeof( PlaySongMessage ) );
 			Mediator.RegisterPermanent( MediaControlPause, typeof( MediaControlPauseMessage ) );
-			Mediator.RegisterPermanent( MediaControlPlayNext, typeof( MediaControlPlayNextMessage ) );
-			Mediator.RegisterPermanent( MediaControlPlayPrevious, typeof( MediaControlPlayPreviousMessage ) );
 			Mediator.RegisterPermanent( MediaControlSeekTo, typeof( MediaControlSeekToMessage ) );
 			Mediator.RegisterPermanent( MediaControlStart, typeof( MediaControlStartMessage ) );
 		}
@@ -36,12 +32,6 @@
 			// Save the libray being used locally to detect changes
 			PlaybackManagerModel.LibraryId = ConnectionDetailsModel.LibraryId;
 
-			// This is getting the same list as the NowPlayingController. So let it do any sorting.
-			PlaybackManagerModel.NowPlayingPlaylist = Playlists.GetNowPlayingPlaylist( PlaybackManagerModel.LibraryId );
-
-			// Get the selected song
-			PlaybackManagerModel.CurrentSongIndex = Playlists.CurrentSong;
-
 			// Get the sources associated with the library
 			PlaybackManagerModel.Sources = Sources.GetSourcesForLibrary( PlaybackManagerModel.LibraryId );
 
@@ -49,13 +39,6 @@
 
 			// Let the views know that playback data is available
 			DataReporter?.DataAvailable();
-
-			// If a play request has been received whilst accessing this data then process it now
-			if ( playRequestPending == true )
-			{
-				playRequestPending = false;
-				DataReporter?.PlayCurrentSong();
-			}
 		}
 
 		/// <summary>
@@ -70,66 +53,7 @@
 		/// Select the next song to play
 		/// </summary>
 		/// <param name="songPlayed"></param>
-		public static void SongFinished()
-		{
-			new SongFinishedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
-
-			if ( PlaybackManagerModel.CurrentSongIndex < ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) )
-			{
-				// Play the next song
-				Playlists.CurrentSong++;
-
-				// Use a message to play the song so that the request is processed after the index has been updated
-				new PlayCurrentSongMessage().Send();
-			}
-			else if ( ( PlaybackModeModel.RepeatOn == true ) && ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
-			{
-				// Play the first song
-				Playlists.CurrentSong = 0;
-
-				// Use a message to play the song so that the request is processed after the index has been updated
-				new PlayCurrentSongMessage().Send();
-			}
-			else
-			{
-				Playlists.CurrentSong = -1;
-			}
-		}
-
-		/// <summary>
-		/// Called when the SongSelectedMessage is received.
-		/// This is only an update of the songs index. Any play request will follow
-		/// Update the local model and inform the reporter 
-		/// </summary>
-		/// <param name="message"></param>
-		private static void SongSelected( object _ )
-		{
-			// Only process this if there is a valid playlist, otherwise just wait for the data to become available
-			if ( PlaybackManagerModel.NowPlayingPlaylist != null )
-			{
-				// Update the selected song in the model and report the selection
-				PlaybackManagerModel.CurrentSongIndex = Playlists.CurrentSong;
-
-				if ( PlaybackManagerModel.CurrentSongIndex == -1 )
-				{
-					DataReporter?.Stop();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Called when the PlaylistSongsAddedMessage is received
-		/// If it's the Now Playing list then force the playback data to be read again
-		/// </summary>
-		/// <param name="message"></param>
-		private static void SongsAdded( object message )
-		{
-			if ( ( ( PlaylistSongsAddedMessage )message ).Playlist == PlaybackManagerModel.NowPlayingPlaylist )
-			{
-				PlaybackManagerModel.NowPlayingPlaylist = null;
-				StorageDataAvailable();
-			}
-		}
+		public static void SongFinished() => new SongFinishedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
 
 		/// <summary>
 		/// Called when the PlaybackDeviceAvailableMessage message is received
@@ -183,19 +107,20 @@
 		}
 
 		/// <summary>
-		/// Called in response to the receipt of a PlayCurrentSongMessage
-		/// If we are in the middle of obtaining a new playing list then defer the request until the data is available
+		/// Called in response to the receipt of a PlaySongMessage
 		/// </summary>
-		private static void PlayCurrentSong( object _ )
+		private static void PlaySong( object message )
 		{
-			// If there is a current song then report this request
-			if ( PlaybackManagerModel.CurrentSong != null )
+			PlaySongMessage playSong = message as PlaySongMessage;
+			PlaybackManagerModel.CurrentSong = playSong.SongToPlay;
+
+			if ( ( PlaybackManagerModel.CurrentSong != null ) && ( playSong.DontPlay == false ) )
 			{
 				DataReporter?.PlayCurrentSong();
 			}
 			else
 			{
-				playRequestPending = true;
+				DataReporter?.Stop();
 			}
 		}
 
@@ -204,48 +129,6 @@
 		/// </summary>
 		/// <param name="_message"></param>
 		private static void MediaControlPause( object _ ) => DataReporter?.Pause();
-
-		/// <summary>
-		/// Pass on a play next request to the reporter
-		/// </summary>
-		/// <param name="_message"></param>
-		private static void MediaControlPlayNext( object _ )
-		{
-			DataReporter?.Stop();
-
-			if ( PlaybackManagerModel.CurrentSongIndex < ( PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) )
-			{
-				Playlists.CurrentSong++;
-			}
-			else
-			{
-				Playlists.CurrentSong = 0;
-			}
-
-			// Use a message to play the song so that the request is processed after the index has been updated
-			new PlayCurrentSongMessage().Send();
-		}
-
-		/// <summary>
-		/// Pass on a play previous request to the reporter
-		/// </summary>
-		/// <param name="_message"></param>
-		private static void MediaControlPlayPrevious( object _ )
-		{
-			DataReporter?.Stop();
-
-			if ( PlaybackManagerModel.CurrentSongIndex > 0 )
-			{
-				Playlists.CurrentSong--;
-			}
-			else
-			{
-				Playlists.CurrentSong = PlaybackManagerModel.NowPlayingPlaylist.PlaylistItems.Count - 1;
-			}
-
-			// Use a message to play the song so that the request is processed after the index has been updated
-			new PlayCurrentSongMessage().Send();
-		}
 
 		/// <summary>
 		/// Pass on a seek request to the reporter
@@ -258,11 +141,6 @@
 		/// </summary>
 		/// <param name="_message"></param>
 		private static void MediaControlStart( object _ ) => DataReporter?.Start();
-
-		/// <summary>
-		/// Keep track of when a play request is received whilst the data is being read in
-		/// </summary>
-		private static bool playRequestPending = false;
 
 		/// <summary>
 		/// The interface instance used to report back controller results

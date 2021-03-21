@@ -128,7 +128,7 @@ namespace DBTest
 		/// <summary>
 		/// Access the NowPlaying playlist's SongIndex
 		/// </summary>
-		public static int CurrentSong
+		public static int CurrentSongIndex
 		{
 			get => GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId ).SongIndex;
 
