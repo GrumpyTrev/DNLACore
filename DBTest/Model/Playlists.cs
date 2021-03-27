@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -57,14 +58,14 @@ namespace DBTest
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
 		public static List<Playlist> GetPlaylistsForLibrary( int libraryId ) =>
-			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name != NowPlayingController.NowPlayingPlaylistName ) ).ToList();
+			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name != NowPlayingPlaylistName ) ).ToList();
 
 		/// <summary>
 		/// Get the Now Playing playlist for the specified library
 		/// </summary>
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
-		public static Playlist GetNowPlayingPlaylist( int libraryId ) => GetPlaylist( NowPlayingController.NowPlayingPlaylistName, libraryId );
+		public static Playlist GetNowPlayingPlaylist( int libraryId ) => GetPlaylist( NowPlayingPlaylistName, libraryId );
 
 		/// <summary>
 		/// Get a playlist given its name and library
@@ -76,23 +77,36 @@ namespace DBTest
 			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name == name ) ).FirstOrDefault();
 
 		/// <summary>
-		/// Get a playlist givent its identity
+		/// Get the parent playlist for a playlistitem
 		/// </summary>
 		/// <param name="playlistId"></param>
 		/// <returns></returns>
-		public static Playlist GetPlaylist( int playlistId ) => PlaylistCollection.Where( play => play.Id == playlistId ).FirstOrDefault();
+		public static Playlist GetParentPlaylist( PlaylistItem playlistItem )
+		{
+			Playlist parentPlaylist = null;
+
+			// Playlist ids are not unique as they are held in different tables, so we need to match the playlist type as well as its id
+			if ( playlistItem is SongPlaylistItem songPlaylistItem )
+			{
+				parentPlaylist = PlaylistCollection.Where( play => ( play.Id == playlistItem.PlaylistId ) && ( play is SongPlaylist ) ).FirstOrDefault();
+			}
+			else
+			{
+				parentPlaylist = PlaylistCollection.Where( play => ( play.Id == playlistItem.PlaylistId ) && ( play is AlbumPlaylist ) ).FirstOrDefault();
+			}
+
+			return parentPlaylist;
+		}
 
 		/// <summary>
-		/// Delete the specified SongPlaylist from the collections and from the storage
+		/// Delete the specified Playlist from the collections and from the storage
 		/// </summary>
 		/// <param name="playlistToDelete"></param>
 		public static void DeletePlaylist( Playlist playlistToDelete )
 		{
 			PlaylistCollection.Remove( playlistToDelete );
 
-			// Delete the SongPlaylistItem entries from the database.
-			// No need to wait for this to finish
-			DbAccess.DeleteItemsAsync( playlistToDelete.PlaylistItems );
+			playlistToDelete.Clear();
 
 			// Now delete the playlist itself. No need to wait for this to finish
 			DbAccess.DeleteAsync( playlistToDelete );
@@ -142,8 +156,45 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Check if for any playlist the two identities represent adjacent songs.
+		/// If so update the SongIndex recorded for the playlist
+		/// </summary>
+		/// <param name="previousSongIdentity"></param>
+		/// <param name="currentSongIdentity"></param>
+		internal static void CheckForAdjacentSongEntries( int previousSongIdentity, int currentSongIdentity )
+		{
+			foreach ( Playlist playlist in PlaylistCollection )
+			{
+				if ( playlist.Name != NowPlayingPlaylistName )
+				{
+					playlist.CheckForAdjacentSongEntries( previousSongIdentity, currentSongIdentity );
+				}
+			}
+		}
+
+		/// <summary>
+		/// A song has finished. Let the playlists decide if this means the entire playlist has been played
+		/// </summary>
+		/// <param name="songIdentity"></param>
+		internal static void SongFinished( int songIdentity )
+		{
+			foreach ( Playlist playlist in PlaylistCollection )
+			{
+				if ( playlist.Name != NowPlayingPlaylistName )
+				{
+					playlist.SongFinished( songIdentity );
+				}
+			}
+		}
+
+		/// <summary>
 		/// The set of Playlists currently held in storage
 		/// </summary>
 		public static List<Playlist> PlaylistCollection { get; set; } = null;
+
+		/// <summary>
+		/// The name given to the Now Playing playlist
+		/// </summary>
+		public const string NowPlayingPlaylistName = "Now Playing";
 	}
 }

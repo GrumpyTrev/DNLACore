@@ -319,11 +319,6 @@ namespace DBTest
 		private static readonly Random rng = new Random();
 
 		/// <summary>
-		/// The name given to the Now Playing playlist
-		/// </summary>
-		public const string NowPlayingPlaylistName = "Now Playing";
-
-		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
 		public static INowPlayingReporter DataReporter

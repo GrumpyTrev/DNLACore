@@ -112,8 +112,12 @@ namespace DBTest
 			// Make sure that this is a reordering, i.e. if action mode is still active.
 			if ( ActionMode == true )
 			{
-				// Form a collection of the playlist items and their tags and use it to update the selection tags
-				UpdateSelectionTags( Groups.Select( ( object value, int i ) => (value, FormGroupTag( i )) ) );
+				// Only update the selection tags if this playlist still has any children
+				if ( Groups.Count > 0 )
+				{
+					// Form a collection of the playlist items and their tags and use it to update the selection tags
+					UpdateSelectionTags( Groups.Select( ( object value, int i ) => (value, FormGroupTag( i )) ) );
+				}
 			}
 
 			NotifyDataSetChanged();

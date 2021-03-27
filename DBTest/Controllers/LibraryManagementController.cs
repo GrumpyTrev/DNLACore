@@ -60,7 +60,7 @@ namespace DBTest
 
 			// Delete the contents of the NowPlayingList but keep the playlist itself
 			Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( libId );
-			nowPlaying.DeletePlaylistItems( nowPlaying.PlaylistItems );
+			nowPlaying.Clear();
 
 			// Delete all the songs in each of the sources associated with the library
 			List<Source> sources = Sources.GetSourcesForLibrary( libId );

@@ -17,6 +17,9 @@ namespace DBTest
 			if ( Songs == null )
 			{
 				Songs = await DbAccess.GetAlbumSongsAsync( Id );
+
+				// Sort the songs by track number
+				Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 			}
 		}
 

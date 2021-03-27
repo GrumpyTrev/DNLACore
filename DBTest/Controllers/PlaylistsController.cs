@@ -16,6 +16,9 @@ namespace DBTest
 		static PlaylistsController()
 		{
 			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
+			Mediator.RegisterPermanent( SongStarted, typeof( SongStartedMessage ) );
+			Mediator.RegisterPermanent( PlaylistUpdated, typeof( PlaylistUpdatedMessage ) );
+			Mediator.RegisterPermanent( SongFinished, typeof( SongFinishedMessage ) );
 		}
 
 		/// <summary>
@@ -336,6 +339,32 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when the SongStartedMessage has been received
+		/// </summary>
+		/// <param name="message"></param>
+		private static void SongStarted( object message )
+		{
+			Song songStarted = ( message as SongStartedMessage ).SongPlayed;
+			
+			// Update the song index for any playlists for which the previous song and the current song are adjacent 
+			Playlists.CheckForAdjacentSongEntries( previousSongIdentity, songStarted.Id );
+
+			previousSongIdentity = songStarted.Id;
+		}
+
+		/// <summary>
+		/// Called when the SongFinishedMessage has been received
+		/// </summary>
+		/// <param name="message"></param>
+		private static void SongFinished( object message ) => Playlists.SongFinished( ( message as SongFinishedMessage ).SongPlayed.Id );
+
+		/// <summary>
+		/// Called when a PlaylistUpdatedMessage has been received. Pass it on to the reporter
+		/// </summary>
+		/// <param name="message"></param>
+		private static void PlaylistUpdated( object message ) => DataReporter?.PlaylistUpdated( ( message as PlaylistUpdatedMessage ).UpdatedPlaylist );
+
+		/// <summary>
 		/// The interface instance used to report back controller results
 		/// </summary>
 		public static IPlaylistsReporter DataReporter
@@ -356,5 +385,10 @@ namespace DBTest
 		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
 		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+
+		/// <summary>
+		/// The previous song id that has been played
+		/// </summary>
+		private static int previousSongIdentity = -1;
 	}
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Android.Content;
+using Android.Graphics;
 using Android.Views;
 using Android.Widget;
 
@@ -72,8 +73,12 @@ namespace DBTest
 				// If action mode is still active then this is most likely being called due to item repositioning.
 				if ( ActionMode == true )
 				{
-					// Form a collection of the playlist items and their tags and use it to update the selection tags
-					UpdateSelectionTags( updatedObject.PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
+					// Only update the selection tags if this playlist still has any children
+					if ( updatedObject.PlaylistItems.Count > 0 )
+					{
+						// Form a collection of the playlist items and their tags and use it to update the selection tags
+						UpdateSelectionTags( updatedObject.PlaylistItems.Select( ( object value, int i ) => (value, FormChildTag( groupPosition, i )) ) );
+					}
 				}
 
 				// Is this group expanded
@@ -113,6 +118,9 @@ namespace DBTest
 
 				// Display the SongPlaylistItem
 				( ( SongViewHolder )convertView.Tag ).DisplaySong( ( SongPlaylistItem )playlist.PlaylistItems[ childPosition ] );
+
+				// If this song is currently being played then show with a different background
+				convertView.SetBackgroundColor( ( playlist.SongIndex == childPosition ) ? Color.AliceBlue : Color.Transparent );
 			}
 			else
 			{

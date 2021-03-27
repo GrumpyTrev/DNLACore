@@ -90,6 +90,7 @@
     <Compile Include="Messages\MediaProgressMessage.cs" />
     <Compile Include="Messages\ShuffleModeChangedMessage.cs" />
     <Compile Include="Messages\SongFinishedMessage.cs" />
+    <Compile Include="Messages\PlaylistUpdatedMessage.cs" />
     <Compile Include="Messages\TagAddedMessage.cs" />
     <Compile Include="Model\Playlist.cs" />
     <Compile Include="Model\AlbumPlaylist.cs" />
@@ -202,7 +203,7 @@
     <Compile Include="MediaControllerView\MediaControllerNoHide.cs" />
     <Compile Include="PlaybackManagement\PlaybackManagerModel.cs" />
     <Compile Include="Mediation\Mediator.cs" />
-    <Compile Include="Mediation\MultiDictionary.cs" />
+    <Compile Include="Helpers\MultiDictionary.cs" />
     <Compile Include="Messages\BaseMessage.cs" />
     <Compile Include="Messages\SongSelectedMessage.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapter.cs" />

@@ -16,7 +16,7 @@ namespace DBTest
 		public override void HandleCommand( int _ )
 		{
 			// If this is a Now Playing command then the parent of the first selected song will have the NowPlayingPlaylistName
-			if ( ( selectedObjects.ParentPlaylist != null ) && ( selectedObjects.ParentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName ) )
+			if ( ( selectedObjects.ParentPlaylist != null ) && ( selectedObjects.ParentPlaylist.Name == Playlists.NowPlayingPlaylistName ) )
 			{
 				// Process this Now Playing command
 				NowPlayingController.DeleteNowPlayingItems( selectedObjects.PlaylistItems );
@@ -58,7 +58,7 @@ namespace DBTest
 			bool isValid = false;
 
 			// If this is a Now Playing command then the parent of the first selected playlistitem will have the NowPlayingPlaylistName
-			if ( ( selectedObjects.ParentPlaylist != null ) && ( selectedObjects.ParentPlaylist.Name == NowPlayingController.NowPlayingPlaylistName ) )
+			if ( ( selectedObjects.ParentPlaylist != null ) && ( selectedObjects.ParentPlaylist.Name == Playlists.NowPlayingPlaylistName ) )
 			{
 				isValid = true;
 			}

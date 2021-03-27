@@ -52,7 +52,7 @@ namespace DBTest
 			// Determine if there is a parent playlist
 			if ( PlaylistItems.Count > 0 )
 			{
-				ParentPlaylist = DBTest.Playlists.GetPlaylist( PlaylistItems[ 0 ].PlaylistId );
+				ParentPlaylist = DBTest.Playlists.GetParentPlaylist( PlaylistItems[ 0 ] );
 			}
 		}
 
