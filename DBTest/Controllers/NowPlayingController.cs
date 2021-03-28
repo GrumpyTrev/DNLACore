@@ -43,6 +43,54 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Add the songs from the playlist to the Now Playing list
+		/// If this set is replacing the current contents (clearFirst == true ) then clear the Now Playimng list
+		/// first.
+		/// If a resume has been selected and the current contents are being replaced then add all of the
+		/// playlist's songs but set the current song to the resume point. If resume has been selected and the playlist is 
+		/// being added to then only add the playlist songs from its resume point. Don't change the resume point in the source playlist.
+		/// If resume has not been selected then add all the playlist's contents and reset the playlist's restore point
+		/// </summary>
+		/// <param name="playlistToAdd"></param>
+		/// <param name="clearFirst"></param>
+		/// <param name="resume"></param>
+		public static void AddPlaylistToNowPlayingList( Playlist playlistToAdd, bool clearFirst, bool resume )
+		{
+			// Should the Now Playing playlist be cleared first
+			if ( clearFirst == true )
+			{
+				ClearNowPlayingList();
+			}
+
+			// Assume we're going to play a new list from the start
+			int newCurrentIndex = 0;
+
+			if ( resume == true )
+			{
+				if ( clearFirst == true )
+				{
+					NowPlayingViewModel.NowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( false ) );
+					newCurrentIndex = playlistToAdd.InProgressIndex;
+				}
+				else
+				{
+					NowPlayingViewModel.NowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( true ) );
+				}
+			}
+			else
+			{
+				NowPlayingViewModel.NowPlayingPlaylist.AddSongs( ApplyShuffle( playlistToAdd.GetSongsForPlayback( false ) ) );
+				playlistToAdd.SongIndex = 0;
+			}
+
+			// If the Now Playing list was cleared then play the specified song
+			SetStartingPointForNewList( clearFirst, newCurrentIndex );
+
+			// Report change to UI
+			DataReporter?.DataAvailable();
+		}
+
+		/// <summary>
 		/// Add a list of Songs to the Now Playing list
 		/// </summary>
 		/// <param name="songsToAdd"></param>
@@ -52,30 +100,14 @@ namespace DBTest
 			// Should the Now Playing playlist be cleared first
 			if ( clearFirst == true )
 			{
-				// Before clearing it reset the selected song to stop it being played
-				NowPlayingViewModel.CurrentSongIndex = -1;
-				new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
-
-				// Now clear the Now Playing list 
-				NowPlayingViewModel.NowPlayingPlaylist.Clear();
+				ClearNowPlayingList();
 			}
 
 			// Add the songs to the playlist. Shuffled if necessary
-			if ( Playback.ShufflePlayOn == true )
-			{
-				NowPlayingViewModel.NowPlayingPlaylist.AddSongs( ShuffleSongs( songsToAdd.ToList() ) );
-			}
-			else
-			{
-				NowPlayingViewModel.NowPlayingPlaylist.AddSongs( songsToAdd );
-			}
+			NowPlayingViewModel.NowPlayingPlaylist.AddSongs( ApplyShuffle( songsToAdd.ToList() ) );
 
-			// If the list was cleared and there are now some items in the list select the first entry and play it
-			if ( ( clearFirst == true ) & ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
-			{
-				NowPlayingViewModel.CurrentSongIndex = 0;
-				new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
-			}
+			// If the Now Playing list was cleared then play the first song
+			SetStartingPointForNewList( clearFirst, 0 );
 
 			// Report change to UI
 			DataReporter?.DataAvailable();
@@ -266,31 +298,27 @@ namespace DBTest
 
 		/// <summary>
 		/// Shuffle the current playlist items
+		/// Extract the songs from the playlist and add them back to it. The AddSongsToNowPlayingList method will appply the shuffle
 		/// </summary>
-		private static void ShufflePlaylistItems()
-		{
-			// Stop the current playback
-			NowPlayingViewModel.CurrentSongIndex = -1;
-			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
-
-			// Extract the songs from the playlist, shuffle them and add them back to the playlist
-			AddSongsToNowPlayingList( ShuffleSongs( NowPlayingViewModel.NowPlayingPlaylist.GetSongs() ), true );
-		}
+		private static void ShufflePlaylistItems() => AddSongsToNowPlayingList( NowPlayingViewModel.NowPlayingPlaylist.GetSongs(), true );
 
 		/// <summary>
-		/// Shuffle the list of specified songs
+		/// Shuffle the list of specified songs if Shuffle is on
 		/// </summary>
 		/// <param name="songs"></param>
-		private static List<Song> ShuffleSongs( List<Song> songs )
+		private static List<Song> ApplyShuffle( List<Song> songs )
 		{
-			int n = songs.Count;
-			while ( n > 1 )
+			if ( Playback.ShufflePlayOn == true )
 			{
-				n--;
-				int k = rng.Next( n + 1 );
-				Song value = songs[ k ];
-				songs[ k ] = songs[ n ];
-				songs[ n ] = value;
+				int n = songs.Count;
+				while ( n > 1 )
+				{
+					n--;
+					int k = rng.Next( n + 1 );
+					Song value = songs[ k ];
+					songs[ k ] = songs[ n ];
+					songs[ n ] = value;
+				}
 			}
 
 			return songs;
@@ -310,6 +338,34 @@ namespace DBTest
 				{
 					NowPlayingViewModel.CurrentSongIndex = newSelectedIndex;
 				}
+			}
+		}
+
+		/// <summary>
+		/// Clear the Now Playing list - stopping any current song playing
+		/// </summary>
+		private static void ClearNowPlayingList()
+		{
+			// Before clearing the list reset the selected song to stop it being played
+			NowPlayingViewModel.CurrentSongIndex = -1;
+			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
+
+			// Now clear the Now Playing list 
+			NowPlayingViewModel.NowPlayingPlaylist.Clear();
+		}
+
+		/// <summary>
+		/// If this is a newly cleared list then set the index of the song to play
+		/// </summary>
+		/// <param name="isNew"></param>
+		/// <param name="startingIndex"></param>
+		private static void SetStartingPointForNewList( bool isNew, int startingIndex )
+		{
+			// If the list was cleared and there are now some items in the list select the song to play and play it
+			if ( ( isNew == true ) & ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > startingIndex ) )
+			{
+				NowPlayingViewModel.CurrentSongIndex = startingIndex;
+				new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
 			}
 		}
 

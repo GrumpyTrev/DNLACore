@@ -36,6 +36,8 @@ namespace DBTest
 		public void AddAlbums( IEnumerable<Album> albums )
 		{
 			// For each song create an AlbumPlayListItem and add to the PlayList
+			List<AlbumPlaylistItem> albumPlaylistItems = new List<AlbumPlaylistItem>();
+
 			foreach ( Album album in albums )
 			{
 				AlbumPlaylistItem itemToAdd = new AlbumPlaylistItem()
@@ -46,8 +48,11 @@ namespace DBTest
 					Index = PlaylistItems.Count
 				};
 
-				AddItem( itemToAdd );
+				PlaylistItems.Add( itemToAdd );
+				albumPlaylistItems.Add( itemToAdd );
 			}
+
+			DbAccess.InsertAllAsync( albumPlaylistItems );
 		}
 
 		/// <summary>
@@ -62,6 +67,30 @@ namespace DBTest
 		internal Album InProgressAlbum { get => ( SongIndex >= 0 ) ? ( PlaylistItems[ GetGroupFromTag( SongIndex ) ] as AlbumPlaylistItem ).Album : null; }
 
 		/// <summary>
+		/// The index of the last played song in the collection of all songs
+		/// </summary>
+		internal override int InProgressIndex
+		{
+			get
+			{
+				int index = 0;
+
+				if ( SongIndex >= 0 )
+				{
+					int groupIndex = 0;
+					while ( groupIndex < GetGroupFromTag( SongIndex ) )
+					{
+						index += ( PlaylistItems[ groupIndex++ ] as AlbumPlaylistItem ).Album.Songs.Count;
+					}
+
+					index += GetChildFromTag( SongIndex );
+				}
+
+				return index;
+			}
+		}
+
+		/// <summary>
 		/// Return a list of the songs in this playlist, optionally only the songs from the SongIndex onwards
 		/// </summary>
 		/// <param name="resume"></param>
@@ -70,27 +99,28 @@ namespace DBTest
 		{
 			List<Song> songs = new List<Song>();
 
-			// Reset this playlist to the start if it is not being resumed
-			if ( resume == false )
+			int startingIndex = ( resume == true ) ? SongIndex : 0;
+
+			int albumIndex = 0;
+			foreach ( AlbumPlaylistItem albumPlaylistItem in PlaylistItems )
 			{
-				SongIndex = 0;
+				// Only add songs to the list if the correct album has been reached
+				if ( albumIndex >= GetGroupFromTag( startingIndex ) )
+				{
+					// If this is the album containing the starting index then only select a subset of the songs
+					if ( albumIndex == GetGroupFromTag( startingIndex ) )
+					{
+						int songIndex = GetChildFromTag( startingIndex );
+						songs.AddRange( albumPlaylistItem.Album.Songs.GetRange( songIndex, albumPlaylistItem.Album.Songs.Count - songIndex ) );
+					}
+					else
+					{
+						// Add all the songs from this album
+						songs.AddRange( albumPlaylistItem.Album.Songs );
+					}
+				}
 
-				// Report this change
-				new PlaylistUpdatedMessage() { UpdatedPlaylist = this }.Send();
-			}
-
-			// For the first Album only add songs from the current song onwards
-			int albumIndex = GetGroupFromTag( SongIndex );
-			Album album = ( PlaylistItems[ albumIndex ] as AlbumPlaylistItem ).Album;
-
-			int songIndex = GetChildFromTag( SongIndex );
-			songs.AddRange( album.Songs.GetRange( songIndex, album.Songs.Count - songIndex ) );
-
-			// For the rest just add all the songs
-			++albumIndex;
-			for ( ; albumIndex < PlaylistItems.Count; ++albumIndex )
-			{
-				songs.AddRange( ( PlaylistItems[ albumIndex ] as AlbumPlaylistItem ).Album.Songs );
+				albumIndex++;
 			}
 
 			return songs;

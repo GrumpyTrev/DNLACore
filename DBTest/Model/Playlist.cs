@@ -36,6 +36,9 @@ namespace DBTest
 
 				// No need to wait for the update to complete
 				DbAccess.UpdateAsync( this );
+
+				// Report this change
+				new PlaylistUpdatedMessage() { UpdatedPlaylist = this }.Send();
 			}
 		}
 
@@ -128,18 +131,12 @@ namespace DBTest
 				if ( ( SongIndex == -1 ) && ( IndexedSongIdentity( 0 ) == currentSongIdentity ) )
 				{
 					IncrementSongIndex();
-
-					// Report this change
-					new PlaylistUpdatedMessage() { UpdatedPlaylist = this }.Send();
 				}
 				else if ( IndexedSongIdentity() == previousSongIdentity )
 				{
 					if ( NextIndexedSongIdentity() == currentSongIdentity )
 					{
 						IncrementSongIndex();
-
-						// Report this change
-						new PlaylistUpdatedMessage() { UpdatedPlaylist = this }.Send();
 					}
 				}
 			}
@@ -155,9 +152,6 @@ namespace DBTest
 			if ( ( IndexedSongIdentity() == songId ) && ( NextIndexedSongIdentity() == -1 ) )
 			{
 				SongIndex = -1;
-
-				// Report this change
-				new PlaylistUpdatedMessage() { UpdatedPlaylist = this }.Send();
 			}
 		}
 
@@ -170,6 +164,11 @@ namespace DBTest
 		/// The Song last played (or started to be played) in this playlist
 		/// </summary>
 		internal abstract Song InProgressSong { get; }
+
+		/// <summary>
+		/// The index of the last played song in the collection of all songs
+		/// </summary>
+		internal abstract int InProgressIndex { get; }
 
 		/// <summary>
 		/// Return a list of the songs in this playlist, optionally only the songs from the SongIndex onwards

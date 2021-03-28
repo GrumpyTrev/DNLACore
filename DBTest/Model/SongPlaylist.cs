@@ -19,7 +19,7 @@ namespace DBTest
 			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == this.Id ) );
 
 			// Get all the associated Songs in one go and then link to the SongPlaylistItem items
-			Dictionary<int, Song> songs = ( await DbAccess.GetSongsAsync( PlaylistItems.Select( play => ( play as SongPlaylistItem ).SongId ) ) )
+			Dictionary<int, Song> songs = ( await DbAccess.GetSongsAsync( PlaylistItems.Select( play => ( play as SongPlaylistItem ).SongId ).Distinct() ) )
 				.ToDictionary( song => song.Id );
 
 			foreach ( SongPlaylistItem playlistItem in PlaylistItems )
@@ -39,6 +39,8 @@ namespace DBTest
 		/// <param name="songs"></param>
 		public void AddSongs( IEnumerable<Song> songs )
 		{
+			List<SongPlaylistItem> songPlaylistItems = new List<SongPlaylistItem>();
+
 			// For each song create a PlayListItem and add to the PlayList
 			foreach ( Song song in songs )
 			{
@@ -53,8 +55,11 @@ namespace DBTest
 					Index = PlaylistItems.Count
 				};
 
-				AddItem( itemToAdd );
+				songPlaylistItems.Add( itemToAdd );
+				PlaylistItems.Add( itemToAdd );
 			}
+
+			DbAccess.InsertAllAsync( songPlaylistItems );
 		}
 
 		/// <summary>
@@ -88,23 +93,17 @@ namespace DBTest
 		internal override Song InProgressSong { get => ( SongIndex >= 0 ) ? ( PlaylistItems[ SongIndex ] as SongPlaylistItem ).Song : null; }
 
 		/// <summary>
+		/// The index of the last played song in the collection of all songs
+		/// </summary>
+		internal override int InProgressIndex { get => SongIndex; }
+
+		/// <summary>
 		/// Return a list of the songs in this playlist, optionally only the songs from the SongIndex onwards
 		/// </summary>
 		/// <param name="resume"></param>
 		/// <returns></returns>
-		internal override List<Song> GetSongsForPlayback( bool resume )
-		{
-			// Reset this playlist to the start if it is not being resumed
-			if ( resume == false )
-			{
-				SongIndex = 0;
-
-				// Report this change
-				new PlaylistUpdatedMessage() { UpdatedPlaylist = this }.Send();
-			}
-
-			return PlaylistItems.GetRange( SongIndex, PlaylistItems.Count - SongIndex ).Select( item => ( item as SongPlaylistItem ).Song ).ToList();
-		}
+		internal override List<Song> GetSongsForPlayback( bool resume ) =>
+			PlaylistItems.GetRange( SongIndex, PlaylistItems.Count - SongIndex ).Select( item => ( item as SongPlaylistItem ).Song ).ToList();
 
 		/// <summary>
 		/// Return the Song Id of the entry referenced by the SongIndex

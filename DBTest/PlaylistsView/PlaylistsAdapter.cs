@@ -139,8 +139,12 @@ namespace DBTest
 				}
 
 				// Display the album
-				Album album = ( (AlbumPlaylistItem)( ( AlbumPlaylist )Groups[ groupPosition ] ).PlaylistItems[ childPosition ] ).Album;
+				AlbumPlaylist albumPlaylist = ( AlbumPlaylist )Groups[ groupPosition ];
+				Album album = ( (AlbumPlaylistItem)albumPlaylist.PlaylistItems[ childPosition ] ).Album;
 				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, album.Genre );
+
+				// If this album is currently being played then show it with a different background
+				convertView.SetBackgroundColor( albumPlaylist.InProgressAlbum == album ? Color.AliceBlue : Color.Transparent );
 			}
 
 			return convertView;

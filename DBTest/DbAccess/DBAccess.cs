@@ -32,6 +32,13 @@ namespace DBTest
 		public static async Task InsertAsync<T>( T item ) => await ConnectionDetailsModel.AsynchConnection.InsertAsync( item );
 
 		/// <summary>
+		/// Insert the specifed item
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
+		public static async Task InsertAllAsync<T>( IEnumerable<T> items ) => await ConnectionDetailsModel.AsynchConnection.InsertAllAsync( items );
+
+		/// <summary>
 		/// Update the specifed item
 		/// </summary>
 		/// <param name="item"></param>

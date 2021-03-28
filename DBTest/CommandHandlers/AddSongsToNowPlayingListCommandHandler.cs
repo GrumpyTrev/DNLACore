@@ -21,24 +21,23 @@ namespace DBTest
 				// If all of the PlaylistItems are from a single Playlist, and all that Playlist's items have been selected then
 				// check if playback of the playlist is in progress, i.e. not at the start and not at the end. If so, prompt
 				// the user about progress and check if playback is to be resumed
-				if ( ( selectedObjects.Playlists.Count == 1 ) && ( selectedObjects.PlaylistItems.Count == selectedObjects.Playlists[ 0 ].PlaylistItems.Count ) )
+				if ( ( selectedObjects.Playlists.Count == 1 ) && ( selectedObjects.PlaylistItems.Count == selectedObjects.Playlists[ 0 ].PlaylistItems.Count ) &&
+					( selectedObjects.ParentPlaylist.InProgress == true ) && ( Playback.ShufflePlayOn == false ) )
 				{
-					Playlist selectedPlaylist = selectedObjects.Playlists[ 0 ];
-					if ( selectedPlaylist.InProgress == true )
-					{
-						Song currentSong = selectedPlaylist.InProgressSong;
-						string artistName = ( selectedPlaylist is AlbumPlaylist ) ? ( selectedPlaylist as AlbumPlaylist ).InProgressAlbum.ArtistName : 
-							currentSong.Artist.Name;
+					// Keep a local reference to the parent playlist to be accessed by the confirmation callback
+					Playlist parentPlaylist = selectedObjects.ParentPlaylist;
 
-						ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager,
-							( bool resume ) =>
-							{
-								NowPlayingController.AddSongsToNowPlayingList( selectedPlaylist.GetSongsForPlayback( resume ) , ( commandIdentity == Resource.Id.play_now ) );
-							},
-							string.Format( "This playlist is currently playing '{0}' by '{1}'. Do you want to continue or start from the beginning?", currentSong.Title,
-								artistName ), 
-							"Continue", "Start" );
-					}
+					Song currentSong = parentPlaylist.InProgressSong;
+					string artistName = ( parentPlaylist as AlbumPlaylist )?.InProgressAlbum.ArtistName ?? currentSong.Artist.Name;
+
+					ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager,
+						( bool resume ) =>
+						{
+							NowPlayingController.AddPlaylistToNowPlayingList( parentPlaylist,  commandIdentity == Resource.Id.play_now , resume );
+						},
+						string.Format( "This playlist is currently playing '{0}' by '{1}'. Do you want to continue or start from the beginning?", currentSong.Title,
+							artistName ),
+						"Continue", "Start" );
 				}
 				else
 				{
