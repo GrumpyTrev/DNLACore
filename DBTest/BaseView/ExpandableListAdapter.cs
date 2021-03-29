@@ -18,7 +18,7 @@ namespace DBTest
 		/// <param name="view"></param>
 		/// <param name="provider"></param>
 		public ExpandableListAdapter( Context context, ExpandableListView view, IGroupContentsProvider<T> provider,
-			ExpandableListAdapterModel model, IAdapterActionHandler stateChange )
+			ExpandableListAdapterModel model, IAdapterEventHandler stateChange )
 		{
 			// Save the parameters
 			adapterModel = model;
@@ -287,7 +287,7 @@ namespace DBTest
 		/// <param name="childPosition"></param>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public bool OnChildClick( ExpandableListView parent, View clickedView, int groupPosition, int childPosition, long id )
+		public virtual bool OnChildClick( ExpandableListView parent, View clickedView, int groupPosition, int childPosition, long id )
 		{
 			// Only process this if Action Mode is in effect
 			if ( ActionMode == true )
@@ -784,7 +784,7 @@ namespace DBTest
 		/// <summary>
 		/// Interface used to report adapter state changes
 		/// </summary>
-		protected readonly IAdapterActionHandler stateChangeReporter = null;
+		protected readonly IAdapterEventHandler stateChangeReporter = null;
 
 		/// <summary>
 		/// The section names sent back to the Java Adapter base class

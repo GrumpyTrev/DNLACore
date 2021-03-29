@@ -16,7 +16,7 @@ namespace DBTest
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Playlist> provider, IAdapterActionHandler actionHandler ) :
+		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Playlist> provider, IActionHandler actionHandler ) :
 			base( context, parentView, provider,  PlaylistsAdapterModel.BaseModel, actionHandler )
 		{
 		}
@@ -55,6 +55,34 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <returns></returns>
 		public override int GetGroupType( int groupPosition ) => 0;
+
+		/// <summary>
+		/// Called when a child item has been clicked.
+		/// If the item being clicked is an AlbumPlaylistItem then display a popup containing the songs associated with the Album
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="clickedView"></param>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public override bool OnChildClick( ExpandableListView parent, View clickedView, int groupPosition, int childPosition, long id )
+		{
+			bool handled = false;
+
+			if ( Groups[ groupPosition ] is AlbumPlaylist playlist )
+			{
+				( stateChangeReporter as IActionHandler ).AlbumPlaylistItemClicked( playlist, playlist.PlaylistItems[ childPosition ] as AlbumPlaylistItem );
+
+				handled = true;
+			}
+			else
+			{
+				handled = base.OnChildClick( parent, clickedView, groupPosition, childPosition, id );
+			}
+
+			return handled;
+		}
 
 		/// <summary>
 		/// Called when songs have been added to or deleted from a playlist
@@ -235,5 +263,13 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		protected override bool SelectLongClickedItem( int tag ) => true;
+
+		/// <summary>
+		/// Interface used to handler adapter request and state changes
+		/// </summary>
+		public interface IActionHandler : IAdapterEventHandler
+		{
+			void AlbumPlaylistItemClicked( AlbumPlaylist albumPlaylist, AlbumPlaylistItem albumPlaylistItem );
+		}
 	}
 }

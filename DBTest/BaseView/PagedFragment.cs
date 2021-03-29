@@ -11,7 +11,7 @@ namespace DBTest
 	/// Base class for all the fragments showing the database contents
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class PagedFragment<T>: Fragment, ActionMode.ICallback, IAdapterActionHandler
+	public abstract class PagedFragment<T>: Fragment, ActionMode.ICallback, IAdapterEventHandler
 	{
 		/// <summary>
 		/// Called when the fragment is first created

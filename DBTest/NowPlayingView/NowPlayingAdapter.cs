@@ -221,7 +221,7 @@ namespace DBTest
 		/// <summary>
 		/// Interface used to handler adapter request and state changes
 		/// </summary>
-		public interface IActionHandler: IAdapterActionHandler
+		public interface IActionHandler: IAdapterEventHandler
 		{
 			void SongSelected( int itemNo );
 		}

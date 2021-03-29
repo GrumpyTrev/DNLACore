@@ -223,6 +223,7 @@
     <Compile Include="Model\MediaLibrary.cs" />
     <Compile Include="LibraryScanning\MP3TagExtractor.cs" />
     <Compile Include="PlaybackSelection\PlaybackSelectionModel.cs" />
+    <Compile Include="PlaylistsView\SongsDisplayAdapter.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LibraryScanning\ScannedAlbum.cs" />
@@ -549,6 +550,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\mark.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\album_songs_popup.axml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\popup_song_layout.axml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -1,11 +1,13 @@
-﻿using Android.Widget;
+﻿using Android.Support.V7.App;
+using Android.Views;
+using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace DBTest
 {
 	public class PlaylistsFragment: PagedFragment<Playlist>, ExpandableListAdapter<Playlist>.IGroupContentsProvider<Playlist>, 
-		PlaylistsController.IPlaylistsReporter
+		PlaylistsController.IPlaylistsReporter, PlaylistsAdapter.IActionHandler
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -49,6 +51,30 @@ namespace DBTest
 		/// </summary>
 		/// <param name="message"></param>
 		public void PlaylistUpdated( Playlist playlist ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( playlist );
+
+		/// <summary>
+		/// Called when an AlbumPlaylistItem has been clicked
+		/// </summary>
+		/// <param name="albumPlaylist"></param>
+		/// <param name="albumPlaylistItem"></param>
+		public void AlbumPlaylistItemClicked( AlbumPlaylist albumPlaylist, AlbumPlaylistItem albumPlaylistItem )
+		{
+			AlertDialog dialogue = null;
+
+			// Create the listview and its adapter
+			View customView = LayoutInflater.FromContext( Context ).Inflate( Resource.Layout.album_songs_popup, null );
+			ListView songView = customView.FindViewById<ListView>( Resource.Id.songsList );
+
+			songView.Adapter = new SongsDisplayAdapter( Context, songView, albumPlaylistItem.Album.Songs, albumPlaylist.InProgressSong?.Id ?? -1,
+				clickAction: () => dialogue.Dismiss() );
+
+			// Create and show the dialogue
+			dialogue = new AlertDialog.Builder( Context )
+				.SetView( customView )
+				.Create();
+
+			dialogue.Show();
+		}
 
 		/// <summary>
 		/// Called when the number of selected items has changed.

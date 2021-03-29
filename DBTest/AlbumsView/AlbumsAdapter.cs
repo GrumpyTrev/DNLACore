@@ -16,7 +16,7 @@ namespace DBTest
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public AlbumsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< Album > provider, IAdapterActionHandler actionHandler ) :
+		public AlbumsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< Album > provider, IAdapterEventHandler actionHandler ) :
 			base( context, parentView, provider,  AlbumsAdapterModel.BaseModel, actionHandler )
 		{
 		}
