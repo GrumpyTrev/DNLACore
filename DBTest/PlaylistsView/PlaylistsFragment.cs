@@ -43,7 +43,11 @@ namespace DBTest
 		/// Display the data held in the Playlists view model
 		/// </summary>
 		/// <param name="message"></param>
-		public void DataAvailable() => Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
+		public override void DataAvailable()
+		{
+			Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
+			base.DataAvailable();
+		}
 
 		/// <summary>
 		/// Called when a specific playlist has been updated
@@ -129,6 +133,11 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_playlists;
+
+		/// <summary>
+		/// The common model features are contained in the BaseViewModel
+		/// </summary>
+		protected override BaseViewModel BaseModel { get; } = PlaylistsViewModel.BaseModel;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

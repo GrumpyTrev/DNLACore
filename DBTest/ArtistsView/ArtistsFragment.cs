@@ -5,24 +5,12 @@ using System.Threading.Tasks;
 
 namespace DBTest
 {
-	public class ArtistsFragment: PagedFragment<object>, ExpandableListAdapter<object>.IGroupContentsProvider<object>, DataReporter.IReporter, 
-		SortSelector.ISortReporter
+	public class ArtistsFragment: PagedFragment<object>, ExpandableListAdapter<object>.IGroupContentsProvider<object>, DataReporter.IReporter
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
 		public ArtistsFragment() => ActionModeTitle = NoItemsSelectedText;
-
-		/// <summary>
-		/// Add fragment specific menu items to the main toolbar
-		/// </summary>
-		/// <param name="menu"></param>
-		/// <param name="inflater"></param>
-		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
-		{
-			base.OnCreateOptionsMenu( menu, inflater );
-			ArtistsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
-		}
 
 		/// <summary>
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
@@ -52,19 +40,13 @@ namespace DBTest
 		/// Called when the Controller has obtained the Artist data
 		/// Pass it on to the adapter
 		/// </summary>
-		public void DataAvailable()
+		public override void DataAvailable()
 		{
 			// Make sure that this is being processed in the UI thread as it may have arrived during libraray scanning
 			Activity.RunOnUiThread( () => {
 
 				// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-				Adapter.SetData( ArtistsViewModel.ArtistsAndAlbums.ToList(), ArtistsViewModel.SortSelector.ActiveSortType );
-
-				if ( ArtistsViewModel.ListViewState != null )
-				{
-					ListView.OnRestoreInstanceState( ArtistsViewModel.ListViewState );
-					ArtistsViewModel.ListViewState = null;
-				}
+				Adapter.SetData( ArtistsViewModel.ArtistsAndAlbums.ToList(), BaseModel.SortSelector.ActiveSortType );
 
 				// Indicate whether or not a filter has been applied
 				AppendToTabTitle();
@@ -72,8 +54,7 @@ namespace DBTest
 				// Update the icon as well
 				ArtistsViewModel.FilterSelector.DisplayFilterIcon();
 
-				// Display the current sort order
-				ArtistsViewModel.SortSelector.DisplaySortIcon();
+				base.DataAvailable();
 			} );
 		}
 
@@ -87,7 +68,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the sort selector has changed the sort order
 		/// </summary>
-		public void SortOrderChanged() => ArtistsController.SortArtistsAsync();
+		public override void SortOrderChanged() => ArtistsController.SortArtistsAsync();
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -102,15 +83,9 @@ namespace DBTest
 
 		/// <summary>
 		/// Called to release any resources held by the fragment
+		/// Remove this object from the controller
 		/// </summary>
-		protected override void ReleaseResources()
-		{
-			// Remove this object from the controller
-			ArtistsController.DataReporter = null;
-
-			// Save the scroll position 
-			ArtistsViewModel.ListViewState = ListView.OnSaveInstanceState();
-		}
+		protected override void ReleaseResources() => ArtistsController.DataReporter = null;
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -131,6 +106,11 @@ namespace DBTest
 		/// The FilterSelection object used by this fragment
 		/// </summary>
 		protected override FilterSelection FilterSelector { get; } = ArtistsViewModel.FilterSelector;
+
+		/// <summary>
+		/// The common model features are contained in the BaseViewModel
+		/// </summary>
+		protected override BaseViewModel BaseModel { get; } = ArtistsViewModel.BaseModel;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

@@ -11,7 +11,7 @@ namespace DBTest
 	/// Base class for all the fragments showing the database contents
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class PagedFragment<T>: Fragment, ActionMode.ICallback, IAdapterEventHandler
+	public abstract class PagedFragment<T>: Fragment, ActionMode.ICallback, IAdapterEventHandler, SortSelector.ISortReporter
 	{
 		/// <summary>
 		/// Called when the fragment is first created
@@ -74,6 +74,14 @@ namespace DBTest
 			commandCallback.Callback = null;
 			FilterSelector?.BindToMenu( null );
 
+			// Some BaseModel resources 
+
+			// Remove this object from the sort selector
+			BaseModel.SortSelector.Reporter = null;
+
+			// Save the scroll position 
+			BaseModel.ListViewState = ListView.OnSaveInstanceState();
+
 			// Allow derived fragments to release their own resources
 			ReleaseResources();
 			base.OnDestroyView();
@@ -95,6 +103,9 @@ namespace DBTest
 
 			// If there is a filter selector then bind to it
 			FilterSelector?.BindToMenu( menu.FindItem( Resource.Id.filter ) );
+
+			// Bind the SortSelector
+			BaseModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
 		}
 
 		/// <summary>
@@ -181,6 +192,27 @@ namespace DBTest
 
 			actionModeInstance = null;
 		}
+
+		/// <summary>
+		/// Called when the Controller has obtained the Albums data
+		/// Pass it on to the adapter
+		/// </summary>
+		public virtual void DataAvailable()
+		{
+			if ( BaseModel.ListViewState != null )
+			{
+				ListView.OnRestoreInstanceState( BaseModel.ListViewState );
+				BaseModel.ListViewState = null;
+			}
+
+			// Display the current sort order
+			BaseModel.SortSelector.DisplaySortIcon();
+		}
+
+		/// <summary>
+		/// Called by the SortSelector when the sort order changes
+		/// </summary>
+		public virtual void SortOrderChanged() { }
 
 		/// <summary>
 		/// Required by the interface
@@ -353,6 +385,11 @@ namespace DBTest
 		/// The FilterSelection object used by this fragment
 		/// </summary>
 		protected virtual FilterSelection FilterSelector { get; } = null;
+
+		/// <summary>
+		/// The common model features are contained in the BaseViewModel
+		/// </summary>
+		protected abstract BaseViewModel BaseModel { get; }
 
 		/// <summary>
 		/// Show the command bar if any of the command bar buttons are visible

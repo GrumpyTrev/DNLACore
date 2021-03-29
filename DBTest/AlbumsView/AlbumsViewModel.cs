@@ -1,5 +1,4 @@
-﻿using Android.OS;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace DBTest
@@ -19,10 +18,10 @@ namespace DBTest
 			FilteredAlbums = null;
 			GenreSortedAlbums = null;
 			LibraryId = -1;
-			ListViewState = null;
 			FilterSelector.CurrentFilter = null;
 			FastScrollSections = null;
 			FastScrollSectionLookup = null;
+			BaseModel.Clear();
 		}
 
 		/// <summary>
@@ -81,18 +80,13 @@ namespace DBTest
 		public static int LibraryId { get; set; } = -1;
 
 		/// <summary>
-		/// The scroll state of the list view
-		/// </summary>
-		public static IParcelable ListViewState { get; set; } = null;
-
-		/// <summary>
-		/// Class used to select the album sort order
-		/// </summary>
-		public static SortSelector SortSelector { get; } = new SortSelector();
-
-		/// <summary>
 		/// The FilterSelection used to select and apply filter to the Albums tab
 		/// </summary>
 		public static FilterSelection FilterSelector { get; } = new FilterSelection( AlbumsController.SetNewFilter );
+
+		/// <summary>
+		/// The common model features are contained in the BaseViewModel
+		/// </summary>
+		public static BaseViewModel BaseModel { get; } = new BaseViewModel();
  	}
 }

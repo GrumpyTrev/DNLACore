@@ -72,6 +72,7 @@
     <Compile Include="BaseView\ExpandableListViewHolder.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
+    <Compile Include="BaseView\BaseViewModel.cs" />
     <Compile Include="CommandHandlers\MarkAlbumsCommandHandler.cs" />
     <Compile Include="CommandHandlers\ShowPlaybackControlsCommandHander.cs" />
     <Compile Include="Controllers\MediaNotificationController.cs" />

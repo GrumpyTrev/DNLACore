@@ -18,12 +18,12 @@ namespace DBTest
 			UnfilteredArtists.Clear();
 			ArtistsAndAlbums.Clear();
 			LibraryId = -1;
-			ListViewState = null;
 			FilterSelector.CurrentFilter = null;
 			FilteredAlbumsIds.Clear();
-			SortSelector.SetActiveSortOrder( SortSelector.SortType.alphabetic ); // This also sets the sort order to alphabetic ascending
+			BaseModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.alphabetic ); // This also sets the sort order to alphabetic ascending
 			FastScrollSections = null;
 			FastScrollSectionLookup = null;
+			BaseModel.Clear();
 		}
 
 		/// <summary>
@@ -68,16 +68,6 @@ namespace DBTest
 		public static int LibraryId { get; set; } = -1;
 
 		/// <summary>
-		/// The scroll state of the list view
-		/// </summary>
-		public static IParcelable ListViewState { get; set; } = null;
-
-		/// <summary>
-		/// Class used to select the artist sort order
-		/// </summary>
-		public static SortSelector SortSelector { get; } = new SortSelector();
-
-		/// <summary>
 		/// The set of filtered Albums formed fromthe current filter (including TagGroups)
 		/// </summary>
 		public static HashSet<int> FilteredAlbumsIds { get; set; } = new HashSet<int>();
@@ -86,5 +76,10 @@ namespace DBTest
 		/// The FilterSelection used to select and apply filter to the Albums tab
 		/// </summary>
 		public static FilterSelection FilterSelector { get; } = new FilterSelection( ArtistsController.SetNewFilter );
+
+		/// <summary>
+		/// The common model features are contained in the BaseViewModel
+		/// </summary>
+		public static BaseViewModel BaseModel { get; } = new BaseViewModel();
 	}
 }

@@ -25,11 +25,13 @@ namespace DBTest
 		/// Display the data held in the Now Playing view model
 		/// </summary>
 		/// <param name="message"></param>
-		public void DataAvailable()
+		public override void DataAvailable()
 		{
 			Adapter.SetData( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems, SortSelector.SortType.alphabetic );
 
 			( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex );
+
+			base.DataAvailable();
 		}
 
 		/// <summary>
@@ -96,6 +98,11 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_nowplaying;
+
+		/// <summary>
+		/// The common model features are contained in the BaseViewModel
+		/// </summary>
+		protected override BaseViewModel BaseModel { get; } = NowPlayingViewModel.BaseModel;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

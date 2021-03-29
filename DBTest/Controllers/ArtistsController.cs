@@ -66,12 +66,12 @@ namespace DBTest
 				ArtistsViewModel.FastScrollSections = null;
 				ArtistsViewModel.FastScrollSectionLookup = null;
 
-				switch ( ArtistsViewModel.SortSelector.CurrentSortOrder )
+				switch ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder )
 				{
 					case SortSelector.SortOrder.alphaDescending:
 					case SortSelector.SortOrder.alphaAscending:
 					{
-						if ( ArtistsViewModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.alphaAscending )
+						if ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.alphaAscending )
 						{
 							ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
 						}
@@ -92,7 +92,7 @@ namespace DBTest
 					case SortSelector.SortOrder.idAscending:
 					case SortSelector.SortOrder.idDescending:
 					{
-						if ( ArtistsViewModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.idAscending )
+						if ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.idAscending )
 						{
 							ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
 						}
@@ -141,7 +141,7 @@ namespace DBTest
 		private static async Task ApplyFilterAsync()
 		{
 			// alphabetic and identity sorting are available to the user
-			ArtistsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity } );
+			ArtistsViewModel.BaseModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity } );
 
 			// Check for no simple or group tag filters
 			if ( ArtistsViewModel.FilterSelector.FilterApplied == false )
@@ -165,7 +165,7 @@ namespace DBTest
 					// If the TagOrder flag is set then set the sort order to Id order.
 					if ( ArtistsViewModel.FilterSelector.TagOrderFlag == true )
 					{
-						ArtistsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
+						ArtistsViewModel.BaseModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
 					}
 				} );
 			}

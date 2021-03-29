@@ -33,5 +33,10 @@
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
 		public static int LibraryId { get; set; } = -1;
+
+		/// <summary>
+		/// The common model features are contained in the BaseViewModel
+		/// </summary>
+		public static BaseViewModel BaseModel { get; } = new BaseViewModel();
 	}
 }

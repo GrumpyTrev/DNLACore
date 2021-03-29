@@ -5,24 +5,12 @@ using System.Threading.Tasks;
 
 namespace DBTest
 {
-	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>, DataReporter.IReporter, 
-		SortSelector.ISortReporter
+	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>, DataReporter.IReporter
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
 		public AlbumsFragment() => ActionModeTitle = NoItemsSelectedText;
-
-		/// <summary>
-		/// Add fragment specific menu items to the main toolbar
-		/// </summary>
-		/// <param name="menu"></param>
-		/// <param name="inflater"></param>
-		public override void OnCreateOptionsMenu( IMenu menu, MenuInflater inflater )
-		{
-			base.OnCreateOptionsMenu( menu, inflater );
-			AlbumsViewModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
-		}
 
 		/// <summary>
 		/// Get all the Song entries associated with a specified Album.
@@ -48,18 +36,12 @@ namespace DBTest
 		/// Called when the Controller has obtained the Albums data
 		/// Pass it on to the adapter
 		/// </summary>
-		public void DataAvailable()
+		public override void DataAvailable()
 		{
 			Activity.RunOnUiThread( () => 
 			{
 				// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-				Adapter.SetData( AlbumsViewModel.Albums.ToList(), AlbumsViewModel.SortSelector.ActiveSortType );
-
-				if ( AlbumsViewModel.ListViewState != null )
-				{
-					ListView.OnRestoreInstanceState( AlbumsViewModel.ListViewState );
-					AlbumsViewModel.ListViewState = null;
-				}
+				Adapter.SetData( AlbumsViewModel.Albums.ToList(), BaseModel.SortSelector.ActiveSortType );
 
 				// Indicate whether or not a filter has been applied
 				AppendToTabTitle();
@@ -67,8 +49,7 @@ namespace DBTest
 				// Update the icon as well
 				AlbumsViewModel.FilterSelector.DisplayFilterIcon();
 
-				// Display the current sort order
-				AlbumsViewModel.SortSelector.DisplaySortIcon();
+				base.DataAvailable();
 			} );
 		}
 
@@ -83,9 +64,7 @@ namespace DBTest
 		/// Called when the sort selector has changes the sort order
 		/// No need to wait for this to finish. Albums display will be refreshed when it is complete
 		/// </summary>
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-		public void SortOrderChanged() => AlbumsController.SortDataAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+		public override void SortOrderChanged() => AlbumsController.SortDataAsync();
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -100,18 +79,9 @@ namespace DBTest
 
 		/// <summary>
 		/// Called to release any resources held by the fragment
+		/// Remove this object from the controller
 		/// </summary>
-		protected override void ReleaseResources()
-		{
-			// Remove this object from the controller
-			AlbumsController.DataReporter = null;
-
-			// Remove this object from the sort selector
-			AlbumsViewModel.SortSelector.Reporter = null;
-
-			// Save the scroll position 
-			AlbumsViewModel.ListViewState = ListView.OnSaveInstanceState();
-		}
+		protected override void ReleaseResources() => AlbumsController.DataReporter = null;
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -132,6 +102,11 @@ namespace DBTest
 		/// The FilterSelection object used by this fragment
 		/// </summary>
 		protected override FilterSelection FilterSelector { get; } = AlbumsViewModel.FilterSelector;
+
+		/// <summary>
+		/// The common model features are contained in the BaseViewModel
+		/// </summary>
+		protected override BaseViewModel BaseModel { get; } = AlbumsViewModel.BaseModel;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

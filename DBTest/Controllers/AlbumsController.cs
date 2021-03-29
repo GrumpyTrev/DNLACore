@@ -56,7 +56,7 @@ namespace DBTest
 			await Task.Run( () => 
 			{
 				// Use the sort order stored in the model
-				SortSelector.SortOrder sortOrder = AlbumsViewModel.SortSelector.CurrentSortOrder;
+				SortSelector.SortOrder sortOrder = AlbumsViewModel.BaseModel.SortSelector.CurrentSortOrder;
 
 				// Clear the indexing collections (in case they are not used in the new sort order)
 				AlbumsViewModel.FastScrollSections = null;
@@ -192,7 +192,7 @@ namespace DBTest
 		private static async Task ApplyFilterAsync()
 		{
 			// Make all sort orders available
-			AlbumsViewModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
+			AlbumsViewModel.BaseModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity,
 					SortSelector.SortType.year, SortSelector.SortType.genre } );
 
 			// Clear the Genre sorted albums list. It will only be set if a Genre sort is applied
@@ -216,7 +216,7 @@ namespace DBTest
 					// If the TagOrder flag is set then set the sort order to Id order.
 					if ( AlbumsViewModel.FilterSelector.TagOrderFlag == true )
 					{
-						AlbumsViewModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
+						AlbumsViewModel.BaseModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
 					}
 				} );
 			}
