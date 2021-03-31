@@ -158,7 +158,7 @@ namespace DBTest
 		/// <summary>
 		/// Is playback of this playlist in proress
 		/// </summary>
-		internal bool InProgress { get => ( SongIndex >= 0 ); }
+		internal bool InProgress { get => ( SongIndex > 0 ); }
 
 		/// <summary>
 		/// The Song last played (or started to be played) in this playlist
