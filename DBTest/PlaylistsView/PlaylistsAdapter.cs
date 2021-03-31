@@ -70,7 +70,7 @@ namespace DBTest
 		{
 			bool handled = false;
 
-			if ( Groups[ groupPosition ] is AlbumPlaylist playlist )
+			if ( ( ActionMode == false ) && ( Groups[ groupPosition ] is AlbumPlaylist playlist ) )
 			{
 				( stateChangeReporter as IActionHandler ).AlbumPlaylistItemClicked( playlist, playlist.PlaylistItems[ childPosition ] as AlbumPlaylistItem );
 
