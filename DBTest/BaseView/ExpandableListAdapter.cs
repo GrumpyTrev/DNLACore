@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Android.Content;
+using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 
 namespace DBTest
 {
 	public abstract class ExpandableListAdapter<T> : BaseExpandableListAdapter, AdapterView.IOnItemLongClickListener,
-		ExpandableListView.IOnChildClickListener, ExpandableListView.IOnGroupClickListener, ISectionIndexer
+		ExpandableListView.IOnChildClickListener, ExpandableListView.IOnGroupClickListener, ISectionIndexer, AbsListView.IOnScrollListener
 	{
 		/// <summary>
 		/// ExpandableListAdapter constructor. Set up a long click listener and the group expander helper class
@@ -33,6 +34,7 @@ namespace DBTest
 			parentView.SetOnGroupClickListener( this );
 			parentView.SetOnChildClickListener( this );
 			parentView.OnItemLongClickListener = this;
+			parentView.SetOnScrollListener( this );
 		}
 
 		/// <summary>
@@ -76,7 +78,7 @@ namespace DBTest
 		{
 			convertView = GetSpecialisedChildView( groupPosition, childPosition, isLastChild, convertView, parent );
 
-			// Save the position for this view
+			// Save the position for this view in the view holder
 			( ( ExpandableListViewHolder )convertView.Tag ).ItemTag = FormChildTag( groupPosition, childPosition );
 
 			// Display the checkbox
@@ -112,7 +114,7 @@ namespace DBTest
 		{
 			convertView = GetSpecialisedGroupView( groupPosition, isExpanded, convertView, parent );
 
-			// Save the position for this view
+			// Save the position for this view in the view holder
 			( ( ExpandableListViewHolder )convertView.Tag ).ItemTag = FormGroupTag( groupPosition );
 
 			// Display the checkbox
@@ -240,6 +242,9 @@ namespace DBTest
 
 			// Need to reset the index whenever a group is expanded or collapsed
 			SetGroupIndex();
+
+			// Report this interaction
+			UserActivityDetected();
 		}
 
 		/// <summary>
@@ -274,6 +279,9 @@ namespace DBTest
 				}
 			}
 
+			// Report this interaction
+			UserActivityDetected();
+
 			return true;
 		}
 
@@ -300,6 +308,9 @@ namespace DBTest
 				SelectionBoxClickAsync( selectionBox, new EventArgs() );
 			}
 
+			// Report this interaction
+			UserActivityDetected();
+
 			return false;
 		}
 
@@ -317,6 +328,9 @@ namespace DBTest
 		{
 			OnGroupClickAsync( parent, groupPosition );
 
+			// Report this interaction
+			UserActivityDetected();
+
 			return true;
 		}
 
@@ -332,23 +346,46 @@ namespace DBTest
 		/// </summary>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		public int GetSectionForPosition( int position )
-		{
-			int section = 0;
-
-			if ( FastScrollLookup != null )
-			{
-				section = ( position < FastScrollLookup.Length ) ? FastScrollLookup[ position ] : FastScrollLookup[ FastScrollLookup.Length - 1 ];
-			}
-
-			return section;
-		}
+		public int GetSectionForPosition( int position ) => ( FastScrollLookup == null ) ? 0 : FastScrollLookup[ Math.Min( position, FastScrollLookup.Length - 1 ) ];
 
 		/// <summary>
 		/// Return the names of all the sections
 		/// </summary>
 		/// <returns></returns>
 		public virtual Java.Lang.Object[] GetSections() => null;
+
+		/// <summary>
+		/// The Action to call when user activity is detected
+		/// </summary>
+		public Action UserActivityDetectedAction { get; set; } = null;
+
+		/// <summary>
+		/// Is the user currently interacting with the view
+		/// </summary>
+		public bool IsUserActive
+		{
+			get => isUserActive;
+			set
+			{
+				if ( isUserActive != value )
+				{
+					isUserActive = value;
+					UserActivityChanged();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Called when some user activity has been detected
+		/// </summary>
+		protected void UserActivityDetected() => UserActivityDetectedAction?.Invoke();
+
+		/// <summary>
+		/// Called when the user activity has changed state
+		/// </summary>
+		protected virtual void UserActivityChanged()
+		{
+		}
 
 		/// <summary>
 		/// Derived classes must implement this method to provide a view for a child item
@@ -579,6 +616,11 @@ namespace DBTest
 		/// <returns></returns>
 		protected static int GetGroupFromTag( int tag ) => tag >> 16;
 
+		/// <summary>
+		/// Get the CheckBox from the supplied view and set up a click handler for it
+		/// </summary>
+		/// <param name="view"></param>
+		/// <returns></returns>
 		protected CheckBox GetSelectionBox( View view )
 		{
 			CheckBox selectionBox = view.FindViewById<CheckBox>( Resource.Id.checkBox );
@@ -700,6 +742,9 @@ namespace DBTest
 			}
 
 			stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
+
+			// Report this interaction
+			UserActivityDetected();
 		}
 
 		/// <summary>
@@ -732,6 +777,25 @@ namespace DBTest
 				}
 			}
 		}
+
+		/// <summary>
+		/// Called when the list view has been scrolled.
+		/// This is not required for activity detection, but is part of the IOnScrollListener interface
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="firstVisibleItem"></param>
+		/// <param name="visibleItemCount"></param>
+		/// <param name="totalItemCount"></param>
+		public void OnScroll( AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount )
+		{
+		}
+
+		/// <summary>
+		/// Called when the scroll has started or stopped. Report user action
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="scrollState"></param>
+		public void OnScrollStateChanged( AbsListView view, [GeneratedEnum] ScrollState scrollState ) => UserActivityDetected();
 
 		/// <summary>
 		/// Interface that classes providing group details must implement.
@@ -790,6 +854,11 @@ namespace DBTest
 		/// The section names sent back to the Java Adapter base class
 		/// </summary>
 		protected Java.Lang.Object[] javaSections = null;
+
+		/// <summary>
+		/// Data for the IsUserActive property
+		/// </summary>
+		private bool isUserActive = false;
 
 		/// <summary>
 		/// The TagHolder class holds the tag for the view's Checkbox

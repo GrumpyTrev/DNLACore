@@ -55,13 +55,6 @@ namespace DBTest
 		public void SongSelected() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex );
 
 		/// <summary>
-		/// Called when the DisplayGenre flag has been toggled
-		/// </summary>
-		public void DisplayGenreChanged()
-		{
-		}
-
-		/// <summary>
 		/// Called when the number of selected items (songs) has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>

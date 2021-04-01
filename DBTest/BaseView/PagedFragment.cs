@@ -4,6 +4,7 @@ using Android.Support.V4.App;
 using Android.Widget;
 using System.Collections.Generic;
 using Android.Support.V7.Widget;
+using System.Threading;
 
 namespace DBTest
 {
@@ -13,6 +14,15 @@ namespace DBTest
 	/// <typeparam name="T"></typeparam>
 	public abstract class PagedFragment<T>: Fragment, ActionMode.ICallback, IAdapterEventHandler, SortSelector.ISortReporter
 	{
+		/// <summary>
+		/// Default constructor.
+		/// Initialise but don't start the user interaction timer
+		/// </summary>
+		public PagedFragment()
+		{
+			userInteractionTimer = new Timer( timer => UserInteractionTimerExpired(), null, Timeout.Infinite, Timeout.Infinite );
+		}
+
 		/// <summary>
 		/// Called when the fragment is first created
 		/// </summary>
@@ -43,6 +53,7 @@ namespace DBTest
 			// Create the adapter for the list view and link to it
 			CreateAdapter( ListView );
 			ListView.SetAdapter( Adapter );
+			Adapter.UserActivityDetectedAction = UserActivityDetected; 
 
 			// Create an CommandBar to encapsulate the bottom toolbar and its command buttons
 			CommandBar = new CommandBar( FragmentView, Resource.Id.bottomToolbar, HandleCommand );
@@ -413,6 +424,39 @@ namespace DBTest
 		protected bool ActionModeActive => ( actionModeInstance != null );
 
 		/// <summary>
+		/// Called when some kind of user interaction with the view has been detected
+		/// Let the adapter know the user is active and start the activity timer
+		/// </summary>
+		private void UserActivityDetected()
+		{
+			Adapter.IsUserActive = true;
+			userInteractionTimer.Change( UserInteractionTimeout, Timeout.Infinite );
+		}
+
+		/// <summary>
+		/// Called when the user is no longer interaction with the view
+		/// Let the adapter know 
+		/// </summary>
+		private void UserInteractionTimerExpired()
+		{
+			// Don't declare the user as inactive if Action Mode is in effect
+			if ( ActionModeActive == false )
+			{
+				Activity.RunOnUiThread( () => { Adapter.IsUserActive = false; } );
+			}
+			else
+			{
+				// Check again in a while
+				userInteractionTimer.Change( UserInteractionTimeout, Timeout.Infinite );
+			}
+		}
+
+		/// <summary>
+		/// Keep track of whether or not the user is interacting
+		/// </summary>
+		protected bool UserIsInteracting { get; set; } = false;
+
+		/// <summary>
 		/// The bottom toolbar
 		/// </summary>
 		protected CommandBar CommandBar { get; private set; } = null;
@@ -490,5 +534,16 @@ namespace DBTest
 		/// The CommandHandlerCallback containing the action to call after a command has been handled
 		/// </summary>
 		private CommandRouter.CommandHandlerCallback commandCallback = new CommandRouter.CommandHandlerCallback();
+
+		/// <summary>
+		/// Timer used to detect when the user is no longer interacting with the view
+		/// </summary>
+		private Timer userInteractionTimer = null;
+
+		/// <summary>
+		/// How long to wait after user interaction before declaring that the user is no longer interacting
+		/// 30 seconds
+		/// </summary>
+		private const int UserInteractionTimeout = 30000;
 	}
 }

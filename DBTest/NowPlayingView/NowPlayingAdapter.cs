@@ -16,8 +16,8 @@ namespace DBTest
 		/// <param name="context"></param>
 		/// <param name="parentView"></param>
 		/// <param name="provider"></param>
-		public NowPlayingAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<PlaylistItem> provider, IActionHandler actionHandler ) :
-			base( context, parentView, provider, NowPlayingAdapterModel.BaseModel, actionHandler ) => adapterHandler = actionHandler;
+		public NowPlayingAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<PlaylistItem> provider, IActionHandler actionHandler ) 
+			: base( context, parentView, provider, NowPlayingAdapterModel.BaseModel, actionHandler ) => adapterHandler = actionHandler;
 
 		/// <summary>
 		/// Number of child items of selected group
@@ -60,6 +60,13 @@ namespace DBTest
 			if ( NowPlayingAdapterModel.SongPlayingIndex != index )
 			{
 				NowPlayingAdapterModel.SongPlayingIndex = index;
+
+				// If there is no user interaction going on then make sure this item is visible
+				if ( IsUserActive == false )
+				{
+					UserActivityChanged();
+				}
+
 				NotifyDataSetChanged();
 			}
 		}
@@ -98,6 +105,9 @@ namespace DBTest
 				}
 			}
 
+			// Report this interaction
+			UserActivityDetected();
+
 			return false;
 		}
 
@@ -122,6 +132,8 @@ namespace DBTest
 
 			NotifyDataSetChanged();
 		}
+
+
 
 		/// <summary>
 		/// Provide a view containing either album or song details at the specified position
@@ -197,6 +209,37 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		protected override bool SelectLongClickedItem( int tag ) => true;
+
+		/// <summary>
+		/// Check if the Current Song (if there is one) is being displayed.
+		/// If it isn't then display it
+		/// </summary>
+		protected override void UserActivityChanged()
+		{
+			if ( IsUserActive == false )
+			{
+				if ( NowPlayingAdapterModel.SongPlayingIndex != -1 )
+				{
+					// If the list hasn't been displayed yet then the LastVisiblePosition is -1
+					if ( parentView.LastVisiblePosition != -1 )
+					{
+						if ( ( NowPlayingAdapterModel.SongPlayingIndex < parentView.FirstVisiblePosition ) ||
+							( NowPlayingAdapterModel.SongPlayingIndex > parentView.LastVisiblePosition ) )
+						{
+							// Attempt to display this somewhere in the middle
+							int visibleRange = parentView.LastVisiblePosition - parentView.FirstVisiblePosition;
+
+							parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - ( visibleRange / 2 ), 0 ) );
+						}
+					}
+					else
+					{
+						// Display the current song just a couple of items down (if possible) to indicate that it is not the first item
+						parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - 2, 0 ) );
+					}
+				}
+			}
+		}
 
 		/// <summary>
 		/// Interface used to handler adapter request and state changes
