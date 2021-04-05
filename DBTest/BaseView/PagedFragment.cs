@@ -85,6 +85,9 @@ namespace DBTest
 			commandCallback.Callback = null;
 			FilterSelector?.BindToMenu( null );
 
+			// Turn off the timer
+			userInteractionTimer.Change( Timeout.Infinite, Timeout.Infinite );
+
 			// Some BaseModel resources 
 
 			// Remove this object from the sort selector
@@ -117,6 +120,9 @@ namespace DBTest
 
 			// Bind the SortSelector
 			BaseModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
+
+			// Restart the user activity timer
+			UserActivityDetected();
 		}
 
 		/// <summary>
@@ -183,6 +189,9 @@ namespace DBTest
 			// Should the command bar be shown
 			CommandBar.Visibility = ShowCommandBar();
 
+			// Treat this as user interaction
+			UserActivityDetected();
+
 			return true;
 		}
 
@@ -202,6 +211,9 @@ namespace DBTest
 			CommandBar.Visibility = false;
 
 			actionModeInstance = null;
+
+			// Treat this as user interaction
+			UserActivityDetected();
 		}
 
 		/// <summary>
@@ -425,36 +437,30 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when some kind of user interaction with the view has been detected
-		/// Let the adapter know the user is active and start the activity timer
+		/// Let the adapter know the user is active.
+		/// If ActionMode is not in effect then start/re-start the activity timer
 		/// </summary>
 		private void UserActivityDetected()
 		{
 			Adapter.IsUserActive = true;
-			userInteractionTimer.Change( UserInteractionTimeout, Timeout.Infinite );
+			if ( ActionModeActive == false )
+			{
+				userInteractionTimer.Change( UserInteractionTimeout, Timeout.Infinite );
+			}
 		}
 
 		/// <summary>
-		/// Called when the user is no longer interaction with the view
-		/// Let the adapter know 
+		/// Called when the user interaction timer has expired
+		/// If ActionMode is not in effect then inform the Adapter
 		/// </summary>
 		private void UserInteractionTimerExpired()
 		{
 			// Don't declare the user as inactive if Action Mode is in effect
 			if ( ActionModeActive == false )
 			{
-				Activity.RunOnUiThread( () => { Adapter.IsUserActive = false; } );
-			}
-			else
-			{
-				// Check again in a while
-				userInteractionTimer.Change( UserInteractionTimeout, Timeout.Infinite );
+				Activity?.RunOnUiThread( () => { Adapter.IsUserActive = false; } );
 			}
 		}
-
-		/// <summary>
-		/// Keep track of whether or not the user is interacting
-		/// </summary>
-		protected bool UserIsInteracting { get; set; } = false;
 
 		/// <summary>
 		/// The bottom toolbar
