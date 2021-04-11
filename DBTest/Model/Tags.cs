@@ -61,8 +61,6 @@ namespace DBTest
 
 			NameLookup[ tagToAdd.Name ] = tagToAdd;
 			ShortNameLookup[ tagToAdd.ShortName ] = tagToAdd;
-
-			new TagAddedMessage() { AddedTag = tagToAdd }.Send();
 		}
 
 		/// <summary>

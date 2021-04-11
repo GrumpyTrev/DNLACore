@@ -11,12 +11,12 @@
 		/// </summary>
 		static PlaybackManagementController()
 		{
-			Mediator.RegisterPermanent( DeviceAvailable, typeof( PlaybackDeviceAvailableMessage ) );
-			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-			Mediator.RegisterPermanent( PlaySong, typeof( PlaySongMessage ) );
-			Mediator.RegisterPermanent( MediaControlPause, typeof( MediaControlPauseMessage ) );
-			Mediator.RegisterPermanent( MediaControlSeekTo, typeof( MediaControlSeekToMessage ) );
-			Mediator.RegisterPermanent( MediaControlStart, typeof( MediaControlStartMessage ) );
+			PlaybackDeviceAvailableMessage.Register( DeviceAvailable );
+			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+			PlaySongMessage.Register( PlaySong );
+			MediaControlPauseMessage.Register( MediaControlPause );
+			MediaControlSeekToMessage.Register( MediaControlSeekTo );
+			MediaControlStartMessage.Register( MediaControlStart );
 		}
 
 		/// <summary>
@@ -60,9 +60,8 @@
 		/// If this is a change then report it
 		/// </summary>
 		/// <param name="message"></param>
-		private static void DeviceAvailable( object message )
+		private static void DeviceAvailable( PlaybackDevice newDevice )
 		{
-			PlaybackDevice newDevice = ( message as PlaybackDeviceAvailableMessage ).SelectedDevice;
 			PlaybackDevice oldDevice = PlaybackManagerModel.AvailableDevice;
 
 			// Check for no new device
@@ -99,8 +98,8 @@
 		/// Called when a SelectedLibraryChangedMessage has been received
 		/// Inform the reporter and reload the playback data
 		/// </summary>
-		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object _ )
+		/// <param name="_"></param>
+		private static void SelectedLibraryChanged( int _)
 		{
 			DataReporter?.LibraryChanged();
 			StorageDataAvailable();
@@ -109,12 +108,11 @@
 		/// <summary>
 		/// Called in response to the receipt of a PlaySongMessage
 		/// </summary>
-		private static void PlaySong( object message )
+		private static void PlaySong( Song songToPlay, bool dontPlay )
 		{
-			PlaySongMessage playSong = message as PlaySongMessage;
-			PlaybackManagerModel.CurrentSong = playSong.SongToPlay;
+			PlaybackManagerModel.CurrentSong = songToPlay;
 
-			if ( ( PlaybackManagerModel.CurrentSong != null ) && ( playSong.DontPlay == false ) )
+			if ( ( PlaybackManagerModel.CurrentSong != null ) && ( dontPlay == false ) )
 			{
 				DataReporter?.PlayCurrentSong();
 			}
@@ -128,19 +126,19 @@
 		/// Pass on a pause request to the reporter
 		/// </summary>
 		/// <param name="_message"></param>
-		private static void MediaControlPause( object _ ) => DataReporter?.Pause();
+		private static void MediaControlPause() => DataReporter?.Pause();
 
 		/// <summary>
 		/// Pass on a seek request to the reporter
 		/// </summary>
 		/// <param name="_message"></param>
-		private static void MediaControlSeekTo( object message ) => DataReporter?.SeekTo( ( ( MediaControlSeekToMessage )message ).Position );
+		private static void MediaControlSeekTo( int position ) => DataReporter?.SeekTo( position );
 
 		/// <summary>
 		/// Pass on a play previous request to the reporter
 		/// </summary>
 		/// <param name="_message"></param>
-		private static void MediaControlStart( object _ ) => DataReporter?.Start();
+		private static void MediaControlStart() => DataReporter?.Start();
 
 		/// <summary>
 		/// The interface instance used to report back controller results

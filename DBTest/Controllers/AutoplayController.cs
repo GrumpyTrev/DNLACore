@@ -15,7 +15,7 @@ namespace DBTest
 		/// </summary>
 		static AutoplayController()
 		{
-			Mediator.RegisterPermanent( SongSelectedAsync, typeof( SongSelectedMessage ) );
+			SongSelectedMessage.Register( SongSelectedAsync );
 		}
 
 		/// <summary>
@@ -176,8 +176,7 @@ namespace DBTest
 		/// All the songs prior to the song index are removed except for the last "LeaveSongs"
 		/// Only proceed with any of this processing if autoplay is active
 		/// </summary>
-		/// <param name="message"></param>
-		private static async void SongSelectedAsync( object _message )
+		private static async void SongSelectedAsync()
 		{
 			if ( PlaybackModeModel.AutoOn == true )
 			{

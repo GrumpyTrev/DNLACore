@@ -14,8 +14,8 @@ namespace DBTest
 		/// </summary>
 		static FilterManagementController()
 		{
-			Mediator.RegisterPermanent( SongStarted, typeof( SongStartedMessage ) );
-			Mediator.RegisterPermanent( AlbumsDeleted, typeof( AlbumsDeletedMessage ) );
+			SongStartedMessage.Register( SongStarted );
+			AlbumsDeletedMessage.Register( AlbumsDeleted );
 		}
 
 		/// <summary>
@@ -282,13 +282,13 @@ namespace DBTest
 		/// Add the associated album to the Just Played tag 
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongStarted( object message )
+		private static void SongStarted( Song songPlayed )
 		{
 			// Assume that the album does not need adding to the tag
 			bool addTag = false;
 
 			// Get the Album from the Albums collection
-			Album songAlbum = Albums.GetAlbumById( ( message as SongStartedMessage ).SongPlayed.AlbumId );
+			Album songAlbum = Albums.GetAlbumById( songPlayed.AlbumId );
 
 			// Determine if this album should be marked as having been played
 			if ( songAlbum.Played == false )
@@ -328,10 +328,10 @@ namespace DBTest
 		/// Do not synchronise as this is due to a library scan and not the user removing albums from a tag
 		/// </summary>
 		/// <param name="message"></param>
-		private static void AlbumsDeleted( object message )
+		private static void AlbumsDeleted( List<int> deletedAlbums )
 		{
 			// Get the list of deleted albums and apply to each tag
-			HashSet<int> deletedAlbumIds = ( message as AlbumsDeletedMessage ).DeletedAlbumIds.ToHashSet();
+			HashSet<int> deletedAlbumIds = deletedAlbums.ToHashSet();
 
 			foreach ( Tag tag in Tags.TagsCollection )
 			{

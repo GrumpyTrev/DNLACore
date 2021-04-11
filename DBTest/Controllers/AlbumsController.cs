@@ -16,11 +16,11 @@ namespace DBTest
 		/// </summary>
 		static AlbumsController()
 		{
-			Mediator.RegisterPermanent( TagMembershipChanged, typeof( TagMembershipChangedMessage ) );
-			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-			Mediator.RegisterPermanent( TagDetailsChanged, typeof( TagDetailsChangedMessage ) );
-			Mediator.RegisterPermanent( TagDeleted, typeof( TagDeletedMessage ) );
-			Mediator.RegisterPermanent( AlbumChanged, typeof( AlbumPlayedStateChangedMessage ) );
+			TagMembershipChangedMessage.Register( TagMembershipChanged );
+			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+			TagDetailsChangedMessage.Register( TagDetailsChanged );
+			TagDeletedMessage.Register( TagDeleted );
+			AlbumPlayedStateChangedMessage.Register( AlbumChanged );
 		}
 
 		/// <summary>
@@ -231,10 +231,10 @@ namespace DBTest
 		/// If there is no filtering of if the tag being filtered on has not changed then no action is required.
 		/// Otherwise the data must be refreshed
 		/// </summary>
-		/// <param name="message"></param>
-		private static void TagMembershipChanged( object message )
+		/// <param name="changedTags"></param>
+		private static void TagMembershipChanged( List< string > changedTags )
 		{
-			if ( AlbumsViewModel.FilterSelector.FilterContainsTags( ( ( TagMembershipChangedMessage )message ).ChangedTags ) == true )
+			if ( AlbumsViewModel.FilterSelector.FilterContainsTags( changedTags ) == true )
 			{
 				// Reapply the same filter. No need to wait for this.
 				ApplyFilterAsync();
@@ -245,8 +245,8 @@ namespace DBTest
 		/// Called when a SelectedLibraryChangedMessage has been received
 		/// Clear the current data and the filter and then reload
 		/// </summary>
-		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object message )
+		/// <param name="_"></param>
+		private static void SelectedLibraryChanged( int _ )
 		{
 			// Clear the displayed data and filter
 			AlbumsViewModel.ClearModel();
@@ -261,9 +261,9 @@ namespace DBTest
 		/// redisplay the albums
 		/// </summary>
 		/// <param name="message"></param>
-		private static void TagDetailsChanged( object message )
+		private static void TagDetailsChanged( Tag changedTag )
 		{
-			if ( AlbumsViewModel.FilterSelector.CurrentFilterName == ( ( TagDetailsChangedMessage )message ).ChangedTag.Name )
+			if ( AlbumsViewModel.FilterSelector.CurrentFilterName == changedTag.Name )
 			{
 				// Reapply the same filter. No need to wait for this
 				ApplyFilterAsync();
@@ -275,9 +275,9 @@ namespace DBTest
 		/// If the tag is currently being used to filter the albums then remove the filter and redisplay
 		/// </summary>
 		/// <param name="message"></param>
-		private static void TagDeleted( object message )
+		private static void TagDeleted( Tag deletedTag )
 		{
-			if ( AlbumsViewModel.FilterSelector.CurrentFilterName == ( message as TagDeletedMessage ).DeletedTag.Name )
+			if ( AlbumsViewModel.FilterSelector.CurrentFilterName == deletedTag.Name )
 			{
 				SetNewFilter( null );
 			}
@@ -287,11 +287,9 @@ namespace DBTest
 		/// Called when a AlbumPlayedStateChangedMessage had been received.
 		/// If this album is being displayed then inform the adapter of the data change
 		/// </summary>
-		/// <param name="message"></param>
-		private static void AlbumChanged( object message )
+		/// <param name="changedAlbum"></param>
+		private static void AlbumChanged( Album changedAlbum )
 		{
-			Album changedAlbum = ( message as AlbumPlayedStateChangedMessage ).AlbumChanged;
-
 			// Only process this if this album is in the library being displayed
 			if ( changedAlbum.LibraryId == AlbumsViewModel.LibraryId )
 			{

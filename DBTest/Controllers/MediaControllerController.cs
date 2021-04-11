@@ -11,9 +11,9 @@
 		/// </summary>
 		static MediaControllerController()
 		{
-			Mediator.RegisterPermanent( MediaProgressMessageReceived , typeof( MediaProgressMessage ) );
-			Mediator.RegisterPermanent( DeviceAvailable, typeof( PlaybackDeviceAvailableMessage ) );
-			Mediator.RegisterPermanent( MediaPlayingMessageReceived, typeof( MediaPlayingMessage ) );
+			MediaProgressMessage.Register( MediaProgress );
+			PlaybackDeviceAvailableMessage.Register( DeviceAvailable );
+			MediaPlayingMessage.Register( MediaPlaying );
 		}
 
 		/// <summary>
@@ -66,15 +66,14 @@
 
 		/// <summary>
 		/// Called when a MediaProgressMessage has been received.
-		/// Update the values held in the model.
-		/// There is no need at the moment to let the view know about the change, The view will access the new values when required
+		/// Update the values held in the model and inform the DataReporter
 		/// </summary>
 		/// <param name="message"></param>
-		private static void MediaProgressMessageReceived( object message )
+		private static void MediaProgress( int currentPosition, int duration )
 		{
-			MediaProgressMessage receivedMessage = message as MediaProgressMessage;
-			MediaControllerViewModel.CurrentPosition = receivedMessage.CurrentPosition;
-			MediaControllerViewModel.Duration = receivedMessage.Duration;
+			MediaControllerViewModel.CurrentPosition = currentPosition;
+			MediaControllerViewModel.Duration = duration;
+			DataReporter?.MediaProgress();
 		}
 
 		/// <summary>
@@ -82,12 +81,11 @@
 		/// If this is a change of play state then let the view know
 		/// </summary>
 		/// <param name="message"></param>
-		private static void MediaPlayingMessageReceived( object message )
+		private static void MediaPlaying( bool isPlaying )
 		{
-			bool newPlayState = ( ( MediaPlayingMessage )message ).IsPlaying;
-			if ( MediaControllerViewModel.IsPlaying != newPlayState )
+			if ( MediaControllerViewModel.IsPlaying != isPlaying )
 			{
-				MediaControllerViewModel.IsPlaying = newPlayState;
+				MediaControllerViewModel.IsPlaying = isPlaying;
 				DataReporter?.PlayStateChanged();
 			}
 		}
@@ -97,10 +95,8 @@
 		/// If this is a change then report it
 		/// </summary>
 		/// <param name="message"></param>
-		private static void DeviceAvailable( object message )
+		private static void DeviceAvailable( PlaybackDevice newDevice )
 		{
-			PlaybackDevice newDevice = ( message as PlaybackDeviceAvailableMessage ).SelectedDevice;
-
 			// If the view data is not available yet, just update the model.
 			// Otherwise report to the view and then update the model
 			if ( dataReporter.DataAvailable == true )
@@ -128,6 +124,7 @@
 			void DeviceAvailable( bool available );
 			void PlayStateChanged();
 			void ShowMediaControls();
+			void MediaProgress();
 		}
 
 		/// <summary>

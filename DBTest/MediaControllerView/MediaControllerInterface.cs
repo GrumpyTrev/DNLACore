@@ -103,6 +103,14 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when new progress values are available.
+		/// No action carried out at the moment as the MediaController pulls these values from here
+		/// </summary>
+		public void MediaProgress()
+		{
+		}
+
+		/// <summary>
 		/// Can the selected connection be paused
 		/// </summary>
 		/// <returns></returns>

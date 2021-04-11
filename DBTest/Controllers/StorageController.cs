@@ -15,17 +15,17 @@ namespace DBTest
 		/// Called to register interest in the availability of the managed storage collections
 		/// </summary>
 		/// <param name="callback"></param>
-		public static void RegisterInterestInDataAvailable( Action<Object> callback )
+		public static void RegisterInterestInDataAvailable( Action callback )
 		{
 			// If the data is available then call the callback
 			if ( DataAvailable == true )
 			{
-				callback( null );
+				callback();
 			}
 			else
 			{
 				// Data is not currently available. Register the callback with the StorageDataAvailableMessage
-				Mediator.RegisterPermanent( callback, typeof( StorageDataAvailableMessage ) );
+				StorageDataAvailableMessage.Register( callback );
 
 				// If the data is not being read then start the read process
 				if ( DataBeingRead == false )

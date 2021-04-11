@@ -13,7 +13,7 @@ namespace DBTest
 		/// <summary>
 		/// Get a notiification whenever the PlaybackSelectionModel changes
 		/// </summary>
-		public PlaybackMonitor() => Mediator.RegisterPermanent( PlaybackModelChanged, typeof( PlaybackModelChangedMessage ) );
+		public PlaybackMonitor() => PlaybackModelChangedMessage.Register( PlaybackModelChanged );
 
 		/// <summary>
 		/// Bind to the specified menu item.
@@ -61,8 +61,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when something in the PlaybackSelectionModel changes
 		/// </summary>
-		/// <param name="message"></param>
-		private void PlaybackModelChanged( object message )
+		private void PlaybackModelChanged()
 		{
 			// Determine the playbackState from the PlaybackSelectionModel
 			// First, is the selected device local or remote. Assume local if not set yet

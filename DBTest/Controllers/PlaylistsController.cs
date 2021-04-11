@@ -15,10 +15,10 @@ namespace DBTest
 		/// </summary>
 		static PlaylistsController()
 		{
-			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-			Mediator.RegisterPermanent( SongStarted, typeof( SongStartedMessage ) );
-			Mediator.RegisterPermanent( PlaylistUpdated, typeof( PlaylistUpdatedMessage ) );
-			Mediator.RegisterPermanent( SongFinished, typeof( SongFinishedMessage ) );
+			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+			SongStartedMessage.Register( SongStarted );
+			PlaylistUpdatedMessage.Register( PlaylistUpdated );
+			SongFinishedMessage.Register( SongFinished );
 		}
 
 		/// <summary>
@@ -328,8 +328,8 @@ namespace DBTest
 		/// Called when a SelectedLibraryChangedMessage has been received
 		/// Clear the current data then reload
 		/// </summary>
-		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object _ )
+		/// <param name="_"></param>
+		private static void SelectedLibraryChanged( int _ )
 		{
 			// Clear the displayed data
 			PlaylistsViewModel.ClearModel();
@@ -342,10 +342,8 @@ namespace DBTest
 		/// Called when the SongStartedMessage has been received
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongStarted( object message )
+		private static void SongStarted( Song songStarted )
 		{
-			Song songStarted = ( message as SongStartedMessage ).SongPlayed;
-			
 			// Update the song index for any playlists for which the previous song and the current song are adjacent 
 			Playlists.CheckForAdjacentSongEntries( previousSongIdentity, songStarted.Id );
 
@@ -355,14 +353,14 @@ namespace DBTest
 		/// <summary>
 		/// Called when the SongFinishedMessage has been received
 		/// </summary>
-		/// <param name="message"></param>
-		private static void SongFinished( object message ) => Playlists.SongFinished( ( message as SongFinishedMessage ).SongPlayed.Id );
+		/// <param name="songPlayed"></param>
+		private static void SongFinished( Song songPlayed ) => Playlists.SongFinished( songPlayed.Id );
 
 		/// <summary>
 		/// Called when a PlaylistUpdatedMessage has been received. Pass it on to the reporter
 		/// </summary>
 		/// <param name="message"></param>
-		private static void PlaylistUpdated( object message ) => DataReporter?.PlaylistUpdated( ( message as PlaylistUpdatedMessage ).UpdatedPlaylist );
+		private static void PlaylistUpdated( Playlist updatedPlaylist ) => DataReporter?.PlaylistUpdated( updatedPlaylist );
 
 		/// <summary>
 		/// The interface instance used to report back controller results

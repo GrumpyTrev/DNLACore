@@ -8,7 +8,7 @@
 		/// <summary>
 		/// Constructor - register interest in Playback Device changes
 		/// </summary>
-		public SelectDeviceCommandHandler() => Mediator.RegisterPermanent( PlaybackDevicesChanged, typeof( PlaybackModelChangedMessage ) );
+		public SelectDeviceCommandHandler() => PlaybackModelChangedMessage.Register( PlaybackDevicesChanged );
 
 		/// <summary>
 		/// Called to handle the command. Show the device selection dialogue
@@ -31,8 +31,7 @@
 		/// Called when the available Playback Devices has changed
 		/// If the SelectDeviceDialogFragment is showing then inform it of the changed
 		/// </summary>
-		/// <param name="message"></param>
-		private void PlaybackDevicesChanged( object message ) => deviceSelectionDialog?.PlaybackDevicesChanged();
+		private void PlaybackDevicesChanged() => deviceSelectionDialog?.PlaybackDevicesChanged();
 
 		/// <summary>
 		/// Called when the SelectDeviceDialogFragment dialog is displayed (OnResume)

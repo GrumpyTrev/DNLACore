@@ -31,7 +31,7 @@ namespace DBTest
 		/// Let the controller perform its own processing and then report the event
 		/// </summary>
 		/// <param name="_"></param>
-		private void StorageDataAvailable( object _ = null )
+		private void StorageDataAvailable()
 		{
 			// The data is now valid
 			DataAvailable = true;

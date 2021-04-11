@@ -11,9 +11,9 @@
 		/// </summary>
 		static MediaNotificationController()
 		{
-			Mediator.RegisterPermanent( MediaPlaying, typeof( MediaPlayingMessage ) );
-			Mediator.RegisterPermanent( SongStarted, typeof( SongStartedMessage ) );
-			Mediator.RegisterPermanent( SongFinished, typeof( SongFinishedMessage ) );
+			MediaPlayingMessage.Register( MediaPlaying );
+			SongStartedMessage.Register( SongStarted );
+			SongFinishedMessage.Register( SongFinished );
 		}
 
 		/// <summary>
@@ -43,19 +43,18 @@
 		/// Called when a MediaPlayingMessage has been received.
 		/// </summary>
 		/// <param name="message"></param>
-		private static void MediaPlaying( object message ) => DataReporter?.IsPlaying( ( ( MediaPlayingMessage )message ).IsPlaying );
+		private static void MediaPlaying( bool isPlaying ) => DataReporter?.IsPlaying( isPlaying );
 
 		/// <summary>
 		/// Called when a SongStartedMessage has been received.
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongStarted( object message ) => DataReporter?.SongStarted( ( ( SongStartedMessage )message ).SongPlayed );
+		private static void SongStarted( Song songStarted ) => DataReporter?.SongStarted( songStarted );
 
 		/// <summary>
 		/// Called when a SongFinishedMessage has been received.
 		/// </summary>
-		/// <param name="message"></param>
-		private static void SongFinished( object _ ) => DataReporter?.SongFinished();
+		private static void SongFinished( Song _ ) => DataReporter?.SongFinished();
 
 		/// <summary>
 		/// The interface instance used to report back controller results

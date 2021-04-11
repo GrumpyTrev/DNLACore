@@ -1,16 +1,24 @@
-﻿namespace DBTest
+﻿using System;
+
+namespace DBTest
 {
 	/// <summary>
 	/// All other messages are based on this message
 	/// </summary>
-	class BaseMessage
+	public class BaseMessage
 	{
 		/// <summary>
 		/// Send this message to all registered receivers
 		/// </summary>
 		public void Send()
 		{
-			Mediator.SendMessage( this );
+			MessageRegistration.SendMessage( this );
 		}
+
+		/// <summary>
+		/// The base class Dispatch call the callback with no parameters
+		/// </summary>
+		/// <param name="callBack"></param>
+		public virtual void Dispatch( Delegate callBack ) => ( callBack as Action)();
 	}
 }

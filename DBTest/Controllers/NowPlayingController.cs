@@ -15,12 +15,12 @@ namespace DBTest
 		/// </summary>
 		static NowPlayingController()
 		{
-			Mediator.RegisterPermanent( SongSelected, typeof( SongSelectedMessage ) );
-			Mediator.RegisterPermanent( SelectedLibraryChanged, typeof( SelectedLibraryChangedMessage ) );
-			Mediator.RegisterPermanent( ShuffleModeChanged, typeof( ShuffleModeChangedMessage ) );
-			Mediator.RegisterPermanent( MediaControlPlayNext, typeof( MediaControlPlayNextMessage ) );
-			Mediator.RegisterPermanent( MediaControlPlayPrevious, typeof( MediaControlPlayPreviousMessage ) );
-			Mediator.RegisterPermanent( SongFinished, typeof( SongFinishedMessage ) );
+			SongSelectedMessage.Register( SongSelected );
+			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+			ShuffleModeChangedMessage.Register( ShuffleModeChanged );
+			MediaControlPlayNextMessage.Register( MediaControlPlayNext );
+			MediaControlPlayPreviousMessage.Register( MediaControlPlayPrevious );
+			SongFinishedMessage.Register( SongFinished );
 		}
 
 		/// <summary>
@@ -217,14 +217,14 @@ namespace DBTest
 		/// Inform the reporter 
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongSelected( object _ ) => DataReporter?.SongSelected();
+		private static void SongSelected() => DataReporter?.SongSelected();
 
 		/// <summary>
 		/// Called when a SelectedLibraryChangedMessage has been received
 		/// Reload the data
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( object _ ) => StorageDataAvailable();
+		private static void SelectedLibraryChanged( int _ ) => StorageDataAvailable();
 
 		/// <summary>
 		/// Called when a ShuffleModeChangedMessage is received.
@@ -232,7 +232,7 @@ namespace DBTest
 		/// If Shuffle mode has been turned on then shuffle the current playlist
 		/// </summary>
 		/// <param name="message"></param>
-		private static void ShuffleModeChanged( object _ )
+		private static void ShuffleModeChanged()
 		{
 			if ( Playback.ShufflePlayOn == true )
 			{
@@ -244,7 +244,7 @@ namespace DBTest
 		/// Play the next song in the playlist
 		/// </summary>
 		/// <param name="_message"></param>
-		private static void MediaControlPlayNext( object _ )
+		private static void MediaControlPlayNext()
 		{
 			NowPlayingViewModel.CurrentSongIndex = ( NowPlayingViewModel.CurrentSongIndex == ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) ) ?
 				0 : NowPlayingViewModel.CurrentSongIndex + 1;
@@ -256,7 +256,7 @@ namespace DBTest
 		/// Play the previous song in the playlist
 		/// </summary>
 		/// <param name="_message"></param>
-		private static void MediaControlPlayPrevious( object _ )
+		private static void MediaControlPlayPrevious()
 		{
 			NowPlayingViewModel.CurrentSongIndex = ( NowPlayingViewModel.CurrentSongIndex > 0 ) ? NowPlayingViewModel.CurrentSongIndex - 1 :
 				NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1;
@@ -270,7 +270,7 @@ namespace DBTest
 		/// If shuffle mode is on then shuffle the songs before playimng the first one
 		/// </summary>
 		/// <param name="_"></param>
-		private static void SongFinished( object _ )
+		private static void SongFinished( Song _ )
 		{
 			if ( NowPlayingViewModel.CurrentSongIndex < ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) )
 			{

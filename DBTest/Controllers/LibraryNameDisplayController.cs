@@ -11,7 +11,7 @@
 		static LibraryNameDisplayController()
 		{
 			// When a library change message is received save it and report
-			Mediator.RegisterPermanent( ( object _ ) => { StorageDataAvailable(); DataReporter?.DataAvailable(); } , typeof( SelectedLibraryChangedMessage ) );
+			SelectedLibraryChangedMessage.Register( ( int _ ) => { StorageDataAvailable(); DataReporter?.DataAvailable(); } );
 		}
 
 		/// <summary>
