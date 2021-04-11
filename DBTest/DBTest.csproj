@@ -66,6 +66,7 @@
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="Application\ApplicationShutdownService.cs" />
     <Compile Include="Application\ApplicationShutdownInterface.cs" />
+    <Compile Include="Application\MediaControllerView.cs" />
     <Compile Include="AutoplayManagement\AutoplayModel.cs" />
     <Compile Include="BaseView\AlbumViewHolder.cs" />
     <Compile Include="BaseView\BaseBoundControl.cs" />
@@ -557,6 +558,18 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\popup_song_layout.axml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\skip_next.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\skip_prev.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

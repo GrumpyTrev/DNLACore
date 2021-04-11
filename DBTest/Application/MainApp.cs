@@ -80,8 +80,7 @@ namespace DBTest
 		{
 			instance.playbackMonitoring.BindToMenu( menu, context, activityContent );
 			instance.playbackModeViewer.BindToMenu( menu, context, activityContent );
-			instance.libraryNameDisplay.BindToMenu( menu, context, activityContent );
-			instance.mediaControllerInterface.BindToMenu( menu, context, activityContent );
+//			instance.mediaControllerInterface.BindToMenu( menu, context, activityContent );
 		}
 
 		/// <summary>
@@ -91,10 +90,8 @@ namespace DBTest
 		/// <param name="context"></param>
 		public static void BindView( View view, Context context )
 		{
-			instance.playbackMonitoring.BindToView( view, context );
-			instance.playbackModeViewer.BindToView( view, context );
 			instance.libraryNameDisplay.BindToView( view, context );
-			instance.mediaControllerInterface.BindToView( view, context );
+			instance.mediaControllerView.BindToView( view, context );
 		}
 
 		/// <summary>
@@ -233,6 +230,11 @@ namespace DBTest
 		/// The LibraryNameDisplay instance used to display the library name
 		/// </summary>
 		private readonly LibraryNameDisplay libraryNameDisplay = new LibraryNameDisplay();
+
+		/// <summary>
+		/// The MediaControllerView instance used to control playback
+		/// </summary>
+		private readonly MediaControllerView mediaControllerView = new MediaControllerView();
 
 		/// <summary>
 		/// The control user to interface to the media controller

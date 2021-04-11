@@ -32,7 +32,7 @@ namespace DBTest
 			SupportActionBar.SetDisplayShowTitleEnabled( false );
 
 			// Allow controls to bind to items on the toolbar
-			MainApp.BindView( toolbar, this );
+			MainApp.BindView( contentView, this );
 
 			// Pass on the fragment manager to the CommandRouter
 			CommandRouter.Manager = SupportFragmentManager;
