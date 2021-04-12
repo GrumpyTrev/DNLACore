@@ -10,17 +10,12 @@
 		/// </summary>
 		public static void ClearModel()
 		{
-			MediaControllerHiddenByUser = true;
 			PlaybackDeviceAvailable = false;
 			CurrentPosition = 0;
 			Duration = 0;
 			IsPlaying = false;
+			SongPlaying = null;
 		}
-
-		/// <summary>
-		/// Keep track of whether or not the Media Controller has been hidden by the user
-		/// </summary>
-		public static bool MediaControllerHiddenByUser { get; set; } = false;
 
 		/// <summary>
 		/// Is there a playback device currently available
@@ -43,6 +38,11 @@
 		public static int Duration { get; set; } = 0;
 
 		/// <summary>
+		/// The current song being played
+		/// </summary>
+		public static Song SongPlaying { get; set; } = null;
+
+		/// <summary>
 		/// Is the track being played
 		/// </summary>
 		public static bool IsPlaying { get; set; } = false;
@@ -56,6 +56,7 @@
 		/// Can the playback position be moved forward
 		/// </summary>
 		public static bool CanSeekForeward { get; set; } = true;
+
 		/// <summary>
 		/// Can the playback position be moved backward
 		/// </summary>

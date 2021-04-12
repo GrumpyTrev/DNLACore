@@ -43,8 +43,6 @@ namespace DBTest
 					// Show the popup when the button is selected
 					imageButton.Click += ( sender, args ) =>
 					{
-						// Enable or disable the playback visible item according to the current media controller visibility
-						popupMenu.Menu.FindItem( Resource.Id.show_media_controls ).SetEnabled( MediaControllerViewModel.MediaControllerHiddenByUser == true );
 						popupMenu.Show();
 					};
 

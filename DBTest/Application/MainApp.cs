@@ -80,7 +80,6 @@ namespace DBTest
 		{
 			instance.playbackMonitoring.BindToMenu( menu, context, activityContent );
 			instance.playbackModeViewer.BindToMenu( menu, context, activityContent );
-//			instance.mediaControllerInterface.BindToMenu( menu, context, activityContent );
 		}
 
 		/// <summary>
@@ -235,11 +234,6 @@ namespace DBTest
 		/// The MediaControllerView instance used to control playback
 		/// </summary>
 		private readonly MediaControllerView mediaControllerView = new MediaControllerView();
-
-		/// <summary>
-		/// The control user to interface to the media controller
-		/// </summary>
-		private readonly MediaControllerInterface mediaControllerInterface = new MediaControllerInterface();
 
 		/// <summary>
 		/// The PlaybackRouter used to pass playback requests to the the correct playback device

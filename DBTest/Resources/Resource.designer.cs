@@ -3026,8 +3026,8 @@ namespace DBTest
 			// aapt resource value: 0x7f080103
 			public const int select_library = 2131230979;
 			
-			// aapt resource value: 0x7f08010d
-			public const int select_playback_device = 2131230989;
+			// aapt resource value: 0x7f08010c
+			public const int select_playback_device = 2131230988;
 			
 			// aapt resource value: 0x7f080074
 			public const int shortcut = 2131230836;
@@ -3040,9 +3040,6 @@ namespace DBTest
 			
 			// aapt resource value: 0x7f080025
 			public const int showTitle = 2131230757;
-			
-			// aapt resource value: 0x7f08010c
-			public const int show_media_controls = 2131230988;
 			
 			// aapt resource value: 0x7f08010a
 			public const int shuffle_on_off = 2131230986;

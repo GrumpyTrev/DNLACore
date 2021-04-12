@@ -66,7 +66,7 @@
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="Application\ApplicationShutdownService.cs" />
     <Compile Include="Application\ApplicationShutdownInterface.cs" />
-    <Compile Include="Application\MediaControllerView.cs" />
+    <Compile Include="MediaControllerView\MediaControllerView.cs" />
     <Compile Include="AutoplayManagement\AutoplayModel.cs" />
     <Compile Include="BaseView\AlbumViewHolder.cs" />
     <Compile Include="BaseView\BaseBoundControl.cs" />
@@ -75,11 +75,9 @@
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
     <Compile Include="BaseView\BaseViewModel.cs" />
     <Compile Include="CommandHandlers\MarkAlbumsCommandHandler.cs" />
-    <Compile Include="CommandHandlers\ShowPlaybackControlsCommandHander.cs" />
     <Compile Include="Controllers\MediaNotificationController.cs" />
     <Compile Include="Controllers\MediaControllerController.cs" />
     <Compile Include="BaseView\ConfirmationDialogFragment.cs" />
-    <Compile Include="MediaControllerView\MediaControllerInterface.cs" />
     <Compile Include="MediaControllerView\MediaControllerViewModel.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationViewModel.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationServiceInterface.cs" />
@@ -201,7 +199,6 @@
     <Compile Include="PlaybackManagement\PlaybackCapabilities.cs" />
     <Compile Include="PlaybackManagement\PlaybackDevice.cs" />
     <Compile Include="PlaybackManagement\PlaybackDevices.cs" />
-    <Compile Include="MediaControllerView\MediaControllerNoHide.cs" />
     <Compile Include="PlaybackManagement\PlaybackManagerModel.cs" />
     <Compile Include="Messages\MessageRegistration.cs" />
     <Compile Include="Helpers\MultiDictionary.cs" />

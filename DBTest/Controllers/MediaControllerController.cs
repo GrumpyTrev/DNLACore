@@ -14,17 +14,14 @@
 			MediaProgressMessage.Register( MediaProgress );
 			PlaybackDeviceAvailableMessage.Register( DeviceAvailable );
 			MediaPlayingMessage.Register( MediaPlaying );
+			SongStartedMessage.Register( SongStarted );
+			SongFinishedMessage.Register( SongFinished );
 		}
 
 		/// <summary>
 		/// Get the library name data 
 		/// </summary>
 		public static void GetControllerData() => dataReporter.GetData();
-
-		/// <summary>
-		/// Called to show the playback controls. Pass on to the view
-		/// </summary>
-		public static void ShowMediaController() => DataReporter?.ShowMediaControls();
 
 		/// <summary>
 		/// Called when the media control pause button has been pressed.
@@ -59,10 +56,7 @@
 		/// <summary>
 		/// Called during startup when the storage data is available
 		/// </summary>
-		private static void StorageDataAvailable()
-		{
-			DataReporter?.DataAvailable();
-		}
+		private static void StorageDataAvailable() => DataReporter?.DataAvailable();
 
 		/// <summary>
 		/// Called when a MediaProgressMessage has been received.
@@ -91,6 +85,28 @@
 		}
 
 		/// <summary>
+		/// Called when a SongStartedMessage has been received
+		/// Update the model and report the change
+		/// </summary>
+		/// <param name="songBeingPlayed"></param>
+		private static void SongStarted( Song songBeingPlayed )
+		{
+			MediaControllerViewModel.SongPlaying = songBeingPlayed;
+			DataReporter?.SongPlayingChanged();
+		}
+
+		/// <summary>
+		/// Called when a SongFinishedMessage has been received
+		/// Update the model and report the change
+		/// </summary>
+		/// <param name="_"></param>
+		private static void SongFinished( Song _ )
+		{
+			MediaControllerViewModel.SongPlaying = null;
+			DataReporter?.SongPlayingChanged();
+		}
+
+		/// <summary>
 		/// Called when the PlaybackDeviceAvailableMessage message is received
 		/// If this is a change then report it
 		/// </summary>
@@ -99,12 +115,12 @@
 		{
 			// If the view data is not available yet, just update the model.
 			// Otherwise report to the view and then update the model
+			MediaControllerViewModel.PlaybackDeviceAvailable = ( newDevice != null );
+
 			if ( dataReporter.DataAvailable == true )
 			{
-				DataReporter?.DeviceAvailable( newDevice != null );
+				DataReporter?.DeviceAvailable();
 			}
-
-			MediaControllerViewModel.PlaybackDeviceAvailable = ( newDevice != null );
 		}
 
 		/// <summary>
@@ -121,10 +137,10 @@
 		/// </summary>
 		public interface IMediaReporter : DataReporter.IReporter
 		{
-			void DeviceAvailable( bool available );
+			void DeviceAvailable();
 			void PlayStateChanged();
-			void ShowMediaControls();
 			void MediaProgress();
+			void SongPlayingChanged();
 		}
 
 		/// <summary>
