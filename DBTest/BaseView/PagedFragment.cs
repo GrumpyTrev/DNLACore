@@ -120,9 +120,6 @@ namespace DBTest
 
 			// Bind the SortSelector
 			BaseModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
-
-			// Restart the user activity timer
-			UserActivityDetected();
 		}
 
 		/// <summary>
