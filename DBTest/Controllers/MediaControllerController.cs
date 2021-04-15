@@ -14,8 +14,8 @@
 			MediaProgressMessage.Register( MediaProgress );
 			PlaybackDeviceAvailableMessage.Register( DeviceAvailable );
 			MediaPlayingMessage.Register( MediaPlaying );
-			SongStartedMessage.Register( SongStarted );
 			SongFinishedMessage.Register( SongFinished );
+			SongSelectedMessage.Register( SongSelected );
 		}
 
 		/// <summary>
@@ -85,17 +85,6 @@
 		}
 
 		/// <summary>
-		/// Called when a SongStartedMessage has been received
-		/// Update the model and report the change
-		/// </summary>
-		/// <param name="songBeingPlayed"></param>
-		private static void SongStarted( Song songBeingPlayed )
-		{
-			MediaControllerViewModel.SongPlaying = songBeingPlayed;
-			DataReporter?.SongPlayingChanged();
-		}
-
-		/// <summary>
 		/// Called when a SongFinishedMessage has been received
 		/// Update the model and report the change
 		/// </summary>
@@ -104,6 +93,23 @@
 		{
 			MediaControllerViewModel.SongPlaying = null;
 			DataReporter?.SongPlayingChanged();
+		}
+
+		/// <summary>
+		/// Called when a SongSelectedMessage has been received
+		/// Get the selected Song from the Now Playing playlist and report it
+		/// </summary>
+		private static void SongSelected()
+		{
+			int currentSongIndex = Playlists.CurrentSongIndex;
+
+			// Only pass this on if a song has been selected. If no song is selected then SongFinished should have been called.
+			if ( currentSongIndex != -1 )
+			{
+				MediaControllerViewModel.SongPlaying = 
+					( ( SongPlaylistItem )Playlists.GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId ).PlaylistItems[ currentSongIndex ] ).Song;
+				DataReporter?.SongPlayingChanged();
+			}
 		}
 
 		/// <summary>

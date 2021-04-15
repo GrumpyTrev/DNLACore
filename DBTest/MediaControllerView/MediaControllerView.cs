@@ -31,12 +31,6 @@ namespace DBTest
 				duration = expandedLayout.FindViewById<TextView>( Resource.Id.textDuration );
 				position = expandedLayout.FindViewById<TextView>( Resource.Id.textCurrentPosition );
 
-				// Assume no playback device available at startup. Hide everything
-				DeviceAvailable();
-
-				// Display the appropriate playing/not playing icons 
-				PlayStateChanged();
-
 				// Respond to non-command layout clicks to collapse and expande the view
 				collapsedLayout.SetOnClickListener( this );
 				expandedLayout.SetOnClickListener( this );
@@ -66,6 +60,12 @@ namespace DBTest
 				{
 					MediaControllerController.PlayPrevious();
 				};
+
+				// Assume no playback device available at startup. Hide everything
+				DeviceAvailable();
+
+				// Display the appropriate playing/not playing icons 
+				PlayStateChanged();
 
 				// Link in to the controller
 				MediaControllerController.DataReporter = this;
@@ -128,13 +128,23 @@ namespace DBTest
 		/// Display either the play or pause buttons
 		/// </summary>
 		public void PlayStateChanged() => 
-			playButton?.SetImageResource( ( MediaControllerViewModel.IsPlaying == true ) ? Resource.Drawable.pause : Resource.Drawable.play );
+			playButton.SetImageResource( ( MediaControllerViewModel.IsPlaying == true ) ? Resource.Drawable.pause : Resource.Drawable.play );
 
 		/// <summary>
-		/// Called when the Somng being played has changed
+		/// Called when the Song being played has changed
 		/// </summary>
-		public void SongPlayingChanged() => songTitle.Text = ( MediaControllerViewModel.SongPlaying == null ) ? ""
-				: string.Format( "{0} : {1}", MediaControllerViewModel.SongPlaying.Title, MediaControllerViewModel.SongPlaying.Artist.Name );
+		public void SongPlayingChanged()
+		{
+			if ( MediaControllerViewModel.SongPlaying == null )
+			{
+				songTitle.Text = "";
+				SetProgress( 0, 0 );
+			}
+			else
+			{
+				songTitle.Text = string.Format( "{0} : {1}", MediaControllerViewModel.SongPlaying.Title, MediaControllerViewModel.SongPlaying.Artist.Name );
+			}
+		}
 
 		/// <summary>
 		/// Called when the current position of the playing song has changed.
