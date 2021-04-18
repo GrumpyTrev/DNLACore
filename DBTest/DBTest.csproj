@@ -66,6 +66,7 @@
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="Application\ApplicationShutdownService.cs" />
     <Compile Include="Application\ApplicationShutdownInterface.cs" />
+    <Compile Include="BaseView\SongViewHolder.cs" />
     <Compile Include="MediaControllerView\MediaControllerView.cs" />
     <Compile Include="AutoplayManagement\AutoplayModel.cs" />
     <Compile Include="BaseView\AlbumViewHolder.cs" />

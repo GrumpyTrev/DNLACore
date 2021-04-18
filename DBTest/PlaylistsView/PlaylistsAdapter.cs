@@ -179,23 +179,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// View holder for the child Song items
-		/// </summary>
-		private class SongViewHolder : ExpandableListViewHolder
-		{
-			public void DisplaySong( SongPlaylistItem playlistItem )
-			{
-				Title.Text = playlistItem.Song.Title;
-				Duration.Text = TimeSpan.FromSeconds( playlistItem.Song.Length ).ToString( @"mm\:ss" );
-				Artist.Text = playlistItem.Artist.Name;
-			}
-
-			public TextView Artist { get; set; }
-			public TextView Title { get; set; }
-			public TextView Duration { get; set; }
-		}
-
-		/// <summary>
 		/// Derived classes must implement this method to provide a view for a child item
 		/// </summary>
 		/// <param name="groupPosition"></param>
