@@ -53,7 +53,10 @@ namespace DBTest
 			// Create the adapter for the list view and link to it
 			CreateAdapter( ListView );
 			ListView.SetAdapter( Adapter );
-			Adapter.UserActivityDetectedAction = UserActivityDetected; 
+			Adapter.UserActivityDetectedAction = UserActivityDetected;
+
+			// Link the ListView to the GotoTopControl
+			BaseModel.GotoTopControl.BindControl( FragmentView, ListView );
 
 			// Create an CommandBar to encapsulate the bottom toolbar and its command buttons
 			CommandBar = new CommandBar( FragmentView, Resource.Id.bottomToolbar, HandleCommand );

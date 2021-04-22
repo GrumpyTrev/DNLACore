@@ -4,13 +4,12 @@
 	android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-	<ExpandableListView
+	<DBTest.MultiScrollListenerExpandableListView
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:id="@+id/playlistsList"
 		android:fastScrollEnabled="true"
-		android:layout_weight="1">
-	</ExpandableListView>
+		android:layout_weight="1"/>
 	<android.support.v7.widget.Toolbar
 		android:id="@+id/bottomToolbar"
 		android:layout_width="fill_parent"

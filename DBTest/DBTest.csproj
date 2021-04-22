@@ -66,6 +66,8 @@
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="Application\ApplicationShutdownService.cs" />
     <Compile Include="Application\ApplicationShutdownInterface.cs" />
+    <Compile Include="BaseView\GotoTopControl.cs" />
+    <Compile Include="BaseView\MultiScrollListenerExpandableListView.cs" />
     <Compile Include="BaseView\SongViewHolder.cs" />
     <Compile Include="MediaControllerView\MediaControllerView.cs" />
     <Compile Include="AutoplayManagement\AutoplayModel.cs" />
@@ -567,6 +569,14 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\skip_prev.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\goto_top.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\media_controller.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

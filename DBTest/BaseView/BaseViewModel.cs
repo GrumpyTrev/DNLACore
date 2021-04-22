@@ -21,5 +21,10 @@ namespace DBTest
 		/// Class used to select the album sort order
 		/// </summary>
 		public SortSelector SortSelector { get; } = new SortSelector();
+
+		/// <summary>
+		/// Control used to provide goto top shortcut
+		/// </summary>
+		public GotoTopControl GotoTopControl { get; } = new GotoTopControl();
 	}
 }
