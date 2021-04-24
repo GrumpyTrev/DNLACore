@@ -28,8 +28,8 @@
 		android:layout_height="?attr/actionBarSize"
 		android:layout_gravity="bottom"
 		android:background="?attr/colorPrimary"
-		app:theme="@style/AppTheme"
-		app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+		android:theme="@style/AppTheme"
+		android:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
 		<include android:id="@+id/mark"
 			layout="@layout/bottom_button"/>

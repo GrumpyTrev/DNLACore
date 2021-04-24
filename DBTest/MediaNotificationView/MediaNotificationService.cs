@@ -3,16 +3,15 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Support.V4.App;
-using Android.Support.V4.Media;
 using Android.Support.V4.Media.Session;
-using static Android.Support.V4.Media.Session.MediaControllerCompat;
+using static Android.Support.V4.Media.App.NotificationCompat;
 
 namespace DBTest
 {
-	/// <summary>
-	/// The MediaNotificationService is used to display notifications of the currently playing song and to respond to controls from the notification
-	/// </summary>
-	[Service]
+    /// <summary>
+    /// The MediaNotificationService is used to display notifications of the currently playing song and to respond to controls from the notification
+    /// </summary>
+    [Service]
 	class MediaNotificationService : Service
 	{
 		/// <summary>
@@ -20,17 +19,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="intent"></param>
 		/// <returns></returns>
-		public override IBinder OnBind( Intent intent ) => serviceBinder;
-
-		/// <summary>
-		/// Called when the service is first created. Create the binder to pass back the service instance
-		/// </summary>
-		public override void OnCreate()
-		{
-			base.OnCreate();
-
-			serviceBinder = new MediaNotificationServiceBinder( this );
-		}
+		public override IBinder OnBind( Intent _ ) => new MediaNotificationServiceBinder( this );
 
 		/// <summary>
 		/// Called when the service is no longer required
@@ -52,10 +41,10 @@ namespace DBTest
 		[return: GeneratedEnum]
 		public override StartCommandResult OnStartCommand( Intent intent, [GeneratedEnum] StartCommandFlags flags, int startId )
 		{
-			// One time initialisation of the MediaSesson instance
-			if ( mediaSession == null )
+			// One time initialisation 
+			if ( mediaStyle == null )
 			{
-				InitMediaSession();
+				InitialiseNotification();
 			}
 
 			// Handle any incoming controls
@@ -103,25 +92,25 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Initialise the MediaSession used to route commands and initialise the notification channel
+		/// Initialise the bits and bobs used for the notification
 		/// </summary>
-		private void InitMediaSession()
+		private void InitialiseNotification()
 		{
 			// The mediaButtonReceiver parameter is required for pre-Lollipop SDK
 			ComponentName mediaButtonReceiver = new ComponentName( this, Java.Lang.Class.FromType( typeof( MediaButtonReceiver ) ) );
 
-			mediaSession = new MediaSessionCompat( this, AudioPlayerId, mediaButtonReceiver, null ) { Active = true };
-			mediaSession.SetFlags( MediaSessionCompat.FlagHandlesTransportControls );
+            MediaSessionCompat mediaSession = new MediaSessionCompat( this, AudioPlayerId, mediaButtonReceiver, null ) { Active = true };
+            mediaStyle = new MediaStyle().SetMediaSession( mediaSession.SessionToken ).SetShowActionsInCompactView( 0 );
 
-			transportControls = mediaSession.Controller.GetTransportControls();
+            // The play and pause actions to be triggered when the icon is clicked
+            playAction = new NotificationCompat.Action( Android.Resource.Drawable.IcMediaPlay, "play", PlaybackAction( PlayActionName ) );
+            pauseAction = new NotificationCompat.Action( Android.Resource.Drawable.IcMediaPause, "pause", PlaybackAction( PauseActionName ) );
 
-			mediaSession.SetCallback( new MediaControlCallback() { Service = this } );
-
-			if ( Build.VERSION.SdkInt >= BuildVersionCodes.O )
+            if ( Build.VERSION.SdkInt >= BuildVersionCodes.O )
 			{
 				NotificationChannel channel = new NotificationChannel( AudioPlayerId, ChannelName, NotificationImportance.Low )
 					{ Description = ChannelDescription };
-				( ( NotificationManager )GetSystemService( Context.NotificationService ) ).CreateNotificationChannel( channel );
+                NotificationManager.FromContext( this ).CreateNotificationChannel( channel );
 			}
 		}
 
@@ -132,28 +121,18 @@ namespace DBTest
 		{
 			if ( songBeingPlayed != null )
 			{
-				// Update the session data - not sure why
-				mediaSession.SetMetadata( new MediaMetadataCompat.Builder()
-					.PutString( MediaMetadataCompat.MetadataKeyTitle, songBeingPlayed.Title )
-					.PutString( MediaMetadataCompat.MetadataKeyArtist, ( songBeingPlayed.Artist != null ) ? songBeingPlayed.Artist.Name : "" )
-					.Build() );
-
-				// Create an intent for the notification and an icon representing the action that can be performed
-				PendingIntent playPauseAction = ( SongPlaying == false ) ? PlaybackAction( PlayActionName ) : PlaybackAction( PauseActionName );
-				int notificationAction = ( SongPlaying == false ) ? Android.Resource.Drawable.IcMediaPlay : Android.Resource.Drawable.IcMediaPause;
-
 				// Build and display the notification
-				Android.Support.V4.App.NotificationCompat.Builder builder = new Android.Support.V4.App.NotificationCompat.Builder( this, AudioPlayerId )
+                // This notification causes the emittion of a warning by the android system. This is due to a problem with the 
+                // support library that cannot be circumvented.
+				NotificationCompat.Builder builder = new NotificationCompat.Builder( this, AudioPlayerId )
 					.SetShowWhen( false )
-					.SetStyle( new Android.Support.V4.Media.App.NotificationCompat.MediaStyle()
-						.SetMediaSession( mediaSession.SessionToken )
-						.SetShowActionsInCompactView( 0 ) )
+					.SetStyle( mediaStyle )
 					.SetSmallIcon( Android.Resource.Drawable.StatSysHeadset )
 					.SetContentTitle( songBeingPlayed.Title )
 					.SetContentText( ( songBeingPlayed.Artist != null ) ? songBeingPlayed.Artist.Name : "" )
-					.AddAction( notificationAction, "pause", playPauseAction );
+					.AddAction( ( SongPlaying == false ) ? playAction : pauseAction );
 
-				NotificationManagerCompat.From( this ).Notify( NotificationId, builder.Build() );
+                NotificationManagerCompat.From( this ).Notify( NotificationId, builder.Build() );
 			}
 		}
 
@@ -172,11 +151,11 @@ namespace DBTest
 			{
 				if ( playBackAction.Action == PlayActionName )
 				{
-					transportControls.Play();
+                    Reporter?.MediaPlay();
 				}
 				else if ( playBackAction.Action == PauseActionName )
 				{
-					transportControls.Pause();
+                    Reporter?.MediaPause();
 				}
 			}
 		}
@@ -220,52 +199,21 @@ namespace DBTest
 			void MediaPause();
 		}
 
-		/// <summary>
-		/// THe MediaControlCallback class is used to route Media Session transport callbacks to the service's reporter
-		/// </summary>
-		private class MediaControlCallback: MediaSessionCompat.Callback
-		{
-			/// <summary>
-			/// Pass on a Play control
-			/// </summary>
-			public override void OnPlay()
-			{
-				Service.Reporter?.MediaPlay();
-			}
+        /// <summary>
+        /// The MediaStyle to be supplied to the notification
+        /// </summary>
+        private MediaStyle mediaStyle = null;
 
-			/// <summary>
-			/// Pass on a Pause control
-			/// </summary>
-			public override void OnPause()
-			{
-				Service.Reporter?.MediaPause();
-			}
+        /// <summary>
+        /// The Notification actions
+        /// </summary>
+        private NotificationCompat.Action playAction = null;
+        private NotificationCompat.Action pauseAction = null;
 
-			/// <summary>
-			/// The MediaNotificationService used to carry out the actions 
-			/// </summary>
-			public MediaNotificationService Service { private get; set; }
-		}
-
-		/// <summary>
-		/// The IBinder instance for this service
-		/// </summary>
-		private IBinder serviceBinder = null;
-
-		/// <summary>
-		/// The MediaSession
-		/// </summary>
-		private MediaSessionCompat mediaSession = null;
-
-		/// <summary>
-		/// The TransportControls instance
-		/// </summary>
-		private TransportControls transportControls = null;
-
-		/// <summary>
-		/// The current song being played
-		/// </summary>
-		private Song songBeingPlayed = null;
+        /// <summary>
+        /// The current song being played
+        /// </summary>
+        private Song songBeingPlayed = null;
 
 		/// <summary>
 		/// Is the song being played or is currently paused
