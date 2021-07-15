@@ -56,20 +56,40 @@ namespace DBTest
 		/// </summary>
 		public void SongBeingPlayed( int index )
 		{
-			// Highlight the item
-			if ( NowPlayingAdapterModel.SongPlayingIndex != index )
-			{
-				NowPlayingAdapterModel.SongPlayingIndex = index;
+            // Highlight the item
+            // This can sometimes be called before the ListView has sorted itself out. So Post the highlighting action on the ListView's queue
+            parentView.Post( () => 
+            {
+                NowPlayingAdapterModel.SongPlayingIndex = index;
 
-				// If there is no user interaction going on then make sure this item is visible
-				if ( IsUserActive == false )
-				{
-					UserActivityChanged();
-				}
+                // If there is no user interaction going on then make sure this item is visible
+                if ( IsUserActive == false )
+                {
+                    UserActivityChanged();
+                }
 
-				NotifyDataSetChanged();
-			}
-		}
+                NotifyDataSetChanged();
+            } );
+        }
+
+        /// <summary>
+        /// Either select or deselect all the displayed items
+        /// </summary>
+        /// <param name="select"></param>
+        public void SelectAll( bool select )
+        {
+            bool selectionChanged = false;
+            for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
+            {
+                selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
+            }
+
+            if ( selectionChanged == true )
+            {
+                stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
+                NotifyDataSetChanged();
+            }
+        }
 
 		/// <summary>
 		/// Called when a group item has been clicked
@@ -133,9 +153,7 @@ namespace DBTest
 			NotifyDataSetChanged();
 		}
 
-
-
-		/// <summary>
+        /// <summary>
 		/// Provide a view containing either album or song details at the specified position
 		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
 		/// </summary>
@@ -212,7 +230,17 @@ namespace DBTest
 							// Attempt to display this somewhere in the middle
 							int visibleRange = parentView.LastVisiblePosition - parentView.FirstVisiblePosition;
 
-							parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - ( visibleRange / 2 ), 0 ) );
+                            // If this is called when the ListView does not have focus it does not always actually do the scroll.
+                            // So get focus first.
+                            // Do all this on the ListView's queue
+                            parentView.ClearFocus();
+                            parentView.Post( () => 
+                            {
+                                parentView.RequestFocusFromTouch();
+                                parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - ( visibleRange / 2 ), 0 ) );
+                                parentView.RequestFocus();
+                            } );
+
 						}
 					}
 					else

@@ -10,7 +10,7 @@ namespace DBTest
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
-		public ArtistsFragment() => ActionModeTitle = NoItemsSelectedText;
+		public ArtistsFragment() => ActionMode.ActionModeTitle = NoItemsSelectedText;
 
 		/// <summary>
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
@@ -27,14 +27,6 @@ namespace DBTest
 				await ArtistsController.GetArtistContentsAsync( ( Artist )artistOrArtistAlbum );
 			}
 		}
-
-		/// <summary>
-		/// Called when a menu item on the Contextual Action Bar has been selected
-		/// </summary>
-		/// <param name="mode"></param>
-		/// <param name="item"></param>
-		/// <returns></returns>
-		public override bool OnActionItemClicked( ActionMode mode, IMenuItem item ) => false;
 
 		/// <summary>
 		/// Called when the Controller has obtained the Artist data
@@ -62,8 +54,8 @@ namespace DBTest
 		/// Called when the number of selected items (songs) has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) => 
-			ActionModeTitle = ( selectedObjects.Songs.Count == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.Songs.Count );
+		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) =>
+			ActionMode.ActionModeTitle = ( selectedObjects.Songs.Count == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.Songs.Count );
 
 		/// <summary>
 		/// Called when the sort selector has changed the sort order

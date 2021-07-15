@@ -1,10 +1,10 @@
 ﻿using Android.OS;
-using Android.Views;
 using Android.Support.V4.App;
 using Android.Widget;
 using System.Collections.Generic;
 using Android.Support.V7.Widget;
 using System.Threading;
+using Android.Views;
 
 namespace DBTest
 {
@@ -12,7 +12,7 @@ namespace DBTest
 	/// Base class for all the fragments showing the database contents
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class PagedFragment<T>: Fragment, ActionMode.ICallback, IAdapterEventHandler, SortSelector.ISortReporter
+	public abstract class PagedFragment<T>: Fragment, IAdapterEventHandler, SortSelector.ISortReporter, ActionModeHandler.ICallback
 	{
 		/// <summary>
 		/// Default constructor.
@@ -21,6 +21,7 @@ namespace DBTest
 		public PagedFragment()
 		{
 			userInteractionTimer = new Timer( timer => UserInteractionTimerExpired(), null, Timeout.Infinite, Timeout.Infinite );
+			ActionMode = new ActionModeHandler( this );
 		}
 
 		/// <summary>
@@ -33,6 +34,10 @@ namespace DBTest
 
 			// Allow this fragment to add menu items to the activity toolbar
 			HasOptionsMenu = true;
+
+			// Link into the ActionModeHandler
+			ActionMode.Activity = Activity;
+			ActionMode.ViewContext = Context;
 		}
 
 		/// <summary>
@@ -64,13 +69,8 @@ namespace DBTest
 			// Link this fragement's post command action to the CommandHandlerCallback instance
 			commandCallback.Callback = LeaveActionMode;
 
-			// Sometimes the fragment is made visible before its views have been created.
-			// Any attempt to re-start action mode is delayed until now.
-			if ( delayedActionMode == true )
-			{
-				Activity.StartActionMode( this );
-				delayedActionMode = false;
-			}
+			// Check if a delayed restoration of action mode can be carried out now
+			ActionMode.RestoreDelayedActionMode();
 
 			// Carry out post view creation action via a Post so that any response comes back after the UI has been created
 			FragmentView.Post( () => { PostViewCreateAction(); } );
@@ -161,63 +161,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a menu item on the Contextual Action Bar has been selected
-		/// </summary>
-		/// <param name="mode"></param>
-		/// <param name="item"></param>
-		/// <returns></returns>
-		public virtual bool OnActionItemClicked( ActionMode mode, IMenuItem item ) => false;
-
-		/// <summary>
-		/// Called when the Contextual Action Bar is created.
-		/// Add any configured menu items
-		/// </summary>
-		/// <param name="mode"></param>
-		/// <param name="menu"></param>
-		/// <returns></returns>
-		public bool OnCreateActionMode( ActionMode mode, IMenu menu )
-		{
-			// Keep a record of the ActionMode instance so that it can be destroyed when this fragment is hidden
-			actionModeInstance = mode;
-
-			// Set the common text title
-			actionModeInstance.Title = actionModeTitle;
-
-			// Let the derived classed create any menus they require
-			OnSpecialisedCreateActionMode( mode, menu );
-
-			// Should the command bar be shown
-			CommandBar.Visibility = ShowCommandBar();
-
-			// Treat this as user interaction
-			UserActivityDetected();
-
-			return true;
-		}
-
-		/// <summary>
-		/// Called when the Contextual Action Bar is destroyed.
-		/// </summary>
-		/// <param name="mode"></param>
-		public void OnDestroyActionMode( ActionMode mode )
-		{
-			// If the Contextual Action Bar is being destroyed by the user then inform the adapter
-			if ( retainAdapterActionMode == false )
-			{
-				Adapter.ActionMode = false;
-			}
-
-			// Hide the bottom toolbar as well
-			CommandBar.Visibility = false;
-
-			actionModeInstance = null;
-
-			// Treat this as user interaction
-			UserActivityDetected();
-		}
-
-		/// <summary>
-		/// Called when the Controller has obtained the Albums data
+		/// Called when the Controller has obtained the fragments data
 		/// Pass it on to the adapter
 		/// </summary>
 		public virtual void DataAvailable()
@@ -238,14 +182,6 @@ namespace DBTest
 		public virtual void SortOrderChanged() { }
 
 		/// <summary>
-		/// Required by the interface
-		/// </summary>
-		/// <param name="mode"></param>
-		/// <param name="menu"></param>
-		/// <returns></returns>
-		public bool OnPrepareActionMode( ActionMode mode, IMenu menu ) => false;
-
-		/// <summary>
 		/// Override the UserVisibleHint to trap when the fragment's visibility changes
 		/// </summary>
 		public override bool UserVisibleHint
@@ -262,87 +198,45 @@ namespace DBTest
 					// Is the fragment visible
 					if ( base.UserVisibleHint == true )
 					{
-						// If the Contextual Action Bar was being displayed before the fragment was hidden then show it again
-						if ( retainAdapterActionMode == true )
-						{
-							// If the view has not been created yet delay showing the Action Bar until later
-							if ( FragmentView != null )
-							{
-								Activity.StartActionMode( this );
-							}
-							else
-							{
-								delayedActionMode = true;
-							}
-
-							retainAdapterActionMode = false;
-						}
+						ActionMode.RestoreActionMode( FragmentView == null );
 					}
 					else
 					{
 						// Record that the Contextual Action Bar was being shown and then destroy it
-						if ( ActionModeActive == true )
-						{
-							retainAdapterActionMode = true;
-							actionModeInstance.Finish();
-						}
+						ActionMode.StopActionMode( true );
 					}
 				}
 			}
 		}
 
-		/// <summary>
-		/// Called when the user has exited action mode
-		/// </summary>
-		public void LeaveActionMode()
-		{
-			if ( ActionModeActive == true )
-			{
-				retainAdapterActionMode = false;
-				actionModeInstance.Finish();
-			}
-		}
+        /// <summary>
+        /// Called when the user has exited action mode
+        /// </summary>
+        public void LeaveActionMode() => ActionMode.StopActionMode( false );
 
-		/// <summary>
-		/// Called when the count of expanded groups has changed
-		/// Show or hide associated UI elements
-		/// </summary>
-		/// <param name="count"></param>
-		public virtual void ExpandedGroupCountChanged( int count )
+        /// <summary>
+        /// Called when the count of expanded groups has changed
+        /// Show or hide associated UI elements
+        /// </summary>
+        /// <param name="count"></param>
+        public virtual void ExpandedGroupCountChanged( int count )
 		{
 			expandedGroupCount = count;
 
 			collapseItem?.SetVisible( expandedGroupCount > 0 );
 		}
 
-		/// <summary>
-		/// A request to enter action mode has been requested
-		/// Display the Contextual Action Bar
-		/// </summary>
-		public void EnteredActionMode()
-		{
-			// If this fragment is not being displayed then record that the Contextual Action Bar should be displayed when the fragment 
-			// is visible
-			if ( ( IsVisible == true ) && ( UserVisibleHint == true ) )
-			{
-				// Make sure action mode has not already been started due to this fragment being visible
-				if ( ActionModeActive == false )
-				{
-					Activity.StartActionMode( this );
-				}
-			}
-			else
-			{
-				retainAdapterActionMode = true;
-			}
-		}
+        /// <summary>
+        /// A request to enter action mode has been requested
+        /// </summary>
+        public void EnteredActionMode() => ActionMode.StartActionMode( ( IsVisible == true ) && ( UserVisibleHint == true ) );
 
-		/// <summary>
-		/// Called when the selected items have changed
-		/// Update the visibility of any command bar buttons and pass on the objects to the derived classes
-		/// </summary>
-		/// <param name="selectedItems"></param>
-		public void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
+        /// <summary>
+        /// Called when the selected items have changed
+        /// Update the visibility of any command bar buttons and pass on the objects to the derived classes
+        /// </summary>
+        /// <param name="selectedItems"></param>
+        public void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
 		{
 			GroupedSelection selectedObjects = new GroupedSelection( selectedItems.Values );
 
@@ -352,6 +246,45 @@ namespace DBTest
 			// Show the command bar if any of the buttons are visible
 			CommandBar.Visibility = ShowCommandBar();
 		}
+
+		/// <summary>
+		/// Called when the ActionBar has been created
+		/// </summary>
+		public void OnActionBarCreated()
+		{
+			// Should the command bar be shown
+			CommandBar.Visibility = ShowCommandBar();
+
+			// Treat this as user interaction
+			UserActivityDetected();
+		}
+
+		/// <summary>
+		/// Called when the ActionBar has been destroyed
+		/// </summary>
+		/// <param name="informAdapter"></param>
+		public void OnActionBarDestroyed( bool informAdapter )
+		{
+			if ( informAdapter == true )
+			{
+				Adapter.ActionMode = false;
+			}
+
+			// Hide the bottom toolbar as well
+			CommandBar.Visibility = false;
+
+			// Treat this as user interaction
+			UserActivityDetected();
+		}
+
+        /// <summary>
+        /// Called when the Select All checkbox has been clicked on the Action Bar.
+        /// Let the derived class handle this
+        /// </summary>
+        /// <param name="checkedState"></param>
+        public virtual void AllSelected( bool checkedState )
+        {
+        }
 
 		/// <summary>
 		/// Let the derived classes process changed selected objects
@@ -383,13 +316,6 @@ namespace DBTest
 		/// Action to be performed after the main view has been created
 		/// </summary>
 		protected abstract void PostViewCreateAction();
-
-		/// <summary>
-		/// Allow derived classes to add their own menu items
-		/// </summary>
-		/// <param name="mode"></param>
-		/// <param name="menu"></param>
-		protected virtual void OnSpecialisedCreateActionMode( ActionMode mode, IMenu menu ) { }
 
 		/// <summary>
 		/// Allow derived classes to release thier own resources
@@ -431,9 +357,9 @@ namespace DBTest
 		protected ExpandableListAdapter<T> Adapter { get; set; }
 
 		/// <summary>
-		/// Is Action Mode in effect
+		/// The ActionModeHandler instance looking after the custom ActionBar
 		/// </summary>
-		protected bool ActionModeActive => ( actionModeInstance != null );
+		protected ActionModeHandler ActionMode { get; } = null;
 
 		/// <summary>
 		/// Called when some kind of user interaction with the view has been detected
@@ -443,7 +369,7 @@ namespace DBTest
 		private void UserActivityDetected()
 		{
 			Adapter.IsUserActive = true;
-			if ( ActionModeActive == false )
+			if ( ActionMode.ActionModeActive == false )
 			{
 				userInteractionTimer.Change( UserInteractionTimeout, Timeout.Infinite );
 			}
@@ -456,16 +382,16 @@ namespace DBTest
 		private void UserInteractionTimerExpired()
 		{
 			// Don't declare the user as inactive if Action Mode is in effect
-			if ( ActionModeActive == false )
+			if ( ActionMode.ActionModeActive == false )
 			{
 				Activity?.RunOnUiThread( () => { Adapter.IsUserActive = false; } );
 			}
 		}
 
-		/// <summary>
-		/// The bottom toolbar
-		/// </summary>
-		protected CommandBar CommandBar { get; private set; } = null;
+        /// <summary>
+        /// The bottom toolbar
+        /// </summary>
+        protected CommandBar CommandBar { get; private set; } = null;
 
 		/// <summary>
 		/// The main view of the fragment used to indicate whether or not the UI has been created
@@ -489,34 +415,6 @@ namespace DBTest
 		protected virtual List<TagGroup> TagGroups { get; } = new List<TagGroup>();
 
 		/// <summary>
-		/// The title to be shown on the action bar
-		/// </summary>
-		protected string ActionModeTitle
-		{
-			get => actionModeTitle;
-
-			set
-			{
-				actionModeTitle = value;
-
-				if ( ActionModeActive == true )
-				{
-					actionModeInstance.Title = actionModeTitle;
-				}
-			}
-		}
-
-		/// <summary>
-		/// The Action Mode instance
-		/// </summary>
-		private ActionMode actionModeInstance = null;
-
-		/// <summary>
-		/// Used to record that Action Mode should be re-started when the fragment is made visible again
-		/// </summary>
-		private bool retainAdapterActionMode = false;
-
-		/// <summary>
 		/// Th enumber of expanded groups held by the Adapter
 		/// </summary>
 		private int expandedGroupCount = 0;
@@ -525,16 +423,6 @@ namespace DBTest
 		/// The collapse menu item
 		/// </summary>
 		private IMenuItem collapseItem = null;
-
-		/// <summary>
-		/// Has the start of Action Mode been delayed until the view has been created
-		/// </summary>
-		private bool delayedActionMode = false;
-
-		/// <summary>
-		/// The title to display in the action mode
-		/// </summary>
-		private string actionModeTitle = "";
 
 		/// <summary>
 		/// The CommandHandlerCallback containing the action to call after a command has been handled

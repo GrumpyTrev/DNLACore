@@ -66,6 +66,7 @@
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="Application\ApplicationShutdownService.cs" />
     <Compile Include="Application\ApplicationShutdownInterface.cs" />
+    <Compile Include="BaseView\ActionModeHandler.cs" />
     <Compile Include="BaseView\GotoTopControl.cs" />
     <Compile Include="BaseView\MultiScrollListenerExpandableListView.cs" />
     <Compile Include="BaseView\SongViewHolder.cs" />
@@ -575,6 +576,17 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\media_controller.axml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\action_mode.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\actionmode_close_item.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

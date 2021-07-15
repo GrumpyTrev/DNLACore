@@ -88,7 +88,7 @@ namespace DBTest
 		{
 			if ( ( selectedObjects.PlaylistItems.Count == 0 ) && ( selectedObjects.Playlists.Count == 0 ) )
 			{
-				ActionModeTitle = NoItemsSelectedText;
+				ActionMode.ActionModeTitle = NoItemsSelectedText;
 			}
 			else
 			{
@@ -99,7 +99,7 @@ namespace DBTest
 				string playlistText = ( playlistCount > 0 ) ? string.Format( "{0} playlist{1} ", playlistCount, ( playlistCount == 1 ) ? "" : "s" ) : "";
 				string songsText = ( songCount > 0 ) ? string.Format( "{0} song{1} ", songCount, ( songCount == 1 ) ? "" : "s" ) : "";
 
-				ActionModeTitle = string.Format( ItemsSelectedText, playlistText, songsText );
+				ActionMode.ActionModeTitle = string.Format( ItemsSelectedText, playlistText, songsText );
 			}
 		}
 

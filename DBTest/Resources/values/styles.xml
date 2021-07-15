@@ -11,10 +11,13 @@
 		<item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
 
-		<!-- The action bar replaces the tolbar and takes the primary colour -->
+		<!-- The action bar replaces the toolbar and takes the primary colour -->
 		<item name="windowActionModeOverlay">true</item>
 		<item name="actionModeBackground">@color/colorPrimary</item>
-
+      
+    <!-- Provide our own action mocde style in order to hide the close imaage -->
+    <item name="actionModeStyle">@style/myActionModeStyle</item>
+      
 		<!-- Use our own style for the top toolbar -->
 		<item name="toolbarStyle">@style/myToolbarStyle</item>
 
@@ -30,6 +33,11 @@
 		<item name="android:background">@color/colorPrimary</item>
 	</style>
 
+  <!-- Use our own layout in order to hide the close icon -->
+  <style name="myActionModeStyle" parent="Widget.AppCompat.ActionMode">
+		 <item name="closeItemLayout">@layout/actionmode_close_item</item>
+	</style>
+  
 	<!-- This is only here to test how to apply application wide changes to the button style-->
 	<style name="myButtonStyle" parent="Base.Widget.AppCompat.Button.Borderless.Colored" />
 
