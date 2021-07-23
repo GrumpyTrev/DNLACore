@@ -192,7 +192,7 @@ namespace DBTest
 
 				foreach ( Album album in selectedObjects.Albums )
 				{
-					await AlbumsController.GetAlbumContentsAsync( album );
+					AlbumsController.GetAlbumContents( album );
 
 					foreach ( Song song in album.Songs )
 					{

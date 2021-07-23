@@ -13,18 +13,14 @@ namespace DBTest
 		/// Get the PlaylistItems and associated songs for this playlist
 		/// </summary>
 		/// <param name="playlistItems"></param>
-		public async Task GetContentsAsync( IEnumerable<SongPlaylistItem> playlistItems )
+		public void GetContents( IEnumerable<SongPlaylistItem> playlistItems )
 		{
 			// Get all the SongPlaylistItem entries associated with this SongPlaylist and then the Song entries for each of them
 			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == this.Id ) );
 
-			// Get all the associated Songs in one go and then link to the SongPlaylistItem items
-			Dictionary<int, Song> songs = ( await DbAccess.GetSongsAsync( PlaylistItems.Select( play => ( play as SongPlaylistItem ).SongId ).Distinct() ) )
-				.ToDictionary( song => song.Id );
-
 			foreach ( SongPlaylistItem playlistItem in PlaylistItems )
 			{
-				playlistItem.Song = songs[ playlistItem.SongId ];
+				playlistItem.Song = Songs.GetSongById( playlistItem.SongId );
 				playlistItem.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playlistItem.Song.ArtistAlbumId ).ArtistId );
 				playlistItem.Song.Artist = playlistItem.Artist;
 			}

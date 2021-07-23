@@ -61,7 +61,7 @@ namespace DBTest
 		{
 			if ( Songs == null )
 			{
-				Songs = await DbAccess.GetSongsForSourceAsync( Id );
+				Songs = DBTest.Songs.GetSourceSongs( Id );
 			}
 		}
 

@@ -32,7 +32,7 @@ namespace DBTest
 		/// Get the contents for the specified Album
 		/// </summary>
 		/// <param name="theAlbum"></param>
-		public static async Task GetAlbumContentsAsync( Album theAlbum ) => await theAlbum.GetSongsAsync();
+		public static void GetAlbumContents( Album theAlbum ) => theAlbum.GetSongs();
 
 		/// <summary>
 		/// Apply the specified filter to the data being displayed

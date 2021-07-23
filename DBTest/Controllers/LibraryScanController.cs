@@ -113,7 +113,7 @@ namespace DBTest
 				// Check if any of these ArtistAlbum items are now empty and need deleting
 				foreach ( int id in artistAlbumIds )
 				{
-					Tuple<int, Artist> deletionResults = await CheckForAlbumDeletionAsync( id );
+					Tuple<int, Artist> deletionResults = CheckForAlbumDeletion( id );
 
 					if ( deletionResults.Item1 != -1 )
 					{
@@ -145,7 +145,7 @@ namespace DBTest
 			Playlists.DeletePlaylistItems( new List<int> { songToDelete.Id } );
 
 			// Check if this ArtistAlbum item is now empty and need deleting
-			Tuple<int, Artist> deletionResults = await CheckForAlbumDeletionAsync( songToDelete.ArtistAlbumId );
+			Tuple<int, Artist> deletionResults = CheckForAlbumDeletion( songToDelete.ArtistAlbumId );
 
 			if ( deletionResults.Item1 != -1 )
 			{
@@ -160,7 +160,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="artistAlbumId"></param>
 		/// <returns></returns>
-		private static async Task<Tuple<int, Artist >> CheckForAlbumDeletionAsync( int artistAlbumId )
+		private static Tuple<int, Artist> CheckForAlbumDeletion( int artistAlbumId )
 		{
 			// Keep track in the Tuple of any albums or artists deleted
 			int deletedAlbumId = -1;
@@ -168,7 +168,7 @@ namespace DBTest
 
 			// Refresh the contents of the ArtistAlbum
 			ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( artistAlbumId );
-			artistAlbum.Songs = await DbAccess.GetArtistAlbumSongsAsync( artistAlbum.Id );
+			artistAlbum.Songs = Songs.GetArtistAlbumSongs( artistAlbum.Id );
 
 			// Check if this ArtistAlbum is being referenced by any songs
 			if ( artistAlbum.Songs.Count == 0 )

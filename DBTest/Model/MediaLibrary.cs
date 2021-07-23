@@ -92,7 +92,7 @@ namespace DBTest
 	}
 
 	[Table( "Song" )]
-	public class Song
+	public partial class Song
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }
@@ -105,22 +105,12 @@ namespace DBTest
 		public DateTime ModifiedTime { get; set; }
 		public int Length { get; set; }
 
-		[Ignore]
-		public ScanActionType ScanAction { get; set; }
-
 		public int AlbumId { get; set; }
 
 		public int SourceId { get; set; }
 
 		public int ArtistAlbumId { get; set; }
 
-		/// <summary>
-		/// This entry is not in the database but is set for songs that are being played
-		/// </summary>
-		[Ignore]
-		public Artist Artist { get; set; } = null;
-
-		public enum ScanActionType { NotMatched, Matched, Differ, New };
 	}
 
 	[Table( "Artist" )]

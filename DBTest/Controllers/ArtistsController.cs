@@ -32,14 +32,14 @@ namespace DBTest
 		/// Get the contents for the specified Artist
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public static async Task GetArtistContentsAsync( Artist theArtist ) => await theArtist.GetSongsAsync();
+		public static void GetArtistContents( Artist theArtist ) => theArtist.GetSongs();
 
 		/// <summary>
 		/// Get the contents for the specified ArtistAlbum
 		/// </summary>
 		/// <param name="artistAlbum"></param>
 		/// <returns></returns>
-		public static async Task GetArtistAlbumContentsAsync( ArtistAlbum artistAlbum ) => await artistAlbum.Artist.GetArtistAlbumSongs( artistAlbum );
+		public static void GetArtistAlbumContents( ArtistAlbum artistAlbum ) => artistAlbum.Artist.GetArtistAlbumSongs( artistAlbum );
 
 		/// <summary>
 		/// Apply the specified filter to the data being displayed

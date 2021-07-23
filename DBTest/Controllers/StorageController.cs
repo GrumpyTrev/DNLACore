@@ -45,7 +45,8 @@ namespace DBTest
 			await Sources.GetDataAsync();
 			await Artists.GetDataAsync();
 			await ArtistAlbums.GetDataAsync();
-			await Libraries.GetDataAsync();
+            await Songs.GetDataAsync();
+            await Libraries.GetDataAsync();
 			await Playback.GetDataAsync();
 			await Playlists.GetDataAsync();
 			await Autoplays.GetDataAsync();

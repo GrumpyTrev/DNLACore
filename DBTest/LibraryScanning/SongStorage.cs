@@ -321,7 +321,7 @@ namespace DBTest
 					songAlbum = songArtistAlbum.Album;
 
 					// The rest of the code expects the Album to have its songs populated, so check here
-					await songAlbum.GetSongsAsync();
+					songAlbum.GetSongs();
 				}
 			}
 
@@ -392,7 +392,7 @@ namespace DBTest
 				// Get the children of the existing ArtistAlbum
 				if ( songArtistAlbum.Songs == null )
 				{
-					songArtistAlbum.Songs = await DbAccess.GetArtistAlbumSongsAsync( songArtistAlbum.Id );
+					songArtistAlbum.Songs = Songs.GetArtistAlbumSongs( songArtistAlbum.Id );
 				}
 			}
 

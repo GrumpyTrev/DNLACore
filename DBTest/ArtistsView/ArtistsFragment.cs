@@ -20,11 +20,11 @@ namespace DBTest
 		{
 			if ( artistOrArtistAlbum is ArtistAlbum artistAlbum )
 			{
-				await ArtistsController.GetArtistAlbumContentsAsync( artistAlbum );
+				ArtistsController.GetArtistAlbumContents( artistAlbum );
 			}
 			else
 			{
-				await ArtistsController.GetArtistContentsAsync( ( Artist )artistOrArtistAlbum );
+				ArtistsController.GetArtistContents( ( Artist )artistOrArtistAlbum );
 			}
 		}
 
@@ -50,23 +50,33 @@ namespace DBTest
 			} );
 		}
 
-		/// <summary>
-		/// Called when the number of selected items (songs) has changed.
-		/// Update the text to be shown in the Action Mode title
-		/// </summary>
-		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) =>
-			ActionMode.ActionModeTitle = ( selectedObjects.Songs.Count == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.Songs.Count );
+        /// <summary>
+        /// Called when the number of selected items (songs) has changed.
+        /// Update the text to be shown in the Action Mode title
+        /// </summary>
+        protected override void SelectedItemsChanged( GroupedSelection selectedObjects )
+        {
+            ActionMode.ActionModeTitle = ( selectedObjects.Songs.Count == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.Songs.Count );
+            ActionMode.AllSelected = ( selectedObjects.Artists.Count == ArtistsViewModel.Artists.Count );
+        }
 
-		/// <summary>
-		/// Called when the sort selector has changed the sort order
-		/// </summary>
-		public override void SortOrderChanged() => ArtistsController.SortArtistsAsync();
+        /// <summary>
+        /// Called when the sort selector has changed the sort order
+        /// </summary>
+        public override void SortOrderChanged() => ArtistsController.SortArtistsAsync();
 
-		/// <summary>
-		/// Action to be performed after the main view has been created
-		/// Initialise the ArtistsController
-		/// </summary>
-		protected override void PostViewCreateAction() => ArtistsController.DataReporter = this;
+        /// <summary>
+        /// Called when the Select All checkbox has been clicked on the Action Bar.
+        /// Pass this on to the adapter
+        /// </summary>
+        /// <param name="checkedState"></param>
+        public override void AllSelected( bool checkedState ) => ( ( ArtistsAdapter )Adapter ).SelectAll( checkedState );
+
+        /// <summary>
+        /// Action to be performed after the main view has been created
+        /// Initialise the ArtistsController
+        /// </summary>
+        protected override void PostViewCreateAction() => ArtistsController.DataReporter = this;
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment

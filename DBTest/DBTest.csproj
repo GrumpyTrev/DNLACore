@@ -97,6 +97,8 @@
     <Compile Include="Messages\PlaylistUpdatedMessage.cs" />
     <Compile Include="Model\Playlist.cs" />
     <Compile Include="Model\AlbumPlaylist.cs" />
+    <Compile Include="Model\Song.cs" />
+    <Compile Include="Model\Songs.cs" />
     <Compile Include="PlaybackManagement\BasePlayback.cs" />
     <Compile Include="PlaybackManagement\LocalPlayback.cs" />
     <Compile Include="PlaybackManagement\PlaybackRouter.cs" />

@@ -111,12 +111,41 @@ namespace DBTest
 			return retVal;
 		}
 
-		/// <summary>
-		/// This is called by the base class when new data has been provided in order to create some of the fast scroll data.
-		/// Most of this has already been done in the ArtistsController.
-		/// All that is missing is the copying of the section names into an array of Java strings
-		/// </summary>
-		protected override void SetGroupIndex()
+        /// <summary>
+        /// Either select or deselect all the displayed items
+        /// </summary>
+        /// <param name="select"></param>
+        public async void SelectAll( bool select )
+        {
+            bool selectionChanged = false;
+            for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
+            {
+                if ( Groups[ groupIndex ] is ArtistAlbum artistAlbum )
+                {
+                    if ( artistAlbum.Songs == null )
+                    {
+                        await contentsProvider.ProvideGroupContentsAsync( Groups[ groupIndex ] );
+                    }
+
+                    selectionChanged |= await SelectGroupContents( groupIndex, select );
+                }
+
+                selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
+            }
+
+            if ( selectionChanged == true )
+            {
+                stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
+                NotifyDataSetChanged();
+            }
+        }
+
+        /// <summary>
+        /// This is called by the base class when new data has been provided in order to create some of the fast scroll data.
+        /// Most of this has already been done in the ArtistsController.
+        /// All that is missing is the copying of the section names into an array of Java strings
+        /// </summary>
+        protected override void SetGroupIndex()
 		{
 			// Clear the array first in case there are none
 			javaSections = null;

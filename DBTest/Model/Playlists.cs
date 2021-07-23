@@ -31,7 +31,7 @@ namespace DBTest
 
 					foreach ( SongPlaylist playlist in songPlaylists )
 					{
-						await playlist.GetContentsAsync( songPlaylistItems );
+						playlist.GetContents( songPlaylistItems );
 					}
 
 					PlaylistCollection.AddRange( songPlaylists );

@@ -19,9 +19,8 @@ namespace DBTest
 		/// <summary>
 		/// Get all the entries associated with a specified SongPlaylist or AlbumPlaylist.
 		/// SongPlaylist items are now read at startup. So this is no longer required for them
-		/// AlbumPlaylist contents are also obtained on startup, but the Songs in the AlbumPlaylistItems are not and they will be required.
-		/// There is currently no way to hook into child selection and get the Songs when required. Check for any visual
-		/// problems with doing it here
+		/// AlbumPlaylist contents are also obtained on startup. The Songs are obtained at startup but not linked
+        /// into the Albums
 		/// </summary>
 		/// <param name="selectedGroup_"></param>
 		public async Task ProvideGroupContentsAsync( Playlist selectedGroup )
@@ -32,7 +31,7 @@ namespace DBTest
 				{
 					if ( albumPlaylistItem.Album.Songs == null )
 					{
-						await AlbumsController.GetAlbumContentsAsync( albumPlaylistItem.Album );
+						AlbumsController.GetAlbumContents( albumPlaylistItem.Album );
 					}
 				}
 			}

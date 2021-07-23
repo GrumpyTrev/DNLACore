@@ -22,8 +22,7 @@ namespace DBTest
 				playlistItem.Album = Albums.GetAlbumById( playlistItem.AlbumId );
 
 				// Get the contents of this playlist as the SongIndex processing assumes that the Songs are available
-				// Don't wait
-				playlistItem.Album.GetSongsAsync();
+				playlistItem.Album.GetSongs();
 			}
 
 			PlaylistItems.Sort( ( a, b ) => a.Index.CompareTo( b.Index ) );

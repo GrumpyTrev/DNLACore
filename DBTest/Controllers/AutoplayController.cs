@@ -156,7 +156,7 @@ namespace DBTest
 				Album album = selectedPopulation.Albums[ generator.Next( 0, selectedPopulation.Albums.Count ) ];
 
 				// Make sure that all the songs are available for the album
-				await album.GetSongsAsync();
+				album.GetSongs();
 
 				// Now add a song
 				songs.Add( album.Songs[ generator.Next( 0, album.Songs.Count ) ] );

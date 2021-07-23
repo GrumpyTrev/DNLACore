@@ -20,7 +20,7 @@ namespace DBTest
 		{
 			if ( theAlbum.Songs == null )
 			{
-				await AlbumsController.GetAlbumContentsAsync( theAlbum );
+				AlbumsController.GetAlbumContents( theAlbum );
 			}
 		}
 
