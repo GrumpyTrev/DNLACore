@@ -13,11 +13,11 @@ namespace DBTest
 		/// <summary>
 		/// Get the songs associated with this Album
 		/// </summary>
-		public void GetSongs()
+		public async void GetSongs()
 		{
 			if ( Songs == null )
 			{
-                Songs = DBTest.Songs.GetAlbumSongs( Id );
+                Songs = await DBTest.Songs.GetAlbumSongs( Id );
 
                 // Sort the songs by track number
                 Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );

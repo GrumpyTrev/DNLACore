@@ -14,13 +14,13 @@ namespace DBTest
 		/// The ArtistAlbum entries have already been obtained so just get the Songs for them
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public void GetSongs()
+		public async void GetSongs()
 		{
 			if ( songsRead == false )
 			{
 				foreach ( ArtistAlbum artistAlbum in ArtistAlbums )
 				{
-					artistAlbum.Songs = Songs.GetArtistAlbumSongs( artistAlbum.Id );
+					artistAlbum.Songs = await Songs.GetArtistAlbumSongs( artistAlbum.Id );
 					artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 				}
 			}
@@ -28,11 +28,11 @@ namespace DBTest
 			songsRead = true;
 		}
 
-		public void GetArtistAlbumSongs( ArtistAlbum artistAlbum )
+		public async void GetArtistAlbumSongs( ArtistAlbum artistAlbum )
 		{
 			if ( artistAlbum.Songs == null )
 			{
-				artistAlbum.Songs = Songs.GetArtistAlbumSongs( artistAlbum.Id );
+				artistAlbum.Songs = await Songs.GetArtistAlbumSongs( artistAlbum.Id );
 				artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 			}
 		}

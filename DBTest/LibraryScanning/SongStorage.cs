@@ -392,7 +392,7 @@ namespace DBTest
 				// Get the children of the existing ArtistAlbum
 				if ( songArtistAlbum.Songs == null )
 				{
-					songArtistAlbum.Songs = Songs.GetArtistAlbumSongs( songArtistAlbum.Id );
+					songArtistAlbum.Songs = await Songs.GetArtistAlbumSongs( songArtistAlbum.Id );
 				}
 			}
 

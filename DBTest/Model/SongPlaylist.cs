@@ -13,14 +13,14 @@ namespace DBTest
 		/// Get the PlaylistItems and associated songs for this playlist
 		/// </summary>
 		/// <param name="playlistItems"></param>
-		public void GetContents( IEnumerable<SongPlaylistItem> playlistItems )
+		public async void GetContents( IEnumerable<SongPlaylistItem> playlistItems )
 		{
 			// Get all the SongPlaylistItem entries associated with this SongPlaylist and then the Song entries for each of them
 			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == this.Id ) );
 
 			foreach ( SongPlaylistItem playlistItem in PlaylistItems )
 			{
-				playlistItem.Song = Songs.GetSongById( playlistItem.SongId );
+				playlistItem.Song = await Songs.GetSongById( playlistItem.SongId );
 				playlistItem.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playlistItem.Song.ArtistAlbumId ).ArtistId );
 				playlistItem.Song.Artist = playlistItem.Artist;
 			}

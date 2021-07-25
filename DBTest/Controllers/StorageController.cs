@@ -45,7 +45,6 @@ namespace DBTest
 			await Sources.GetDataAsync();
 			await Artists.GetDataAsync();
 			await ArtistAlbums.GetDataAsync();
-            await Songs.GetDataAsync();
             await Libraries.GetDataAsync();
 			await Playback.GetDataAsync();
 			await Playlists.GetDataAsync();
@@ -60,14 +59,17 @@ namespace DBTest
 
 			DataAvailable = true;
 			new StorageDataAvailableMessage().Send();
-		}
 
-		/// <summary>
-		/// Once the Artists have been read in their associated ArtistAlbums can be read as well and linked to them
-		/// The ArtistAlbums are required for filtering so they may as well be linked in at the same time
-		/// Get the Album associated with the ArtistAlbum as well so that only a single copy of the Albums is used
-		/// </summary>
-		private static async Task PopulateArtistsAsync()
+            // Access the songs after everything else has been loaded 
+            await Songs.GetDataAsync();
+        }
+
+        /// <summary>
+        /// Once the Artists have been read in their associated ArtistAlbums can be read as well and linked to them
+        /// The ArtistAlbums are required for filtering so they may as well be linked in at the same time
+        /// Get the Album associated with the ArtistAlbum as well so that only a single copy of the Albums is used
+        /// </summary>
+        private static async Task PopulateArtistsAsync()
 		{
 			// Do the linking of ArtistAlbum entries off the UI thread
 			await Task.Run( () =>

@@ -76,12 +76,34 @@ namespace DBTest
 			}
 		}
 
-		/// <summary>
-		/// Has this property publi get and set accessors
-		/// </summary>
-		/// <param name="propertyInfo"></param>
-		/// <returns></returns>
-		private static bool IsPublicInstance( this PropertyInfo propertyInfo ) => ( propertyInfo != null ) &&
+        /// <summary>
+        /// Get a Song entry from the database
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<Song> GetSongAsync( int songId ) =>
+            await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.Id == songId ) ).FirstAsync();
+
+        /// <summary>
+        /// Get the songs for the specified Album identity
+        /// </summary>
+        /// <param name="albumId"></param>
+        public static async Task<List<Song>> GetAlbumSongsAsync( int albumId ) =>
+            await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.AlbumId == albumId ) ).ToListAsync();
+
+        /// <summary>
+        /// Get the songs associated with a specific ArtistAlbum
+        /// </summary>
+        /// <param name="artistAlbumId"></param>
+        /// <returns></returns>
+        public static async Task<List<Song>> GetArtistAlbumSongsAsync( int artistAlbumId ) =>
+            await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.ArtistAlbumId == artistAlbumId ) ).ToListAsync();
+
+        /// <summary>
+        /// Has this property publi get and set accessors
+        /// </summary>
+        /// <param name="propertyInfo"></param>
+        /// <returns></returns>
+        private static bool IsPublicInstance( this PropertyInfo propertyInfo ) => ( propertyInfo != null ) &&
 				   ( propertyInfo.GetMethod != null ) && ( propertyInfo.GetMethod.IsStatic == false ) && ( propertyInfo.GetMethod.IsPublic == true ) &&
 				   ( propertyInfo.SetMethod != null ) && ( propertyInfo.SetMethod.IsStatic == false ) && ( propertyInfo.SetMethod.IsPublic == true );
 
