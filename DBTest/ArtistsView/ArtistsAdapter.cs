@@ -336,13 +336,15 @@ namespace DBTest
 
 			if ( Groups[ groupPosition ] is Artist artist )
 			{
-				// Expand or collapse all of the ArtistAlbums associated with the Artist
-				PerformActionOnArtistAlbums( groupPosition, async ( artistAlbumIndex ) =>
-				{
-					selectionChanged |= RecordItemSelection( FormGroupTag( artistAlbumIndex ), selected );
-					selectionChanged |= await SelectGroupContents( artistAlbumIndex, selected );
-				} );
-			}
+                // Expand or collapse all of the ArtistAlbums associated with the Artist
+                int albumIndex = groupPosition + 1;
+                while ( ( albumIndex < Groups.Count ) && ( Groups[ albumIndex ] is ArtistAlbum ) )
+                {
+                    selectionChanged |= RecordItemSelection( FormGroupTag( albumIndex ), selected );
+                    selectionChanged |= await SelectGroupContents( albumIndex, selected );
+                    albumIndex++;
+                }
+            }
 			else
 			{
 				// Need to find the position of the associated Artist and then determine if its selection state also needs changing
@@ -352,11 +354,11 @@ namespace DBTest
 				if ( selected == false )
 				{
 					selectionChanged |= RecordItemSelection( FormGroupTag( artistPosition ), false );
-				}
+                }
 				else
 				{
 					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all selected then select the Artist as well
-					if ( CheckAllArtistAlbums( artistPosition, ( artistAlbumIndex ) => { return IsItemSelected( FormGroupTag( artistAlbumIndex ) ); } ) == true )
+					if ( CheckAllArtistAlbums( artistPosition, ( artistAlbumIndex ) => IsItemSelected( FormGroupTag( artistAlbumIndex ) ) ) == true )
 					{
 						selectionChanged |= RecordItemSelection( FormGroupTag( artistPosition ), true );
 					}
@@ -384,7 +386,7 @@ namespace DBTest
 				if ( parent.IsGroupExpanded( groupPosition ) == true )
 				{
 					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all expanded then expand the Artist as well
-					if ( CheckAllArtistAlbums( artistPosition, ( artistAlbumIndex ) => { return parent.IsGroupExpanded( artistAlbumIndex ); } ) == true )
+					if ( CheckAllArtistAlbums( artistPosition, ( artistAlbumIndex ) => parent.IsGroupExpanded( artistAlbumIndex ) ) == true )
 					{
 						// Add this to the record of which groups are expanded
 						adapterModel.ExpandedGroups.Add( artistPosition );
