@@ -118,7 +118,6 @@ namespace DBTest
 			AlbumsController.GetControllerData();
 			ArtistsController.GetControllerData();
 			PlaylistsController.GetControllerData();
-			NowPlayingController.GetControllerData();
 			LibraryNameDisplayController.GetControllerData();
 			FilterManagementController.GetControllerData();
 			PlaybackSelectionController.GetControllerData();
@@ -127,12 +126,13 @@ namespace DBTest
 			PlaybackManagementController.GetControllerData();
 			MediaControllerController.GetControllerData();
 			MediaNotificationController.GetControllerData();
-		}
+            NowPlayingController.GetControllerData();
+        }
 
-		/// <summary>
-		/// Initialisze access to the persistent storage
-		/// </summary>
-		private void InitialiseStorage()
+        /// <summary>
+        /// Initialisze access to the persistent storage
+        /// </summary>
+        private void InitialiseStorage()
 		{
 			// Path to the locally stored database
 			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
