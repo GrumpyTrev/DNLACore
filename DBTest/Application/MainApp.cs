@@ -11,7 +11,7 @@ using SQLite;
 namespace DBTest
 {
 	[Application]
-	class MainApp : Application, Logger.ILogger
+	internal class MainApp : Application, Logger.ILogger
 	{
 		/// <summary>
 		/// Base constructor which must be implemented if it is to successfully inherit from the Application
@@ -36,7 +36,7 @@ namespace DBTest
 			ConfigureControllers();
 
 			// Initialise the network monitoring
-			playbackCapabilities = new PlaybackCapabilities( Context );
+			deviceDiscoverer = new DeviceDiscovery( Context );
 
 			// Create a PlaybackRouter.
 			playbackRouter = new PlaybackRouter( Context );
@@ -51,8 +51,8 @@ namespace DBTest
 		/// Add the specified interface to the callback colletion
 		/// </summary>
 		/// <param name="callback"></param>
-		public static void RegisterPlaybackCapabilityCallback( PlaybackCapabilities.IPlaybackCapabilitiesChanges callback ) => 
-			instance.playbackCapabilities.RegisterCallback( callback );
+		public static void RegisterPlaybackCapabilityCallback( DeviceDiscovery.IDeviceDiscoveryChanges callback ) => 
+			instance.deviceDiscoverer.RegisterCallback( callback );
 
 		/// <summary>
 		/// Log a message
@@ -96,10 +96,7 @@ namespace DBTest
 		/// <summary>
 		/// OnCreate needs to be overwritten otherwise Android does not create the MainApp class until it wnats to - strange but true
 		/// </summary>
-		public override void OnCreate()
-		{
-			base.OnCreate();
-		}
+		public override void OnCreate() => base.OnCreate();
 
 		/// <summary>
 		/// Called when the application shutdown service has detected this applicaton being removed from the system
@@ -139,16 +136,14 @@ namespace DBTest
 
 			// The synchronous and aynchronous connectionn
 			ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
-			ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath );
-
-			// Tracing when required
-			ConnectionDetailsModel.AsynchConnection.Tracer = ( message ) =>
+			ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath )
 			{
-				Logger.Log( message );
-			};
+				// Tracing when required
+				Tracer = ( message ) => Logger.Log( message ),
 
-			// Tracing not currently required
-			ConnectionDetailsModel.AsynchConnection.Trace = true;
+				// Tracing currently required
+				Trace = true
+			};
 
 			// Initialise the rest of the ConnectionDetailsModel if required
 			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
@@ -198,7 +193,7 @@ namespace DBTest
 		/// <summary>
 		/// Context to use for switching to the UI thread
 		/// </summary>
-		private static Handler UiSwitchingHandler { get; } = new Handler( Looper.MainLooper ); 
+		private static Handler UiSwitchingHandler { get; } = new( Looper.MainLooper ); 
 
 		/// <summary>
 		/// THe one and only MainApp
@@ -208,32 +203,32 @@ namespace DBTest
 		/// <summary>
 		/// The one and only Http server used to serve local files to remote devices
 		/// </summary>
-		private static readonly SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
+		private static readonly SimpleHTTPServer localServer = new( "", 8080 );
 
 		/// <summary>
-		/// The PlaybackCapabilities instance used to monitor the network and scan for DLNA devices
+		/// The DeviceDiscovery instance used to monitor the network and scan for DLNA devices
 		/// </summary>
-		private readonly PlaybackCapabilities playbackCapabilities = null;
+		private readonly DeviceDiscovery deviceDiscoverer = null;
 
 		/// <summary>
 		/// The PlaybackMonitor instance used to monitor the state of the playback system
 		/// </summary>
-		private readonly PlaybackMonitor playbackMonitoring = new PlaybackMonitor();
+		private readonly PlaybackMonitor playbackMonitoring = new();
 
 		/// <summary>
 		/// The PlaybackModeView instance used to display the playback mode and to allow it to be changed
 		/// </summary>
-		private readonly PlaybackModeView playbackModeViewer = new PlaybackModeView();
+		private readonly PlaybackModeView playbackModeViewer = new();
 
 		/// <summary>
 		/// The LibraryNameDisplay instance used to display the library name
 		/// </summary>
-		private readonly LibraryNameDisplay libraryNameDisplay = new LibraryNameDisplay();
+		private readonly LibraryNameDisplay libraryNameDisplay = new();
 
 		/// <summary>
 		/// The MediaControllerView instance used to control playback
 		/// </summary>
-		private readonly MediaControllerView mediaControllerView = new MediaControllerView();
+		private readonly MediaControllerView mediaControllerView = new();
 
 		/// <summary>
 		/// The PlaybackRouter used to pass playback requests to the the correct playback device
@@ -246,7 +241,7 @@ namespace DBTest
 		private readonly MediaNotificationServiceInterface mediaNotificationServiceInterface = null;
 
 		/// <summary>
-		/// The control used to interface to the application shutdwon service
+		/// The control used to interface to the application shutdown service
 		/// </summary>
 		private readonly ApplicationShutdownInterface applicationShutdownInterface = null;
 	}

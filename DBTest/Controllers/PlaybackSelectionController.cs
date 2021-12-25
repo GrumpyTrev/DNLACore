@@ -90,8 +90,8 @@
 		/// <param name="device"></param>
 		private static void NewDeviceDetected( PlaybackDevice device )
 		{
-			// Add this device to the model
-			if ( PlaybackSelectionModel.RemoteDevices.AddDevice( device ) == true )
+			// Add this device to the model if it supports playback
+			if ( ( device.CanPlayMedia == PlaybackDevice.CanPlayMediaType.Yes ) && ( PlaybackSelectionModel.RemoteDevices.AddDevice( device ) == true ) )
 			{
 				// If this device is the currently selected device then report it as available
 				if ( device.FriendlyName == PlaybackSelectionModel.SelectedDeviceName )
@@ -139,55 +139,43 @@
 		}
 
 		/// <summary>
-		/// Implementation of the PlaybackCapabilities.IPlaybackCapabilitiesChanges interface
+		/// Implementation of the DeviceDiscovery.IDeviceDiscoveryChanges interface
 		/// </summary>
-		private class RemoteDeviceCallback : PlaybackCapabilities.IPlaybackCapabilitiesChanges
+		private class RemoteDeviceCallback : DeviceDiscovery.IDeviceDiscoveryChanges
 		{
 			/// <summary>
 			/// Called to report the available devices - when registration is first made
 			/// </summary>
 			/// <param name="devices"></param>
-			public void AvailableDevices( PlaybackDevices devices )
-			{
-				devices.DeviceCollection.ForEach( device => PlaybackSelectionController.NewDeviceDetected( device ) );
-			}
+			public void AvailableDevices( PlaybackDevices devices ) => devices.DeviceCollection.ForEach( device => PlaybackSelectionController.NewDeviceDetected( device ) );
 
 			/// <summary>
 			/// Called when one or more devices are no longer available
 			/// </summary>
 			/// <param name="devices"></param>
-			public void UnavailableDevices( PlaybackDevices devices )
-			{
-				devices.DeviceCollection.ForEach( device => PlaybackSelectionController.DeviceNotAvailable( device ) );
-			}
+			public void UnavailableDevices( PlaybackDevices devices ) => devices.DeviceCollection.ForEach( device => PlaybackSelectionController.DeviceNotAvailable( device ) );
 
 			/// <summary>
 			/// Called when the wifi network state changes
 			/// </summary>
 			/// <param name="state"></param>
-			public void NetworkState( bool state )
-			{
-				PlaybackSelectionController.NetworkState( state );
-			}
+			public void NetworkState( bool state ) => PlaybackSelectionController.NetworkState( state );
 
 			/// <summary>
 			/// Called when a new DLNA device has been detected
 			/// </summary>
 			/// <param name="device"></param>
-			public void NewDeviceDetected( PlaybackDevice device )
-			{
-				PlaybackSelectionController.NewDeviceDetected( device );
-			}
+			public void NewDeviceDetected( PlaybackDevice device ) => PlaybackSelectionController.NewDeviceDetected( device );
 		}
 
 		/// <summary>
 		/// The single instance of the RemoteDeviceCallback class
 		/// </summary>
-		private static readonly RemoteDeviceCallback deviceCallback = new RemoteDeviceCallback();
+		private static readonly RemoteDeviceCallback deviceCallback = new();
 
 		/// <summary>
 		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private static readonly DataReporter dataReporter = new( StorageDataAvailable );
 	}
 }

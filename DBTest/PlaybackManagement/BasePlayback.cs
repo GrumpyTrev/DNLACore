@@ -13,12 +13,8 @@ namespace DBTest
 		/// <summary>
 		/// Start the position check timer. This will only be processed by derived classes if they are playing
 		/// </summary>
-		public BasePlayback()
-		{
-			// Create and start the position/progress timer 
-			positionTimer = new Timer( timer => PositionTimerElapsed(), null, TimerPeriod, TimerPeriod );
-		}		
-		
+		public BasePlayback() => positionTimer = new Timer( timer => PositionTimerElapsed(), null, TimerPeriod, TimerPeriod );
+
 		/// <summary>
 		/// Called when the playback system is being shutdown.
 		/// Allow derived classes to release system resources
@@ -38,8 +34,6 @@ namespace DBTest
 			PlaybackDevice = PlaybackManagerModel.AvailableDevice;
 
 			treatResumeAsPlay = true;
-
-			Selected = true;
 		}
 
 		/// <summary>
@@ -49,8 +43,6 @@ namespace DBTest
 		{
 			Stop();
 			Reset();
-
-			Selected = false;
 		}
 
 		/// <summary>
@@ -71,10 +63,7 @@ namespace DBTest
 		/// <summary>
 		/// Play the currently selected song
 		/// </summary>
-		public virtual void Play()
-		{
-			treatResumeAsPlay = false;
-		}
+		public virtual void Play() => treatResumeAsPlay = false;
 
 		/// <summary>
 		/// Stop playing the current song
@@ -206,11 +195,11 @@ namespace DBTest
 		/// <returns></returns>
 		protected string FormSourceName( Source songSource, string songPath, bool local )
 		{
-			string sourceName = "";
+			string sourceName;
 			if ( local == true )
 			{
 				// Need to escape the path if it is held remotely
-				if ( songSource.ScanType == "FTP" )
+				if ( songSource.AccessMethod == Source.AccessType.FTP )
 				{
 					sourceName = Path.Combine( songSource.LocalAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
 				}
@@ -253,11 +242,6 @@ namespace DBTest
 		private bool playing = false;
 
 		/// <summary>
-		/// Keep track of the selection state of this connection
-		/// </summary>
-		private bool Selected { get; set; } = false;
-
-		/// <summary>
 		/// At startup the Resume button should be treated as Play.
 		/// </summary>
 		private bool treatResumeAsPlay = false;
@@ -265,7 +249,7 @@ namespace DBTest
 		/// <summary>
 		/// The timer used to check the progress of the song
 		/// </summary>
-		private Timer positionTimer = null;
+		private readonly Timer positionTimer = null;
 
 		/// <summary>
 		/// The position timer period in milliseconds
