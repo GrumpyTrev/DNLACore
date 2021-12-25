@@ -48,7 +48,7 @@
 			// If nothing has changed then tell the user, otherwise carry out the save operation
 			if ( ( newSource.Name != originalSource.Name ) || ( newSource.FolderName != originalSource.FolderName ) ||
 				( newSource.PortNo != originalSource.PortNo ) || ( newSource.IPAddress != originalSource.IPAddress ) ||
-				( newSource.AccessType != originalSource.AccessType ) )
+				( newSource.AccessMethod != originalSource.AccessMethod ) )
 			{
 				// Something has changed so update the source
 				originalSource.UpdateSource( newSource );

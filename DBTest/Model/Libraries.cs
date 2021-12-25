@@ -8,7 +8,7 @@ namespace DBTest
 	/// The Libraries class holds a collection of all the Library entries read from storage.
 	/// It allows access to Library entries by Id and automatically persists changes back to storage
 	/// </summary>	
-	static class Libraries
+	internal static class Libraries
 	{
 		/// <summary>
 		/// Get the Library collection from storage
@@ -38,6 +38,21 @@ namespace DBTest
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
 		public static Library GetLibraryById( int libraryId ) => LibraryCollection.SingleOrDefault( lib => ( lib.Id == libraryId ) );
+
+		/// <summary>
+		/// Add a new library to the collection and to persistent storage
+		/// </summary>
+		/// <param name="newLibrary"></param>
+		public static async Task AddLibraryAsync( Library newLibrary )
+		{
+			LibraryCollection.Add( newLibrary );
+
+			// Need to wait for the Library to be added to ensure that its ID is available
+			await DbAccess.InsertAsync( newLibrary );
+
+			// Reform the library names collection
+			LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();
+		}
 
 		/// <summary>
 		/// The set of Library entries currently held in storage

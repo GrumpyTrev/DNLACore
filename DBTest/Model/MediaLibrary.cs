@@ -66,9 +66,17 @@ namespace DBTest
 		public string Name { get; set; }
 
 		/// <summary>
-		/// Access type - currently "Local" or "Remote"
+		/// How id this source accessed, typically for scanning purposes
 		/// </summary>
-		public string AccessType { get; set; }
+		public AccessType AccessMethod { get; set; }
+
+		/// <summary>
+		/// The different ways in which the source is accessed (for scannig purposes mainly)
+		/// </summary>
+		public enum AccessType
+		{
+			Local, FTP, UPnP
+		}
 
 		/// <summary>
 		/// The IP address of the device where the music is stored
@@ -88,6 +96,9 @@ namespace DBTest
 		/// </summary>
 		public int PortNo { get; set; }
 
+		/// <summary>
+		/// The library this source is associated with
+		/// </summary>
 		public int LibraryId { get; set; }
 	}
 

@@ -33,7 +33,7 @@ namespace DBTest
 			}
 
 			convertView.FindViewById<TextView>( Resource.Id.sourceName ).Text = sources[ position ].Name;
-			convertView.FindViewById<TextView>( Resource.Id.sourceType ).Text = sources[ position ].AccessType;
+			convertView.FindViewById<TextView>( Resource.Id.sourceType ).Text = sources[ position ].AccessMethod.ToString();
 			convertView.FindViewById<TextView>( Resource.Id.sourceFolder ).Text = sources[ position ].FolderName;
 
 			return convertView;

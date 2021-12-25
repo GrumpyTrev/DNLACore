@@ -16,7 +16,7 @@ namespace DBTest
 		/// </summary>
 		public void InitialiseAccess()
 		{
-			if ( AccessType == "Local" )
+			if ( AccessMethod == AccessType.Local )
 			{
 				// If the IPAddress is blank then use the local IP address
 				if ( ( IPAddress == null ) || ( IPAddress.Length == 0 ) )
@@ -25,16 +25,18 @@ namespace DBTest
 				}
 
 				ScanSource = string.Format( "/{0}/", FolderName );
-				ScanType = "Local";
 				LocalAccess = string.Format( "/{0}", FolderName );
+				RemoteAccess = string.Format( "http://{0}:{1}/{2}", IPAddress, PortNo, FolderName );
+			}
+			else if ( AccessMethod == AccessType.FTP )
+			{
+				ScanSource = IPAddress;
+				LocalAccess = string.Format( "http://{0}:{1}/{2}", IPAddress, PortNo, FolderName );
 				RemoteAccess = string.Format( "http://{0}:{1}/{2}", IPAddress, PortNo, FolderName );
 			}
 			else
 			{
-				ScanSource = IPAddress;
-				ScanType = "FTP";
-				LocalAccess = string.Format( "http://{0}:{1}/{2}", IPAddress, PortNo, FolderName );
-				RemoteAccess = string.Format( "http://{0}:{1}/{2}", IPAddress, PortNo, FolderName );
+				ScanSource = Name;
 			}
 		}
 
@@ -48,7 +50,10 @@ namespace DBTest
 			FolderName = newSource.FolderName;
 			IPAddress = newSource.IPAddress;
 			PortNo = newSource.PortNo;
-			AccessType = newSource.AccessType;
+			AccessMethod = newSource.AccessMethod;
+
+			// Make sure that member variable that depend on this data are also updated
+			InitialiseAccess();
 
 			// No need to wait for this to be written to storage
 			DbAccess.UpdateAsync( this );
@@ -72,14 +77,6 @@ namespace DBTest
 		/// </summary>
 		[Ignore]
 		public string ScanSource { get; set; }
-
-		/// <summary>
-		/// The type of access used for scanning - derived from above
-		/// For remote devices this will be 'FTP'
-		/// For local devices this will be 'Local'
-		/// </summary>
-		[Ignore]
-		public string ScanType { get; set; }
 
 		/// <summary>
 		/// The location used to access the songs when playing them locally

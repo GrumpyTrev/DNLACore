@@ -48,19 +48,21 @@ namespace DBTest
 			View editView = LayoutInflater.From( Context ).Inflate( Resource.Layout.source_details_dialogue_layout, null );
 			sourceName = editView.FindViewById<EditText>( Resource.Id.sourceName );
 			folderName = editView.FindViewById<EditText>( Resource.Id.sourceFolder );
-			localButton = editView.FindViewById<RadioButton>( Resource.Id.sourceLocal );
 			portNo = editView.FindViewById<EditText>( Resource.Id.sourcePort );
-			remoteButton = editView.FindViewById<RadioButton>( Resource.Id.sourceRemote );
 			ipAddress = editView.FindViewById<EditText>( Resource.Id.sourceIPAddress );
+			localButton = editView.FindViewById<RadioButton>( Resource.Id.sourceLocal );
+			ftpButton = editView.FindViewById<RadioButton>( Resource.Id.sourceFTP );
+			upnpButton = editView.FindViewById<RadioButton>( Resource.Id.sourceUPnP );
 
 			// Display the source. Get the values from the Source unless the Bundle is available
 			if ( savedInstanceState == null )
 			{
 				sourceName.Text = sourceToEdit.Name;
 				folderName.Text = sourceToEdit.FolderName;
-				localButton.Checked = sourceToEdit.AccessType == "Local";
 				portNo.Text = sourceToEdit.PortNo.ToString();
-				remoteButton.Checked = sourceToEdit.AccessType == "Remote";
+				localButton.Checked = sourceToEdit.AccessMethod == Source.AccessType.Local;
+				ftpButton.Checked = sourceToEdit.AccessMethod == Source.AccessType.FTP;
+				upnpButton.Checked = sourceToEdit.AccessMethod == Source.AccessType.UPnP;
 				ipAddress.Text = sourceToEdit.IPAddress;
 			}
 
@@ -82,13 +84,13 @@ namespace DBTest
 
 			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) => {
 
-				Source newSource = new Source()
+				Source newSource = new ()
 				{
 					Name = sourceName.Text,
 					FolderName = folderName.Text,
 					PortNo = int.Parse( portNo.Text ),
 					IPAddress = ipAddress.Text,
-					AccessType = ( localButton.Checked == true ) ? "Local" : "Remote"
+					AccessMethod = localButton.Checked ? Source.AccessType.Local : ftpButton.Checked ? Source.AccessType.FTP : Source.AccessType.UPnP
 				};
 
 				// Report back the old and new source records
@@ -118,8 +120,8 @@ namespace DBTest
 		private EditText folderName = null;
 		private RadioButton localButton = null;
 		private EditText portNo = null;
-		private RadioButton remoteButton = null;
+		private RadioButton ftpButton = null;
+		private RadioButton upnpButton = null;
 		private EditText ipAddress = null;
-
 	}
 }

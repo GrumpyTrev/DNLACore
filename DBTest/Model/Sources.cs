@@ -49,6 +49,22 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Add a new source to the collection and to persistent storage
+		/// </summary>
+		/// <param name="sourceToAdd"></param>
+		/// <returns></returns>
+		public static async Task AddSourceAsync( Source sourceToAdd )
+		{
+			SourceCollection.Add( sourceToAdd );
+
+			// Need to wait for the source to be added to ensure that its ID is available
+			await DbAccess.InsertAsync( sourceToAdd );
+
+			// Initialise any source data that may not have been set in the new source
+			sourceToAdd.InitialiseAccess();
+		}
+
+		/// <summary>
 		/// The set of Albums currently held in storage
 		/// </summary>
 		public static List<Source> SourceCollection { get; set; } = null;
