@@ -9,7 +9,7 @@ namespace DBTest
 	/// <summary>
 	/// The CommandRouter class is used to route commands issued by the user to specific command handlers
 	/// </summary>
-	static class CommandRouter
+	internal static class CommandRouter
 	{
 		/// <summary>
 		/// Bind new instances of teh command handlers to the router using their command identities
@@ -34,6 +34,7 @@ namespace DBTest
 			new RepeatModeCommandHander().BindToRouter();
 			new ShuffleModeCommandHander().BindToRouter();
 			new MarkAlbumsCommandHandler().BindToRouter();
+			new NewLibraryCommandHandler().BindToRouter();
 		}
 
 		/// <summary>
@@ -41,10 +42,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		/// <param name="commandToBind"></param>
-		public static void BindHandler( int commandIdentity, CommandHandler commandToBind )
-		{
-			router[ commandIdentity ] = commandToBind;
-		}
+		public static void BindHandler( int commandIdentity, CommandHandler commandToBind ) => router[ commandIdentity ] = commandToBind;
 
 		/// <summary>
 		/// Called by the user interface to handle a command
@@ -100,7 +98,7 @@ namespace DBTest
 		/// <summary>
 		/// Command identity to handler lookup
 		/// </summary>
-		private static Dictionary<int, CommandHandler> router = new Dictionary<int, CommandHandler>();
+		private static readonly Dictionary<int, CommandHandler> router = new();
 
 		/// <summary>
 		/// The CommandHandlerCallback class contains an Action to be performed once the command has been handled
