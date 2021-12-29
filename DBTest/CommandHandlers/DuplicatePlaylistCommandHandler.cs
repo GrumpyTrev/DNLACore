@@ -1,32 +1,24 @@
-﻿namespace DBTest
+﻿using System.Collections.Generic;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The DuplicatePlaylistCommandHandler class is used to duplicate a playlist in other libraries
 	/// </summary>
-	class DuplicatePlaylistCommandHandler : CommandHandler
+	internal class DuplicatePlaylistCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. 
-		/// Determine the subject of this, either the Now Playing playlist or a user playlist
+		/// Duplicate each selected playlist. 
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity )
 		{
-			// If the playlist already exists in other libraries then prompt for deletion
-			Playlist playlistToDuplicate = selectedObjects.Playlists[ 0 ];
-			if ( PlaylistsController.CheckForOtherPlaylists( playlistToDuplicate.Name, ConnectionDetailsModel.LibraryId ) == true )
-			{
-				ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, 
-					( bool confirm ) => { if ( confirm == true ) PlaylistsController.DuplicatePlaylistAsync( playlistToDuplicate ); }, 
-					"The playlist already exists in other libraries. Are you sure you want to duplicate it?" );
-			}
-			else
-			{
-				// Duplicate the playlist in the other libraries
-				PlaylistsController.DuplicatePlaylistAsync( playlistToDuplicate );
-			}
+			// Make a copy of the selected playlists and start duplicating them
+			playlistsBeingDuplicated = new List<Playlist>( selectedObjects.Playlists );
+			playlistIndex = -1;
 
-			commandCallback.PerformAction();
+			DuplicateNextPlaylist();
 		}
 
 		/// <summary>
@@ -34,11 +26,67 @@
 		/// </summary>
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Playlists.Count == 1 );
+		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Playlists.Count >= 1 );
 
 		/// <summary>
 		/// The command identity associated with this handler
 		/// </summary>
 		protected override int CommandIdentity { get; } = Resource.Id.duplicate;
+
+		/// <summary>
+		/// Called 
+		/// </summary>
+		/// <param name="confirm"></param>
+		private void DuplicationConfirmed( bool confirm )
+		{
+			if ( confirm == true )
+			{
+				PlaylistsController.DuplicatePlaylist( playlistsBeingDuplicated[ playlistIndex ] );
+			}
+
+			DuplicateNextPlaylist();
+		}
+
+		/// <summary>
+		/// Duplciate the next playlist in the list
+		/// </summary>
+		private void DuplicateNextPlaylist()
+		{
+			if ( ++playlistIndex < playlistsBeingDuplicated.Count )
+			{
+				Playlist nextPlaylist = playlistsBeingDuplicated[ playlistIndex ];
+
+				// If the playlist already exists in other libraries then prompt for deletion
+				if ( PlaylistsController.CheckForOtherPlaylists( nextPlaylist.Name, ConnectionDetailsModel.LibraryId ) == true )
+				{
+					ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, DuplicationConfirmed,
+						$"Playlist [{nextPlaylist.Name}] already exists in other libraries. Are you sure you want to duplicate it?" );
+				}
+				else
+				{
+					// Duplicate the playlist in the other libraries
+					PlaylistsController.DuplicatePlaylist( nextPlaylist );
+
+					DuplicateNextPlaylist();
+				}
+			}
+			else
+			{
+				playlistsBeingDuplicated = null;
+				playlistIndex = -1;
+
+				commandCallback.PerformAction();
+			}
+		}
+
+		/// <summary>
+		/// A local copy of the playlists being duplicated
+		/// </summary>
+		private List<Playlist> playlistsBeingDuplicated = null;
+
+		/// <summary>
+		/// Index of the playlist currently being duplicated
+		/// </summary>
+		private int playlistIndex = -1;
 	}
 }

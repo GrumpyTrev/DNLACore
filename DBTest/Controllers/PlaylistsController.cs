@@ -8,7 +8,7 @@ namespace DBTest
 	/// The PlaylistsController is the Controller for the PlaylistsView. It responds to PlaylistsView commands and maintains SongPlaylist data in the
 	/// PlaylistsViewModel
 	/// /// </summary>
-	class PlaylistsController
+	internal class PlaylistsController
 	{
 		/// <summary>
 		/// Public constructor providing the Database path and the interface instance used to report results
@@ -62,7 +62,7 @@ namespace DBTest
 		/// <param name="playlistName"></param>
 		public static async Task<SongPlaylist> AddSongPlaylistAsync( string playlistName )
 		{
-			SongPlaylist newPlaylist = new SongPlaylist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
+			SongPlaylist newPlaylist = new() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
 
 			await Playlists.AddPlaylistAsync( newPlaylist );
 
@@ -78,7 +78,7 @@ namespace DBTest
 		/// <param name="playlistName"></param>
 		public static async Task<AlbumPlaylist> AddAlbumPlaylistAsync( string playlistName )
 		{
-			AlbumPlaylist newPlaylist = new AlbumPlaylist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
+			AlbumPlaylist newPlaylist = new() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
 
 			await Playlists.AddPlaylistAsync( newPlaylist );
 
@@ -163,7 +163,7 @@ namespace DBTest
 		/// Duplicate a playlist in the other libraries
 		/// </summary>
 		/// <param name="playlistToDuplicate"></param>
-		public static async void DuplicatePlaylistAsync( Playlist playlistToDuplicate )
+		public static void DuplicatePlaylist( Playlist playlistToDuplicate )
 		{
 			// Duplicate the playlist in all libraries except the one it is in
 			foreach ( Library library in Libraries.LibraryCollection )
@@ -180,9 +180,9 @@ namespace DBTest
 						Playlists.DeletePlaylist( existingPlaylist );
 					}
 
-					if ( playlistToDuplicate is SongPlaylist )
+					if ( playlistToDuplicate is SongPlaylist playlist )
 					{
-						DuplicateSongPlaylistAsync( ( SongPlaylist )playlistToDuplicate, library.Id );
+						DuplicateSongPlaylistAsync( playlist, library.Id );
 					}
 					else
 					{
@@ -199,16 +199,12 @@ namespace DBTest
 		/// <returns></returns>
 		private static async void DuplicateSongPlaylistAsync( SongPlaylist playlistToDuplicate, int libraryId )
 		{
-			// Now create a new playlist in the library with the same name
-			SongPlaylist duplicatedPlaylist = new SongPlaylist() { Name = playlistToDuplicate.Name, LibraryId = libraryId };
-			await Playlists.AddPlaylistAsync( duplicatedPlaylist );
-
 			// Attempt to find matching songs for each SongPlaylistItem in the SongPlaylist
 			// Need to access the songs via the Sources associated with the Library
 			List<Source> sources = Sources.GetSourcesForLibrary( libraryId );
 
 			// Keep track of the matching songs
-			List<Song> songsToAdd = new List<Song>();
+			List<Song> songsToAdd = new();
 
 			foreach ( SongPlaylistItem item in playlistToDuplicate.PlaylistItems )
 			{
@@ -224,8 +220,7 @@ namespace DBTest
 					int titleIndex = 0;
 					while ( ( matchingSong == null ) && ( titleIndex < matchingTitles.Count ) )
 					{
-						Artist nameCheck = Artists.GetArtistById(
-							ArtistAlbums.GetArtistAlbumById( matchingTitles[ titleIndex ].ArtistAlbumId ).ArtistId );
+						Artist nameCheck = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( matchingTitles[ titleIndex ].ArtistAlbumId ).ArtistId );
 
 						// Correct name?
 						if ( nameCheck.Name == item.Artist.Name )
@@ -242,8 +237,14 @@ namespace DBTest
 				}
 			}
 
+			// Only create the playlist if at least one of the songs was found
 			if ( songsToAdd.Count > 0 )
-			{
+			{   
+				SongPlaylist duplicatedPlaylist = new() { Name = playlistToDuplicate.Name, LibraryId = libraryId };
+
+				// Wait for the playlist to be added as we're going to use its id
+				await Playlists.AddPlaylistAsync( duplicatedPlaylist );
+
 				// Add the songs to the new SongPlaylist.
 				duplicatedPlaylist.AddSongs( songsToAdd );
 			}
@@ -256,11 +257,7 @@ namespace DBTest
 		/// <param name="libararyId"></param>
 		private static async void DuplicateAlbumPlaylistAsync( AlbumPlaylist playlistToDuplicate, int libraryId )
 		{
-			// Now create a new playlist in the library with the same name
-			AlbumPlaylist duplicatedPlaylist = new AlbumPlaylist() { Name = playlistToDuplicate.Name, LibraryId = libraryId };
-			await Playlists.AddPlaylistAsync( duplicatedPlaylist );
-
-			List<Album> albumsToAdd = new List<Album>();
+			List<Album> albumsToAdd = new();
 			foreach ( AlbumPlaylistItem item in playlistToDuplicate.PlaylistItems )
 			{
 				// Find a matching Album name with the same Artist name
@@ -272,9 +269,12 @@ namespace DBTest
 				}
 			}
 
+			// Only create the playlist if we've got something to add to it
 			if ( albumsToAdd.Count > 0 )
 			{
-				// Add the songs to the new SongPlaylist.
+				AlbumPlaylist duplicatedPlaylist = new() { Name = playlistToDuplicate.Name, LibraryId = libraryId };
+				await Playlists.AddPlaylistAsync( duplicatedPlaylist );
+
 				duplicatedPlaylist.AddAlbums( albumsToAdd );
 			}
 		}
@@ -312,8 +312,8 @@ namespace DBTest
 				}
 
 				// Sort the playlists by name
-				PlaylistsViewModel.SongPlaylists.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
-				PlaylistsViewModel.AlbumPlaylists.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
+				PlaylistsViewModel.SongPlaylists.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
+				PlaylistsViewModel.AlbumPlaylists.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
 
 				// Now copy to the combined list
 				PlaylistsViewModel.Playlists.Clear();
@@ -382,7 +382,7 @@ namespace DBTest
 		/// <summary>
 		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private static readonly DataReporter dataReporter = new( StorageDataAvailable );
 
 		/// <summary>
 		/// The previous song id that has been played
