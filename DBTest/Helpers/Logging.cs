@@ -6,28 +6,25 @@
 		/// Log a message via the ILogger interface
 		/// </summary>
 		/// <param name="message"></param>
-		public static void Log( string message )
-		{
-			Reporter?.Log( message );
-		}
+		public static void Log( string message ) => Reporter?.Log( message );
+
+		/// <summary>
+		/// Log a timestamped message via the ILogger interface
+		/// </summary>
+		/// <param name="message"></param>
+		public static void LogTimed( string message ) => Reporter?.LogTimed( message );
 
 		/// <summary>
 		/// Report an event via the ILogger interface
 		/// </summary>
 		/// <param name="message"></param>
-		public static void Event( string message )
-		{
-			Reporter?.Event( message );
-		}
+		public static void Event( string message ) => Reporter?.Event( message );
 
 		/// <summary>
 		/// Report an error via the ILogger interface
 		/// </summary>
 		/// <param name="message"></param>
-		public static void Error( string message )
-		{
-			Reporter?.Error( message );
-		}
+		public static void Error( string message ) => Reporter?.Error( message );
 
 		/// <summary>
 		/// The object to log through
@@ -40,6 +37,7 @@
 		public interface ILogger
 		{
 			void Log( string message );
+			void LogTimed( string message );
 			void Event( string message );
 			void Error( string message );
 		}

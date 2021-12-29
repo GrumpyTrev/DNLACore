@@ -9,7 +9,7 @@ namespace DBTest
 	/// The Playlists class holds a collection of all the SongPlaylist and AlbumPlaylist entries read from storage.
 	/// It allows access to these entries and automatically persists changes back to storage
 	/// </summary>	
-	static class Playlists
+	internal static class Playlists
 	{
 		/// <summary>
 		/// Get the Playlists collection from storage
@@ -29,6 +29,23 @@ namespace DBTest
 					// Get all the SongPlaylistItems
 					List<SongPlaylistItem> songPlaylistItems = await DbAccess.LoadAsync<SongPlaylistItem>();
 
+					// Make sure all these items are linked to songs. Remove any that aren't
+					List<SongPlaylistItem> orphanItems = new();
+					foreach ( SongPlaylistItem item in songPlaylistItems )
+					{
+						if ( await Songs.GetSongById( item.SongId ) == null )
+						{
+							orphanItems.Add( item );
+						}
+					}
+
+					foreach ( SongPlaylistItem item in orphanItems )
+					{
+						songPlaylistItems.Remove( item );
+						DbAccess.DeleteAsync( item );
+					}
+
+					// Link the playlists with their playlistitems
 					foreach ( SongPlaylist playlist in songPlaylists )
 					{
 						playlist.GetContents( songPlaylistItems );

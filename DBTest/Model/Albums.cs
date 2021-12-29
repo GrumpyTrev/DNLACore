@@ -8,7 +8,7 @@ namespace DBTest
 	/// The Albums class holds a collection of all the Albums entries read from storage.
 	/// It allows access to Albums entries by Id and automatically persists changes back to storage
 	/// </summary>	
-	static class Albums
+	internal static class Albums
 	{
 		/// <summary>
 		/// Get the Albums collection from storage
@@ -56,6 +56,22 @@ namespace DBTest
 			DbAccess.DeleteAsync( albumToDelete );
 			AlbumCollection.Remove( albumToDelete );
 			IdLookup.Remove( albumToDelete.Id );
+		}
+
+		/// <summary>
+		/// Delete the specified Albums from the storage and the collections
+		/// </summary>
+		/// <param name="albumToDelete"></param>
+		/// <returns></returns>
+		public static void DeleteAlbums( IEnumerable<Album> albumsToDelete )
+		{
+			// No need to wait for the delete
+			DbAccess.DeleteItemsAsync( albumsToDelete );
+			foreach ( Album albumToDelete in albumsToDelete )
+			{
+				AlbumCollection.Remove( albumToDelete );
+				IdLookup.Remove( albumToDelete.Id );
+			}
 		}
 
 		/// <summary>

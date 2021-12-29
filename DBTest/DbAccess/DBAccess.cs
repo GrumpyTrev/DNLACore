@@ -10,7 +10,7 @@ namespace DBTest
 	/// <summary>
 	/// The DbAccess class is used for DB operations that can be performed generically
 	/// </summary>
-	static class DbAccess
+	internal static class DbAccess
 	{
 		/// <summary>
 		/// Get all the members of a table
@@ -81,7 +81,7 @@ namespace DBTest
         /// </summary>
         /// <returns></returns>
         public static async Task<Song> GetSongAsync( int songId ) =>
-            await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.Id == songId ) ).FirstAsync();
+            await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.Id == songId ) ).FirstOrDefaultAsync();
 
         /// <summary>
         /// Get the songs for the specified Album identity
@@ -170,7 +170,7 @@ namespace DBTest
 		/// <returns></returns>
 		private static List<List<T>> Split<T>( List<T> items, int sliceSize = 100 )
 		{
-			List<List<T>> list = new List<List<T>>();
+			List<List<T>> list = new();
 
 			for ( int index = 0; index < items.Count; index += sliceSize )
 			{

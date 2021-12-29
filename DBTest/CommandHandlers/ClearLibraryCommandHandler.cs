@@ -1,17 +1,19 @@
-﻿namespace DBTest
+﻿using System.Threading.Tasks;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The ClearLibraryCommandHandler class is used to process a request to clear a library
 	/// The process involves displaying 3 dialogues.
 	/// First the LibrarySelectionDialogFragment to select the library to clear.
-	/// Then the ClearConfirmationDialogFragment to confirm the clearance
+	/// Then the ConfirmationDialogFragment to confirm the clearance
 	/// Then the Libarary is cleared and the ClearProgressDialogFragment is shown whilst the clearance is being carried out.
 	/// When the library has been cleared the title of the dialgue is changed and the user is allowed to dismiss the dialogue.
 	/// This is the only part of the process that needs to be aware of the fragment lifecycle.
 	/// The handler needs access to the dialog fragment in order to inform it when the clearance has finished.
 	/// The dialog needs to inform the handler when it is destroyed by the system and when it is displayed again.
 	/// </summary>
-	class ClearLibraryCommandHandler : CommandHandler
+	internal class ClearLibraryCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. Show the library selection dialogue and pass on any selected librray to the ClearConfirmationDialogFragment
@@ -52,9 +54,12 @@
 		/// </summary>
 		private async void ClearLibraryAsync()
 		{
-			clearFinished = false;
-			await LibraryManagementController.ClearLibraryAsync( libraryToClear );
-			clearFinished = true;
+			await Task.Run( () => 
+			{
+				clearFinished = false;
+				LibraryManagementController.ClearLibrary( libraryToClear );
+				clearFinished = true;
+			} );
 
 			progressDialogFragment?.UpdateDialogueState( clearFinished );
 		}

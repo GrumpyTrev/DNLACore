@@ -91,7 +91,7 @@ namespace DBTest
             }
             else
             {
-                albumSongs = artistAlbumLookup[ artistAlbumId ];
+                albumSongs = ArtistAlbumLookup[ artistAlbumId ];
             }
 
             return albumSongs;
@@ -112,10 +112,44 @@ namespace DBTest
         public static List<Song> GetSourceSongsWithName( int sourceId, string name ) => 
             SongCollection.Where( song => ( song.SourceId == sourceId ) && ( song.Title == name ) ).ToList();
 
-        /// <summary>
-        /// The set of Songs currently held in storage
-        /// </summary>
-        public static List<Song> SongCollection { get; set; } = new List<Song>();
+		/// <summary>
+		/// Add the specified Song to the local collections and persistent storage
+		/// </summary>
+		/// <param name="songToAdd"></param>
+		public static async Task AddSongAsync( Song songToAdd )
+		{
+			await DbAccess.InsertAsync( songToAdd );
+
+			SongCollection.Add( songToAdd );
+			IdLookup.Add( songToAdd.Id, songToAdd );
+			ArtistAlbumLookup.AddValue( songToAdd.ArtistAlbumId, songToAdd );
+		}
+
+		/// <summary>
+		/// Remove the supplied list of songs from local and persistent storage.
+		/// This is used for bulk deletion, so rather than removing each song from the collection, O(n), reform the collection ignoring
+		/// thoses to be delted
+		/// </summary>
+		/// <param name="songsToDelete"></param>
+		public static void DeleteSongs( List<Song> songsToDelete )
+		{
+			lock ( lockObject )
+			{
+				// Form a hash from all the song ids being deleted
+				HashSet<int> songIds = new( songsToDelete.Select( song => song.Id ) );
+
+				// Make a new collection that only contains entries not in the deleted songs
+				SongCollection = SongCollection.Where( song => songIds.Contains( song.Id ) == false ).ToList();
+
+				// Reform the lookups
+				IdLookup = SongCollection.ToDictionary( song => song.Id, song => song );
+
+				ArtistAlbumLookup = new MultiDictionary<int, Song>();
+				SongCollection.ForEach( song => ArtistAlbumLookup.AddValue( song.ArtistAlbumId, song ) );
+			}
+
+			DbAccess.DeleteItemsAsync( songsToDelete );
+		}
 
         /// <summary>
         /// Copy any entries in the collection just loaded into the main SongCollection, except for
@@ -132,16 +166,21 @@ namespace DBTest
                     {
                         SongCollection.Add( song );
                         IdLookup.Add( song.Id, song );
-                        artistAlbumLookup.AddValue( song.ArtistAlbumId, song );
+                        ArtistAlbumLookup.AddValue( song.ArtistAlbumId, song );
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Has the main set of songs been loaded yet
-        /// </summary>
-        private static bool collectionLoaded = false;
+		/// <summary>
+		/// The set of Songs currently held in storage
+		/// </summary>
+		public static List<Song> SongCollection { get; set; } = new List<Song>();
+
+		/// <summary>
+		/// Has the main set of songs been loaded yet
+		/// </summary>
+		private static bool collectionLoaded = false;
 
         /// <summary>
         /// Lookup table indexed by song id
@@ -151,11 +190,11 @@ namespace DBTest
         /// <summary>
         /// Lookup table indexed by ArtistAlbum id
         /// </summary>
-        private static MultiDictionary<int, Song> artistAlbumLookup = new MultiDictionary<int, Song>();
+        private static MultiDictionary<int, Song> ArtistAlbumLookup = new();
 
         /// <summary>
         /// Object used to lock collections
         /// </summary>
-        private static object lockObject = new object();
+        private static readonly object lockObject = new();
     }
 }

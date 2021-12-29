@@ -61,6 +61,12 @@ namespace DBTest
 		public void Log( string message ) => Android.Util.Log.WriteLine( Android.Util.LogPriority.Debug, "DBTest", message );
 
 		/// <summary>
+		/// Log a message
+		/// </summary>
+		/// <param name="message"></param>
+		public void LogTimed( string message ) => Android.Util.Log.WriteLine( Android.Util.LogPriority.Debug, "DBTest", $"{DateTime.Now}:{message}" );
+
+		/// <summary>
 		/// Report an event 
 		/// </summary>
 		/// <param name="message"></param>

@@ -8,7 +8,7 @@ namespace DBTest
 	/// The Artists class holds a collection of all the Artists entries read from storage.
 	/// It allows access to Artists entries by Id and automatically persists changes back to storage
 	/// </summary>	
-	static class Artists
+	internal static class Artists
 	{
 		/// <summary>
 		/// Get the Artists collection from storage
@@ -54,6 +54,21 @@ namespace DBTest
 			DbAccess.DeleteAsync( artistToDelete );
 			ArtistCollection.Remove( artistToDelete );
 			IdLookup.Remove( artistToDelete.Id );
+		}
+
+		/// <summary>
+		/// Delete the specified Artists from the storage and the collections
+		/// </summary>
+		/// <param name="artistsToDelete"></param>
+		public static void DeleteArtists( IEnumerable< Artist> artistsToDelete )
+		{
+			DbAccess.DeleteItemsAsync( artistsToDelete );
+			
+			foreach ( Artist artistToDelete in artistsToDelete )
+			{
+				ArtistCollection.Remove( artistToDelete );
+				IdLookup.Remove( artistToDelete.Id );
+			}
 		}
 
 		/// <summary>

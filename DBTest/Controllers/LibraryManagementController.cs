@@ -1,20 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
 	/// <summary>
-	/// The LibraryManagementController is the Controller for the LibraryManagement. It responds to LibraryManagement commands and maintains library data in the
-	/// LibraryManagementModel
+	/// The LibraryManagementController is the Controller for the LibraryManagement view. It responds to LibraryManagement commands and maintains library data 
+	/// in the LibraryManagementModel
 	/// </summary>
-	static class LibraryManagementController
+	internal static class LibraryManagementController
 	{
 		/// <summary>
 		/// Update the selected libary in the database and the ConnectionDetailsModel.
 		/// Notify other controllers
 		/// </summary>
-		/// <param name="selectedLibrary"></param>
+		/// <param name="selectedLibrary">The newly selected library</param>
 		public static void SelectLibrary( Library selectedLibrary )
 		{
 			// Only process this if the library has changed
@@ -31,26 +30,20 @@ namespace DBTest
 		/// </summary>
 		/// <param name="libraryToClear"></param>
 		/// <returns></returns>
-		public static async Task ClearLibraryAsync( Library libraryToClear )
+		public static void ClearLibrary( Library libraryToClear )
 		{
 			int libId = libraryToClear.Id;
 
 			// Delete all the artists in the library and their associated ArtistAlbum entries
-			// Use a List rather than a lazy enumerator here as we'll be removing entries from the collection being enumerated
 			List<Artist> artists = Artists.ArtistCollection.Where( art => art.LibraryId == libId ).ToList();
-			foreach ( Artist artist in artists )
-			{
-				Artists.DeleteArtist( artist );
+			Artists.DeleteArtists( artists );
 
-				// Use a List rather than a lazy enumerator here as we'll be removing entries from the collection being enumerated
-				ArtistAlbums.ArtistAlbumCollection.Where( artAlb => artAlb.ArtistId == artist.Id ).ToList()
-					.ForEach( artAlb => ArtistAlbums.DeleteArtistAlbum( artAlb ) );
-			}
+			ArtistAlbums.DeleteArtistAlbums(
+				ArtistAlbums.ArtistAlbumCollection.Where( artAlb => artists.Any( art => art.Id == artAlb.ArtistId ) ).Distinct().ToList() );
 
 			// Delete all the albums in the library and any tags associated with them
-			// Use a List rather than a lazy enumerator here as we'll be removing entries from the collection being enumerated
 			List<Album> albums = Albums.AlbumCollection.Where( alb => alb.LibraryId == libId ).ToList();
-			albums.ForEach( alb => Albums.DeleteAlbum( alb ) );
+			Albums.DeleteAlbums( albums );
 
 			// We can use the FilterManagementController to carry out the Tag deletions.
 			new AlbumsDeletedMessage() { DeletedAlbumIds = albums.Select( alb => alb.Id ).ToList() }.Send();
@@ -61,12 +54,14 @@ namespace DBTest
 			// Delete the contents of the NowPlayingList but keep the playlist itself
 			Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( libId );
 			nowPlaying.Clear();
+			nowPlaying.SongIndex = -1;
 
 			// Delete all the songs in each of the sources associated with the library
 			List<Source> sources = Sources.GetSourcesForLibrary( libId );
 			foreach ( Source source in sources )
 			{
-				DbAccess.DeleteItemsAsync( Songs.GetSourceSongs( source.Id ) );
+				Songs.DeleteSongs( Songs.GetSourceSongs( source.Id ) );
+				source.Songs = null;
 			}
 		}
 	}
