@@ -8,7 +8,7 @@ namespace DBTest
 	/// <summary>
 	/// The ScannedSong class holds the MP3 tags and other relavent fields of a newly scanned song 
 	/// </summary>
-	class ScannedSong
+	internal class ScannedSong
 	{
 		public MP3Tags Tags { get; set; }
 		public DateTime Modified { get; set; }
@@ -17,8 +17,7 @@ namespace DBTest
 		public int Track { get; set; } = 0;
 		public int Length { get; set; } = 0;
 		public int Year { get; set; } = 0;
-		public bool Matched { get; set; } = false;
-
+		
 		/// <summary>
 		/// Replace zero length tag files with standard replacements, parse the track number and the length
 		/// </summary>

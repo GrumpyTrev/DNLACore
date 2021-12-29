@@ -11,12 +11,17 @@ namespace DBTest
 	public static class LibraryScanController
 	{
 		/// <summary>
+		/// Static constructor. Register for UPnP devices
+		/// </summary>
+		static LibraryScanController() => MainApp.RegisterPlaybackCapabilityCallback( deviceCallback );
+
+		/// <summary>
 		/// Asynchronous method called to carry out a library scan
 		/// </summary>
 		/// <param name="libraryToScan"></param>
 		public static async void ScanLibraryAsynch( Library libraryToScan )
 		{
-			// Ignore this if there is already a scan in progress - report and error if tehre is a scan in progress but for a different library
+			// Ignore this if there is already a scan in progress
 			if ( scanInProgress == false )
 			{
 				// The scan may already have finished 
@@ -33,6 +38,7 @@ namespace DBTest
 					// Save the library being scanned
 					LibraryScanModel.LibraryBeingScanned = libraryToScan;
 
+					// Keep track of any existing songs that have not been matched in the scan
 					LibraryScanModel.UnmatchedSongs = new List<Song>();
 
 					await Task.Run( async () =>
@@ -43,24 +49,29 @@ namespace DBTest
 						foreach ( Source source in sources )
 						{
 							// Add the songs from this source to a dictionary
-							Dictionary<string, Song> pathLookup = new Dictionary<string, Song>( source.Songs.ToDictionary( song => song.Path ) );
+							Dictionary<string, Song> pathLookup = new( source.Songs.ToDictionary( song => song.Path ) );
 
 							// Reset the scan action for all Songs
 							source.Songs.ForEach( song => song.ScanAction = Song.ScanActionType.NotMatched );
 
 							// Use a SongStorage instance to check for song changes
-							SongStorage scanStorage = new SongStorage( LibraryScanModel.LibraryBeingScanned.Id, source, pathLookup );
+							SongStorage scanStorage = new( LibraryScanModel.LibraryBeingScanned.Id, source, pathLookup );
 
 							// Check the source scanning method
-							if ( source.ScanType == "FTP" )
+							if ( source.AccessMethod == Source.AccessType.FTP )
 							{
 								// Scan using the generic FTPScanner but with our callbacks
 								await new FTPScanner( scanStorage ) { CancelRequested = CancelRequested }.Scan( source.ScanSource );
 							}
-							else if ( source.ScanType == "Local" )
+							else if ( source.AccessMethod == Source.AccessType.Local )
 							{
 								// Scan using the generic InternalScanner but with our callbacks
 								await new InternalScanner( scanStorage ) { CancelRequested = CancelRequested }.Scan( source.ScanSource );
+							}
+							else if ( source.AccessMethod == Source.AccessType.UPnP )
+							{
+								// Scan using the generic UPnPScanner but with our callbacks
+								await new UPnPScanner( scanStorage ) { CancelRequested = CancelRequested, RemoteDevices = RemoteDevices }.Scan( source.ScanSource );
 							}
 
 							// Add any unmatched and modified songs to a list that'll be processed when all sources have been scanned
@@ -82,10 +93,7 @@ namespace DBTest
 		/// <summary>
 		/// Reset the controller between scans
 		/// </summary>
-		public static void ResetController()
-		{
-			LibraryScanModel.ClearModel();
-		}
+		public static void ResetController() => LibraryScanModel.ClearModel();
 
 		/// <summary>
 		/// Delete the list of songs from the library
@@ -97,12 +105,12 @@ namespace DBTest
 			DeleteInProgress = true;
 
 			// Keep track of any albums that are deleted so that other controllers can be notified
-			List<int> deletedAlbumIds = new List<int>();
+			List<int> deletedAlbumIds = new();
 
 			await Task.Run( async () =>
 			{
 				// Delete all the Songs.
-				DbAccess.DeleteItemsAsync( LibraryScanModel.UnmatchedSongs );
+				Songs.DeleteSongs( LibraryScanModel.UnmatchedSongs );
 
 				// Delete all the PlaylistItems associated with the songs. No need to wait for this
 				Playlists.DeletePlaylistItems( LibraryScanModel.UnmatchedSongs.Select( song => song.Id ).ToList() );
@@ -139,7 +147,7 @@ namespace DBTest
 		public static async Task<Artist> DeleteSongAsync( Song songToDelete )
 		{
 			// Delete the song.
-			DbAccess.DeleteAsync( songToDelete );
+			Songs.DeleteSong( songToDelete );
 
 			// Delete all the PlaylistItems associated with the song. No need to wait for this
 			Playlists.DeletePlaylistItems( new List<int> { songToDelete.Id } );
@@ -154,6 +162,25 @@ namespace DBTest
 
 			return deletionResults.Item2;
 		}
+
+		/// <summary>
+		/// Called when a new remote media device has been detected
+		/// </summary>
+		/// <param name="device"></param>
+		private static void NewDeviceDetected( PlaybackDevice device )
+		{
+			// Add this device to the model if it supports content discovery
+			if ( device.ContentUrl.Length > 0 )
+			{
+				RemoteDevices.AddDevice( device );
+			}
+		}
+
+		/// <summary>
+		/// Called when a remote media device is no longer available
+		/// </summary>
+		/// <param name="device"></param>
+		private static void DeviceNotAvailable( PlaybackDevice device ) => RemoteDevices.RemoveDevice( device );
 
 		/// <summary>
 		/// Check if the specified ArtistAlbum should be deleted and any associated Album or Artist
@@ -242,6 +269,48 @@ namespace DBTest
 		public interface IDeleteReporter
 		{
 			void DeleteFinished();
+		}
+
+		/// <summary>
+		/// The remote devices that have been discovered
+		/// </summary>
+		private static PlaybackDevices RemoteDevices { get; } = new PlaybackDevices();
+
+		/// <summary>
+		/// The single instance of the RemoteDeviceCallback class
+		/// </summary>
+		private static readonly RemoteDeviceCallback deviceCallback = new();
+
+		/// <summary>
+		/// Implementation of the DeviceDiscovery.IDeviceDiscoveryChanges interface
+		/// </summary>
+		private class RemoteDeviceCallback : DeviceDiscovery.IDeviceDiscoveryChanges
+		{
+			/// <summary>
+			/// Called to report the available devices - when registration is first made
+			/// </summary>
+			/// <param name="devices"></param>
+			public void AvailableDevices( PlaybackDevices devices ) => 
+				devices.DeviceCollection.ForEach( device => LibraryScanController.NewDeviceDetected( device ) );
+
+			/// <summary>
+			/// Called when one or more devices are no longer available
+			/// </summary>
+			/// <param name="devices"></param>
+			public void UnavailableDevices( PlaybackDevices devices ) =>
+					devices.DeviceCollection.ForEach( device => LibraryScanController.DeviceNotAvailable( device ) );
+
+			/// <summary>
+			/// Called when the wifi network state changes
+			/// </summary>
+			/// <param name="state"></param>
+			public void NetworkState( bool state ) { }
+
+			/// <summary>
+			/// Called when a new DLNA device has been detected
+			/// </summary>
+			/// <param name="device"></param>
+			public void NewDeviceDetected( PlaybackDevice device ) => LibraryScanController.NewDeviceDetected( device );
 		}
 	}
 }

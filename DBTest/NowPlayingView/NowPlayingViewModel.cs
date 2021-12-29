@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The NowPlayingViewModel holds the song data obtained from the NowPlayingController
 	/// </summary>
-	static class NowPlayingViewModel
+	internal static class NowPlayingViewModel
 	{
 		/// The Now Playing playlist that has been obtained from the database
 		/// </summary>
@@ -17,7 +17,15 @@
 			get => Playlists.CurrentSongIndex;
 			set
 			{
-				Playlists.CurrentSongIndex = value;
+				// Normalise the value being set
+				if ( value >= NowPlayingPlaylist.PlaylistItems.Count )
+				{
+					Playlists.CurrentSongIndex = -1;
+				}
+				else
+				{
+					Playlists.CurrentSongIndex = value;
+				}
 
 				CurrentSong = ( ( Playlists.CurrentSongIndex == -1 ) || ( NowPlayingPlaylist == null ) ) ? null :
 					( ( SongPlaylistItem )NowPlayingPlaylist.PlaylistItems[ Playlists.CurrentSongIndex ] ).Song;

@@ -151,6 +151,25 @@ namespace DBTest
 			DbAccess.DeleteItemsAsync( songsToDelete );
 		}
 
+		/// <summary>
+		/// Delete a single song from local and peristanet storage
+		/// </summary>
+		/// <param name="songToDelete"></param>
+		public static void DeleteSong( Song songToDelete )
+		{
+			lock( lockObject )
+			{
+				if ( IdLookup.ContainsKey( songToDelete.Id ) == true )
+				{
+					SongCollection.Remove( songToDelete );
+					IdLookup.Remove( songToDelete.Id );
+					ArtistAlbumLookup[ songToDelete.ArtistAlbumId ].Remove( songToDelete );
+				}
+			}
+
+			DbAccess.DeleteAsync( songToDelete );
+		}
+
         /// <summary>
         /// Copy any entries in the collection just loaded into the main SongCollection, except for
         /// those already loadedAdd 

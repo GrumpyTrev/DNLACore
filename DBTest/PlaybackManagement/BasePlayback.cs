@@ -16,6 +16,11 @@ namespace DBTest
 		public BasePlayback() => positionTimer = new Timer( timer => PositionTimerElapsed(), null, TimerPeriod, TimerPeriod );
 
 		/// <summary>
+		/// Register interest in the availability of UPnP servers
+		/// </summary>
+		static BasePlayback() => MainApp.RegisterPlaybackCapabilityCallback( deviceCallback );
+
+		/// <summary>
 		/// Called when the playback system is being shutdown.
 		/// Allow derived classes to release system resources
 		/// </summary>
@@ -195,22 +200,49 @@ namespace DBTest
 		/// <returns></returns>
 		protected string FormSourceName( Source songSource, string songPath, bool local )
 		{
-			string sourceName;
+			string sourceName = "";
+
+			// Playing back locally?
 			if ( local == true )
 			{
-				// Need to escape the path if it is held remotely
-				if ( songSource.AccessMethod == Source.AccessType.FTP )
+				// Source name depends on the source's access method
+				switch ( songSource.AccessMethod )
 				{
-					sourceName = Path.Combine( songSource.LocalAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
-				}
-				else
-				{
-					sourceName = Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) );
+					case Source.AccessType.Local:
+						{
+							sourceName = Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) );
+							break;
+						}
+					case Source.AccessType.FTP:
+						{
+							sourceName = Path.Combine( songSource.LocalAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
+							break;
+						}
+					case Source.AccessType.UPnP:
+						{
+							// Find the device assoicated with the source
+							PlaybackDevice sourceDevice = RemoteDevices.FindDevice( songSource.Name );
+							sourceName = $"http://{sourceDevice.IPAddress}:{sourceDevice.Port}/{songPath}";
+							break;
+
+						}
+					default:
+						break;
 				}
 			}
 			else
 			{
-				sourceName = Path.Combine( songSource.RemoteAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
+				// Playing a song on a remote device. Need to escape the song's path, except for UPnP where the path is escaped already
+				if ( songSource.AccessMethod == Source.AccessType.UPnP )
+				{
+					// Find the device assoicated with the source
+					PlaybackDevice sourceDevice = RemoteDevices.FindDevice( songSource.Name );
+					sourceName = $"http://{sourceDevice.IPAddress}:{sourceDevice.Port}/{songPath}";
+				}
+				else
+				{
+					sourceName = Path.Combine( songSource.RemoteAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
+				}
 			}
 
 			return sourceName;
@@ -225,6 +257,25 @@ namespace DBTest
 		/// Report that the current song has finished
 		/// </summary>
 		protected void ReportSongFinished() => Reporter.SongFinished();
+
+		/// <summary>
+		/// Called when a new remote media device has been detected
+		/// </summary>
+		/// <param name="device"></param>
+		private static void NewDeviceDetected( PlaybackDevice device )
+		{
+			// Add this device to the model if it supports content discovery
+			if ( device.ContentUrl.Length > 0 )
+			{
+				RemoteDevices.AddDevice( device );
+			}
+		}
+
+		/// <summary>
+		/// Called when a remote media device is no longer available
+		/// </summary>
+		/// <param name="device"></param>
+		private static void DeviceNotAvailable( PlaybackDevice device ) => RemoteDevices.RemoveDevice( device );
 
 		/// <summary>
 		/// The instance used to report back significant events
@@ -257,6 +308,16 @@ namespace DBTest
 		private const int TimerPeriod = 1000;
 
 		/// <summary>
+		/// The remote devices that have been discovered
+		/// </summary>
+		private static PlaybackDevices RemoteDevices { get; } = new PlaybackDevices();
+
+		/// <summary>
+		/// The single instance of the RemoteDeviceCallback class
+		/// </summary>
+		private static readonly RemoteDeviceCallback deviceCallback = new();
+
+		/// <summary>
 		/// The interface defining the calls back to the application
 		/// </summary>
 		public interface IPlaybackCallbacks
@@ -265,6 +326,38 @@ namespace DBTest
 			void SongStarted();
 			void SongFinished();
 			void ProgressReport( int position, int duration );
+		}
+
+		/// <summary>
+		/// Implementation of the DeviceDiscovery.IDeviceDiscoveryChanges interface
+		/// </summary>
+		private class RemoteDeviceCallback : DeviceDiscovery.IDeviceDiscoveryChanges
+		{
+			/// <summary>
+			/// Called to report the available devices - when registration is first made
+			/// </summary>
+			/// <param name="devices"></param>
+			public void AvailableDevices( PlaybackDevices devices ) =>
+				devices.DeviceCollection.ForEach( device => BasePlayback.NewDeviceDetected( device ) );
+
+			/// <summary>
+			/// Called when one or more devices are no longer available
+			/// </summary>
+			/// <param name="devices"></param>
+			public void UnavailableDevices( PlaybackDevices devices ) =>
+					devices.DeviceCollection.ForEach( device => BasePlayback.DeviceNotAvailable( device ) );
+
+			/// <summary>
+			/// Called when the wifi network state changes
+			/// </summary>
+			/// <param name="state"></param>
+			public void NetworkState( bool state ) { }
+
+			/// <summary>
+			/// Called when a new DLNA device has been detected
+			/// </summary>
+			/// <param name="device"></param>
+			public void NewDeviceDetected( PlaybackDevice device ) => BasePlayback.NewDeviceDetected( device );
 		}
 	}
 }
