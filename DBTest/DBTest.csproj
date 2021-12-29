@@ -70,6 +70,9 @@
     <Compile Include="BaseView\GotoTopControl.cs" />
     <Compile Include="BaseView\MultiScrollListenerExpandableListView.cs" />
     <Compile Include="BaseView\SongViewHolder.cs" />
+    <Compile Include="CommandHandlers\NewLibraryCommandHandler.cs" />
+    <Compile Include="LibraryManagement\NewLibraryNameDialogFragment.cs" />
+    <Compile Include="LibraryScanning\UPnPScanner.cs" />
     <Compile Include="MediaControllerView\MediaControllerView.cs" />
     <Compile Include="AutoplayManagement\AutoplayModel.cs" />
     <Compile Include="BaseView\AlbumViewHolder.cs" />
@@ -163,7 +166,9 @@
     <Compile Include="LibraryScanning\FTPScanner.cs" />
     <Compile Include="BaseView\IAdapterActionHandler.cs" />
     <Compile Include="BaseView\IPageVisible.cs" />
-    <Compile Include="Helpers\DlnaRequestHelper.cs" />
+    <Compile Include="UPnP\BrowseFolderResponse.cs" />
+    <Compile Include="UPnP\BrowseItemResponse.cs" />
+    <Compile Include="UPnP\DlnaRequestHelper.cs" />
     <Compile Include="Helpers\Logging.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="LibraryScanning\InternalScanner.cs" />
@@ -199,12 +204,12 @@
     <Compile Include="Model\Playback.cs" />
     <Compile Include="Model\Source.cs" />
     <Compile Include="Model\Sources.cs" />
-    <Compile Include="PlaybackManagement\DLNAScanner.cs" />
+    <Compile Include="UPnP\DLNAScanner.cs" />
     <Compile Include="PlaybackManagement\HttpServer.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationService.cs" />
-    <Compile Include="PlaybackManagement\PlaybackCapabilities.cs" />
-    <Compile Include="PlaybackManagement\PlaybackDevice.cs" />
-    <Compile Include="PlaybackManagement\PlaybackDevices.cs" />
+    <Compile Include="UPnP\DeviceDiscovery.cs" />
+    <Compile Include="UPnP\PlaybackDevice.cs" />
+    <Compile Include="UPnP\PlaybackDevices.cs" />
     <Compile Include="PlaybackManagement\PlaybackManagerModel.cs" />
     <Compile Include="Messages\MessageRegistration.cs" />
     <Compile Include="Helpers\MultiDictionary.cs" />
@@ -589,6 +594,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\actionmode_close_item.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\new_library_dialogue_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

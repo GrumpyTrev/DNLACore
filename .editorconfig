@@ -4,7 +4,7 @@
 ############################### 
 # All files 
 [*] 
-indent_style = space 
+indent_style =tab
 # Code files 
 [*.{cs,csx,vb,vbx}] 
 indent_size = 4 
@@ -130,6 +130,7 @@ csharp_space_between_square_brackets = true
 # Wrapping preferences 
 csharp_preserve_single_line_statements = true 
 csharp_preserve_single_line_blocks = true 
+csharp_prefer_simple_using_statement=false:suggestion
 ############################### 
 # VB Coding Conventions       # 
 ############################### 
