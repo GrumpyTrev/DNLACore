@@ -12,97 +12,45 @@ namespace DBTest
         /// <returns></returns>
         public static async Task GetDataAsync()
         {
-            if ( collectionLoaded == false )
-            {
-                // Get the current set of songs
-                List<Song> loadedCollection = await DbAccess.LoadAsync<Song>();
+			// Get the current set of songs
+			SongCollection = await DbAccess.LoadAsync<Song>();
 
-                // Add to the collection held by this class
-                AddSongsToCollection( loadedCollection );
+			// Form the lookups
+			foreach ( Song song in SongCollection )
+			{
+				IdLookup[ song.Id ] = song;
+				artistAlbumLookup.AddValue( song.ArtistAlbumId, song );
+				albumLookup.AddValue( song.AlbumId, song );
+			}
+		}
 
-                collectionLoaded = true;
-            }
-        }
+		/// <summary>
+		/// Return the Song with the specified Id or null if not found
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public static Song GetSongById( int id ) => IdLookup[ id ];
 
-        /// <summary>
-        /// Return the Song with the specified Id or null if not found
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public static async Task<Song> GetSongById( int id )
-        {
-            // If the song is not in the lookup table yet then query the database
-            Song retrievedSong = null;
-            lock ( lockObject )
-            {
-                retrievedSong = IdLookup.GetValueOrDefault( id );
-            }
+		/// <summary>
+		/// Return all the songs associated with the specified Album
+		/// </summary>
+		/// <param name="albumId"></param>
+		/// <returns></returns>
+		public static List<Song> GetAlbumSongs( int albumId ) => albumLookup[ albumId ];
 
-            if ( retrievedSong == null )
-            {
-                retrievedSong = await DbAccess.GetSongAsync( id );
+		/// <summary>
+		/// Return all the songs associated with the specified ArtistAlbum
+		/// </summary>
+		/// <param name="artistAlbumId"></param>
+		/// <returns></returns>
+		public static List<Song> GetArtistAlbumSongs( int artistAlbumId ) => artistAlbumLookup[ artistAlbumId ];
 
-                if ( retrievedSong != null )
-                {
-                    AddSongsToCollection( new List<Song>() { retrievedSong } );
-                }
-            }
-
-            return retrievedSong;
-        }
-
-        /// <summary>
-        /// Return all the songs associated with the specified Album
-        /// </summary>
-        /// <param name="albumId"></param>
-        /// <returns></returns>
-        public static async Task< List<Song> > GetAlbumSongs( int albumId )
-        {
-            List<Song> albumSongs;
-
-            if ( collectionLoaded == false )
-            {
-                albumSongs = await DbAccess.GetAlbumSongsAsync( albumId );
-
-                AddSongsToCollection( albumSongs );
-            }
-            else
-            {
-                albumSongs = SongCollection.Where( song => song.AlbumId == albumId ).ToList();
-            }
-
-            return albumSongs;
-        }
-
-        /// <summary>
-        /// Return all the songs associated with the specified ArtistAlbum
-        /// </summary>
-        /// <param name="artistAlbumId"></param>
-        /// <returns></returns>
-        public static async Task<List<Song>> GetArtistAlbumSongs( int artistAlbumId )
-        {
-            List<Song> albumSongs;
-
-            if ( collectionLoaded == false )
-            {
-                albumSongs = await DbAccess.GetArtistAlbumSongsAsync( artistAlbumId );
-
-                AddSongsToCollection( albumSongs );
-            }
-            else
-            {
-                albumSongs = ArtistAlbumLookup[ artistAlbumId ];
-            }
-
-            return albumSongs;
-        }
-
-        /// <summary>
-        /// Return all the songs associated with the specified Source
-        /// </summary>
-        /// <param name="sourceId"></param>
-        /// <returns></returns>
-        public static List<Song> GetSourceSongs( int sourceId ) => SongCollection.Where( song => song.SourceId == sourceId ).ToList();
+		/// <summary>
+		/// Return all the songs associated with the specified Source
+		/// </summary>
+		/// <param name="sourceId"></param>
+		/// <returns></returns>
+		public static List<Song> GetSourceSongs( int sourceId ) => SongCollection.Where( song => song.SourceId == sourceId ).ToList();
 
         /// <summary>
         /// Return all the songs associated with the specified Source
@@ -116,13 +64,18 @@ namespace DBTest
 		/// Add the specified Song to the local collections and persistent storage
 		/// </summary>
 		/// <param name="songToAdd"></param>
-		public static async Task AddSongAsync( Song songToAdd )
+		public static async void AddSongAsync( Song songToAdd )
 		{
+			// Must wait for this to get the song id
 			await DbAccess.InsertAsync( songToAdd );
 
-			SongCollection.Add( songToAdd );
-			IdLookup.Add( songToAdd.Id, songToAdd );
-			ArtistAlbumLookup.AddValue( songToAdd.ArtistAlbumId, songToAdd );
+			lock ( lockObject )
+			{
+				SongCollection.Add( songToAdd );
+				IdLookup.Add( songToAdd.Id, songToAdd );
+				artistAlbumLookup.AddValue( songToAdd.ArtistAlbumId, songToAdd );
+				albumLookup.AddValue( songToAdd.AlbumId, songToAdd );
+			}
 		}
 
 		/// <summary>
@@ -142,10 +95,15 @@ namespace DBTest
 				SongCollection = SongCollection.Where( song => songIds.Contains( song.Id ) == false ).ToList();
 
 				// Reform the lookups
-				IdLookup = SongCollection.ToDictionary( song => song.Id, song => song );
-
-				ArtistAlbumLookup = new MultiDictionary<int, Song>();
-				SongCollection.ForEach( song => ArtistAlbumLookup.AddValue( song.ArtistAlbumId, song ) );
+				artistAlbumLookup = new();
+				albumLookup = new();
+				IdLookup = new();
+				foreach ( Song song in SongCollection )
+				{
+					IdLookup[ song.Id ] = song;
+					artistAlbumLookup.AddValue( song.ArtistAlbumId, song );
+					albumLookup.AddValue( song.AlbumId, song );
+				}
 			}
 
 			DbAccess.DeleteItemsAsync( songsToDelete );
@@ -163,57 +121,37 @@ namespace DBTest
 				{
 					SongCollection.Remove( songToDelete );
 					IdLookup.Remove( songToDelete.Id );
-					ArtistAlbumLookup[ songToDelete.ArtistAlbumId ].Remove( songToDelete );
+					artistAlbumLookup[ songToDelete.ArtistAlbumId ].Remove( songToDelete );
+					albumLookup[ songToDelete.AlbumId ].Remove( songToDelete );
 				}
 			}
 
 			DbAccess.DeleteAsync( songToDelete );
 		}
 
-        /// <summary>
-        /// Copy any entries in the collection just loaded into the main SongCollection, except for
-        /// those already loadedAdd 
-        /// </summary>
-        /// <param name="songs"></param>
-        private static void AddSongsToCollection( List<Song> songs )
-        {
-            lock ( lockObject )
-            {
-                foreach ( Song song in songs )
-                {
-                    if ( IdLookup.ContainsKey( song.Id ) == false )
-                    {
-                        SongCollection.Add( song );
-                        IdLookup.Add( song.Id, song );
-                        ArtistAlbumLookup.AddValue( song.ArtistAlbumId, song );
-                    }
-                }
-            }
-        }
-
 		/// <summary>
 		/// The set of Songs currently held in storage
 		/// </summary>
 		public static List<Song> SongCollection { get; set; } = new List<Song>();
-
-		/// <summary>
-		/// Has the main set of songs been loaded yet
-		/// </summary>
-		private static bool collectionLoaded = false;
 
         /// <summary>
         /// Lookup table indexed by song id
         /// </summary>
         private static Dictionary<int, Song> IdLookup { get; set; } = new Dictionary<int, Song>();
 
-        /// <summary>
-        /// Lookup table indexed by ArtistAlbum id
-        /// </summary>
-        private static MultiDictionary<int, Song> ArtistAlbumLookup = new();
+		/// <summary>
+		/// Lookup table indexed by ArtistAlbum id
+		/// </summary>
+		private static MultiDictionary<int, Song> artistAlbumLookup = new();
 
-        /// <summary>
-        /// Object used to lock collections
-        /// </summary>
-        private static readonly object lockObject = new();
+		/// <summary>
+		/// Lookup table indexed by Album id
+		/// </summary>
+		private static MultiDictionary<int, Song> albumLookup = new();
+
+		/// <summary>
+		/// Object used to lock collections
+		/// </summary>
+		private static readonly object lockObject = new();
     }
 }

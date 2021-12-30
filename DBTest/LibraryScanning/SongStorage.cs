@@ -139,7 +139,7 @@ namespace DBTest
 					// If the song is not deleted then there will be more than one associated with the same storage location.
 					// This is much less complicated than trying to move the existing song to a new Artist or Album
 					// If an Artist has been deleted due to this song deletion then remove it from the dictionary being used here
-					Artist deletedArtist = await LibraryScanController.DeleteSongAsync( matchedSong );
+					Artist deletedArtist = LibraryScanController.DeleteSong( matchedSong );
 					if ( deletedArtist != null )
 					{
 						artistsInLibrary.Remove( deletedArtist.Name.ToUpper() );
@@ -400,7 +400,7 @@ namespace DBTest
 				// Get the children of the existing ArtistAlbum
 				if ( songArtistAlbum.Songs == null )
 				{
-					songArtistAlbum.Songs = await Songs.GetArtistAlbumSongs( songArtistAlbum.Id );
+					songArtistAlbum.Songs = Songs.GetArtistAlbumSongs( songArtistAlbum.Id );
 				}
 			}
 

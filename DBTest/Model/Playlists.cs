@@ -21,51 +21,35 @@ namespace DBTest
 			{
 				PlaylistCollection = new List<Playlist>();
 
-				await Task.Run( async () =>
-				{
-					// Get the current set of SongPlaylists
-					List< SongPlaylist > songPlaylists = await DbAccess.LoadAsync<SongPlaylist>();
+				// Get the current set of SongPlaylists
+				List<SongPlaylist> songPlaylists = await DbAccess.LoadAsync<SongPlaylist>();
 
-					// Get all the SongPlaylistItems
-					List<SongPlaylistItem> songPlaylistItems = await DbAccess.LoadAsync<SongPlaylistItem>();
+				// Get all the SongPlaylistItems
+				List<SongPlaylistItem> songPlaylistItems = await DbAccess.LoadAsync<SongPlaylistItem>();
 
-					// Make sure all these items are linked to songs. Remove any that aren't
-					List<SongPlaylistItem> orphanItems = new();
-					foreach ( SongPlaylistItem item in songPlaylistItems )
-					{
-						if ( await Songs.GetSongById( item.SongId ) == null )
-						{
-							orphanItems.Add( item );
-						}
-					}
+				// Make sure all these items are linked to songs. Remove any that aren't
+				List<SongPlaylistItem> orphanItems = songPlaylistItems.Where( item => Songs.GetSongById( item.SongId ) == null ).ToList();
 
-					foreach ( SongPlaylistItem item in orphanItems )
-					{
-						songPlaylistItems.Remove( item );
-						DbAccess.DeleteAsync( item );
-					}
+				// Remove any orphaned items
+				orphanItems.ForEach( item => songPlaylistItems.Remove( item ) );
+				DbAccess.DeleteItemsAsync( orphanItems );
 
-					// Link the playlists with their playlistitems
-					foreach ( SongPlaylist playlist in songPlaylists )
-					{
-						playlist.GetContents( songPlaylistItems );
-					}
+				// Link the playlists with their playlistitems
+				songPlaylists.ForEach( playlist => playlist.GetContents( songPlaylistItems ) );
 
-					PlaylistCollection.AddRange( songPlaylists );
+				// Add these to the main collection
+				PlaylistCollection.AddRange( songPlaylists );
 
-					// Now do the same for the AlbumPlaylists
-					List<AlbumPlaylist> albumPlaylists = await DbAccess.LoadAsync<AlbumPlaylist>();
+				// Now do the same for the AlbumPlaylists
+				List<AlbumPlaylist> albumPlaylists = await DbAccess.LoadAsync<AlbumPlaylist>();
 
-					// Get all the PlaylistItems
-					List<AlbumPlaylistItem> albumPlaylistItems = await DbAccess.LoadAsync<AlbumPlaylistItem>();
+				// Get all the PlaylistItems
+				List<AlbumPlaylistItem> albumPlaylistItems = await DbAccess.LoadAsync<AlbumPlaylistItem>();
 
-					foreach ( AlbumPlaylist playlist in albumPlaylists )
-					{
-						playlist.GetContents( albumPlaylistItems );
-					}
+				// Link the album playlist items to thier playlists
+				albumPlaylists.ForEach( playlist => playlist.GetContents( albumPlaylistItems ) );
 
-					PlaylistCollection.AddRange( albumPlaylists );
-				} );
+				PlaylistCollection.AddRange( albumPlaylists );
 			}
 		}
 
@@ -103,7 +87,7 @@ namespace DBTest
 			Playlist parentPlaylist = null;
 
 			// Playlist ids are not unique as they are held in different tables, so we need to match the playlist type as well as its id
-			if ( playlistItem is SongPlaylistItem songPlaylistItem )
+			if ( playlistItem is SongPlaylistItem )
 			{
 				parentPlaylist = PlaylistCollection.Where( play => ( play.Id == playlistItem.PlaylistId ) && ( play is SongPlaylist ) ).FirstOrDefault();
 			}
@@ -145,7 +129,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songIds"></param>
 		/// <returns></returns>
-		public static void DeletePlaylistItems( List<int> songIds )
+		public static void DeletePlaylistItems( HashSet<int> songIds )
 		{
 			foreach ( Playlist playlist in PlaylistCollection )
 			{

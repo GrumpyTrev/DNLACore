@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.Graphics;
@@ -8,7 +7,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class PlaylistsAdapter: ExpandableListAdapter< Playlist >
+	internal class PlaylistsAdapter: ExpandableListAdapter< Playlist >
 	{
 		/// <summary>
 		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
@@ -68,8 +67,7 @@ namespace DBTest
 		/// <returns></returns>
 		public override bool OnChildClick( ExpandableListView parent, View clickedView, int groupPosition, int childPosition, long id )
 		{
-			bool handled = false;
-
+			bool handled;
 			if ( ( ActionMode == false ) && ( Groups[ groupPosition ] is AlbumPlaylist playlist ) )
 			{
 				( stateChangeReporter as IActionHandler ).AlbumPlaylistItemClicked( playlist, playlist.PlaylistItems[ childPosition ] as AlbumPlaylistItem );
@@ -116,6 +114,28 @@ namespace DBTest
 				}
 			}
 		}
+
+		/// <summary>
+		/// Either select or deselect all the displayed items
+		/// </summary>
+		/// <param name="select"></param>
+		public async void SelectAll( bool select )
+		{
+			bool selectionChanged = false;
+			for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
+			{
+				// All the playlist contents have already been read in so just select them
+				selectionChanged |= await SelectGroupContents( groupIndex, select );
+				selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
+			}
+
+			if ( selectionChanged == true )
+			{
+				stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
+				NotifyDataSetChanged();
+			}
+		}
+
 
 		/// <summary>
 		/// Provide a view containing either album or song details at the specified position

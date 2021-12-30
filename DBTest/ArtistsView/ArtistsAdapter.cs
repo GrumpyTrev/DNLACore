@@ -7,7 +7,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class ArtistsAdapter : ExpandableListAdapter<object>
+	internal class ArtistsAdapter : ExpandableListAdapter<object>
 	{
 		/// <summary>
 		/// ArtistsAdapter constructor.
@@ -264,10 +264,7 @@ namespace DBTest
 		/// </summary>
 		private class ArtistViewHolder : ExpandableListViewHolder
 		{
-			public void DisplayArtist( Artist artist )
-			{
-				Name.Text = artist.Name;
-			}
+			public void DisplayArtist( Artist artist ) => Name.Text = artist.Name;
 
 			public TextView Name { get; set; }
 		}
@@ -309,7 +306,7 @@ namespace DBTest
 			/// <summary>
 			/// The Colour used to display the name of an album. Initialised to a colour we're never going to use
 			/// </summary>
-			private static Color albumNameColour = new Color( Color.Fuchsia );
+			private static Color albumNameColour = new( Color.Fuchsia );
 		}
 
 		/// <summary>

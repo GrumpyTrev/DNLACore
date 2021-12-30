@@ -40,6 +40,7 @@ namespace DBTest
 		/// </summary>
 		private static async void ReadManagedCollections()
 		{
+			await Songs.GetDataAsync();
 			await Albums.GetDataAsync();
 			await Sources.GetDataAsync();
 			await Artists.GetDataAsync();
@@ -58,9 +59,6 @@ namespace DBTest
 
 			DataAvailable = true;
 			new StorageDataAvailableMessage().Send();
-
-            // Access the songs after everything else has been loaded 
-            await Songs.GetDataAsync();
         }
 
 		/// <summary>

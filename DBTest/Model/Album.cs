@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using SQLite;
 
 namespace DBTest
@@ -17,7 +15,7 @@ namespace DBTest
 		{
 			if ( Songs == null )
 			{
-                Songs = await DBTest.Songs.GetAlbumSongs( Id );
+                Songs = DBTest.Songs.GetAlbumSongs( Id );
 
                 // Sort the songs by track number
                 Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );

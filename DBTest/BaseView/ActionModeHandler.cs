@@ -110,11 +110,12 @@ namespace DBTest
             // Report when the checkbox is clicked
             checkBox.Click += ( sender, args ) => CallbackNotification.AllSelected( !AllSelected );
 
-            // Set the common text title
+            // Refresh the title text and checkbox status
             ActionModeTitle = ActionModeTitle;
+			AllSelected = AllSelected;
 
-            // Let the fragment know
-            CallbackNotification.OnActionBarCreated();
+			// Let the fragment know
+			CallbackNotification.OnActionBarCreated();
 
             return true;
         }

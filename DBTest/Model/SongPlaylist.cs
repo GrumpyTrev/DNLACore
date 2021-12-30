@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -13,14 +12,14 @@ namespace DBTest
 		/// Get the PlaylistItems and associated songs for this playlist
 		/// </summary>
 		/// <param name="playlistItems"></param>
-		public async void GetContents( IEnumerable<SongPlaylistItem> playlistItems )
+		public void GetContents( IEnumerable<SongPlaylistItem> playlistItems )
 		{
 			// Get all the SongPlaylistItem entries associated with this SongPlaylist and then the Song entries for each of them
-			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == this.Id ) );
+			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == Id ) );
 
 			foreach ( SongPlaylistItem playlistItem in PlaylistItems )
 			{
-				playlistItem.Song = await Songs.GetSongById( playlistItem.SongId );
+				playlistItem.Song = Songs.GetSongById( playlistItem.SongId );
 				playlistItem.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playlistItem.Song.ArtistAlbumId ).ArtistId );
 				playlistItem.Song.Artist = playlistItem.Artist;
 			}
@@ -35,14 +34,14 @@ namespace DBTest
 		/// <param name="songs"></param>
 		public void AddSongs( IEnumerable<Song> songs )
 		{
-			List<SongPlaylistItem> songPlaylistItems = new List<SongPlaylistItem>();
+			List<SongPlaylistItem> songPlaylistItems = new();
 
 			// For each song create a PlayListItem and add to the PlayList
 			foreach ( Song song in songs )
 			{
 				song.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( song.ArtistAlbumId ).ArtistId );
 
-				SongPlaylistItem itemToAdd = new SongPlaylistItem()
+				SongPlaylistItem itemToAdd = new()
 				{
 					Artist = song.Artist,
 					PlaylistId = Id,
@@ -55,6 +54,7 @@ namespace DBTest
 				PlaylistItems.Add( itemToAdd );
 			}
 
+			// No need to wait for this
 			DbAccess.InsertAllAsync( songPlaylistItems );
 		}
 
@@ -68,30 +68,18 @@ namespace DBTest
 		/// Delete any songs in this playlist that are contained in the supplied collection
 		/// </summary>
 		/// <param name="songIds"></param>
-		public void DeleteMatchingSongs( List<int> songIds )
-		{
-			List<SongPlaylistItem> itemsToDelete = new List<SongPlaylistItem>();
-
-			foreach ( SongPlaylistItem songPlaylistItem in PlaylistItems )
-			{
-				if ( songIds.Contains( songPlaylistItem.SongId ) == true )
-				{
-					itemsToDelete.Add( songPlaylistItem );
-				}
-			}
-
-			DeletePlaylistItems( itemsToDelete );
-		}
+		public void DeleteMatchingSongs( HashSet<int> songIds ) =>
+			DeletePlaylistItems( PlaylistItems.Where( item => songIds.Contains( ( ( SongPlaylistItem )item ).SongId ) == true ) );
 
 		/// <summary>
 		/// The Song last played (or started to be played) in this playlist
 		/// </summary>
-		internal override Song InProgressSong { get => ( SongIndex >= 0 ) ? ( PlaylistItems[ SongIndex ] as SongPlaylistItem ).Song : null; }
+		internal override Song InProgressSong => ( SongIndex >= 0 ) ? ( PlaylistItems[ SongIndex ] as SongPlaylistItem ).Song : null;
 
 		/// <summary>
 		/// The index of the last played song in the collection of all songs
 		/// </summary>
-		internal override int InProgressIndex { get => SongIndex; }
+		internal override int InProgressIndex => SongIndex;
 
 		/// <summary>
 		/// Return a list of the songs in this playlist, optionally only the songs from the SongIndex onwards

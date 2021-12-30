@@ -1,6 +1,5 @@
 ﻿using SQLite;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -14,13 +13,13 @@ namespace DBTest
 		/// The ArtistAlbum entries have already been obtained so just get the Songs for them
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public async void GetSongs()
+		public void GetSongs()
 		{
 			if ( songsRead == false )
 			{
 				foreach ( ArtistAlbum artistAlbum in ArtistAlbums )
 				{
-					artistAlbum.Songs = await Songs.GetArtistAlbumSongs( artistAlbum.Id );
+					artistAlbum.Songs = Songs.GetArtistAlbumSongs( artistAlbum.Id );
 					artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 				}
 			}
@@ -28,11 +27,11 @@ namespace DBTest
 			songsRead = true;
 		}
 
-		public async void GetArtistAlbumSongs( ArtistAlbum artistAlbum )
+		public void GetArtistAlbumSongs( ArtistAlbum artistAlbum )
 		{
 			if ( artistAlbum.Songs == null )
 			{
-				artistAlbum.Songs = await Songs.GetArtistAlbumSongs( artistAlbum.Id );
+				artistAlbum.Songs = Songs.GetArtistAlbumSongs( artistAlbum.Id );
 				artistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 			}
 		}

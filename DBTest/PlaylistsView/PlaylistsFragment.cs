@@ -18,23 +18,11 @@ namespace DBTest
 
 		/// <summary>
 		/// Get all the entries associated with a specified SongPlaylist or AlbumPlaylist.
-		/// SongPlaylist items are now read at startup. So this is no longer required for them
-		/// AlbumPlaylist contents are also obtained on startup. The Songs are obtained at startup but not linked
-        /// into the Albums
+		/// Both SongPlaylist and AlbumPlaylist items are now read at startup. So this is no longer required for them
 		/// </summary>
 		/// <param name="selectedGroup_"></param>
 		public async Task ProvideGroupContentsAsync( Playlist selectedGroup )
 		{
-			if ( selectedGroup is AlbumPlaylist albumPlaylist )
-			{
-				foreach ( AlbumPlaylistItem albumPlaylistItem in albumPlaylist.PlaylistItems )
-				{
-					if ( albumPlaylistItem.Album.Songs == null )
-					{
-						AlbumsController.GetAlbumContents( albumPlaylistItem.Album );
-					}
-				}
-			}
 		}
 
 		/// <summary>
@@ -80,6 +68,13 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called when the Select All checkbox has been clicked on the Action Bar.
+		/// Pass this on to the adapter
+		/// </summary>
+		/// <param name="checkedState"></param>
+		public override void AllSelected( bool checkedState ) => ( ( PlaylistsAdapter )Adapter ).SelectAll( checkedState );
+
+		/// <summary>
 		/// Called when the number of selected items has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
@@ -100,6 +95,8 @@ namespace DBTest
 
 				ActionMode.ActionModeTitle = string.Format( ItemsSelectedText, playlistText, songsText );
 			}
+
+			ActionMode.AllSelected = ( selectedObjects.Playlists.Count == PlaylistsViewModel.Playlists.Count );
 		}
 
 		/// <summary>

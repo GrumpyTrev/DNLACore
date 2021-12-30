@@ -1,5 +1,4 @@
-﻿using Android.Views;
-using Android.Widget;
+﻿using Android.Widget;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -28,35 +27,55 @@ namespace DBTest
 		/// Called when the Controller has obtained the Albums data
 		/// Pass it on to the adapter
 		/// </summary>
-		public override void DataAvailable()
+		public override void DataAvailable() => Activity.RunOnUiThread( () =>
 		{
-			Activity.RunOnUiThread( () => 
-			{
-				// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-				Adapter.SetData( AlbumsViewModel.Albums.ToList(), BaseModel.SortSelector.ActiveSortType );
+			// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
+			Adapter.SetData( AlbumsViewModel.Albums.ToList(), BaseModel.SortSelector.ActiveSortType );
 
-				// Indicate whether or not a filter has been applied
-				AppendToTabTitle();
+			// Indicate whether or not a filter has been applied
+			AppendToTabTitle();
 
-				// Update the icon as well
-				AlbumsViewModel.FilterSelector.DisplayFilterIcon();
+			// Update the icon as well
+			AlbumsViewModel.FilterSelector.DisplayFilterIcon();
 
-				base.DataAvailable();
-			} );
-		}
+			base.DataAvailable();
+		} );
 
 		/// <summary>
 		/// Called when the number of selected items (songs) has changed.
 		/// Update the text to be shown in the Action Mode title
 		/// </summary>
-		protected override void SelectedItemsChanged( GroupedSelection selectedObjects ) =>
-			ActionMode.ActionModeTitle = ( selectedObjects.Songs.Count == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.Songs.Count );
+		protected override void SelectedItemsChanged( GroupedSelection selectedObjects )
+		{
+			if ( selectedObjects.Songs.Count == 0 )
+			{
+				ActionMode.ActionModeTitle = NoItemsSelectedText;
+			}
+			else
+			{
+				int albumsCount = selectedObjects.Albums.Count;
+				int songsCount = selectedObjects.Songs.Count;
+				string albumsText = ( albumsCount > 0 ) ? string.Format( "{0} album{1} ", albumsCount, ( albumsCount == 1 ) ? "" : "s" ) : "";
+				string songsText = ( songsCount > 0 ) ? string.Format( "{0} song{1} ", songsCount, ( songsCount == 1 ) ? "" : "s" ) : "";
+
+				ActionMode.ActionModeTitle = string.Format( ItemsSelectedText, albumsText, songsText );
+			}
+
+			ActionMode.AllSelected = ( selectedObjects.Albums.Count == AlbumsViewModel.Albums.Count );
+		}
 
 		/// <summary>
 		/// Called when the sort selector has changes the sort order
 		/// No need to wait for this to finish. Albums display will be refreshed when it is complete
 		/// </summary>
-		public override void SortOrderChanged() => AlbumsController.SortDataAsync();
+		public override void SortOrderChanged() => AlbumsController.SortData();
+
+		/// <summary>
+		/// Called when the Select All checkbox has been clicked on the Action Bar.
+		/// Pass this on to the adapter
+		/// </summary>
+		/// <param name="checkedState"></param>
+		public override void AllSelected( bool checkedState ) => ( ( AlbumsAdapter )Adapter ).SelectAll( checkedState );
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -104,6 +123,6 @@ namespace DBTest
 		/// Constant strings for the Action Mode bar text
 		/// </summary>
 		private const string NoItemsSelectedText = "Select songs";
-		private const string ItemsSelectedText = "{0} selected";
+		private const string ItemsSelectedText = "{0}{1}selected";
 	}
 }

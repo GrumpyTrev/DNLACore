@@ -8,7 +8,7 @@ namespace DBTest
 	/// <summary>
 	/// The AlbumsAdapter class displays album and song data in an ExpandableListView
 	/// </summary>
-	class AlbumsAdapter: ExpandableListAdapter< Album >
+	internal class AlbumsAdapter: ExpandableListAdapter< Album >
 	{
 		/// <summary>
 		/// AlbumsAdapter constructor
@@ -65,6 +65,31 @@ namespace DBTest
 		/// </summary>
 		/// <returns></returns>
 		public override Java.Lang.Object[] GetSections() => javaSections;
+
+		/// <summary>
+		/// Either select or deselect all the displayed items
+		/// </summary>
+		/// <param name="select"></param>
+		public async void SelectAll( bool select )
+		{
+			bool selectionChanged = false;
+			for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
+			{
+				if ( Groups[ groupIndex ].Songs == null )
+				{
+					await contentsProvider.ProvideGroupContentsAsync( Groups[ groupIndex ] );
+				}
+
+				selectionChanged |= await SelectGroupContents( groupIndex, select );
+				selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
+			}
+
+			if ( selectionChanged == true )
+			{
+				stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
+				NotifyDataSetChanged();
+			}
+		}
 
 		/// <summary>
 		/// Provide a view containing song details at the specified position

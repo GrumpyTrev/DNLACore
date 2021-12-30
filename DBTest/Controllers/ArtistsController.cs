@@ -9,7 +9,7 @@ namespace DBTest
 	/// The ArtistsController is the Controller for the ArtistsView. It responds to ArtistsView commands and maintains Artists data in the
 	/// ArtistsViewModel
 	/// </summary>
-	class ArtistsController
+	internal class ArtistsController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
@@ -51,86 +51,82 @@ namespace DBTest
 			ArtistsViewModel.FilterSelector.CurrentFilter = newFilter;
 
 			// No need to wait for this to be applied
-			ApplyFilterAsync();
+			ApplyFilter();
 		}
 
 		/// <summary>
 		/// Sort the Artists according to the currently selected sort order
 		/// </summary>
-		public static async Task SortArtistsAsync()
+		public static void SortArtists() => Task.Run( () =>
 		{
-			// Do the sorting and indexing off the UI task
-			await Task.Run( () =>
+			// Clear the indexing collections (in case they are not used in the new sort order)
+			ArtistsViewModel.FastScrollSections = null;
+			ArtistsViewModel.FastScrollSectionLookup = null;
+
+			switch ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder )
 			{
-				// Clear the indexing collections (in case they are not used in the new sort order)
-				ArtistsViewModel.FastScrollSections = null;
-				ArtistsViewModel.FastScrollSectionLookup = null;
-
-				switch ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder )
+				case SortSelector.SortOrder.alphaDescending:
+				case SortSelector.SortOrder.alphaAscending:
 				{
-					case SortSelector.SortOrder.alphaDescending:
-					case SortSelector.SortOrder.alphaAscending:
+					if ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.alphaAscending )
 					{
-						if ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.alphaAscending )
-						{
-							ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ); } );
-						}
-						else
-						{
-							ArtistsViewModel.Artists.Sort( ( a, b ) => { return b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ); } );
-						}
-
-						// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted but before the scroll indexing
-						PrepareCombinedList();
-
-						// Generate the fast scroll data for alpha sorting
-						GenerateIndex( ( artist ) => { return artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper(); } );
-
-						break;
+						ArtistsViewModel.Artists.Sort( ( a, b ) => a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ) );
+					}
+					else
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ) );
 					}
 
-					case SortSelector.SortOrder.idAscending:
-					case SortSelector.SortOrder.idDescending:
-					{
-						if ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.idAscending )
-						{
-							ArtistsViewModel.Artists.Sort( ( a, b ) => { return a.Id.CompareTo( b.Id ); } );
-						}
-						else
-						{
-							ArtistsViewModel.Artists.Sort( ( a, b ) => { return b.Id.CompareTo( a.Id ); } );
-						}
+					// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted but before the scroll indexing
+					PrepareCombinedList();
 
-						// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted.
-						// No fast scroll indexing is required for Id sort order
-						PrepareCombinedList();
+					// Generate the fast scroll data for alpha sorting
+					GenerateIndex( ( artist ) => artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper() );
 
-						break;
-					}
+					break;
 				}
-			} );
+
+				case SortSelector.SortOrder.idAscending:
+				case SortSelector.SortOrder.idDescending:
+				{
+					if ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder == SortSelector.SortOrder.idAscending )
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => a.Id.CompareTo( b.Id ) );
+					}
+					else
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => b.Id.CompareTo( a.Id ) );
+					}
+
+					// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted.
+					// No fast scroll indexing is required for Id sort order
+					PrepareCombinedList();
+
+					break;
+				}
+			}
 
 			// Publish the data
 			DataReporter?.DataAvailable();
-		}
+		} );
 
 		/// <summary>
 		/// Called during startup, or library change, when the storage data is available
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void StorageDataAvailable()
+		private static void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
 			ArtistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
 
 			// Get the Artists we are interested in
 			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
-			
+
 			// Do the sorting of ArtistAlbum entries off the UI thread
-			await SortArtistAlbumsAsync();
+			SortArtistAlbums();
 
 			// Apply the current filter and get the data ready for display 
-			await ApplyFilterAsync();
+			ApplyFilter();
 		}
 
 		/// <summary>
@@ -138,7 +134,7 @@ namespace DBTest
 		/// Once the Artists have been filtered prepare them for display by sorting and combinig them with their ArtistAlbum entries
 		/// </summary>
 		/// <param name="newFilter"></param>
-		private static async Task ApplyFilterAsync()
+		private static void ApplyFilter() => Task.Run( () =>
 		{
 			// alphabetic and identity sorting are available to the user
 			ArtistsViewModel.BaseModel.SortSelector.MakeAvailable( new List<SortSelector.SortType> { SortSelector.SortType.alphabetic, SortSelector.SortType.identity } );
@@ -150,41 +146,32 @@ namespace DBTest
 			}
 			else
 			{
-				await Task.Run( () =>
+				// Combine the simple and group tabs
+				ArtistsViewModel.FilteredAlbumsIds = ArtistsViewModel.FilterSelector.CombineAlbumFilters();
+
+				// Now get all the artist identities of the albums that are tagged
+				HashSet<int> artistIds = ArtistAlbums.ArtistAlbumCollection.
+													 Where( aa => ArtistsViewModel.FilteredAlbumsIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).Distinct().ToHashSet();
+
+				// Now get the Artists from the list of artist ids
+				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) ).ToList();
+
+				// If the TagOrder flag is set then set the sort order to Id order.
+				if ( ArtistsViewModel.FilterSelector.TagOrderFlag == true )
 				{
-					// Combine the simple and group tabs
-					ArtistsViewModel.FilteredAlbumsIds = ArtistsViewModel.FilterSelector.CombineAlbumFilters();
-
-					// Now get all the artist identities of the albums that are tagged
-					HashSet<int> artistIds = ArtistAlbums.ArtistAlbumCollection.
-						Where( aa => ArtistsViewModel.FilteredAlbumsIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).Distinct().ToHashSet();
-
-					// Now get the Artists from the list of artist ids
-					ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) ).ToList();
-
-					// If the TagOrder flag is set then set the sort order to Id order.
-					if ( ArtistsViewModel.FilterSelector.TagOrderFlag == true )
-					{
-						ArtistsViewModel.BaseModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
-					}
-				} );
+					ArtistsViewModel.BaseModel.SortSelector.SetActiveSortOrder( SortSelector.SortType.identity );
+				}
 			}
 
 			// Sort the artists to the order specified in the SortSelector and publish the data
-			await SortArtistsAsync();
-		}
+			SortArtists();
+		} );
 
 		/// <summary>
 		/// Sort the ArtistAlbum entries in each Artist by the album year
 		/// </summary>
-		private static async Task SortArtistAlbumsAsync()
-		{
-			await Task.Run( () =>
-			{
-				// Sort the ArtistAlbum entries in each Artist by the album year
-				ArtistsViewModel.UnfilteredArtists.ForEach( art => art.ArtistAlbums.Sort( ( a, b ) => a.Album.Year.CompareTo( b.Album.Year ) ) );
-			} );
-		}
+		private static void SortArtistAlbums() => Task.Run( () =>
+			ArtistsViewModel.UnfilteredArtists.ForEach( art => art.ArtistAlbums.Sort( ( a, b ) => a.Album.Year.CompareTo( b.Album.Year ) ) ) );
 
 		/// <summary>
 		/// Prepare the combined Artist/ArtistAlbum list from the current Artists list
@@ -216,7 +203,7 @@ namespace DBTest
 			if ( ArtistsViewModel.FilterSelector.FilterContainsTags( changedTags ) == true )
 			{
 				// Reapply the same filter. No need to wait for this.
-				ApplyFilterAsync();
+				ApplyFilter();
 			}
 		}
 
@@ -245,7 +232,7 @@ namespace DBTest
 			if ( ArtistsViewModel.FilterSelector.CurrentFilterName == changedTag.Name )
 			{
 				// Reapply the same filter
-				ApplyFilterAsync();
+				ApplyFilter();
 			}
 		}
 
@@ -289,7 +276,7 @@ namespace DBTest
 			ArtistsViewModel.FastScrollSectionLookup = new int[ ArtistsViewModel.ArtistsAndAlbums.Count ];
 
 			// Keep track of when a section has already been added to the FastScrollSections collection
-			Dictionary<string, int> sectionLookup = new Dictionary<string, int>();
+			Dictionary<string, int> sectionLookup = new();
 
 			// Keep track of the last section index allocated or found for an Artist as it will also be used for the associated ArtistAlbum entries
 			int sectionIndex = -1;
@@ -328,6 +315,6 @@ namespace DBTest
 		/// <summary>
 		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private static readonly DataReporter dataReporter = new( StorageDataAvailable );
 	}
 }
