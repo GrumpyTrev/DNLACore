@@ -11,21 +11,21 @@ namespace DBTest
 		/// <summary>
 		/// Get the songs associated with this Album
 		/// </summary>
-		public async void GetSongs()
+		public void GetSongs()
 		{
 			if ( Songs == null )
 			{
-                Songs = DBTest.Songs.GetAlbumSongs( Id );
+				Songs = DBTest.Songs.GetAlbumSongs( Id );
 
-                // Sort the songs by track number
-                Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
-            }
-        }
+				// Sort the songs by track number
+				Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
+			}
+		}
 
-        /// <summary>
-        /// The Album's Played flag
-        /// </summary>
-        [Ignore]
+		/// <summary>
+		/// The Album's Played flag
+		/// </summary>
+		[Ignore]
 		public bool Played
 		{
 			get => DBPlayed;

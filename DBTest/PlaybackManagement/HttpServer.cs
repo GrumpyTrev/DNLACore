@@ -9,12 +9,12 @@ namespace DBTest
 	/// <summary>
 	/// Simple Http server used to serve local files to remote devices
 	/// </summary>
-	class SimpleHTTPServer
+	internal class SimpleHTTPServer
 	{
 		/// <summary>
 		/// Dictionary of mime mappings
 		/// </summary>
-		private static IDictionary<string, string> _mimeTypeMappings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
+		private static readonly IDictionary<string, string> _mimeTypeMappings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
 			{".asf", "video/x-ms-asf"},
 			{".asx", "video/x-ms-asf"},
 			{".avi", "video/x-msvideo"},
@@ -101,10 +101,7 @@ namespace DBTest
 		/// <summary>
 		/// Stop server and dispose all functions.
 		/// </summary>
-		public void Stop()
-		{
-			listener.Close();
-		}
+		public void Stop() => listener.Close();
 
 		/// <summary>
 		/// Listen for Http requests and process them
@@ -145,7 +142,7 @@ namespace DBTest
 				{
 					try
 					{
-						using ( StreamReader reader = new StreamReader( filename ) )
+						using ( StreamReader reader = new( filename ) )
 						{
 							context.Response.ContentType = _mimeTypeMappings.TryGetValue( Path.GetExtension( filename ), out string mime ) ? mime : "application/octet-stream";
 							context.Response.ContentLength64 = reader.BaseStream.Length;
@@ -156,7 +153,7 @@ namespace DBTest
 							{
 								Logger.Log( "Serving file: " + filename );
 
-								using ( BinaryReader bReader = new BinaryReader( reader.BaseStream ) )
+								using ( BinaryReader bReader = new( reader.BaseStream ) )
 								{
 									byte[] bytes = bReader.ReadBytes( ( int )reader.BaseStream.Length );
 									context.Response.OutputStream.Write( bytes, 0, bytes.Length );
@@ -194,6 +191,6 @@ namespace DBTest
 		/// <summary>
 		/// The Http listener
 		/// </summary>
-		private HttpListener listener;
+		private readonly HttpListener listener;
 	}
 }

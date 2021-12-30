@@ -6,7 +6,7 @@ namespace DBTest
 	/// <summary>
 	/// The TaggedAlbums class holds a collection of all the TaggedAlbum entries read from storage.
 	/// </summary>	
-	static class TaggedAlbums
+	internal static class TaggedAlbums
 	{
 		/// <summary>
 		/// Get the TaggedAlbum collection from storage

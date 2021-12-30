@@ -8,15 +8,12 @@ namespace DBTest
 	/// <summary>
 	/// The AutoplayController class is the controller for the AutoplayManagement
 	/// </summary>
-	class AutoplayController
+	internal class AutoplayController
 	{
 		/// <summary>
 		/// Create the one and only instance of the controller
 		/// </summary>
-		static AutoplayController()
-		{
-			SongSelectedMessage.Register( SongSelectedAsync );
-		}
+		static AutoplayController() => SongSelectedMessage.Register( SongSelected );
 
 		/// <summary>
 		/// Get the Controller data
@@ -30,7 +27,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="selectedSong"></param>
 		/// <param name="genres"></param>
-		public static async void StartAutoplayAsync( IEnumerable<Song> selectedSongs, IEnumerable<string> genres, bool playNow )
+		public static void StartAutoplay( IEnumerable<Song> selectedSongs, IEnumerable<string> genres, bool playNow )
 		{
 			// Clear any existing Genre/Album populations from the Autoplay record
 			AutoplayModel.CurrentAutoplay.Clear();
@@ -45,18 +42,18 @@ namespace DBTest
 				// For Slow and NoSpread the first population is the starting set of genres
 				case Autoplay.SpreadType.NoSpread:
 				case Autoplay.SpreadType.Slow:
-					AutoplayModel.CurrentAutoplay.AddToPopulation( -1, genres );
-					break;
+				AutoplayModel.CurrentAutoplay.AddToPopulation( -1, genres );
+				break;
 
 				// For a fast spread determine all the reachable Genres and use that as the first population
 				case Autoplay.SpreadType.Fast:
-					AutoplayModel.CurrentAutoplay.AddAllReachableGenres( genres );
-					break;
+				AutoplayModel.CurrentAutoplay.AddAllReachableGenres( genres );
+				break;
 			}
 
 			// Start generating songs
-			List<Song> songs = new List<Song>( selectedSongs );
-			await GenerateSongsAsync( songs );
+			List<Song> songs = new( selectedSongs );
+			GenerateSongs( songs );
 
 			// Add these songs to the NowPlaying list either replacing or just adding them to the list
 			NowPlayingController.AddSongsToNowPlayingList( songs, playNow );
@@ -87,9 +84,9 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songs"></param>
 		/// <returns></returns>
-		private static async Task GenerateSongsAsync( List<Song> songs )
+		private static void GenerateSongs( List<Song> songs )
 		{
-			Random generator = new Random();
+			Random generator = new();
 
 			// For each generation select a song from the available populations
 			while ( songs.Count() < GenerationSize )
@@ -114,11 +111,11 @@ namespace DBTest
 							// If there are 'n' populations from 0 - (n-1) then the range will be n + (n - 1 ) + ( n - 2 ) + ... + 1 i.e. n(n + 1) / 2
 							// Once a selection has been made it must be mapped to a population.
 							// Do this by repeatedly removing n, n - 1, n - 2, etc from the selection until the correct population is reached
-							int skewedSelection = 
-								generator.Next( 0, ( AutoplayModel.CurrentAutoplay.Populations.Count * ( AutoplayModel.CurrentAutoplay.Populations.Count + 1 ) ) / 2 );
+							int skewedSelection =
+								generator.Next( 0, AutoplayModel.CurrentAutoplay.Populations.Count * ( AutoplayModel.CurrentAutoplay.Populations.Count + 1 )  / 2 );
 
 							// Start mapping the selection to a population either from the start or the end
-							populationNumber = ( AutoplayModel.CurrentAutoplay.Weight == Autoplay.WeightType.Centre ) ? 0 
+							populationNumber = ( AutoplayModel.CurrentAutoplay.Weight == Autoplay.WeightType.Centre ) ? 0
 								: AutoplayModel.CurrentAutoplay.Populations.Count - 1;
 
 							// Map the selection by removing a reducing slot size from the selection count until 0 is reached 
@@ -176,7 +173,7 @@ namespace DBTest
 		/// All the songs prior to the song index are removed except for the last "LeaveSongs"
 		/// Only proceed with any of this processing if autoplay is active
 		/// </summary>
-		private static async void SongSelectedAsync()
+		private static void SongSelected()
 		{
 			if ( PlaybackModeModel.AutoOn == true )
 			{
@@ -186,14 +183,14 @@ namespace DBTest
 				if ( ( nowPlaying.PlaylistItems.Count - currentSongIndex ) < RefillLevel )
 				{
 					// Generate some songs and add to the Now Playing list
-					List<Song> songs = new List<Song>();
-					await GenerateSongsAsync( songs );
+					List<Song> songs = new();
+					GenerateSongs( songs );
 
 					// Add these songs to the NowPlaying list
 					NowPlayingController.AddSongsToNowPlayingList( songs, false );
 
 					// Remove 'played' songs
-					int songsToRemove = Math.Max(0, currentSongIndex - LeaveSongs );
+					int songsToRemove = Math.Max( 0, currentSongIndex - LeaveSongs );
 					if ( songsToRemove > 0 )
 					{
 						NowPlayingController.DeleteNowPlayingItems( nowPlaying.PlaylistItems.GetRange( 0, songsToRemove ) );
@@ -201,7 +198,7 @@ namespace DBTest
 				}
 			}
 		}
-		
+
 		/// <summary>
 		/// The number of songs generated in one go
 		/// </summary>
@@ -223,6 +220,6 @@ namespace DBTest
 		/// <summary>
 		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private static readonly DataReporter dataReporter = new( StorageDataAvailable );
 	}
 }

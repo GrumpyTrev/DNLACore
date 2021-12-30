@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace DBTest
 {
-	class AddSongsToPlaylistCommandHandler : CommandHandler
+	internal class AddSongsToPlaylistCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. 
 		/// </summary>
 		/// <param name="commandIdentity"></param>
-		public override async void HandleCommand( int commandIdentity )
+		public override void HandleCommand( int commandIdentity )
 		{
 			// The options available depend on which objects have been selected.
 			// If and only if complete albums have been selected then the option to add albums to the album playlists is presented.
@@ -28,10 +28,10 @@ namespace DBTest
 			}
 
 			// Check if all the selected songs are from selected albums
-			await CheckForCompleteAlbumsAsync();
+			CheckForCompleteAlbums();
 
 			// Create a Popup menu containing the song and album playlist names
-			PopupMenu playlistsMenu = new PopupMenu( commandButton.Context, commandButton );
+			PopupMenu playlistsMenu = new( commandButton.Context, commandButton );
 
 			// Add the fixed menu items with menu ids above the range used for the actual playlists
 			int nonPlaybackIndex = PlaylistsViewModel.Playlists.Count;
@@ -180,7 +180,7 @@ namespace DBTest
 		/// <summary>
 		/// Check if all the selected songs are contained within the selected albums and that all the album's songs are selected
 		/// </summary>
-		private async Task CheckForCompleteAlbumsAsync()
+		private void CheckForCompleteAlbums()
 		{
 			// If there are any selected albums then check that all the selected songs belong to those albums (and none left over )
 			completeAlbums = false;

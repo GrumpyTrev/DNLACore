@@ -15,10 +15,7 @@ namespace DBTest
 		/// Called when the class instance is first created
 		/// Initialise the Android MediaPlayer instance user to actually play the songs
 		/// </summary>
-		public LocalPlayback( Context context)
-		{
-			InitialiseMediaPlayer( context );
-		}
+		public LocalPlayback( Context context ) => InitialiseMediaPlayer( context );
 
 		/// <summary>
 		/// Called when the MediaPlayer has finished playing the current song

@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The FilterManagementController class responds to filter selection commands and reflects changes to other controllers
 	/// </summary>
-	class FilterManagementController
+	internal class FilterManagementController
 	{
 		/// <summary>
 		/// Register for external filter change messages
@@ -33,70 +33,71 @@ namespace DBTest
 		/// Form Tags and associated TaggedAlbum entries for each genre
 		/// </summary>
 		/// <returns></returns>
-		public static async Task FormGenreTagsAsync()
+		public static async Task FormGenreTagsAsync() => await Task.Run( () =>
 		{
-			await Task.Run( () =>
+			// Create a Tag for each Genre and add them to a lookup table indexed by genre name
+			Dictionary<string, Tag> tagLookup = new();
+
+			// Add a tag for unknown genre
+			Tag unknownTag = new() { Name = "Unknown", ShortName = "Unknown" };
+			tagLookup[ "" ] = unknownTag;
+
+			// Now link in the albums using TaggedAlbum entries
+			foreach ( Album album in Albums.AlbumCollection )
 			{
-				// Create a Tag for each Genre and add them to a lookup table indexed by genre name
-				Dictionary<string, Tag> tagLookup = new Dictionary<string, Tag>();
-
-				// Add a tag for unknown genre
-				Tag unknownTag = new Tag() { Name = "Unknown", ShortName = "Unknown" };
-				tagLookup[ "" ] = unknownTag;
-
-				// Now link in the albums using TaggedAlbum entries
-				foreach ( Album album in Albums.AlbumCollection )
+				// If this album has no genre then add it to the unknown tag
+				if ( album.Genre.Length == 0 )
 				{
-					// If this album has no genre then add it to the unknown tag
-					if ( album.Genre.Length == 0 )
+					unknownTag.AddTaggedAlbum( new() { Album = album, AlbumId = album.Id } );
+				}
+				else
+				{
+					// Get the Genre string and split it into seperate genre strings
+					string[] genreStrings = album.Genre.Split( ';' );
+					foreach ( string genreString in genreStrings )
 					{
-						unknownTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id } );
-					}
-					else
-					{
-						// Get the Genre string and split it into seperate genre strings
-						string[] genreStrings = album.Genre.Split( ';' );
-						foreach ( string genreString in genreStrings )
+						// Is there is no tag for this genre create one
+						Tag genreTag = tagLookup.GetValueOrDefault( genreString );
+						if ( genreTag == null )
 						{
-							// Is there is no tag for this genre create one
-							Tag genreTag = tagLookup.GetValueOrDefault( genreString );
-							if ( genreTag == null )
-							{
-								genreTag = new Tag() { Name = genreString, ShortName = genreString };
-								tagLookup[ genreString ] = genreTag;
-							}
-
-							// Add a TaggedAlbum for this album
-							genreTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id } );
+							genreTag = new() { Name = genreString, ShortName = genreString };
+							tagLookup[ genreString ] = genreTag;
 						}
+
+						// Add a TaggedAlbum for this album
+						genreTag.AddTaggedAlbum( new()
+                        {
+                            Album = album,
+                            AlbumId = album.Id
+                        } );
 					}
 				}
+			}
 
-				// Create a TagGroup for genres and add it to the model
-				TagGroup genres = new TagGroup() { Name = "Genre" };
-				FilterManagementModel.TagGroups.Add( genres );
+			// Create a TagGroup for genres and add it to the model
+			TagGroup genres = new() { Name = "Genre" };
+			FilterManagementModel.TagGroups.Add( genres );
 
-				// Now unload the genre tags into a list and sort it
-				genres.Tags = tagLookup.Values.ToList();
-				genres.Tags.Sort( ( a, b ) => { return a.Name.CompareTo( b.Name ); } );
+			// Now unload the genre tags into a list and sort it
+			genres.Tags = tagLookup.Values.ToList();
+			genres.Tags.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
 
-				// Display all the tags and the number of albums associated with them
-				bool displayTags = false;
+			// Display all the tags and the number of albums associated with them
+			bool displayTags = false;
 
-				if ( displayTags == true )
+			if ( displayTags == true )
+			{
+				foreach ( Tag tag in genres.Tags )
 				{
-					foreach ( Tag tag in genres.Tags )
-					{
-						Logger.Log( $"Genre [{tag.Name}] albums {tag.TaggedAlbums.Count}" );
+					Logger.Log( $"Genre [{tag.Name}] albums {tag.TaggedAlbums.Count}" );
 
-						foreach ( TaggedAlbum taggedAlbum in tag.TaggedAlbums )
-						{
-							Logger.Log( $"Artist: {taggedAlbum.Album.ArtistName} Album: {taggedAlbum.Album.Name} genres {taggedAlbum.Album.Genre}" );
-						}
+					foreach ( TaggedAlbum taggedAlbum in tag.TaggedAlbums )
+					{
+						Logger.Log( $"Artist: {taggedAlbum.Album.ArtistName} Album: {taggedAlbum.Album.Name} genres {taggedAlbum.Album.Genre}" );
 					}
 				}
-			} );
-		}
+			}
+		} );
 
 		/// <summary>
 		/// Add a TaggedAlbum entry for the album to the tag
@@ -217,65 +218,59 @@ namespace DBTest
 		/// Link the TaggedAlbum entries to their Tags and set the Album entry in the TaggedAlbum  
 		/// </summary>
 		/// <returns></returns>
-		private static async Task LinkInTaggedAlbums()
+		private static async Task LinkInTaggedAlbums() => await Task.Run( () =>
 		{
-			await Task.Run( () =>
+			// Tags indexed by their ids
+			Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
+
+			// Keep track of any TaggedAlbums that are not associated with valid tags
+			List<TaggedAlbum> lostTags = new();
+
+			foreach ( TaggedAlbum taggedAlbum in TaggedAlbums.TaggedAlbumCollection )
 			{
-				// Tags indexed by their ids
-				Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
+				taggedAlbum.Album = Albums.GetAlbumById( taggedAlbum.AlbumId );
 
-				// Keep track of any TaggedAlbums that are not associated with valid tags
-				List<TaggedAlbum> lostTags = new List<TaggedAlbum>();
-
-				foreach ( TaggedAlbum taggedAlbum in TaggedAlbums.TaggedAlbumCollection )
+				Tag tag = tagLookup.GetValueOrDefault( taggedAlbum.TagId );
+				if ( tag != null )
 				{
-					taggedAlbum.Album = Albums.GetAlbumById( taggedAlbum.AlbumId );
-
-					Tag tag = tagLookup.GetValueOrDefault( taggedAlbum.TagId );
-					if ( tag != null )
-					{
-						tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
-					}
-					else
-					{
-						lostTags.Add( taggedAlbum );
-					}
-				};
-
-				// Delete the lost TaggedAlbum entries
-				foreach ( TaggedAlbum taggedAlbum in lostTags )
-				{
-					TaggedAlbums.DeleteTaggedAlbum( taggedAlbum );
+					tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
 				}
-			} );
-		}
+				else
+				{
+					lostTags.Add( taggedAlbum );
+				}
+			};
+
+			// Delete the lost TaggedAlbum entries
+			foreach ( TaggedAlbum taggedAlbum in lostTags )
+			{
+				TaggedAlbums.DeleteTaggedAlbum( taggedAlbum );
+			}
+		} );
 
 		/// <summary>
 		/// Create the NotPlayed tag based on the Just Played tag
 		/// </summary>
 		/// <returns></returns>
-		private static async Task CreateNotPlayedTagAsync()
+		private static async Task CreateNotPlayedTagAsync() => await Task.Run( () =>
 		{
-			await Task.Run( () =>
+			// Create a new Not Played tag
+			FilterManagementModel.NotPlayedTag = new Tag() { Name = NotPlayedTagName, ShortName = NotPlayedTagName, Synchronise = true };
+
+			// No need to wait for this as it is not persisted
+			Tags.AddTagAsync( FilterManagementModel.NotPlayedTag );
+
+			// Now add all albums to this tag that are not in the Just Played tag
+			HashSet<int> justPlayedAlbumIds = FilterManagementModel.JustPlayedTag.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
+
+			foreach ( Album album in Albums.AlbumCollection )
 			{
-				// Create a new Not Played tag
-				FilterManagementModel.NotPlayedTag = new Tag() { Name = NotPlayedTagName, ShortName = NotPlayedTagName, Synchronise = true };
-
-				// No need to weait for this as it is not persisted
-				Tags.AddTagAsync( FilterManagementModel.NotPlayedTag );
-
-				// Now add all albums to this tag that are not in the Just Played tag
-				HashSet<int> justPlayedAlbumIds = FilterManagementModel.JustPlayedTag.TaggedAlbums.Select( ta => ta.AlbumId ).ToHashSet();
-
-				foreach ( Album album in Albums.AlbumCollection )
+				if ( justPlayedAlbumIds.Contains( album.Id ) == false )
 				{
-					if ( justPlayedAlbumIds.Contains( album.Id ) == false )
-					{
-						FilterManagementModel.NotPlayedTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id } );
-					}
+					FilterManagementModel.NotPlayedTag.AddTaggedAlbum( new TaggedAlbum() { Album = album, AlbumId = album.Id } );
 				}
-			} );
-		}
+			}
+		} );
 
 		/// <summary>
 		/// Called when the SongStartedMessage is received
@@ -350,7 +345,7 @@ namespace DBTest
 			// Now remove these Albums from the group tags
 			foreach ( TagGroup group in FilterManagementModel.TagGroups )
 			{
-				List<Tag> removedTags = new List<Tag>();
+				List<Tag> removedTags = new();
 
 				foreach ( Tag tag in group.Tags )
 				{
@@ -385,6 +380,6 @@ namespace DBTest
 		/// <summary>
 		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private static readonly DataReporter dataReporter = new( StorageDataAvailable );
 	}
 }

@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The Tags class holds a collection of all the Tag entries read from storage.
 	/// </summary>	
-	static class Tags
+	internal static class Tags
 	{
 		/// <summary>
 		/// Get the Tags collection from storage
@@ -49,7 +49,7 @@ namespace DBTest
 		/// Add a new tag to the storage and the local collections
 		/// </summary>
 		/// <param name="albumToAdd"></param>
-		public static async Task AddTagAsync( Tag tagToAdd )
+		public static async void AddTagAsync( Tag tagToAdd )
 		{
 			TagsCollection.Add( tagToAdd );
 

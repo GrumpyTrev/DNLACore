@@ -6,7 +6,7 @@ namespace DBTest
 	/// <summary>
 	/// The GenrePopulations class holds a collection of GenrePopulations items read from storage
 	/// </summary>
-	static class GenrePopulations
+	internal static class GenrePopulations
 	{
 		/// <summary>
 		/// Get the Albums collection from storage
@@ -27,7 +27,7 @@ namespace DBTest
 		/// <param name="population"></param>
 		public static GenrePopulation CreatePopulation( int autoplayId, int index, IEnumerable<string> genres )
 		{
-			GenrePopulation newPopulation = new GenrePopulation() { AutoplayId = autoplayId, Index = index, GenreString = string.Join( ";", genres ) };
+			GenrePopulation newPopulation = new() { AutoplayId = autoplayId, Index = index, GenreString = string.Join( ";", genres ) };
 
 			GenrePopulationCollection.Add( newPopulation );
 

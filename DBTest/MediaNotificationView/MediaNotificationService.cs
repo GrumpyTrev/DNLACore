@@ -12,7 +12,7 @@ namespace DBTest
     /// The MediaNotificationService is used to display notifications of the currently playing song and to respond to controls from the notification
     /// </summary>
     [Service]
-	class MediaNotificationService : Service
+	internal class MediaNotificationService : Service
 	{
 		/// <summary>
 		/// Called when the service has been created to return the IBinder instance for the service
@@ -97,9 +97,9 @@ namespace DBTest
 		private void InitialiseNotification()
 		{
 			// The mediaButtonReceiver parameter is required for pre-Lollipop SDK
-			ComponentName mediaButtonReceiver = new ComponentName( this, Java.Lang.Class.FromType( typeof( MediaButtonReceiver ) ) );
+			ComponentName mediaButtonReceiver = new( this, Java.Lang.Class.FromType( typeof( MediaButtonReceiver ) ) );
 
-            MediaSessionCompat mediaSession = new MediaSessionCompat( this, AudioPlayerId, mediaButtonReceiver, null ) { Active = true };
+            MediaSessionCompat mediaSession = new( this, AudioPlayerId, mediaButtonReceiver, null ) { Active = true };
             mediaStyle = new MediaStyle().SetMediaSession( mediaSession.SessionToken ).SetShowActionsInCompactView( 0 );
 
             // The play and pause actions to be triggered when the icon is clicked
@@ -108,8 +108,7 @@ namespace DBTest
 
             if ( Build.VERSION.SdkInt >= BuildVersionCodes.O )
 			{
-				NotificationChannel channel = new NotificationChannel( AudioPlayerId, ChannelName, NotificationImportance.Low )
-					{ Description = ChannelDescription };
+				NotificationChannel channel = new( AudioPlayerId, ChannelName, NotificationImportance.Low ) { Description = ChannelDescription };
                 NotificationManager.FromContext( this ).CreateNotificationChannel( channel );
 			}
 		}

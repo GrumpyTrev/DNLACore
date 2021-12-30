@@ -523,7 +523,7 @@ namespace DBTest
 		{
 			// The selected items collection needs to be updated for items that have changed their positions
 			// Keep track of selected items that have changed position
-			Dictionary<int, object> newCheckedObjects = new Dictionary<int, object>();
+			Dictionary<int, object> newCheckedObjects = new();
 
 			// Iterate through the collection of objects and their tags
 			foreach ( (object value, int tag) in items )

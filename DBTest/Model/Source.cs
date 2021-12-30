@@ -9,7 +9,7 @@ namespace DBTest
 	/// <summary>
 	/// The Source class specifies where a set of somngs can be found on a local or remote device
 	/// </summary>
-	partial class Source
+	public partial class Source
 	{
 		/// <summary>
 		/// Initialise the access attributes from those read from the database
@@ -62,7 +62,7 @@ namespace DBTest
 		/// <summary>
 		/// Get all of the songs associated with this source
 		/// </summary>
-		public async Task GetSongsAsync()
+		public void GetSongs()
 		{
 			if ( Songs == null )
 			{

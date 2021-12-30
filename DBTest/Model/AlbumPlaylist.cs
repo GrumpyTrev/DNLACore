@@ -15,7 +15,7 @@ namespace DBTest
 		public void GetContents( IEnumerable<PlaylistItem> playlistItems )
 		{
 			// Get all the AlbumPlaylistItem entries associated with this AlbumPlaylist and then the Album entries for each of them
-			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == this.Id ) );
+			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == Id ) );
 
 			foreach ( AlbumPlaylistItem playlistItem in PlaylistItems )
 			{
@@ -35,11 +35,11 @@ namespace DBTest
 		public void AddAlbums( IEnumerable<Album> albums )
 		{
 			// For each song create an AlbumPlayListItem and add to the PlayList
-			List<AlbumPlaylistItem> albumPlaylistItems = new List<AlbumPlaylistItem>();
+			List<AlbumPlaylistItem> albumPlaylistItems = new();
 
 			foreach ( Album album in albums )
 			{
-				AlbumPlaylistItem itemToAdd = new AlbumPlaylistItem()
+				AlbumPlaylistItem itemToAdd = new()
 				{
 					Album = album,
 					PlaylistId = Id,
@@ -51,19 +51,20 @@ namespace DBTest
 				albumPlaylistItems.Add( itemToAdd );
 			}
 
+			// No need to wait for this to complete
 			DbAccess.InsertAllAsync( albumPlaylistItems );
 		}
 
 		/// <summary>
 		/// The Song last played (or started to be played) in this playlist
 		/// </summary>
-		internal override Song InProgressSong { get => ( SongIndex >= 0 ) ? 
-				( PlaylistItems[ GetGroupFromTag( SongIndex ) ] as AlbumPlaylistItem ).Album.Songs[GetChildFromTag( SongIndex ) ] : null; }
+		internal override Song InProgressSong => ( SongIndex >= 0 ) ?
+				( PlaylistItems[ GetGroupFromTag( SongIndex ) ] as AlbumPlaylistItem ).Album.Songs[ GetChildFromTag( SongIndex ) ] : null;
 
 		/// <summary>
 		/// The Album last played (or started to be played) in this playlist
 		/// </summary>
-		internal Album InProgressAlbum { get => ( SongIndex >= 0 ) ? ( PlaylistItems[ GetGroupFromTag( SongIndex ) ] as AlbumPlaylistItem ).Album : null; }
+		internal Album InProgressAlbum => ( SongIndex >= 0 ) ? ( PlaylistItems[ GetGroupFromTag( SongIndex ) ] as AlbumPlaylistItem ).Album : null;
 
 		/// <summary>
 		/// The index of the last played song in the collection of all songs
@@ -96,7 +97,7 @@ namespace DBTest
 		/// <returns></returns>
 		internal override List<Song> GetSongsForPlayback( bool resume )
 		{
-			List<Song> songs = new List<Song>();
+			List<Song> songs = new();
 
 			int startingIndex = ( resume == true ) ? SongIndex : 0;
 

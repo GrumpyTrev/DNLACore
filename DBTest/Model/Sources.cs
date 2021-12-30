@@ -42,7 +42,7 @@ namespace DBTest
 			List<Source> sources = SourceCollection.Where( sou => sou.LibraryId == libraryId ).ToList();
 			foreach ( Source source in sources )
 			{
-				await source.GetSongsAsync();
+				source.GetSongs();
 			}
 
 			return sources;
