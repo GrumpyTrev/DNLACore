@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -178,22 +177,27 @@ namespace DBTest
 			if ( PlaybackModeModel.AutoOn == true )
 			{
 				int currentSongIndex = Playlists.CurrentSongIndex;
+
 				Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( AutoplayModel.LibraryId );
 
 				if ( ( nowPlaying.PlaylistItems.Count - currentSongIndex ) < RefillLevel )
 				{
 					// Generate some songs and add to the Now Playing list
-					List<Song> songs = new();
-					GenerateSongs( songs );
-
-					// Add these songs to the NowPlaying list
-					NowPlayingController.AddSongsToNowPlayingList( songs, false );
-
-					// Remove 'played' songs
-					int songsToRemove = Math.Max( 0, currentSongIndex - LeaveSongs );
-					if ( songsToRemove > 0 )
+					// Don't do this if the Autoplay instance is not configured.
+					if ( AutoplayModel.CurrentAutoplay.Populations.Count > 0 )
 					{
-						NowPlayingController.DeleteNowPlayingItems( nowPlaying.PlaylistItems.GetRange( 0, songsToRemove ) );
+						List<Song> songs = new();
+						GenerateSongs( songs );
+
+						// Add these songs to the NowPlaying list
+						NowPlayingController.AddSongsToNowPlayingList( songs, false );
+
+						// Remove 'played' songs
+						int songsToRemove = Math.Max( 0, currentSongIndex - LeaveSongs );
+						if ( songsToRemove > 0 )
+						{
+							NowPlayingController.DeleteNowPlayingItems( nowPlaying.PlaylistItems.GetRange( 0, songsToRemove ) );
+						}
 					}
 				}
 			}

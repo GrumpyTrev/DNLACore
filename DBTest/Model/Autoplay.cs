@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The Autoplay class contains auto-playlist configuration details
 	/// </summary>
-	partial class Autoplay
+	public partial class Autoplay
 	{
 		/// <summary>
 		/// Intialise the Population list from the GenrePopulation records
@@ -156,20 +156,13 @@ namespace DBTest
 		/// <returns></returns>
 		private List<Album> GetAlbumsFromGenres( IEnumerable<string> genres )
 		{
-			List<Album> albums = new List<Album>();
+			List<Album> albums = new ();
 
-			// Get all the albums associated with the genres
+			// Get all the albums associated with the genres. Only consider an album if it is the correct library
 			foreach ( string genre in genres )
 			{
-				Tag genreTag = FilterManagementModel.GenreTags.Tags.SingleOrDefault( tag => tag.Name == genre );
-				if ( genreTag != null )
-				{
-					albums.AddRange( FilterManagementModel.GenreTags.Tags.Single( tag => tag.Name == genre ).TaggedAlbums
-						.Where( alb => AlbumsAlreadyIncluded.Add( alb.AlbumId ) == true ).Select( ta => ta.Album ) );
-				}
-				else
-				{
-				}
+				albums.AddRange( FilterManagementModel.GenreTags.Tags.Single( tag => tag.Name == genre ).TaggedAlbums
+					.Where( alb => ( alb.Album.LibraryId == LibraryId ) && ( AlbumsAlreadyIncluded.Add( alb.AlbumId ) == true ) ).Select( ta => ta.Album ) );
 			}
 
 			return albums;
