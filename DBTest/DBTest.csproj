@@ -39,6 +39,7 @@
     <EnableLLVM>false</EnableLLVM>
     <BundleAssemblies>false</BundleAssemblies>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    <AndroidEnableMultiDex>false</AndroidEnableMultiDex>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>PdbOnly</DebugType>
@@ -169,6 +170,7 @@
     <Compile Include="BaseView\IPageVisible.cs" />
     <Compile Include="UPnP\BrowseFolderResponse.cs" />
     <Compile Include="UPnP\BrowseItemResponse.cs" />
+    <Compile Include="UPnP\DeviceDiscovery.cs" />
     <Compile Include="UPnP\DlnaRequestHelper.cs" />
     <Compile Include="Helpers\Logging.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
@@ -208,7 +210,6 @@
     <Compile Include="UPnP\DLNAScanner.cs" />
     <Compile Include="PlaybackManagement\HttpServer.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationService.cs" />
-    <Compile Include="UPnP\DeviceDiscovery.cs" />
     <Compile Include="UPnP\PlaybackDevice.cs" />
     <Compile Include="UPnP\PlaybackDevices.cs" />
     <Compile Include="PlaybackManagement\PlaybackManagerModel.cs" />

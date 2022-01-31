@@ -63,6 +63,13 @@ namespace DBTest
 				Songs.DeleteSongs( Songs.GetSourceSongs( source.Id ) );
 				source.Songs = null;
 			}
+
+			// Delete the autoplay record associated with this library
+			Autoplay autoplayForLibrary = Autoplays.AutoplayCollection.SingleOrDefault( auto => auto.LibraryId == libId );
+			if ( autoplayForLibrary != null)
+			{
+				Autoplays.DeleteAutoplay( autoplayForLibrary );
+			}
 		}
 	}
 }

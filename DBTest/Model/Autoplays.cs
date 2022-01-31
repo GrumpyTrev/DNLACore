@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The Autoplays class contains the collection of Autoplay records
 	/// </summary>
-	static class Autoplays
+	internal static class Autoplays
 	{
 		/// <summary>
 		/// Get the Autoplay collection from storage
@@ -47,15 +47,18 @@ namespace DBTest
 		/// Link each Autoplay with its stored Populations
 		/// </summary>
 		/// <returns></returns>
-		public static async Task LinkPopulationsAsync()
+		public static async Task LinkPopulationsAsync() => await Task.Run( () =>
 		{
-			await Task.Run( () =>
+			foreach ( Autoplay autoplay in AutoplayCollection )
 			{
-				foreach ( Autoplay autoplay in AutoplayCollection )
-				{
-					autoplay.InitialisePopulations();
-				}
-			} );
+				autoplay.InitialisePopulations();
+			}
+		} );
+
+		public static void DeleteAutoplay( Autoplay autoplayToDelete )
+		{
+			AutoplayCollection.Remove( autoplayToDelete );
+			DbAccess.DeleteAsync( autoplayToDelete );
 		}
 
 		/// <summary>

@@ -55,10 +55,6 @@ namespace DBTest
 			// Use the sort order stored in the model
 			SortSelector.SortOrder sortOrder = AlbumsViewModel.BaseModel.SortSelector.CurrentSortOrder;
 
-			// Clear the indexing collections (in case they are not used in the new sort order)
-			AlbumsViewModel.FastScrollSections = null;
-			AlbumsViewModel.FastScrollSectionLookup = null;
-
 			// Now do the sorting and indexing according to the sort order
 			switch ( sortOrder )
 			{
@@ -113,6 +109,10 @@ namespace DBTest
 
 						// No index required when sorted by Id
 						AlbumsViewModel.Albums = AlbumsViewModel.FilteredAlbums;
+
+						AlbumsViewModel.FastScrollSections = null;
+						AlbumsViewModel.FastScrollSectionLookup = null;
+
 						break;
 					}
 

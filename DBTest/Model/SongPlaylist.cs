@@ -69,7 +69,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="songIds"></param>
 		public void DeleteMatchingSongs( HashSet<int> songIds ) =>
-			DeletePlaylistItems( PlaylistItems.Where( item => songIds.Contains( ( ( SongPlaylistItem )item ).SongId ) == true ) );
+			DeletePlaylistItems( PlaylistItems.Where( item => songIds.Contains( ( ( SongPlaylistItem )item ).SongId ) == true ).ToList() );
 
 		/// <summary>
 		/// The Song last played (or started to be played) in this playlist

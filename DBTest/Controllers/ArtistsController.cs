@@ -59,10 +59,6 @@ namespace DBTest
 		/// </summary>
 		public static void SortArtists() => Task.Run( () =>
 		{
-			// Clear the indexing collections (in case they are not used in the new sort order)
-			ArtistsViewModel.FastScrollSections = null;
-			ArtistsViewModel.FastScrollSectionLookup = null;
-
 			switch ( ArtistsViewModel.BaseModel.SortSelector.CurrentSortOrder )
 			{
 				case SortSelector.SortOrder.alphaDescending:
@@ -101,6 +97,9 @@ namespace DBTest
 					// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted.
 					// No fast scroll indexing is required for Id sort order
 					PrepareCombinedList();
+
+					ArtistsViewModel.FastScrollSections = null;
+					ArtistsViewModel.FastScrollSectionLookup = null;
 
 					break;
 				}

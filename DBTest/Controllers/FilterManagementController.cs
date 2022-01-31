@@ -230,14 +230,21 @@ namespace DBTest
 			{
 				taggedAlbum.Album = Albums.GetAlbumById( taggedAlbum.AlbumId );
 
-				Tag tag = tagLookup.GetValueOrDefault( taggedAlbum.TagId );
-				if ( tag != null )
+				if ( taggedAlbum.Album == null )
 				{
-					tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
+					lostTags.Add( taggedAlbum );
 				}
 				else
 				{
-					lostTags.Add( taggedAlbum );
+					Tag tag = tagLookup.GetValueOrDefault( taggedAlbum.TagId );
+					if ( tag != null )
+					{
+						tagLookup[ taggedAlbum.TagId ].TaggedAlbums.Add( taggedAlbum );
+					}
+					else
+					{
+						lostTags.Add( taggedAlbum );
+					}
 				}
 			};
 

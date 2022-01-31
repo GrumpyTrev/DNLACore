@@ -47,7 +47,7 @@ namespace DBTest
 		public static void DeletePlaylistItems( Playlist thePlaylist, IEnumerable< PlaylistItem > items )
 		{
 			// Delete the items from the playlist
-			thePlaylist.DeletePlaylistItems( items );
+			thePlaylist.DeletePlaylistItems( items.ToList() );
 
 			// Adjust the track numbers
 			thePlaylist.AdjustTrackNumbers();

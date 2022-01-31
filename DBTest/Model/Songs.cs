@@ -29,7 +29,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public static Song GetSongById( int id ) => IdLookup[ id ];
+		public static Song GetSongById( int id ) => IdLookup.GetValueOrDefault( id );
 
 		/// <summary>
 		/// Return all the songs associated with the specified Album
@@ -43,7 +43,8 @@ namespace DBTest
 		/// </summary>
 		/// <param name="artistAlbumId"></param>
 		/// <returns></returns>
-		public static List<Song> GetArtistAlbumSongs( int artistAlbumId ) => artistAlbumLookup[ artistAlbumId ];
+		public static List<Song> GetArtistAlbumSongs( int artistAlbumId ) => artistAlbumLookup.ContainsKey( artistAlbumId ) == true ? 
+			artistAlbumLookup[ artistAlbumId ] : new List<Song>();
 
 		/// <summary>
 		/// Return all the songs associated with the specified Source
@@ -72,9 +73,17 @@ namespace DBTest
 			lock ( lockObject )
 			{
 				SongCollection.Add( songToAdd );
-				IdLookup.Add( songToAdd.Id, songToAdd );
-				artistAlbumLookup.AddValue( songToAdd.ArtistAlbumId, songToAdd );
-				albumLookup.AddValue( songToAdd.AlbumId, songToAdd );
+
+				if ( IdLookup.ContainsKey( songToAdd.Id ) == false )
+				{
+					IdLookup.Add( songToAdd.Id, songToAdd );
+					artistAlbumLookup.AddValue( songToAdd.ArtistAlbumId, songToAdd );
+					albumLookup.AddValue( songToAdd.AlbumId, songToAdd );
+				}
+				else
+				{
+					Logger.Log( $"Song {songToAdd.Title} from {songToAdd.Path} with id {songToAdd.Id} already added" );
+				}
 			}
 		}
 

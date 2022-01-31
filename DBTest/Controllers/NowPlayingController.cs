@@ -8,7 +8,7 @@ namespace DBTest
 	/// The NowPlayingController is the Controller for the NowPlayingView. It responds to NowPlayingView commands and maintains Now Playing data in the
 	/// NowPlayingViewModel
 	/// </summary>
-	class NowPlayingController
+	internal class NowPlayingController
 	{
 		/// <summary>
 		/// Register for external Now Playing list change messages
@@ -143,7 +143,7 @@ namespace DBTest
 			}
 
 			// Delete the entries and report that the list has been updated
-			NowPlayingViewModel.NowPlayingPlaylist.DeletePlaylistItems( items );
+			NowPlayingViewModel.NowPlayingPlaylist.DeletePlaylistItems( items.ToList() );
 
 			// Adjust the track numbers
 			NowPlayingViewModel.NowPlayingPlaylist.AdjustTrackNumbers();
@@ -372,7 +372,7 @@ namespace DBTest
 		/// <summary>
 		/// The random number generator used to shuffle the list
 		/// </summary>
-		private static readonly Random rng = new Random();
+		private static readonly Random rng = new();
 
 		/// <summary>
 		/// The interface instance used to report back controller results
@@ -395,6 +395,6 @@ namespace DBTest
 		/// <summary>
 		/// The DataReporter instance used to handle storage availability reporting
 		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private static readonly DataReporter dataReporter = new( StorageDataAvailable );
 	}
 }

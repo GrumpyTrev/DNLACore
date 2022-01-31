@@ -56,7 +56,7 @@ namespace DBTest
 		/// Delete the specified PlayListItems from the Playlist
 		/// </summary>
 		/// <param name="items"></param>
-		public void DeletePlaylistItems( IEnumerable<PlaylistItem> items )
+		public void DeletePlaylistItems( List<PlaylistItem> items )
 		{
 			foreach ( PlaylistItem item in items )
 			{

@@ -48,7 +48,7 @@ namespace DBTest
 			string tabString = "";
 			if ( FilterApplied == true )
 			{
-				StringBuilder tabStringBuilder = new StringBuilder();
+				StringBuilder tabStringBuilder = new();
 
 				tabStringBuilder.Append( ( CurrentFilter == null ) ? "\r\n" : $"\r\n[{CurrentFilter.ShortName}]" );
 				TagGroups.ForEach( tg => tabStringBuilder.Append( $"[{tg.Name}]" ) );
@@ -66,7 +66,7 @@ namespace DBTest
 		public HashSet<int> CombineAlbumFilters()
 		{
 			// If any group tags have been selected combine their selected TaggedAlbum items together
-			List<TaggedAlbum> albumsInFilter = new List<TaggedAlbum>();
+			List<TaggedAlbum> albumsInFilter = new();
 
 			// It is possible that the combination of filters results in no albums, so keep track of this
 			bool noMatchingAlbums = false;
@@ -122,17 +122,17 @@ namespace DBTest
 		/// Return the name of the current filter
 		/// </summary>
 		/// <returns></returns>
-		public string CurrentFilterName { get => CurrentFilter?.Name ?? ""; }
+		public string CurrentFilterName => CurrentFilter?.Name ?? "";
 
 		/// <summary>
 		/// Has any kind of filter been specified
 		/// </summary>
-		public bool FilterApplied { get => ( CurrentFilter != null ) || ( TagGroups.Count > 0 ); }
+		public bool FilterApplied => ( CurrentFilter != null ) || ( TagGroups.Count > 0 );
 
 		/// <summary>
 		/// Get the TagOrder flag of the current filter
 		/// </summary>
-		public bool TagOrderFlag { get => CurrentFilter?.TagOrder ?? false; }
+		public bool TagOrderFlag => CurrentFilter?.TagOrder ?? false;
 
 		/// <summary>
 		/// Does the current filter contain any of the specified tag names
@@ -142,7 +142,7 @@ namespace DBTest
 		public bool FilterContainsTags( IEnumerable<string> tagNames )
 		{
 			// Check for the simple tag filter first
-			bool containsTags = ( CurrentFilter == null ) ? false : tagNames.Contains( CurrentFilter.Name );
+			bool containsTags = ( CurrentFilter != null ) && ( tagNames.Contains( CurrentFilter.Name ) == true );
 
 			if ( containsTags == false )
 			{
@@ -150,7 +150,7 @@ namespace DBTest
 				IEnumerable<string> bigList = TagGroups.SelectMany( tg => tg.Tags, ( tg, ta ) => ta.Name );
 
 				// And then checking for an intersection
-				containsTags = ( bigList.Intersect( tagNames ).Count() == 0 );
+				containsTags = ( bigList.Intersect( tagNames ).Count() != 0 );
 			}
 
 			return containsTags;
@@ -176,6 +176,6 @@ namespace DBTest
 		/// <summary>
 		/// The FilterSelectionDelegate to be used for this instance
 		/// </summary>
-		private FilterSelectionDelegate selectionDelegate = null;
+		private readonly FilterSelectionDelegate selectionDelegate = null;
 	}
 }

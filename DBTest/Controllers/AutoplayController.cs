@@ -88,7 +88,8 @@ namespace DBTest
 			Random generator = new();
 
 			// For each generation select a song from the available populations
-			while ( songs.Count() < GenerationSize )
+			bool error = false;
+			while ( ( error == false ) && ( songs.Count() < GenerationSize ) )
 			{
 				// First select a population. This can either be randomly selected from all the available populations, or just the next or previous populations
 				if ( AutoplayModel.CurrentAutoplay.Target == Autoplay.TargetType.AllPopulations )
@@ -148,19 +149,27 @@ namespace DBTest
 				// Select the population
 				Population selectedPopulation = AutoplayModel.CurrentAutoplay.Populations[ populationNumber ];
 
-				// Now choose an Album from that population
-				Album album = selectedPopulation.Albums[ generator.Next( 0, selectedPopulation.Albums.Count ) ];
-
-				// Make sure that all the songs are available for the album
-				album.GetSongs();
-
-				// Now add a song
-				songs.Add( album.Songs[ generator.Next( 0, album.Songs.Count ) ] );
-
-				// If a SlowSpread is specified then add any new genres associated with the choosen album to the next Autoplay population.
-				if ( AutoplayModel.CurrentAutoplay.Spread == Autoplay.SpreadType.Slow )
+				// TEMP - if population is empty then get out of here
+				if ( selectedPopulation.Albums.Count == 0 )
 				{
-					AutoplayModel.CurrentAutoplay.AddToPopulation( populationNumber, album.Genre.Split( ';' ) );
+					error = true;
+				}
+				else
+				{
+					// Now choose an Album from that population
+					Album album = selectedPopulation.Albums[ generator.Next( 0, selectedPopulation.Albums.Count ) ];
+
+					// Make sure that all the songs are available for the album
+					album.GetSongs();
+
+					// Now add a song
+					songs.Add( album.Songs[ generator.Next( 0, album.Songs.Count ) ] );
+
+					// If a SlowSpread is specified then add any new genres associated with the choosen album to the next Autoplay population.
+					if ( AutoplayModel.CurrentAutoplay.Spread == Autoplay.SpreadType.Slow )
+					{
+						AutoplayModel.CurrentAutoplay.AddToPopulation( populationNumber, album.Genre.Split( ';' ) );
+					}
 				}
 			}
 		}
