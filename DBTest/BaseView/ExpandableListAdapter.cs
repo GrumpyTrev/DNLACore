@@ -305,7 +305,7 @@ namespace DBTest
 				selectionBox.Checked = !selectionBox.Checked;
 
 				// Raise a click event to do the rest of the processing
-				SelectionBoxClickAsync( selectionBox, new EventArgs() );
+				SelectionBoxClick( selectionBox, new EventArgs() );
 			}
 
 			// Report this interaction
@@ -326,7 +326,7 @@ namespace DBTest
 		/// <returns></returns>
 		public virtual bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
 		{
-			OnGroupClickAsync( parent, groupPosition );
+			OnGroupClick( parent, groupPosition );
 
 			// Report this interaction
 			UserActivityDetected();
@@ -422,7 +422,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="selected"></param>
-		protected virtual async Task<bool> SelectGroupContents( int groupPosition, bool selected )
+		protected bool SelectGroupContents( int groupPosition, bool selected )
 		{
 			bool selectionChanged = false;
 
@@ -430,7 +430,7 @@ namespace DBTest
 			if ( GetChildrenCount( groupPosition ) == 0 )
 			{
 				// Get the group contents 
-				await contentsProvider.ProvideGroupContentsAsync( Groups[ groupPosition ] );
+				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
 			}
 
 			for ( int childIndex = 0; childIndex < GetChildrenCount( groupPosition ); childIndex++ )
@@ -557,7 +557,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="selected"></param>
-		protected virtual async Task<bool> GroupSelectionHasChanged( int groupPosition, bool selected ) => false;
+		protected virtual bool GroupSelectionHasChanged( int groupPosition, bool selected ) => false;
 
 		/// <summary>
 		/// Called when the collapse state of a group has changed.
@@ -627,7 +627,7 @@ namespace DBTest
 			if ( selectionBox != null )
 			{
 				selectionBox.Tag = new TagHolder();
-				selectionBox.Click += SelectionBoxClickAsync;
+				selectionBox.Click += SelectionBoxClick;
 			}
 
 			return selectionBox;
@@ -646,7 +646,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="groupPosition"></param>
-		private async void OnGroupClickAsync( ExpandableListView parent, int groupPosition )
+		private void OnGroupClick( ExpandableListView parent, int groupPosition )
 		{
 			if ( parent.IsGroupExpanded( groupPosition ) == false )
 			{
@@ -654,7 +654,7 @@ namespace DBTest
 				// If any content is supplied and the group is selected then select the new items
 				int childCount = GetChildrenCount( groupPosition );
 
-				await contentsProvider.ProvideGroupContentsAsync( Groups[ groupPosition ] );
+				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
 
 				// Have any items been supplied
 				if ( GetChildrenCount( groupPosition ) != childCount )
@@ -664,7 +664,7 @@ namespace DBTest
 					// to do any group selection processing
 					if ( IsItemSelected( FormGroupTag( groupPosition ) ) == true )
 					{
-						await SelectGroupContents( groupPosition, true );
+						SelectGroupContents( groupPosition, true );
 					}
 				}
 
@@ -702,9 +702,9 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private async void SelectionBoxClickAsync( object sender, EventArgs e )
+		private void SelectionBoxClick( object sender, EventArgs e )
 		{
-			int tag = ( ( TagHolder ) ( ( CheckBox )sender ).Tag  ).Tag;
+			int tag = ( ( TagHolder )( ( CheckBox )sender ).Tag ).Tag;
 			int groupPosition = GetGroupFromTag( tag );
 
 			// Toggle the selection
@@ -719,10 +719,10 @@ namespace DBTest
 			// If this is a group item then select or deselect all of its children
 			if ( IsGroupTag( tag ) == true )
 			{
-				selectionChanged = await SelectGroupContents( groupPosition, selected );
+				selectionChanged = SelectGroupContents( groupPosition, selected );
 
 				// Let derived classes carry out any extra processing required due to the selection or deselection of a group
-				selectionChanged |= await GroupSelectionHasChanged( groupPosition, selected );
+				selectionChanged |= GroupSelectionHasChanged( groupPosition, selected );
 			}
 			else
 			{
@@ -732,7 +732,7 @@ namespace DBTest
 				// If the group selection has changed then tell the derived classes
 				if ( selectionChanged == true )
 				{
-					selectionChanged |= await GroupSelectionHasChanged( groupPosition, selected );
+					selectionChanged |= GroupSelectionHasChanged( groupPosition, selected );
 				}
 			}
 
@@ -806,7 +806,7 @@ namespace DBTest
 			/// Provide the details for the specified group
 			/// </summary>
 			/// <param name="theGroup"></param>
-			Task ProvideGroupContentsAsync( U theGroup );
+			void ProvideGroupContents( U theGroup );
 
 			/// <summary>
 			/// The number of expanded groups has changed

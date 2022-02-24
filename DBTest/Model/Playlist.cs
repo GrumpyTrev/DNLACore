@@ -48,7 +48,7 @@ namespace DBTest
 		/// <param name="playlistToClear"></param>
 		public void Clear()
 		{
-			DbAccess.DeleteItemsAsync( PlaylistItems );
+			DbAccess.DeleteItems( PlaylistItems );
 			PlaylistItems.Clear();
 		}
 
@@ -63,7 +63,7 @@ namespace DBTest
 				PlaylistItems.Remove( item );
 			}
 
-			DbAccess.DeleteItemsAsync( items );
+			DbAccess.DeleteItems( items );
 		}
 
 		/// <summary>
@@ -184,7 +184,7 @@ namespace DBTest
 		protected void AddItem( PlaylistItem itemToAdd )
 		{
 			PlaylistItems.Add( itemToAdd );
-			DbAccess.InsertAsync( itemToAdd );
+			DbAccess.Insert( itemToAdd );
 		}
 
 		/// <summary>

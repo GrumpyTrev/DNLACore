@@ -39,8 +39,7 @@ namespace DBTest
 		/// <param name="artistAlbumToAdd"></param>
 		public static void AddTaggedAlbum( TaggedAlbum taggedAlbumToAdd )
 		{
-			// No need to wait for the TaggedAlbum to be added to storage
-			DbAccess.InsertAsync( taggedAlbumToAdd );
+			DbAccess.Insert( taggedAlbumToAdd );
 			TaggedAlbumCollection.Add( taggedAlbumToAdd );
 		}
 

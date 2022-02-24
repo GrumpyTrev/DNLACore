@@ -115,7 +115,7 @@ namespace DBTest
 				}
 			}
 
-			DbAccess.DeleteItemsAsync( songsToDelete );
+			DbAccess.DeleteItems( songsToDelete );
 		}
 
 		/// <summary>

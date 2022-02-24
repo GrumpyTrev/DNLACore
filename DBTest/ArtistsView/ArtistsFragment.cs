@@ -16,7 +16,7 @@ namespace DBTest
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public async Task ProvideGroupContentsAsync( object artistOrArtistAlbum )
+		public void ProvideGroupContents( object artistOrArtistAlbum )
 		{
 			if ( artistOrArtistAlbum is ArtistAlbum artistAlbum )
 			{

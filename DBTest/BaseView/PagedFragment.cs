@@ -73,7 +73,7 @@ namespace DBTest
 			ActionMode.RestoreDelayedActionMode();
 
 			// Carry out post view creation action via a Post so that any response comes back after the UI has been created
-			FragmentView.Post( () => { PostViewCreateAction(); } );
+			FragmentView.Post( () => PostViewCreateAction() );
 
 			return FragmentView;
 		}
@@ -238,7 +238,7 @@ namespace DBTest
         /// <param name="selectedItems"></param>
         public void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
 		{
-			GroupedSelection selectedObjects = new GroupedSelection( selectedItems.Values );
+			GroupedSelection selectedObjects = new( selectedItems.Values );
 
 			CommandBar.DetermineButtonsVisibility( selectedObjects );
 			SelectedItemsChanged( selectedObjects );
@@ -384,7 +384,7 @@ namespace DBTest
 			// Don't declare the user as inactive if Action Mode is in effect
 			if ( ActionMode.ActionModeActive == false )
 			{
-				Activity?.RunOnUiThread( () => { Adapter.IsUserActive = false; } );
+				Activity?.RunOnUiThread( () => Adapter.IsUserActive = false );
 			}
 		}
 
@@ -427,12 +427,12 @@ namespace DBTest
 		/// <summary>
 		/// The CommandHandlerCallback containing the action to call after a command has been handled
 		/// </summary>
-		private CommandRouter.CommandHandlerCallback commandCallback = new CommandRouter.CommandHandlerCallback();
+		private readonly CommandRouter.CommandHandlerCallback commandCallback = new();
 
 		/// <summary>
 		/// Timer used to detect when the user is no longer interacting with the view
 		/// </summary>
-		private Timer userInteractionTimer = null;
+		private readonly Timer userInteractionTimer = null;
 
 		/// <summary>
 		/// How long to wait after user interaction before declaring that the user is no longer interacting

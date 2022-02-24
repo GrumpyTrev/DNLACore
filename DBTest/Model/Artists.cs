@@ -62,7 +62,7 @@ namespace DBTest
 		/// <param name="artistsToDelete"></param>
 		public static void DeleteArtists( IEnumerable< Artist> artistsToDelete )
 		{
-			DbAccess.DeleteItemsAsync( artistsToDelete );
+			DbAccess.DeleteItems( artistsToDelete );
 			
 			foreach ( Artist artistToDelete in artistsToDelete )
 			{

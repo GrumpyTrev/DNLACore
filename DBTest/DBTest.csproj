@@ -72,6 +72,7 @@
     <Compile Include="BaseView\GotoTopControl.cs" />
     <Compile Include="BaseView\MultiScrollListenerExpandableListView.cs" />
     <Compile Include="BaseView\SongViewHolder.cs" />
+    <Compile Include="CommandHandlers\SynchAlbumStatusCommandHandler.cs" />
     <Compile Include="CommandHandlers\NewLibraryCommandHandler.cs" />
     <Compile Include="LibraryManagement\NewLibraryNameDialogFragment.cs" />
     <Compile Include="LibraryScanning\UPnPScanner.cs" />

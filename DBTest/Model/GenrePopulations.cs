@@ -31,8 +31,7 @@ namespace DBTest
 
 			GenrePopulationCollection.Add( newPopulation );
 
-			// No need to wait for this
-			DbAccess.InsertAsync( newPopulation );
+			DbAccess.Insert( newPopulation );
 
 			return newPopulation;
 		}

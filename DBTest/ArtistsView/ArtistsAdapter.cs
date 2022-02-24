@@ -115,7 +115,7 @@ namespace DBTest
         /// Either select or deselect all the displayed items
         /// </summary>
         /// <param name="select"></param>
-        public async void SelectAll( bool select )
+        public void SelectAll( bool select )
         {
             bool selectionChanged = false;
             for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
@@ -124,10 +124,10 @@ namespace DBTest
                 {
                     if ( artistAlbum.Songs == null )
                     {
-                        await contentsProvider.ProvideGroupContentsAsync( Groups[ groupIndex ] );
+                        contentsProvider.ProvideGroupContents( Groups[ groupIndex ] );
                     }
 
-                    selectionChanged |= await SelectGroupContents( groupIndex, select );
+                    selectionChanged |= SelectGroupContents( groupIndex, select );
                 }
 
                 selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
@@ -327,21 +327,21 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="selected"></param>
-		protected override async Task<bool> GroupSelectionHasChanged( int groupPosition, bool selected )
+		protected override bool GroupSelectionHasChanged( int groupPosition, bool selected )
 		{
 			bool selectionChanged = false;
 
 			if ( Groups[ groupPosition ] is Artist artist )
 			{
-                // Expand or collapse all of the ArtistAlbums associated with the Artist
-                int albumIndex = groupPosition + 1;
-                while ( ( albumIndex < Groups.Count ) && ( Groups[ albumIndex ] is ArtistAlbum ) )
-                {
-                    selectionChanged |= RecordItemSelection( FormGroupTag( albumIndex ), selected );
-                    selectionChanged |= await SelectGroupContents( albumIndex, selected );
-                    albumIndex++;
-                }
-            }
+				// Expand or collapse all of the ArtistAlbums associated with the Artist
+				int albumIndex = groupPosition + 1;
+				while ( ( albumIndex < Groups.Count ) && ( Groups[ albumIndex ] is ArtistAlbum ) )
+				{
+					selectionChanged |= RecordItemSelection( FormGroupTag( albumIndex ), selected );
+					selectionChanged |= SelectGroupContents( albumIndex, selected );
+					albumIndex++;
+				}
+			}
 			else
 			{
 				// Need to find the position of the associated Artist and then determine if its selection state also needs changing
@@ -351,7 +351,7 @@ namespace DBTest
 				if ( selected == false )
 				{
 					selectionChanged |= RecordItemSelection( FormGroupTag( artistPosition ), false );
-                }
+				}
 				else
 				{
 					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all selected then select the Artist as well

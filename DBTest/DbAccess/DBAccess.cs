@@ -36,7 +36,14 @@ namespace DBTest
 		/// </summary>
 		/// <param name="item"></param>
 		/// <returns></returns>
-		public static async Task InsertAllAsync<T>( IEnumerable<T> items ) => await ConnectionDetailsModel.AsynchConnection.InsertAllAsync( items );
+		public static void Insert<T>( T item ) => ConnectionDetailsModel.AsynchConnection.InsertAsync( item );
+
+		/// <summary>
+		/// Insert the specifed item
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
+		public static void InsertAll<T>( IEnumerable<T> items ) => ConnectionDetailsModel.AsynchConnection.InsertAllAsync( items );
 
 		/// <summary>
 		/// Update the specifed item
@@ -49,7 +56,7 @@ namespace DBTest
 		/// Delete the specified list of items
 		/// </summary>
 		/// <param name="items"></param>
-		public static async void DeleteItemsAsync<T>( IEnumerable<T> items )
+		public static void DeleteItems<T>( IEnumerable<T> items )
 		{
 			if ( items.Count() > 0 )
 			{
@@ -58,7 +65,7 @@ namespace DBTest
 
 				// Make sure we use any aliases
 				string tableName = type.GetTableName();
-				
+
 				// Get the primary key of the class that is going to be used in the query
 				PropertyInfo primaryKeyProperty = GetPrimaryKey( type );
 
@@ -68,19 +75,19 @@ namespace DBTest
 				List<List<object>> chunks = Split( items.Select( element => primaryKeyProperty.GetValue( element, null ) ).ToList(), 100 );
 				foreach ( List<object> chunk in chunks )
 				{
-					string deleteQuery = string.Format( "delete from {0} where {1} in ({2})", tableName, primaryKeyColumnName, 
+					string deleteQuery = string.Format( "delete from {0} where {1} in ({2})", tableName, primaryKeyColumnName,
 						string.Join( ",", Enumerable.Repeat( "?", chunk.Count ) ) );
 
-					await ConnectionDetailsModel.AsynchConnection.ExecuteAsync( deleteQuery, chunk.ToArray() );
+					ConnectionDetailsModel.AsynchConnection.ExecuteAsync( deleteQuery, chunk.ToArray() );
 				}
 			}
 		}
 
-        /// <summary>
-        /// Get a Song entry from the database
-        /// </summary>
-        /// <returns></returns>
-        public static async Task<Song> GetSongAsync( int songId ) =>
+		/// <summary>
+		/// Get a Song entry from the database
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<Song> GetSongAsync( int songId ) =>
             await ConnectionDetailsModel.AsynchConnection.Table<Song>().Where( song => ( song.Id == songId ) ).FirstOrDefaultAsync();
 
         /// <summary>

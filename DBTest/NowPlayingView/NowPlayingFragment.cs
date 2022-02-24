@@ -20,7 +20,7 @@ namespace DBTest
         /// No group content required. Just run an empty task to prevent compiler warnings
         /// </summary>
         /// <param name="thePlayList"></param>
-        public async Task ProvideGroupContentsAsync( PlaylistItem _ )
+        public void ProvideGroupContents( PlaylistItem _ )
 		{
 		}
 

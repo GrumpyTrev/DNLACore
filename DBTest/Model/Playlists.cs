@@ -32,7 +32,7 @@ namespace DBTest
 
 				// Remove any orphaned items
 				orphanItems.ForEach( item => songPlaylistItems.Remove( item ) );
-				DbAccess.DeleteItemsAsync( orphanItems );
+				DbAccess.DeleteItems( orphanItems );
 
 				// Link the playlists with their playlistitems
 				songPlaylists.ForEach( playlist => playlist.GetContents( songPlaylistItems ) );

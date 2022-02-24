@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The Sources class holds a collection of all the Source entries read from storage.
 	/// </summary>	
-	static class Sources
+	internal static class Sources
 	{
 		/// <summary>
 		/// Get the Sources collection from storage
@@ -37,7 +37,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
-		public static async Task< List<Source> > GetSourcesAndSongsForLibraryAsync( int libraryId )
+		public static List<Source> GetSourcesAndSongsForLibrary( int libraryId )
 		{
 			List<Source> sources = SourceCollection.Where( sou => sou.LibraryId == libraryId ).ToList();
 			foreach ( Source source in sources )

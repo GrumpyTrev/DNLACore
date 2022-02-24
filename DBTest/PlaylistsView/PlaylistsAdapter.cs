@@ -119,13 +119,13 @@ namespace DBTest
 		/// Either select or deselect all the displayed items
 		/// </summary>
 		/// <param name="select"></param>
-		public async void SelectAll( bool select )
+		public void SelectAll( bool select )
 		{
 			bool selectionChanged = false;
 			for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
 			{
 				// All the playlist contents have already been read in so just select them
-				selectionChanged |= await SelectGroupContents( groupIndex, select );
+				selectionChanged |= SelectGroupContents( groupIndex, select );
 				selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
 			}
 
@@ -241,11 +241,11 @@ namespace DBTest
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="selected"></param>
-		protected override async Task<bool> GroupSelectionHasChanged( int groupPosition, bool selected )
+		protected override bool GroupSelectionHasChanged( int groupPosition, bool selected )
 		{
 			if ( selected == true )
 			{
-				await contentsProvider.ProvideGroupContentsAsync( Groups[ groupPosition ] );
+				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
 			}
 
 			return false;

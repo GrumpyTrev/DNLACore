@@ -8,7 +8,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class NowPlayingAdapter: ExpandableListAdapter<PlaylistItem>
+	internal class NowPlayingAdapter: ExpandableListAdapter<PlaylistItem>
 	{
 		/// <summary>
 		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
@@ -53,30 +53,27 @@ namespace DBTest
 
 		/// <summary>
 		/// Notification that a particular song is being played.
+		/// Highlight the item
+		/// This can sometimes be called before the ListView has sorted itself out. So Post the highlighting action on the ListView's queue
 		/// </summary>
-		public void SongBeingPlayed( int index )
+		public void SongBeingPlayed( int index ) => parentView.Post( () =>
 		{
-            // Highlight the item
-            // This can sometimes be called before the ListView has sorted itself out. So Post the highlighting action on the ListView's queue
-            parentView.Post( () => 
-            {
-                NowPlayingAdapterModel.SongPlayingIndex = index;
+			NowPlayingAdapterModel.SongPlayingIndex = index;
 
-                // If there is no user interaction going on then make sure this item is visible
-                if ( IsUserActive == false )
-                {
-                    UserActivityChanged();
-                }
+			// If there is no user interaction going on then make sure this item is visible
+			if ( IsUserActive == false )
+			{
+				UserActivityChanged();
+			}
 
-                NotifyDataSetChanged();
-            } );
-        }
+			NotifyDataSetChanged();
+		} );
 
-        /// <summary>
-        /// Either select or deselect all the displayed items
-        /// </summary>
-        /// <param name="select"></param>
-        public void SelectAll( bool select )
+		/// <summary>
+		/// Either select or deselect all the displayed items
+		/// </summary>
+		/// <param name="select"></param>
+		public void SelectAll( bool select )
         {
             bool selectionChanged = false;
             for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )

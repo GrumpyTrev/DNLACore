@@ -6,7 +6,7 @@ namespace DBTest
 	/// <summary>
 	/// The AlbumsViewModel holds the Album data obtained from the AlbumsController
 	/// </summary>
-	static class AlbumsViewModel
+	internal static class AlbumsViewModel
 	{
 		/// <summary>
 		/// Clear the data held by this model

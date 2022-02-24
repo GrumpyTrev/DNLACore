@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The ArtistsViewModel holds the Artist data obtained from the ArtistsController
 	/// </summary>
-	static class ArtistsViewModel
+	internal static class ArtistsViewModel
 	{
 		/// <summary>
 		/// Clear the data held by this model

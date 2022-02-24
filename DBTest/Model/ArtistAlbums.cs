@@ -65,8 +65,7 @@ namespace DBTest
 		/// <returns></returns>
 		public static void DeleteArtistAlbums( IEnumerable<ArtistAlbum> artistAlbumsToDelete )
 		{
-			// No need to wait for the ArtistAlbums to be deleted from storage
-			DbAccess.DeleteItemsAsync( artistAlbumsToDelete );
+			DbAccess.DeleteItems( artistAlbumsToDelete );
 			foreach( ArtistAlbum artAlbum in artistAlbumsToDelete )
 			{
 				ArtistAlbumCollection.Remove( artAlbum );

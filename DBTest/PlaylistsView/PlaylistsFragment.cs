@@ -21,7 +21,7 @@ namespace DBTest
 		/// Both SongPlaylist and AlbumPlaylist items are now read at startup. So this is no longer required for them
 		/// </summary>
 		/// <param name="selectedGroup_"></param>
-		public async Task ProvideGroupContentsAsync( Playlist _ )
+		public void ProvideGroupContents( Playlist _ )
 		{
 		}
 

@@ -11,10 +11,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="callback">The callback to use when the message it received</param>
 		/// <param name="message">The message to register</param>
-		public static void Register( Delegate callback, Type message )
-		{
-			registrations.AddValue( message, callback );
-		}
+		public static void Register( Delegate callback, Type message ) => registrations.AddValue( message, callback );
 
 		/// <summary>
 		/// Notify all consumers that have registered interest in the specific message
@@ -27,7 +24,7 @@ namespace DBTest
 			if ( registrations.ContainsKey( messageType ) == true )
 			{
 				// Make a copy of the list of delegates in case the callback modifies it
-				List<Delegate> messageRegistrations = new List<Delegate>( registrations[ messageType ] );
+				List<Delegate> messageRegistrations = new( registrations[ messageType ] );
 
 				UiSwitchingHandler.Post( () =>
 				{
@@ -48,6 +45,6 @@ namespace DBTest
 		/// <summary>
 		/// Dictionary of message type to listeners
 		/// </summary>
-		private static MultiDictionary< Type , Delegate> registrations = new MultiDictionary<Type, Delegate>();
+		private static readonly MultiDictionary< Type , Delegate> registrations = new();
 	}
 }

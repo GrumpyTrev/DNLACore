@@ -43,7 +43,7 @@ namespace DBTest
 					await Task.Run( async () =>
 					{
 						// Iterate all the sources associated with this library. Get the songs as well as we're going to need them below
-						List<Source> sources = await Sources.GetSourcesAndSongsForLibraryAsync( LibraryScanModel.LibraryBeingScanned.Id );
+						List<Source> sources = Sources.GetSourcesAndSongsForLibrary( LibraryScanModel.LibraryBeingScanned.Id );
 
 						foreach ( Source source in sources )
 						{

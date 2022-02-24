@@ -51,8 +51,7 @@ namespace DBTest
 				albumPlaylistItems.Add( itemToAdd );
 			}
 
-			// No need to wait for this to complete
-			DbAccess.InsertAllAsync( albumPlaylistItems );
+			DbAccess.InsertAll( albumPlaylistItems );
 		}
 
 		/// <summary>

@@ -16,4 +16,10 @@
 	<item
 		android:id="@+id/new_library"
 		android:title="New library" />
+	<item
+		android:id="@+id/synch_album_played"
+		android:title="Synch album status" />
+	<item
+		android:id="@+id/synch_playlists"
+		android:title="Synch playlists" />
 </menu>
