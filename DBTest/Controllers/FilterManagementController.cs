@@ -199,6 +199,43 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Synchronise the 'played' status of albums across all the libraries
+		/// </summary>
+		public static void SynchroniseAlbumPlayedStatus()
+		{
+			// Find all the unique Album/Artist name combinations associated with the JustPlayedTag
+			List<(string Name, string ArtistName)> distinctAlbums = 
+				FilterManagementModel.JustPlayedTag.TaggedAlbums.Select( tagged => (tagged.Album.Name, tagged.Album.ArtistName) ).Distinct().ToList();
+
+			// Now check that each distinct album is tagged in each library, if present in the library
+			foreach ( (string Name, string ArtistName) in distinctAlbums )
+			{
+				// If there are as many tagged albums with matching name and artist name as there are libraries then no work is required
+				IEnumerable<TaggedAlbum> matchingAlbums = FilterManagementModel.JustPlayedTag.TaggedAlbums
+					.Where( tagged => ( tagged.Album.Name == Name ) && ( tagged.Album.ArtistName == ArtistName ) );
+
+				if ( matchingAlbums.Count() != Libraries.LibraryCollection.Count )
+				{
+					// Need to work out which albums are missing and then check if that album is actually in its library
+					foreach ( Library library in Libraries.LibraryCollection )
+					{
+						if ( matchingAlbums.FirstOrDefault( tagged => ( tagged.Album.LibraryId == library.Id ) ) == null )
+						{
+							// No tag found for the album in the current library.
+							// Does the album/artist combination exist in the library
+							Album albumToTag = Albums.GetAlbumInLibrary( Name, ArtistName, library.Id );
+							if ( albumToTag != null )
+							{
+								AddAlbumToTag( FilterManagementModel.JustPlayedTag, albumToTag, false );
+							}
+						}
+					}
+				}
+			}
+
+		}
+
+		/// <summary>
 		/// Called during startup when data is available from storage
 		/// </summary>
 		/// <param name="message"></param>

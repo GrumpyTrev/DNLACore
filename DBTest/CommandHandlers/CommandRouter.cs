@@ -35,6 +35,7 @@ namespace DBTest
 			new ShuffleModeCommandHander().BindToRouter();
 			new MarkAlbumsCommandHandler().BindToRouter();
 			new NewLibraryCommandHandler().BindToRouter();
+			new SynchAlbumStatusCommandHandler().BindToRouter();
 		}
 
 		/// <summary>
