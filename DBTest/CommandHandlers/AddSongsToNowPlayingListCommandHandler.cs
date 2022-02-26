@@ -7,7 +7,7 @@ namespace DBTest
 	/// The songs can be selected from the Artists tab, the Albums tab and the Playlists tab. For the Artists and Albums tabs the selected items are
 	/// Song objects, for the Playlists tab they are either SongPlaylistItem or AlbumPlaylistItem objects
 	/// </summary>
-	class AddSongsToNowPlayingListCommandHandler : CommandHandler
+	internal class AddSongsToNowPlayingListCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. 
@@ -31,10 +31,7 @@ namespace DBTest
 					string artistName = ( parentPlaylist as AlbumPlaylist )?.InProgressAlbum.ArtistName ?? currentSong.Artist.Name;
 
 					ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager,
-						( bool resume ) =>
-						{
-							NowPlayingController.AddPlaylistToNowPlayingList( parentPlaylist,  commandIdentity == Resource.Id.play_now , resume );
-						},
+						( bool resume ) => NowPlayingController.AddPlaylistToNowPlayingList( parentPlaylist, commandIdentity == Resource.Id.play_now, resume ),
 						string.Format( "This playlist is currently playing '{0}' by '{1}'. Do you want to continue or start from the beginning?", currentSong.Title,
 							artistName ),
 						"Continue", "Start" );
@@ -42,7 +39,7 @@ namespace DBTest
 				else
 				{
 					// This includes both SongPlaylistItem and AlbumPlaylistItem entries.
-					List<Song> selectedSongs = new List<Song>();
+					List<Song> selectedSongs = new();
 					foreach ( PlaylistItem basePlaylistItem in selectedObjects.PlaylistItems )
 					{
 						if ( basePlaylistItem is AlbumPlaylistItem albumPlaylistItem )

@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The RepeatModeCommandHander class is used to process a request to toggle the Repeat play mode
 	/// </summary>
-	class RepeatModeCommandHander : CommandHandler
+	internal class RepeatModeCommandHander : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. Pass on to the PlaybackModeController

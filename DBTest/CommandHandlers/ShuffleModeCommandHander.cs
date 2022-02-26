@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The ShuffleModeCommandHander class is used to process a request to toggle the Shuffle play mode
 	/// </summary>
-	class ShuffleModeCommandHander : CommandHandler
+	internal class ShuffleModeCommandHander : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. Pass on to the PlaybackModeController

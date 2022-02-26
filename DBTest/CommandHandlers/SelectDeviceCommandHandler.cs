@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The SelectDeviceCommandHandler class is used to process a request to select a playback device
 	/// </summary>
-	class SelectDeviceCommandHandler : CommandHandler
+	internal class SelectDeviceCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Constructor - register interest in Playback Device changes

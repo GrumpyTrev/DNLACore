@@ -3,7 +3,6 @@ using System;
 using Android.Views;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -51,7 +50,7 @@ namespace DBTest
 			else
 			{
 				// Just add the song playlists
-				PlaylistsViewModel.Playlists.ForEach( list => playlistsMenu.Menu.Add( 0, itemId++, 0, list.Name ) );
+				PlaylistsViewModel.SongPlaylists.ForEach( list => playlistsMenu.Menu.Add( 0, itemId++, 0, list.Name ) );
 			}
 
 			// When a menu item is clicked pass the songs or albums to the appropriate controller
@@ -141,12 +140,9 @@ namespace DBTest
 			}
 			else
 			{
-				// Check for a duplicate
-				if ( PlaylistsViewModel.PlaylistNames.Contains( playlistName ) == true )
-				{
-					alertText = DuplicatePlaylistError;
-				}
-				else
+				// Check for a playlist of the same type with the same name.
+				if ( ( ( isAlbum == true ) && ( PlaylistsViewModel.AlbumPlaylists.Exists( albList => albList.Name == playlistName ) == false ) ) || 
+					 ( PlaylistsViewModel.SongPlaylists.Exists( albList => albList.Name == playlistName ) == false ) )
 				{
 					// Create a SongPlaylist or AlbumPlaylist as appropriate and add the Songs/Albums to it
 					if ( isAlbum == false )
@@ -161,6 +157,10 @@ namespace DBTest
 						AlbumPlaylist newPlaylist = await PlaylistsController.AddAlbumPlaylistAsync( playlistName );
 						PlaylistsController.AddAlbumsToPlaylist( selectedObjects.Albums, newPlaylist );
 					}
+				}
+				else
+				{
+					alertText = DuplicatePlaylistError;
 				}
 			}
 

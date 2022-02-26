@@ -4,7 +4,7 @@
 	/// The AutoplayOptionsCommandHandler class is used to allow the user to update the current Autoplay options and use the updated options to 
 	/// start and Autoplay operaton.
 	/// The AutoplayOptionsDialogFragment class is used to update the optins and select the Autoplay play/queue option.
-	class AutoplayOptionsCommandHandler : CommandHandler
+	internal class AutoplayOptionsCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. Show the AutoplayOptionsDialogFragment dialogue and pass on any option changes to the controller

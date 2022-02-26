@@ -7,7 +7,7 @@ namespace DBTest
 	/// The NewPlaylistNameDialogFragment class is used to provide a new playlist name.
 	/// This is validated and if valid the playlist is renamed using the PlaylistController.
 	/// </summary>
-	class RenamePlaylistCommandHandler : CommandHandler
+	internal class RenamePlaylistCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. Show the NewPlaylistNameDialogFragment.
@@ -47,30 +47,32 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a library has been selected.
+		/// Called when a playlist has been selected.
 		/// </summary>
-		/// <param name="selectedLibrary"></param>
 		private void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment, bool _ )
 		{
 			string alertText = "";
+
+			Playlist listToRename = selectedObjects.Playlists[ 0 ];
 
 			if ( playlistName.Length == 0 )
 			{
 				alertText = "An empty name is not valid.";
 			}
-			else if ( playlistName == selectedObjects.Playlists[ 0 ].Name )
+			else if ( playlistName == listToRename.Name )
 			{
 				alertText = "Name not changed.";
 			}
-			else if ( PlaylistsViewModel.PlaylistNames.Contains( playlistName ) == true )
+			else if ( ( ( listToRename is AlbumPlaylist ) && ( PlaylistsViewModel.AlbumPlaylists.Exists( albList => albList.Name == playlistName ) == false ) ) ||
+					  ( PlaylistsViewModel.SongPlaylists.Exists( albList => albList.Name == playlistName ) == false ) )
 			{
-				alertText = "A playlist with that name already exists.";
+				PlaylistsController.RenamePlaylist( listToRename, playlistName );
+				playlistNameFragment.Dismiss();
+				commandCallback.PerformAction();
 			}
 			else
 			{
-				PlaylistsController.RenamePlaylist( selectedObjects.Playlists[ 0 ], playlistName );
-				playlistNameFragment.Dismiss();
-				commandCallback.PerformAction();
+				alertText = "A playlist with that name already exists.";
 			}
 
 			// Display an error message if the playlist name is not valid. Do not dismiss the dialog

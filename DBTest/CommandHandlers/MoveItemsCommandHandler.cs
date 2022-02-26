@@ -5,7 +5,7 @@ namespace DBTest
 	/// <summary>
 	/// The MoveItemsCommandHandler class is used to process a request to move items up a playlist
 	/// </summary>
-	class MoveItemsCommandHandler : CommandHandler
+	internal class MoveItemsCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command.

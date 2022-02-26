@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The SelectLibraryCommandHandler class is used to process a request to select a new library
 	/// </summary>
-	class SelectLibraryCommandHandler : CommandHandler
+	internal class SelectLibraryCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. Show the library selection dialogue and pass on any selected librray to the LibraryManagementController

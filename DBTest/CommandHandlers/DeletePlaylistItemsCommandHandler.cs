@@ -6,7 +6,7 @@ namespace DBTest
 	/// The DeletePlaylistItemsCommandHandler class is used to delete songs and albums from a playlist
 	/// The same handler is used for both the Now Playing and user playlists, but they need different processing.
 	/// </summary>
-	class DeletePlaylistItemsCommandHandler : CommandHandler
+	internal class DeletePlaylistItemsCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. 

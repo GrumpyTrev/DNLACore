@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The AutoModeCommandHander class is used to process a request to toggle the Auto play mode
 	/// </summary>
-	class AutoModeCommandHander : CommandHandler
+	internal class AutoModeCommandHander : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. Pass on to the PlaybackModeController

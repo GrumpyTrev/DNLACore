@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The ScanLibraryCommandHandler class is used to process a request to scan a library
 	/// </summary>
-	class ScanLibraryCommandHandler : CommandHandler, LibraryScanController.IScanReporter, LibraryScanController.IDeleteReporter
+	internal class ScanLibraryCommandHandler : CommandHandler, LibraryScanController.IScanReporter, LibraryScanController.IDeleteReporter
 	{
 		/// <summary>
 		/// Called to handle the command. Show the library selection dialogue.

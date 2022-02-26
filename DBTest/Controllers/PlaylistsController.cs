@@ -307,7 +307,6 @@ namespace DBTest
 
 			// Get the Playlists and playlist names. Make sure a copy of the list is used as we're going to sort it 
 			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId ).ToList();
-			PlaylistsViewModel.PlaylistNames = PlaylistsViewModel.Playlists.Select( i => i.Name ).ToList();
 
 			// To generate the data to be displayed the Playlists need to be sorted. Not a simple sort of course, but the SongPlaylists followed by the 
 			// AlbumPlaylists

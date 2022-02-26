@@ -7,7 +7,7 @@
 	/// When a source is selected the SourceEditDialogFragment is used to to display the source details and allow it to be edited.
 	/// A reference to the SourceSelectionDialogFragment must be maintained to allow and edited source to be redisplayed
 	/// </summary>
-	class EditLibraryCommandHandler : CommandHandler
+	internal class EditLibraryCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. Show the library selection dialogue and pass on any selected librray to the SourceSelectionDialogFragment

@@ -8,7 +8,7 @@ namespace DBTest
 	/// <summary>
 	/// The MarkAlbumsCommandHandler is used to allow the user to mark the selected albums as Played or Not Played.
 	/// </summary>
-	class MarkAlbumsCommandHandler : CommandHandler
+	internal class MarkAlbumsCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. 
@@ -24,7 +24,7 @@ namespace DBTest
 
 			// Create a Popup menu containing the 'mark played' and 'Mark not-played' options
 			// Could just expand a resource here?
-			PopupMenu markMenu = new PopupMenu( commandButton.Context, commandButton );
+			PopupMenu markMenu = new( commandButton.Context, commandButton );
 			markMenu.Menu.Add( 0, 0, 0, "Mark as played" );
 			markMenu.Menu.Add( 0, 1, 0, "Mark as not-played" );
 

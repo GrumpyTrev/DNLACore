@@ -6,7 +6,7 @@ namespace DBTest
 	/// <summary>
 	/// The StartAutoPlaylistCommandHandler class is used to process a Play or Queue autoplay command
 	/// </summary>
-	class StartAutoPlaylistCommandHandler : CommandHandler
+	internal class StartAutoPlaylistCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. 
@@ -14,7 +14,7 @@ namespace DBTest
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity )
 		{
-			List<string> selectedGenres = new List<string>();
+			List<string> selectedGenres = new();
 
 			// If an Artist has been selected then the starting point for generation will be the albums associated with the Artist.
 			// If an Album has been selected then that album will be the starting point.

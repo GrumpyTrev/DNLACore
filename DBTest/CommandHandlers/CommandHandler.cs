@@ -2,7 +2,7 @@
 
 namespace DBTest
 {
-	abstract class CommandHandler
+	internal abstract class CommandHandler
 	{
 		/// <summary>
 		/// Called to handle a command that requires no extra parameters

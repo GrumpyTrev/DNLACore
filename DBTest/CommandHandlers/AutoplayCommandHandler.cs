@@ -5,7 +5,7 @@ namespace DBTest
 	/// <summary>
 	/// The AutoplayCommandHandler class is used to display a set of options when the Autoplay toolbar button is clicked.
 	/// </summary>
-	class AutoplayCommandHandler : CommandHandler
+	internal class AutoplayCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. 
@@ -14,13 +14,11 @@ namespace DBTest
 		public override void HandleCommand( int commandIdentity )
 		{
 			// Create a Popup menu containing the Autoplay options
-			PopupMenu autoplayMenu = new PopupMenu( commandButton.Context, commandButton );
+			PopupMenu autoplayMenu = new( commandButton.Context, commandButton );
 
 			autoplayMenu.Inflate( Resource.Menu.menu_autoplay );
-			autoplayMenu.MenuItemClick += ( sender, args ) =>
-			{
+			autoplayMenu.MenuItemClick += ( sender, args ) => 
 				CommandRouter.HandleCommand( args.Item.ItemId, selectedObjects.SelectedObjects, commandCallback, commandButton );
-			};
 
 			autoplayMenu.Show();
 		}

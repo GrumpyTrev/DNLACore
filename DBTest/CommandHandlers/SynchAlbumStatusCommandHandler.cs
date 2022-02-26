@@ -5,7 +5,7 @@ namespace DBTest
 	/// <summary>
 	/// The SynchAlbumStatusCommandHandler class is used to synchronise the 'played' status of albums across all libraries.
 	/// </summary>
-	class SynchAlbumStatusCommandHandler : CommandHandler
+	internal class SynchAlbumStatusCommandHandler : CommandHandler
 	{
 		/// <summary>
 		/// Called to handle the command. 

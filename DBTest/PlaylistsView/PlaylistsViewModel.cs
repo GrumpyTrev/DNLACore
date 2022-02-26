@@ -5,7 +5,7 @@ namespace DBTest
 	/// <summary>
 	/// The PlaylistsViewModel holds the SongPlaylist data obtained from the PlaylistsController
 	/// </summary>
-	static class PlaylistsViewModel
+	internal static class PlaylistsViewModel
 	{
 		/// <summary>
 		/// Clear the data held by this model
@@ -15,13 +15,12 @@ namespace DBTest
 			Playlists.Clear();
 			SongPlaylists.Clear();
 			AlbumPlaylists.Clear();
-			PlaylistNames.Clear();
 			LibraryId = -1;
 			BaseModel.Clear();
 		}
 
 		/// <summary>
-		/// The list of PlayLists that has been obtained from storage
+		/// The list of PlayLists for the current library
 		/// </summary>
 		public static List<Playlist> Playlists { get; set; } = new List<Playlist>();
 
@@ -34,11 +33,6 @@ namespace DBTest
 		/// The AlbumPlaylist entries in the Playlists collection
 		/// </summary>
 		public static List<AlbumPlaylist> AlbumPlaylists { get; set; } = new List<AlbumPlaylist>();
-
-		/// <summary>
-		/// The names of the playlists associated with the current library
-		/// </summary>
-		public static List<string> PlaylistNames { get; set; } = new List<string>();
 
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained
