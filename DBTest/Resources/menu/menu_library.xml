@@ -19,7 +19,4 @@
 	<item
 		android:id="@+id/synch_album_played"
 		android:title="Synch album status" />
-	<item
-		android:id="@+id/synch_playlists"
-		android:title="Synch playlists" />
 </menu>

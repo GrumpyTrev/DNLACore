@@ -222,8 +222,8 @@ namespace DBTest
 					{
 						Artist nameCheck = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( matchingTitles[ titleIndex ].ArtistAlbumId ).ArtistId );
 
-						// Correct name?
-						if ( nameCheck.Name == item.Artist.Name )
+						// Correct name? 
+						if ( nameCheck.Name.ToUpper() == item.Artist.Name.ToUpper() )
 						{
 							matchingSong = matchingTitles[ titleIndex ];
 							songsToAdd.Add( matchingSong );
@@ -239,7 +239,7 @@ namespace DBTest
 
 			// Only create the playlist if at least one of the songs was found
 			if ( songsToAdd.Count > 0 )
-			{   
+			{
 				SongPlaylist duplicatedPlaylist = new() { Name = playlistToDuplicate.Name, LibraryId = libraryId };
 
 				// Wait for the playlist to be added as we're going to use its id
@@ -247,6 +247,12 @@ namespace DBTest
 
 				// Add the songs to the new SongPlaylist.
 				duplicatedPlaylist.AddSongs( songsToAdd );
+
+				// If all the songs in the playlist were found then set the song index as well
+				if ( duplicatedPlaylist.PlaylistItems.Count == playlistToDuplicate.PlaylistItems.Count )
+				{
+					duplicatedPlaylist.SongIndex = playlistToDuplicate.SongIndex;
+				}
 			}
 		}
 
@@ -261,8 +267,8 @@ namespace DBTest
 			foreach ( AlbumPlaylistItem item in playlistToDuplicate.PlaylistItems )
 			{
 				// Find a matching Album name with the same Artist name
-				Album matchingAlbum = Albums.AlbumCollection.Where( album => ( album.LibraryId == libraryId ) && ( album.Name == item.Album.Name ) 
-					&& ( album.ArtistName == item.Album.ArtistName ) ).FirstOrDefault();
+				Album matchingAlbum = Albums.AlbumCollection.Where( album => ( album.LibraryId == libraryId ) && 
+					( album.Name.ToUpper() == item.Album.Name.ToUpper() ) && ( album.ArtistName.ToUpper() == item.Album.ArtistName.ToUpper() ) ).FirstOrDefault();
 				if ( matchingAlbum != null )
 				{
 					albumsToAdd.Add( matchingAlbum );
@@ -276,6 +282,17 @@ namespace DBTest
 				await Playlists.AddPlaylistAsync( duplicatedPlaylist );
 
 				duplicatedPlaylist.AddAlbums( albumsToAdd );
+
+				// Make sure that all of the albums have thier song contents available
+				albumsToAdd.ForEach( album => album.GetSongs() );
+
+				// If all the albums in the playlist were found then set the song index as well. This assuming that the albums contain the same
+				// number of songe
+				if ( duplicatedPlaylist.PlaylistItems.Count == playlistToDuplicate.PlaylistItems.Count )
+				{
+					duplicatedPlaylist.SongIndex = playlistToDuplicate.SongIndex;
+				}
+
 			}
 		}
 
