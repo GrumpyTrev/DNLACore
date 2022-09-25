@@ -15,17 +15,32 @@ namespace DBTest
 		public void GetContents( IEnumerable<PlaylistItem> playlistItems )
 		{
 			// Get all the AlbumPlaylistItem entries associated with this AlbumPlaylist and then the Album entries for each of them
-			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == Id ) );
+			List<PlaylistItem> possiblePlaylistItems = playlistItems.Where( item => item.PlaylistId == Id ).ToList();
 
-			foreach ( AlbumPlaylistItem playlistItem in PlaylistItems )
+			// Keep track of any PlaylistItems with no contents
+			List<PlaylistItem> orphanPlaylistItems = new();
+
+			foreach ( AlbumPlaylistItem playlistItem in possiblePlaylistItems )
 			{
 				playlistItem.Album = Albums.GetAlbumById( playlistItem.AlbumId );
 
 				// Get the contents of this playlist as the SongIndex processing assumes that the Songs are available
 				playlistItem.Album.GetSongs();
+
+				// If this item is empty then don't add it to the AlbumPlaylist
+				if ( playlistItem.Album.Songs.Count == 0 )
+				{
+					orphanPlaylistItems.Add( playlistItem );
+				}
+				else
+				{
+					PlaylistItems.Add( playlistItem );
+				}
 			}
 
 			PlaylistItems.Sort( ( a, b ) => a.Index.CompareTo( b.Index ) );
+
+			DbAccess.DeleteItems( orphanPlaylistItems );
 		}
 
 		/// <summary>

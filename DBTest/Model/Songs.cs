@@ -36,7 +36,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="albumId"></param>
 		/// <returns></returns>
-		public static List<Song> GetAlbumSongs( int albumId ) => albumLookup[ albumId ];
+		public static List<Song> GetAlbumSongs( int albumId ) => albumLookup.ContainsKey( albumId ) ? albumLookup[ albumId ] : new List<Song>();
 
 		/// <summary>
 		/// Return all the songs associated with the specified ArtistAlbum

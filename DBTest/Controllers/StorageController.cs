@@ -57,6 +57,10 @@ namespace DBTest
 			await PopulateArtistsAsync();
 			await FilterManagementController.FormGenreTagsAsync();
 
+			// Carry out model integrity checking
+			await CheckSongArtistAlbumIds();
+			await CheckEmptyArtists();
+
 			DataAvailable = true;
 			new StorageDataAvailableMessage().Send();
         }
@@ -101,6 +105,46 @@ namespace DBTest
 			}
 
 			ArtistAlbums.DeleteArtistAlbums( orphanArtistAlbums );
+		} );
+
+		/// <summary>
+		/// Check that all the Songs in the model have valid ArtistAlbum instances associated with
+		/// them
+		/// </summary>
+		/// <returns></returns>
+		private static async Task CheckSongArtistAlbumIds() => await Task.Run( () =>
+		{
+			List<Song> orphanSongs = new List<Song>();
+
+			foreach ( Song songToCheck in Songs.SongCollection )
+			{
+				ArtistAlbum checkAlbum = ArtistAlbums.GetArtistAlbumById( songToCheck.ArtistAlbumId );
+				if ( checkAlbum == null )
+				{
+					orphanSongs.Add( songToCheck );
+				}
+			}
+
+			Songs.DeleteSongs( orphanSongs );
+		} );
+
+		/// <summary>
+		/// Check that all the Artists in the model have ArtistAlbums linked to them
+		/// </summary>
+		/// <returns></returns>
+		private static async Task CheckEmptyArtists() => await Task.Run( () =>
+		{
+			List<Artist> orphanArtists = new();
+
+			foreach ( Artist artistToCheck in Artists.ArtistCollection )
+			{
+				if ( artistToCheck.ArtistAlbums.Count == 0 )
+				{
+					orphanArtists.Add( artistToCheck );
+				}
+			}
+
+			Artists.DeleteArtists( orphanArtists );
 		} );
 
 		/// <summary>
