@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -25,28 +26,12 @@ namespace DBTest
 
 			// Set up logging
 			Logger.Reporter = this;
-
-			// Initialise the storage
-			InitialiseStorage();
-
-			// Bind the command handlers to their command identities
-			CommandRouter.BindHandlers();
-
-			// Configure the controllers
-			ConfigureControllers();
-
-			// Initialise the network monitoring
-			deviceDiscoverer = new DeviceDiscovery( Context );
-
-			// Create a PlaybackRouter.
-			playbackRouter = new PlaybackRouter( Context );
-
-			// Start the MediaNotificationService
-			mediaNotificationServiceInterface = new MediaNotificationServiceInterface( Context );
-
-			// Start the ApplicationShutdownService
-			applicationShutdownInterface = new ApplicationShutdownInterface( Context );
 		}
+
+		/// <summary>
+		/// Called when the activity has checked or obtained the storage permission
+		/// </summary>
+		public static void StoragePermissionGranted() => Task.Run( () => instance.PostPermissionInitialisation() );
 
 		/// Add the specified interface to the callback colletion
 		/// </summary>
@@ -111,6 +96,33 @@ namespace DBTest
 		{
 			instance.playbackRouter.StopRouter();
 			instance.mediaNotificationServiceInterface.StopService();
+		}
+
+		/// <summary>
+		/// Initialisation to be performed once we know that storage permissions have been obtained
+		/// </summary>
+		private void PostPermissionInitialisation()
+		{
+			// Initialise the storage
+			InitialiseStorage();
+
+			// Bind the command handlers to their command identities
+			CommandRouter.BindHandlers();
+
+			// Configure the controllers
+			ConfigureControllers();
+
+			// Initialise the network monitoring
+			deviceDiscoverer = new DeviceDiscovery( Context );
+
+			// Create a PlaybackRouter.
+			playbackRouter = new PlaybackRouter( Context );
+
+			// Start the MediaNotificationService
+			mediaNotificationServiceInterface = new MediaNotificationServiceInterface( Context );
+
+			// Start the ApplicationShutdownService
+			applicationShutdownInterface = new ApplicationShutdownInterface( Context );
 		}
 
 		/// <summary>
@@ -214,7 +226,7 @@ namespace DBTest
 		/// <summary>
 		/// The DeviceDiscovery instance used to monitor the network and scan for DLNA devices
 		/// </summary>
-		private readonly DeviceDiscovery deviceDiscoverer = null;
+		private DeviceDiscovery deviceDiscoverer = null;
 
 		/// <summary>
 		/// The PlaybackMonitor instance used to monitor the state of the playback system
@@ -239,16 +251,16 @@ namespace DBTest
 		/// <summary>
 		/// The PlaybackRouter used to pass playback requests to the the correct playback device
 		/// </summary>
-		private readonly PlaybackRouter playbackRouter = null;
+		private PlaybackRouter playbackRouter = null;
 
 		/// <summary>
 		/// The control used to interface to the media notification service
 		/// </summary>
-		private readonly MediaNotificationServiceInterface mediaNotificationServiceInterface = null;
+		private MediaNotificationServiceInterface mediaNotificationServiceInterface = null;
 
 		/// <summary>
 		/// The control used to interface to the application shutdown service
 		/// </summary>
-		private readonly ApplicationShutdownInterface applicationShutdownInterface = null;
+		private ApplicationShutdownInterface applicationShutdownInterface = null;
 	}
 }

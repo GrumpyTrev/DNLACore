@@ -1,8 +1,13 @@
-﻿using Android.App;
+﻿using Android;
+using Android.App;
 using Android.Content;
+using Android.Content.PM;
 using Android.Net;
 using Android.OS;
+using Android.Runtime;
 using Android.Support.Design.Widget;
+using Android.Support.V4.App;
+using Android.Support.V4.Content;
 using Android.Support.V4.View;
 using Android.Support.V7.App;
 using Android.Views;
@@ -40,6 +45,7 @@ namespace DBTest
 			// Initialise the fragments showing the selected library
 			InitialiseFragments();
 
+			// Make sure the app keeps going even though the system thinks it is using too much battery
 			if ( Build.VERSION.SdkInt >= BuildVersionCodes.M )
 			{
 				// Make sure that this application is not subject to battery optimisations
@@ -48,6 +54,39 @@ namespace DBTest
 					StartActivity( new Intent().SetAction( Android.Provider.Settings.ActionRequestIgnoreBatteryOptimizations )
 						.SetData( Uri.Parse( "package:" + PackageName ) ) );
 				}
+			}
+
+			// Make sure the app has been given the correct storage permission.
+			if ( ContextCompat.CheckSelfPermission( this, Manifest.Permission.WriteExternalStorage ) != Permission.Granted )
+			{
+				// Request the permission
+				ActivityCompat.RequestPermissions( this, new string[] { Manifest.Permission.WriteExternalStorage }, 1 );
+			}
+			else
+			{
+				// Tell the main app it can access storage
+				MainApp.StoragePermissionGranted();
+			}
+		}
+
+		/// <summary>
+		/// Called in response to a request for a permission. Make sure it is the storage permission request, and if granted tell the main application
+		/// </summary>
+		/// <param name="requestCode"></param>
+		/// <param name="permissions"></param>
+		/// <param name="grantResults"></param>
+		public override void OnRequestPermissionsResult( int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults )
+		{
+			if ( requestCode == 1 )
+			{
+				if ( ( grantResults.Length == 1 ) && ( grantResults[ 0 ] == Permission.Granted ) )
+				{
+					MainApp.StoragePermissionGranted();
+				}	
+			}
+			else
+			{
+				base.OnRequestPermissionsResult( requestCode, permissions, grantResults );
 			}
 		}
 
