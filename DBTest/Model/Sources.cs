@@ -53,15 +53,25 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sourceToAdd"></param>
 		/// <returns></returns>
-		public static async Task AddSourceAsync( Source sourceToAdd )
+		public static void AddSource( Source sourceToAdd )
 		{
 			SourceCollection.Add( sourceToAdd );
 
 			// Need to wait for the source to be added to ensure that its ID is available
-			await DbAccess.InsertAsync( sourceToAdd );
+			DbAccess.InsertAsync( sourceToAdd );
 
 			// Initialise any source data that may not have been set in the new source
 			sourceToAdd.InitialiseAccess();
+		}
+
+		/// <summary>
+		/// Delete the speciifed source from the local collection and database
+		/// </summary>
+		/// <param name="sourceToDelete"></param>
+		public static void DeleteSource( Source sourceToDelete )
+		{
+			SourceCollection.Remove( sourceToDelete );
+			DbAccess.DeleteAsync( sourceToDelete );
 		}
 
 		/// <summary>

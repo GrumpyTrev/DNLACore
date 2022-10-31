@@ -70,6 +70,42 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Delete any albums in this playlist that are contained in the supplied collection
+		/// </summary>
+		/// <param name="albumIds"></param>
+		public void DeleteMatchingAlbums( HashSet<int> albumIds )
+		{
+			List<AlbumPlaylistItem> matchingItems = PlaylistItems.Where( item => albumIds.Contains( ( ( AlbumPlaylistItem )item ).AlbumId ) == true ).Cast<AlbumPlaylistItem>().ToList();
+
+			if ( matchingItems.Count > 0 )
+			{
+				// Remove the AlbumPlaylistItems from the collection and database
+				foreach ( AlbumPlaylistItem item in matchingItems )
+				{
+					PlaylistItems.Remove( item );
+					DbAccess.DeleteAsync( item );
+				}
+
+				// Reindex the existing items and reset the index
+				int itemIndex = 0;
+				foreach ( AlbumPlaylistItem playlistItem in PlaylistItems )
+				{
+					if ( playlistItem.Index != itemIndex )
+					{
+						playlistItem.Index = itemIndex;
+						DbAccess.UpdateAsync( playlistItem );
+					}
+
+					itemIndex++;
+				}
+
+				// As some items have been removed reset the song index
+				SongIndex = 0;
+			}
+		}
+
+
+		/// <summary>
 		/// The Song last played (or started to be played) in this playlist
 		/// </summary>
 		internal override Song InProgressSong => ( SongIndex >= 0 ) ?

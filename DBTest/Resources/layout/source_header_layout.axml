@@ -3,31 +3,28 @@
     android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="match_parent">
-    <TextView
-        android:id="@+id/sourceName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:text="Name"
-        android:textSize="20dp"
-        android:background="#ffe0e0e0" 
+	<TextView
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="2"
+		android:text="Name"
+		android:textSize="20dp"
+		android:textStyle="bold" 
    />
-   <TextView
-		android:id="@+id/sourceType"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="2"
-   		android:text="Type"
- 		android:textSize="20dp" 
-        android:background="#ffe0e0e0" 
+	<TextView
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="2"
+		android:text="Type"
+		android:textSize="20dp"
+		android:textStyle="bold" 
    />
-   <TextView
-		android:id="@+id/sourceFolder"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="3"
-   		android:text="Folder"
- 		android:textSize="20dp" 
-        android:background="#ffe0e0e0" 
+	<TextView
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="3"
+		android:text="Folder"
+		android:textSize="20dp"
+		android:textStyle="bold" 
    />
 </LinearLayout>

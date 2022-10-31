@@ -316,7 +316,7 @@ namespace DBTest
 
 		public int TagId { get; set; }
 
-		public override bool Equals( object obj ) => ( obj == null ) ? false : ( ( ( TaggedAlbum )obj ).AlbumId == AlbumId );
+		public override bool Equals( object obj ) => ( obj != null ) && ( ( ( TaggedAlbum )obj ).AlbumId == AlbumId );
 
 		public override int GetHashCode() => AlbumId.GetHashCode();
 	}

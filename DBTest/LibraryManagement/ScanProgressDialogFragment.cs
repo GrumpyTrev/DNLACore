@@ -30,10 +30,7 @@ namespace DBTest
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public ScanProgressDialogFragment()
-		{
-			Cancelable = false;
-		}
+		public ScanProgressDialogFragment() => Cancelable = false;
 
 		/// <summary>
 		/// Create the dialogue. The scan process is started when the dialogue is displayed. See OnResume
@@ -55,7 +52,7 @@ namespace DBTest
 			base.OnResume();
 
 			// Install a handler for the cancel button so that a cancel can be scheduled rather than acted upon immediately
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) => { reporter.Invoke(); };
+			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Negative ).Click += ( sender, args ) => reporter.Invoke();
 
 			binder.Invoke( this );
 		}

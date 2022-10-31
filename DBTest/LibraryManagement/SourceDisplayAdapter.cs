@@ -5,7 +5,7 @@ using Android.Widget;
 
 namespace DBTest
 {
-	class SourceDisplayAdapter : BaseAdapter, AdapterView.IOnItemClickListener
+	internal class SourceDisplayAdapter : BaseAdapter, AdapterView.IOnItemClickListener
 	{
 		public SourceDisplayAdapter( Context context, List< Source > sources, ListView parent, IReporter reporter )
 		{
@@ -59,6 +59,15 @@ namespace DBTest
 		public override int Count => sources.Count;
 
 		/// <summary>
+		/// Called when the set of sources has changed
+		/// </summary>
+		public void SetData( List<Source> newSources )
+		{
+			sources = newSources;
+			NotifyDataSetChanged();
+		}
+
+		/// <summary>
 		/// The inflator for the view
 		/// </summary>
 		private readonly LayoutInflater inflator = null;
@@ -66,7 +75,7 @@ namespace DBTest
 		/// <summary>
 		/// The sources to display
 		/// </summary>
-		private readonly List<Source> sources = null;
+		private List<Source> sources = null;
 
 		/// <summary>
 		/// The list view displaying the items

@@ -50,7 +50,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="item"></param>
 		/// <returns></returns>
-		public static async void UpdateAsync<T>( T item ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( item );
+		public static async Task UpdateAsync<T>( T item ) => await ConnectionDetailsModel.AsynchConnection.UpdateAsync( item );
 
 		/// <summary>
 		/// Delete the specified list of items

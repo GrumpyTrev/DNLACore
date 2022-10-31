@@ -31,10 +31,7 @@ namespace DBTest
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public ConfirmationDialogFragment()
-		{
-			Cancelable = false;
-		}
+		public ConfirmationDialogFragment() => Cancelable = false;
 
 		/// <summary>
 		/// Create the dialogue	
@@ -44,7 +41,7 @@ namespace DBTest
 		public override Dialog OnCreateDialog( Bundle savedInstanceState )
 		{
 			// Replace with a layout resource?
-			TextView customTitle = new TextView( Context );
+			TextView customTitle = new( Context );
 			customTitle.SetPadding( 20, 10, 20, 10 );
 			customTitle.SetTypeface( null, TypefaceStyle.Bold );
 			customTitle.SetTextColor( Color.Black );

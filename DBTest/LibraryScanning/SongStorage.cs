@@ -242,10 +242,12 @@ namespace DBTest
 				};
 
 				// No need to wait for this
-				Songs.AddSongAsync( songToAdd );
+				await Songs.AddSongAsync( songToAdd );
 
-				Logger.Log( string.Format( "Artist: {0} Title: {1} Track: {2} Modified: {3} Length {4} Year {5}", songScanned.Tags.Artist, songScanned.Tags.Title,
-					songScanned.Tags.Track, songScanned.Modified, songScanned.Length, songScanned.Year ) );
+				Logger.Log( string.Format( 
+					"Song added with Artist: {0} Title: {1} Track: {2} Modified: {3} Length {4} Year {5} Album Id: {6} ArtistAlbum Id: {7}", 
+					songScanned.Tags.Artist, songScanned.Tags.Title, songScanned.Tags.Track, songScanned.Modified, songScanned.Length, songScanned.Year,
+					songToAdd.AlbumId, songToAdd.ArtistAlbumId ) );
 
 				// Add to the Album
 				songAlbum.Songs.Add( songToAdd );
@@ -287,7 +289,7 @@ namespace DBTest
 
 				if ( updateAlbum == true )
 				{
-					await ConnectionDetailsModel.AsynchConnection.UpdateAsync( songAlbum );
+					await DbAccess.UpdateAsync( songAlbum );
 				}
 
 				// Add to the source
@@ -326,20 +328,30 @@ namespace DBTest
 				ArtistAlbum songArtistAlbum = songArtist.ArtistAlbums.SingleOrDefault( p => ( p.Name.ToUpper() == album.Songs[ 0 ].Tags.Album.ToUpper() ) );
 				if ( songArtistAlbum != null )
 				{
+					Logger.Log( string.Format( "Artist {0} and ArtistAlbum {1} both found", artistName, songArtistAlbum.Name ) );
+
 					songAlbum = songArtistAlbum.Album;
 
 					// The rest of the code expects the Album to have its songs populated, so check here
 					songAlbum.GetSongs();
 				}
+				else
+				{
+					Logger.Log( string.Format( "Artist {0} found ArtistAlbum {1} not found", artistName, album.Songs[ 0 ].Tags.Album ) );
+				}
 			}
-
-			Logger.Log( string.Format( "Album: {0} {1} for artist {2}", album.Name, ( songAlbum != null ) ? "found" : "not found", artistName ) );
+			else
+			{
+				Logger.Log( string.Format( "Artist {0} for album {1} not found", artistName, album.Name ) );
+			}
 
 			// If no existing album create a new one
 			if ( songAlbum == null )
 			{
 				songAlbum = new Album() { Name = album.Name, Songs = new List<Song>(), LibraryId = scanLibrary };
 				await Albums.AddAlbumAsync( songAlbum );
+
+				Logger.Log( string.Format( "Create album {0} Id: {1}", songAlbum.Name, songAlbum.Id ) );
 			}
 
 			return songAlbum;
@@ -356,16 +368,20 @@ namespace DBTest
 			// artists
 			Artist songArtist = artistsInLibrary.GetValueOrDefault( artistName.ToUpper() );
 
-			Logger.Log( string.Format( "Artist: {0} {1}", artistName, ( songArtist != null ) ? "found" : "not found creating in db" ) );
-
 			if ( songArtist == null )
 			{
 				// Create a new Artist and add it to the database
 				songArtist = new Artist() { Name = artistName, ArtistAlbums = new List<ArtistAlbum>(), LibraryId = scanLibrary };
 				await Artists.AddArtistAsync( songArtist );
 
+				Logger.Log( string.Format( "Artist: {0} not found. Created with Id: {1}", artistName, songArtist.Id ) );
+
 				// Add it to the collection for this library only
 				artistsInLibrary[ songArtist.Name.ToUpper() ] = songArtist;
+			}
+			else
+			{
+				Logger.Log( string.Format( "Artist: {0} found with Id: {1}", songArtist.Name, songArtist.Id ) );
 			}
 
 			return songArtist;
@@ -393,10 +409,14 @@ namespace DBTest
 					 Artist = songArtist, AlbumId = songAlbum.Id };
 				await ArtistAlbums.AddArtistAlbumAsync( songArtistAlbum );
 
+				Logger.Log( string.Format( "ArtistAlbum: {0} created with Id: {1}", songArtistAlbum.Name, songArtistAlbum.Id ) );
+
 				songArtist.ArtistAlbums.Add( songArtistAlbum );
 			}
 			else
 			{
+				Logger.Log( string.Format( "ArtistAlbum: {0} found with Id: {1}", songArtistAlbum.Name, songArtistAlbum.Id ) );
+
 				// Get the children of the existing ArtistAlbum
 				if ( songArtistAlbum.Songs == null )
 				{

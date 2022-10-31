@@ -60,6 +60,7 @@ namespace DBTest
 			// Carry out model integrity checking
 			await CheckSongArtistAlbumIds();
 			await CheckEmptyArtists();
+			await CheckAlbumsWithNoArtists();
 
 			DataAvailable = true;
 			new StorageDataAvailableMessage().Send();
@@ -95,11 +96,15 @@ namespace DBTest
 					}
 					else
 					{
+						Logger.Log( string.Format( "Cannot find Artist id: {0} for ArtistAlbum {1} id: {2}", artAlbum.ArtistId, artAlbum.Name, artAlbum.Id ) );
+
 						orphanArtistAlbums.Add( artAlbum );
 					}
 				}
 				else
 				{
+					Logger.Log( string.Format( "Cannot find Album id: {0} for ArtistAlbum {1} id: {2}", artAlbum.AlbumId, artAlbum.Name, artAlbum.Id ) );
+
 					orphanArtistAlbums.Add( artAlbum );
 				}
 			}
@@ -114,13 +119,15 @@ namespace DBTest
 		/// <returns></returns>
 		private static async Task CheckSongArtistAlbumIds() => await Task.Run( () =>
 		{
-			List<Song> orphanSongs = new List<Song>();
+			List<Song> orphanSongs = new();
 
 			foreach ( Song songToCheck in Songs.SongCollection )
 			{
 				ArtistAlbum checkAlbum = ArtistAlbums.GetArtistAlbumById( songToCheck.ArtistAlbumId );
 				if ( checkAlbum == null )
 				{
+					Logger.Log( string.Format( "Cannot find ArtistAlbum id: {0} for Song {1} id: {2}", songToCheck.ArtistAlbumId, songToCheck.Title, songToCheck.Id ) );
+
 					orphanSongs.Add( songToCheck );
 				}
 			}
@@ -140,11 +147,31 @@ namespace DBTest
 			{
 				if ( artistToCheck.ArtistAlbums.Count == 0 )
 				{
+					Logger.Log( string.Format( "No ArtistAlbums for Artist {0} id: {1}", artistToCheck.Name, artistToCheck.Id ) );
+
 					orphanArtists.Add( artistToCheck );
 				}
 			}
 
 			Artists.DeleteArtists( orphanArtists );
+		} );
+
+		private static async Task CheckAlbumsWithNoArtists() => await Task.Run( () =>
+		{
+			List<Album> orphanAlbums = new();
+
+			foreach ( Album albumToCheck in Albums.AlbumCollection )
+			{
+				if ( albumToCheck.ArtistName == null )
+				{
+					Logger.Log( string.Format( "No Artist Name for Album {0} id: {1}", albumToCheck.Name, albumToCheck.Id ) );
+
+					orphanAlbums.Add( albumToCheck );
+				}
+			}
+
+			Albums.DeleteAlbums( orphanAlbums );
+
 		} );
 
 		/// <summary>

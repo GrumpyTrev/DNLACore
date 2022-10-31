@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -69,6 +70,176 @@ namespace DBTest
 			if ( autoplayForLibrary != null)
 			{
 				Autoplays.DeleteAutoplay( autoplayForLibrary );
+			}
+		}
+
+		/// <summary>
+		/// Add a new library with a default source to the collection
+		/// </summary>
+		/// <param name="libraryName"></param>
+		public static async void CreateLibrary( string libraryName )
+		{
+			// Create a library with a default source and display the source editing fragment
+			Library newLibrary = new() { Name = libraryName };
+			await Libraries.AddLibraryAsync( newLibrary );
+
+			// Add a source
+			CreateSource( newLibrary );
+
+			// Add an empty NowPlaying list
+			Playlist nowPlaying = new SongPlaylist() { Name = Playlists.NowPlayingPlaylistName, LibraryId = newLibrary.Id };
+			await Playlists.AddPlaylistAsync( nowPlaying );
+			nowPlaying.SongIndex = -1;
+		}
+
+		/// <summary>
+		/// Create a new Source and add to the sources collections
+		/// </summary>
+		/// <param name="libraryForSource"></param>
+		public static void CreateSource( Library libraryForSource )
+		{
+			Source newSource = new()
+			{
+				Name = libraryForSource.Name,
+				AccessMethod = Source.AccessType.Local,
+				FolderName = libraryForSource.Name,
+				LibraryId = libraryForSource.Id
+			};
+
+			Sources.AddSource( newSource );
+		}
+
+		/// <summary>
+		/// Delete the Source and all its associated Songs, ArtistAlbums, Albums, Artists and Playlists
+		/// </summary>
+		/// <param name="sourceToDelete"></param>
+		public static void DeleteSource( Source sourceToDelete )
+		{
+			// Remove the Source from the Source collections
+			Sources.DeleteSource( sourceToDelete );
+
+			// Get all the songs associated with this source
+			sourceToDelete.GetSongs();
+
+			// Are there any
+			if ( sourceToDelete.Songs != null )
+			{
+				// Remove the Songs from their associated ArtistAlbum and Album entries. This may mean that some
+				// ArtistAlbum and Album can also be deleted
+				List<ArtistAlbum> artAlbumsToDelete = new();
+				List<Album> albumsToDelete = new();
+
+				foreach ( ArtistAlbum artAlbum in ArtistAlbums.ArtistAlbumCollection )
+				{
+					// Get all the deleted songs in this ArtistAlbum
+					List<Song> songsInArtAlbum = sourceToDelete.Songs.Where( song => song.ArtistAlbumId == artAlbum.Id ).ToList();
+
+					// Are there any
+					if ( songsInArtAlbum.Count > 0 )
+					{
+						// Make sure that this ArtistAlbum's Songs collection is populated
+						if ( artAlbum.Songs == null )
+						{
+							artAlbum.Songs = Songs.GetArtistAlbumSongs( artAlbum.Id );
+						}
+
+						// Have all the songs in the ArtistAlbum been deleted
+						if ( songsInArtAlbum.Count == artAlbum.Songs.Count )
+						{
+							// Yes, delete the ArtistAlbum. Don't delete here as we're enumerating the collection
+							artAlbumsToDelete.Add( artAlbum );
+						}
+						else
+						{
+							// No, delete the individual songs from the ArtistAlbum
+							foreach ( Song songToDelete in songsInArtAlbum )
+							{
+								artAlbum.Songs.Remove( songToDelete );
+							}
+						}
+
+						// Check for songs in the Album as well
+						// Make sure the songs have been read in
+						artAlbum.Album.GetSongs();
+
+						if ( ( songsInArtAlbum.Count == artAlbum.Album.Songs.Count ) || ( artAlbum.Album.Songs.Count == 0 ) )
+						{
+							// All the Album's songs have been removed. Delete it
+							albumsToDelete.Add( artAlbum.Album );
+							Albums.DeleteAlbum( artAlbum.Album );
+						}
+						else
+						{
+							// Remove the songs from the associated Album
+							foreach ( Song songToDelete in songsInArtAlbum )
+							{
+								artAlbum.Album.Songs.Remove( songToDelete );
+							}
+						}
+					}
+				}
+
+				// Delete any ArtistAlbums saved for deletion
+				if ( artAlbumsToDelete.Count > 0 )
+				{
+					ArtistAlbums.DeleteArtistAlbums( artAlbumsToDelete );
+
+					// Remove these ArtistAlbums from the Artists and delete any subsequently empty Artists
+					foreach ( ArtistAlbum artAlbum in artAlbumsToDelete )
+					{
+						artAlbum.Artist.ArtistAlbums.Remove( artAlbum );
+
+						if ( artAlbum.Artist.ArtistAlbums.Count == 0 )
+						{
+							Artists.DeleteArtist( artAlbum.Artist );
+						}
+					}
+				}
+
+				// Delete these songs from all the Song Playlists and the Albums from the Album Playlists
+				// Speed up this by making hashsets of the Songs and Albums
+				HashSet<int> songIds = sourceToDelete.Songs.Select( song => song.Id ).ToHashSet();
+				HashSet<int> albumIds = albumsToDelete.Select( album => album.Id ).ToHashSet();
+
+				List<Playlist> playlistsToDelete = new();
+				foreach ( Playlist playlist in Playlists.PlaylistCollection )
+				{
+					// Remove the Songs from SongPlaylists and Albums from AlbumPlaylisst
+					if ( playlist is SongPlaylist songPlaylist )
+					{
+						songPlaylist.DeleteMatchingSongs( songIds );
+					}
+					else
+					{
+						( ( AlbumPlaylist )playlist ).DeleteMatchingAlbums( albumIds );
+					}
+
+					// If the Playlist is now empty then resord that it needs to be deleted.
+					// Cannot be deleted in this loop
+					if ( playlist.PlaylistItems.Count == 0 )
+					{
+						playlistsToDelete.Add( playlist );
+					}
+				}
+
+				// Delete the empty song playlists.
+				foreach ( Playlist playlistToDelete in playlistsToDelete )
+				{
+					// Don't delete the Now Playing Playlist
+					if ( playlistToDelete.Name != Playlists.NowPlayingPlaylistName )
+					{
+						Playlists.DeletePlaylist( playlistToDelete );
+					}
+				}
+
+				// Tag management is carried out via a message to the controller
+				if ( albumIds.Count > 0 )
+				{
+					new AlbumsDeletedMessage() { DeletedAlbumIds = albumIds.ToList() }.Send();
+				}
+
+				// Delete all the Songs
+				Songs.DeleteSongs( sourceToDelete.Songs );
 			}
 		}
 	}

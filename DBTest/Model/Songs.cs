@@ -65,7 +65,7 @@ namespace DBTest
 		/// Add the specified Song to the local collections and persistent storage
 		/// </summary>
 		/// <param name="songToAdd"></param>
-		public static async void AddSongAsync( Song songToAdd )
+		public static async Task AddSongAsync( Song songToAdd )
 		{
 			// Must wait for this to get the song id
 			await DbAccess.InsertAsync( songToAdd );

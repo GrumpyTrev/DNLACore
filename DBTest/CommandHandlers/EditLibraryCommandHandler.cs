@@ -20,15 +20,20 @@
 		/// Called when a library has been selected.
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
-		private void LibrarySelected( Library selectedLibrary ) => 
-			SourceSelectionDialogFragment.ShowFragment( CommandRouter.Manager, selectedLibrary, SourceSelected, BindDialog );
+		private void LibrarySelected( Library selectedLibrary )
+		{
+			// Save the library
+			libraryToEdit = selectedLibrary;
+
+			SourceSelectionDialogFragment.ShowFragment( CommandRouter.Manager, libraryToEdit, SourceSelected, NewSourceRequested, BindDialog );
+		}
 
 		/// <summary>
 		/// Called when a source has been selected to edit.
 		/// Display the SoureEditDialogFragment
 		/// </summary>
 		/// <param name="selectedSource"></param>
-		private void SourceSelected( Source selectedSource ) => SourceEditDialogFragment.ShowFragment( CommandRouter.Manager, selectedSource, SourceChanged );
+		private void SourceSelected( Source selectedSource ) => SourceEditDialogFragment.ShowFragment( CommandRouter.Manager, selectedSource, SourceChanged, SourceDeleted );
 
 		/// <summary>
 		/// Called when the SourceSelectionDialogFragment dialog is displayed (OnResume)
@@ -67,6 +72,41 @@
 		}
 
 		/// <summary>
+		/// Called when the user has requested that a new source be added to the selected library
+		/// Add a new source and tell the SourceSelectionDialogFragment that it needs to redisplay its data
+		/// </summary>
+		private void NewSourceRequested()
+		{
+			LibraryManagementController.CreateSource( libraryToEdit );
+
+			// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
+			sourceSelectionDialog?.OnSourceChanged();
+		}
+
+		/// <summary>
+		/// Called when a request to delete a Source has been made
+		/// Confirm the deletion and 
+		/// </summary>
+		/// <param name="sourceToDelete"></param>
+		private void SourceDeleted( Source sourceToDelete, SourceEditDialogFragment sourceEditDialog ) => ConfirmationDialogFragment.ShowFragment(
+				CommandRouter.Manager,
+				( confirmed ) =>
+				{
+					if ( confirmed == true )
+					{
+						// Get the LibraryManagementController to handle the deletion of the Source from its library 
+						LibraryManagementController.DeleteSource( sourceToDelete );
+
+						// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
+						sourceSelectionDialog?.OnSourceChanged();
+
+						// Dismiss the dialogue
+						sourceEditDialog.Dismiss();
+					}
+				},
+				"Are you sure you want to clear this Source" );
+
+		/// <summary>
 		/// The command identity associated with this handler
 		/// </summary>
 		protected override int CommandIdentity { get; } = Resource.Id.edit_library;
@@ -75,5 +115,10 @@
 		/// SourceSelectionDialogFragment reference held so that it can be infromed of source detail changes
 		/// </summary>
 		private SourceSelectionDialogFragment sourceSelectionDialog = null;
+
+		/// <summary>
+		/// The library selected for editing
+		/// </summary>
+		private Library libraryToEdit = null;
 	}
 }

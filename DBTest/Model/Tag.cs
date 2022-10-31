@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The tag class contains a list of tagged albums
 	/// </summary>
-	partial class Tag
+	public partial class Tag
 	{
 		/// <summary>
 		/// Delete a set of TaggedAlbum entries from the tag

@@ -4,7 +4,7 @@ using SQLite;
 
 namespace DBTest
 {
-	partial class GenrePopulation
+	public partial class GenrePopulation
 	{
 		/// <summary>
 		/// The list of genres extracted from the delimited string
