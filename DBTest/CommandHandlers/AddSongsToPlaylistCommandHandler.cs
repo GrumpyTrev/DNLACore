@@ -26,6 +26,13 @@ namespace DBTest
 				selectedObjects.Albums.Add( artistAlbum.Album );
 			}
 
+			// Add the songs from any selected SongPlaylistItems to the selected Songs collection
+			if ( ( selectedObjects.PlaylistItems.Count > 0 ) && ( selectedObjects.ParentPlaylist is SongPlaylist ) )
+			{
+				selectedObjects.Songs.Clear();
+				selectedObjects.Songs.AddRange( selectedObjects.PlaylistItems.Select( plItem => ( ( SongPlaylistItem )plItem ).Song ) );
+			}
+
 			// Check if all the selected songs are from selected albums
 			CheckForCompleteAlbums();
 
@@ -60,11 +67,12 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Is the command valid given the selected objects
+		/// Is the command valid given the selected objects.
+		/// This command is valid if Songs or PlaylistItems containing Songs have selected
 		/// </summary>
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
-		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Songs.Count > 0 );
+		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Songs.Count > 0 ) || ( selectedObjects.ParentPlaylist is SongPlaylist );
 
 		/// <summary>
 		/// The command identity associated with this handler

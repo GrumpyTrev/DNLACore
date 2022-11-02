@@ -23,6 +23,9 @@
 		<include android:id="@+id/auto_gen"
 			layout="@layout/bottom_button"/>
 
+		<include android:id="@+id/add_to_playlist"
+			layout="@layout/bottom_button"/>
+		
 		<include android:id="@+id/delete"
 			layout="@layout/bottom_button"/>
 		

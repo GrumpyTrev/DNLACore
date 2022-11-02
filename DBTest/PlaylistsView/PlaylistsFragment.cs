@@ -2,7 +2,6 @@
 using Android.Views;
 using Android.Widget;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
