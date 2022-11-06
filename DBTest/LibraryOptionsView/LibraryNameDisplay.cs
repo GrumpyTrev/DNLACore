@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The LibraryNameDisplay class is used to display the name of the current library and to pass click events on to the appropriate command handler
 	/// </summary>
-	class LibraryNameDisplay : BaseBoundControl, DataReporter.IReporter
+	internal class LibraryNameDisplay : BaseBoundControl, DataReporter.IReporter
 	{
 		/// <summary>
 		/// Bind to the specified view.
@@ -26,16 +26,10 @@ namespace DBTest
 					// Create a Popup for this text view and route it's selections to the CommandRouter
 					titlePopup = new PopupMenu( context, titleTextView );
 					titlePopup.Inflate( Resource.Menu.menu_library );
-					titlePopup.MenuItemClick += ( sender, args ) =>
-					{
-						CommandRouter.HandleCommand( args.Item.ItemId );
-					};
+					titlePopup.MenuItemClick += ( sender, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
 
 					// Show the popup when the textview is selected
-					titleTextView.Click += ( sender, args ) =>
-					{
-						titlePopup.Show();
-					};
+					titleTextView.Click += ( sender, args ) => titlePopup.Show();
 
 					LibraryNameDisplayController.DataReporter = this;
 				}

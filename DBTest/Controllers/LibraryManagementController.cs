@@ -93,6 +93,25 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Called to delete a library. Clear the library first, then remove all of it's sources and finally delete the library
+		/// </summary>
+		/// <param name="libraryToDelete"></param>
+		public static void DeleteLibrary( Library libraryToDelete )
+		{
+			// Clear the library
+			ClearLibrary( libraryToDelete );
+
+			// Delete all the sources associated with the library
+			foreach ( Source sourceToDelete in Sources.GetSourcesForLibrary( libraryToDelete.Id ))
+			{
+				Sources.DeleteSource( sourceToDelete );
+			}
+
+			// Delete the library
+			Libraries.DeleteLibrary( libraryToDelete );
+		}
+
+		/// <summary>
 		/// Create a new Source and add to the sources collections
 		/// </summary>
 		/// <param name="libraryForSource"></param>
@@ -242,5 +261,12 @@ namespace DBTest
 				Songs.DeleteSongs( sourceToDelete.Songs );
 			}
 		}
+
+		/// <summary>
+		/// Is the specified library clear. An indication of this is whether there are any artists associated with the library
+		/// </summary>
+		/// <param name="libraryToCheck"></param>
+		/// <returns></returns>
+		public static bool IsEmpty( Library libraryToCheck ) => ( Artists.ArtistCollection.Any( art => art.LibraryId == libraryToCheck.Id ) == false );
 	}
 }

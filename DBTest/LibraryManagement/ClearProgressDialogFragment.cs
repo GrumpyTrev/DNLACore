@@ -1,16 +1,14 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
-using Android.Views;
 
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
-using FragmentManager = Android.Support.V4.App.FragmentManager;
 
 namespace DBTest
 {
 	/// <summary>
-	/// Display a progress dialogue whilst clearing the specified library
+	/// Display a progress dialogue whilst clearing or deleting the specified library
 	/// </summary>
 	internal class ClearProgressDialogFragment : DialogFragment
 	{
@@ -18,22 +16,20 @@ namespace DBTest
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, string libraryName, BindDialog callback )
+		public static void Show( string libraryName, bool clearance, BindDialog callback )
 		{
 			// Save the parameters statically so that they are available after a configuration change
 			libraryToClear = libraryName;
 			binder = callback;
+			isClearance = clearance;
 
-			new ClearProgressDialogFragment().Show( manager, "fragment_clear_progress" );
+			new ClearProgressDialogFragment().Show( CommandRouter.Manager, "fragment_clear_progress" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public ClearProgressDialogFragment()
-		{
-			Cancelable = false;
-		}
+		public ClearProgressDialogFragment() => Cancelable = false;
 
 		/// <summary>
 		/// Create the dialogue	
@@ -41,7 +37,7 @@ namespace DBTest
 		/// <param name="savedInstanceState"></param>
 		/// <returns></returns>
 		public override Dialog OnCreateDialog( Bundle savedInstanceState ) => new AlertDialog.Builder( Activity )
-				.SetTitle( string.Format( "Clearing library: {0}", libraryToClear ) )
+				.SetTitle( $"{ ( isClearance ? "Clearing" : "Deleting" )} library: {libraryToClear}" )
 				.SetPositiveButton( "Ok", delegate { } )
 				.Create();
 
@@ -72,7 +68,7 @@ namespace DBTest
 			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Enabled = clearFinished;
 			if ( clearFinished == true )
 			{
-				Dialog.SetTitle( string.Format( "Library: {0} cleared", libraryToClear ) );
+				Dialog.SetTitle( $"Library: {libraryToClear} { ( isClearance ? "cleared" : "deleted" ) }" );
 			}
 		}
 
@@ -80,6 +76,11 @@ namespace DBTest
 		/// The delegate used to report back the ClearProgressDialogFragment object
 		/// </summary>
 		private static BindDialog binder = null;
+
+		/// <summary>
+		/// Is this a clearance or deletion
+		/// </summary>
+		private static bool isClearance = false;
 
 		/// <summary>
 		/// Delegate type used to report back the ClearProgressDialogFragment object

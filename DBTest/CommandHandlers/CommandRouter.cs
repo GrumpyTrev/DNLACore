@@ -36,6 +36,7 @@ namespace DBTest
 			new MarkAlbumsCommandHandler().BindToRouter();
 			new NewLibraryCommandHandler().BindToRouter();
 			new SynchAlbumStatusCommandHandler().BindToRouter();
+			new DeleteLibraryCommandHandler().BindToRouter();
 		}
 
 		/// <summary>

@@ -55,6 +55,16 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Delete the specified library from the local collection and the database
+		/// </summary>
+		/// <param name="libraryToDelete"></param>
+		public static void DeleteLibrary( Library libraryToDelete )
+		{
+			LibraryCollection.Remove( libraryToDelete );
+			DbAccess.DeleteAsync( libraryToDelete );
+		}
+
+		/// <summary>
 		/// The set of Library entries currently held in storage
 		/// </summary>
 		public static List<Library> LibraryCollection { get; private set; } = null;

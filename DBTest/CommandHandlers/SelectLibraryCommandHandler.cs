@@ -10,7 +10,7 @@
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) => 
-			LibrarySelectionDialogFragment.ShowFragment( CommandRouter.Manager, "Select library to display", Libraries.Index( ConnectionDetailsModel.LibraryId ),
+			LibrarySelectionDialogFragment.Show( "Select library to display", Libraries.Index( ConnectionDetailsModel.LibraryId ), Libraries.LibraryCollection,
 				LibrarySelected );
 
 		/// <summary>

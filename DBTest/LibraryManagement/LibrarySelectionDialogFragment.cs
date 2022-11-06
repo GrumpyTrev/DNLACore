@@ -1,11 +1,9 @@
-﻿using Android.App;
-using Android.Content;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Android.App;
 using Android.OS;
-using Android.Widget;
-using System;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
-using FragmentManager = Android.Support.V4.App.FragmentManager;
 
 namespace DBTest
 {
@@ -18,14 +16,15 @@ namespace DBTest
 		/// Show the dialogue with the specified title and initially selected library
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, string title, int initialSelection, LibrarySelected selectionCallback )
+		public static void Show( string title, int initialSelection, List<Library> libraries, LibrarySelected selectionCallback )
 		{
-			// Save the parameters statically so that they survive a connfiguration change
+			// Save the parameters statically so that they survive a configuration change
 			dialogueTitle = title;
 			initialLibrary = initialSelection;
+			availableLibraries = libraries;
 			reporter = selectionCallback;
 
-			new LibrarySelectionDialogFragment().Show( manager, "fragment_library_selection" );
+			new LibrarySelectionDialogFragment().Show( CommandRouter.Manager, "fragment_library_selection" );
 		}
 
 		/// <summary>
@@ -43,10 +42,10 @@ namespace DBTest
 		public override Dialog OnCreateDialog( Bundle savedInstanceState ) =>
 			new AlertDialog.Builder( Activity )
 				.SetTitle( dialogueTitle )
-				.SetSingleChoiceItems( Libraries.LibraryNames.ToArray(), initialLibrary, delegate
+				.SetSingleChoiceItems( availableLibraries.Select( lib => lib.Name ).ToArray(), initialLibrary, delegate
 				{
 					// Report back the selection
-					reporter.Invoke( Libraries.LibraryCollection[ ( ( AlertDialog )Dialog ).ListView.CheckedItemPosition ] );
+					reporter.Invoke( availableLibraries[ ( ( AlertDialog )Dialog ).ListView.CheckedItemPosition ] );
 					Dialog.Dismiss();
 				} )
 				.SetNegativeButton( "Cancel", delegate { } )
@@ -61,6 +60,11 @@ namespace DBTest
 		/// The index of the library to initially display selected
 		/// </summary>
 		private static int initialLibrary = -1;
+
+		/// <summary>
+		/// The libraries to choose from
+		/// </summary>
+		private static List<Library> availableLibraries = null;
 
 		/// <summary>
 		/// The delegate used to report back library selections

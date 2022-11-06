@@ -59,8 +59,8 @@ namespace DBTest
 				// If the playlist already exists in other libraries then prompt for deletion
 				if ( PlaylistsController.CheckForOtherPlaylists( nextPlaylist.Name, ConnectionDetailsModel.LibraryId ) == true )
 				{
-					ConfirmationDialogFragment.ShowFragment( CommandRouter.Manager, DuplicationConfirmed,
-						$"Playlist [{nextPlaylist.Name}] already exists in other libraries. Are you sure you want to duplicate it?" );
+					ConfirmationDialogFragment.Show( $"Playlist [{nextPlaylist.Name}] already exists in other libraries. Are you sure you want to duplicate it?",
+						() => DuplicationConfirmed( true), () => DuplicationConfirmed( false ) );
 				}
 				else
 				{

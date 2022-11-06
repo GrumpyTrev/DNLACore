@@ -4,7 +4,6 @@ using Android.OS;
 using Android.Widget;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
-using FragmentManager = Android.Support.V4.App.FragmentManager;
 
 namespace DBTest
 {
@@ -16,16 +15,16 @@ namespace DBTest
 		/// <summary>
 		/// Show the fragment
 		/// </summary>
-		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Confirmed callback, string actionToConfirm, string positiveText = "Yes", string negativeText = "No" )
+		public static void Show( string actionToConfirm, ConfirmationResponse positiveCallback, ConfirmationResponse negativeCallback = null, string positiveText = "Yes", string negativeText = "No" )
 		{
 			// Save the title and reporter statically to survive a rotation.
-			reporter = callback;
+			positiveResult = positiveCallback;
+			negativeResult = negativeCallback;
 			titleString = actionToConfirm;
 			positiveButtonText = positiveText;
 			negativeButtonText = negativeText;
 
-			new ConfirmationDialogFragment().Show( manager, "fragment_confirmation_tag" );
+			new ConfirmationDialogFragment().Show( CommandRouter.Manager, "fragment_confirmation_tag" );
 		}
 
 		/// <summary>
@@ -51,15 +50,16 @@ namespace DBTest
 
 			return new AlertDialog.Builder( Activity )
 				.SetCustomTitle( customTitle )
-				.SetPositiveButton( positiveButtonText, delegate { reporter?.Invoke( true ); } )
-				.SetNegativeButton( negativeButtonText, delegate { reporter?.Invoke( false ); } )
+				.SetPositiveButton( positiveButtonText, delegate { positiveResult?.Invoke(); } )
+				.SetNegativeButton( negativeButtonText, delegate { negativeResult?.Invoke(); } )
 				.Create();
 		}
 
 		/// <summary>
-		/// The delegate to call when the delete type has been selected
+		/// The positive and negative confirmation responses
 		/// </summary>
-		private static Confirmed reporter = null;
+		private static ConfirmationResponse positiveResult = null;
+		private static ConfirmationResponse negativeResult = null;
 
 		// The title for the dialogue
 		private static string titleString = "";
@@ -73,7 +73,6 @@ namespace DBTest
 		/// <summary>
 		/// Type of delegate to be called with the confirmation result
 		/// </summary>
-		/// <param name="confirm"></param>
-		public delegate void Confirmed( bool confirm );
+		public delegate void ConfirmationResponse();
 	}
 }

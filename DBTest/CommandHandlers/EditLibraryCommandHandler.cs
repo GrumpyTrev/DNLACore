@@ -14,7 +14,7 @@
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) => 
-			LibrarySelectionDialogFragment.ShowFragment( CommandRouter.Manager, "Select library to edit", -1, LibrarySelected );
+			LibrarySelectionDialogFragment.Show( "Select library to edit", -1, Libraries.LibraryCollection, LibrarySelected );
 
 		/// <summary>
 		/// Called when a library has been selected.
@@ -88,23 +88,18 @@
 		/// Confirm the deletion and 
 		/// </summary>
 		/// <param name="sourceToDelete"></param>
-		private void SourceDeleted( Source sourceToDelete, SourceEditDialogFragment sourceEditDialog ) => ConfirmationDialogFragment.ShowFragment(
-				CommandRouter.Manager,
-				( confirmed ) =>
+		private void SourceDeleted( Source sourceToDelete, SourceEditDialogFragment sourceEditDialog ) => 
+			ConfirmationDialogFragment.Show( "Are you sure you want to clear this Source", () =>
 				{
-					if ( confirmed == true )
-					{
-						// Get the LibraryManagementController to handle the deletion of the Source from its library 
-						LibraryManagementController.DeleteSource( sourceToDelete );
+					// Get the LibraryManagementController to handle the deletion of the Source from its library 
+					LibraryManagementController.DeleteSource( sourceToDelete );
 
-						// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
-						sourceSelectionDialog?.OnSourceChanged();
+					// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
+					sourceSelectionDialog?.OnSourceChanged();
 
-						// Dismiss the dialogue
-						sourceEditDialog.Dismiss();
-					}
-				},
-				"Are you sure you want to clear this Source" );
+					// Dismiss the dialogue
+					sourceEditDialog.Dismiss();
+				} );
 
 		/// <summary>
 		/// The command identity associated with this handler

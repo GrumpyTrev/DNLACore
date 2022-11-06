@@ -10,7 +10,7 @@
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) =>
-			LibrarySelectionDialogFragment.ShowFragment( CommandRouter.Manager, "Select library to scan", -1, LibrarySelected );
+			LibrarySelectionDialogFragment.Show( "Select library to scan", -1, Libraries.LibraryCollection, LibrarySelected );
 
 		/// <summary>
 		/// Delegate called when the scan process has finished
