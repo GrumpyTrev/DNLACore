@@ -6,6 +6,7 @@ using Android.App;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
+using CoreMP;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 using FragmentManager = Android.Support.V4.App.FragmentManager;
@@ -21,7 +22,7 @@ namespace DBTest
 		/// Show the dialogue displaying the specified list of tags and the current tag
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Tag currentFilter, List<TagGroup> tagGroups, FilterSelection.FilterSelectionDelegate selectionDelegate )
+		public static void ShowFragment( FragmentManager manager, Tag currentFilter, List<TagGroup> tagGroups, FilterSelector.FilterSelectionDelegate selectionDelegate )
 		{
 			// Save the currently selected filter and delegate to survive a rotation.
 			CurrentlySelectedFilter = currentFilter;
@@ -166,7 +167,7 @@ namespace DBTest
 		/// <summary>
 		/// The delegate to call when a filter has been selected
 		/// </summary>
-		private static FilterSelection.FilterSelectionDelegate SelectionDelegate { get; set; } = null;
+		private static FilterSelector.FilterSelectionDelegate SelectionDelegate { get; set; } = null;
 
 		/// <summary>
 		/// The currently selected filter

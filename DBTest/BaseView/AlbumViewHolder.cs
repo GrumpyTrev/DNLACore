@@ -1,12 +1,13 @@
 ﻿using Android.Graphics;
 using Android.Widget;
+using CoreMP;
 
 namespace DBTest
 {
 	/// <summary>
 	/// View holder for the group Album items
 	/// </summary>
-	class AlbumViewHolder : ExpandableListViewHolder
+	internal class AlbumViewHolder : ExpandableListViewHolder
 	{
 		public void DisplayAlbum( Album album, bool actionMode, string genreText )
 		{

@@ -6,7 +6,7 @@ namespace DBTest
 	/// <summary>
 	/// The ApplicationShutdownInterface class provides an interface to the ApplicationShutdownService
 	/// </summary>
-	class ApplicationShutdownInterface : Java.Lang.Object, IServiceConnection, ApplicationShutdownService.IServiceCallbacks
+	internal class ApplicationShutdownInterface : Java.Lang.Object, IServiceConnection, ApplicationShutdownService.IServiceCallbacks
 	{
 		/// <summary>
 		/// Start and then bind to the service

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CoreMP;
 
 namespace DBTest
 {
@@ -52,7 +53,7 @@ namespace DBTest
 			// Determine if there is a parent playlist
 			if ( PlaylistItems.Count > 0 )
 			{
-				ParentPlaylist = DBTest.Playlists.GetParentPlaylist( PlaylistItems[ 0 ] );
+				ParentPlaylist = CoreMP.Playlists.GetParentPlaylist( PlaylistItems[ 0 ] );
 			}
 		}
 

@@ -1,4 +1,6 @@
-﻿namespace DBTest
+﻿using CoreMP;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The AutoplayOptionsCommandHandler class is used to allow the user to update the current Autoplay options and use the updated options to 

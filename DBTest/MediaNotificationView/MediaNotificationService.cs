@@ -4,6 +4,7 @@ using Android.OS;
 using Android.Runtime;
 using Android.Support.V4.App;
 using Android.Support.V4.Media.Session;
+using CoreMP;
 using static Android.Support.V4.Media.App.NotificationCompat;
 
 namespace DBTest

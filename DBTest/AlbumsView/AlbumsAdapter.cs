@@ -2,6 +2,7 @@
 using Android.Content;
 using Android.Views;
 using Android.Widget;
+using CoreMP;
 
 namespace DBTest
 {
@@ -165,7 +166,7 @@ namespace DBTest
 
 			// Display the album. Specify the genre test directly according to the current sort mode
 			Album album = Groups[ groupPosition ];
-			string genreText = ( SortType != SortSelector.SortType.genre ) ? album.Genre
+			string genreText = ( SortType != SortType.genre ) ? album.Genre
 				: AlbumsViewModel.FastScrollSections[ AlbumsViewModel.FastScrollSectionLookup[ groupPosition ] ].Item1;
 
 			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, genreText );

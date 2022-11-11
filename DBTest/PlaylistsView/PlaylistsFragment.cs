@@ -1,6 +1,7 @@
 ﻿using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
+using CoreMP;
 using System.Linq;
 
 namespace DBTest
@@ -31,7 +32,7 @@ namespace DBTest
 		/// <param name="message"></param>
 		public override void DataAvailable()
 		{
-			Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortSelector.SortType.alphabetic );
+			Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortType.alphabetic );
 			base.DataAvailable();
 		}
 
@@ -128,11 +129,6 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_playlists;
-
-		/// <summary>
-		/// The common model features are contained in the BaseViewModel
-		/// </summary>
-		protected override BaseViewModel BaseModel { get; } = PlaylistsViewModel.BaseModel;
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

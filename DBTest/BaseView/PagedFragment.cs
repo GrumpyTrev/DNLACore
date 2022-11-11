@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Android.Support.V7.Widget;
 using System.Threading;
 using Android.Views;
+using CoreMP;
 
 namespace DBTest
 {
@@ -12,7 +13,7 @@ namespace DBTest
 	/// Base class for all the fragments showing the database contents
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class PagedFragment<T>: Fragment, IAdapterEventHandler, SortSelector.ISortReporter, ActionModeHandler.ICallback
+	public abstract class PagedFragment<T>: Fragment, IAdapterEventHandler, ActionModeHandler.ICallback
 	{
 		/// <summary>
 		/// Default constructor.
@@ -61,7 +62,7 @@ namespace DBTest
 			Adapter.UserActivityDetectedAction = UserActivityDetected;
 
 			// Link the ListView to the GotoTopControl
-			BaseModel.GotoTopControl.BindControl( FragmentView, ListView );
+			GotoTopControl.BindControl( FragmentView, ListView );
 
 			// Create an CommandBar to encapsulate the bottom toolbar and its command buttons
 			CommandBar = new CommandBar( FragmentView, Resource.Id.bottomToolbar, HandleCommand );
@@ -91,13 +92,8 @@ namespace DBTest
 			// Turn off the timer
 			userInteractionTimer.Change( Timeout.Infinite, Timeout.Infinite );
 
-			// Some BaseModel resources 
-
-			// Remove this object from the sort selector
-			BaseModel.SortSelector.Reporter = null;
-
 			// Save the scroll position 
-			BaseModel.ListViewState = ListView.OnSaveInstanceState();
+			ListViewState = ListView.OnSaveInstanceState();
 
 			// Allow derived fragments to release their own resources
 			ReleaseResources();
@@ -122,7 +118,7 @@ namespace DBTest
 			FilterSelector?.BindToMenu( menu.FindItem( Resource.Id.filter ) );
 
 			// Bind the SortSelector
-			BaseModel.SortSelector.BindToMenu( menu.FindItem( Resource.Id.sort ), Context, this );
+			SortSelector?.BindToMenu( menu.FindItem( Resource.Id.sort ), Context );
 		}
 
 		/// <summary>
@@ -166,20 +162,15 @@ namespace DBTest
 		/// </summary>
 		public virtual void DataAvailable()
 		{
-			if ( BaseModel.ListViewState != null )
+			if ( ListViewState != null )
 			{
-				ListView.OnRestoreInstanceState( BaseModel.ListViewState );
-				BaseModel.ListViewState = null;
+				ListView.OnRestoreInstanceState( ListViewState );
+				ListViewState = null;
 			}
 
 			// Display the current sort order
-			BaseModel.SortSelector.DisplaySortIcon();
+			SortSelector?.DisplaySortIcon();
 		}
-
-		/// <summary>
-		/// Called by the SortSelector when the sort order changes
-		/// </summary>
-		public virtual void SortOrderChanged() { }
 
 		/// <summary>
 		/// Override the UserVisibleHint to trap when the fragment's visibility changes
@@ -331,14 +322,14 @@ namespace DBTest
 			CommandRouter.HandleCommand( commandId, Adapter.SelectedItems.Values, commandCallback, button );
 
 		/// <summary>
-		/// The FilterSelection object used by this fragment
+		/// The FilterSelector object used by this fragment
 		/// </summary>
-		protected virtual FilterSelection FilterSelector { get; } = null;
+		protected virtual FilterSelector FilterSelector { get; } = null;
 
 		/// <summary>
-		/// The common model features are contained in the BaseViewModel
+		/// Class used to select the album sort order
 		/// </summary>
-		protected abstract BaseViewModel BaseModel { get; }
+		protected virtual SortSelector SortSelector { get; } = null;
 
 		/// <summary>
 		/// Show the command bar if any of the command bar buttons are visible
@@ -349,7 +340,7 @@ namespace DBTest
 		/// <summary>
 		/// Append the specified string to the tab title for this frasgment
 		/// </summary>
-		protected void AppendToTabTitle() => FragmentTitles.AppendToTabTitle( FilterSelector?.TabString() ?? "", this );
+		protected void AppendToTabTitle() => FragmentTitles.AppendToTabTitle( FilterSelector?.FilterData.TabString() ?? "", this );
 
 		/// <summary>
 		/// The ExpandableListAdapter used to display the data for this fragment
@@ -433,6 +424,16 @@ namespace DBTest
 		/// Timer used to detect when the user is no longer interacting with the view
 		/// </summary>
 		private readonly Timer userInteractionTimer = null;
+
+		/// <summary>
+		/// Control used to provide goto top shortcut
+		/// </summary>
+		private GotoTopControl GotoTopControl { get; } = new GotoTopControl();
+
+		/// <summary>
+		/// The scroll state of the list view
+		/// </summary>
+		private IParcelable ListViewState { get; set; } = null;
 
 		/// <summary>
 		/// How long to wait after user interaction before declaring that the user is no longer interacting

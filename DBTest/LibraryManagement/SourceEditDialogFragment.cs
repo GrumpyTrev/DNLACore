@@ -5,7 +5,7 @@ using Android.Content;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-
+using CoreMP;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 using FragmentManager = Android.Support.V4.App.FragmentManager;
@@ -96,10 +96,10 @@ namespace DBTest
 				};
 
 				// Report back the old and new source records
-				reporter.Invoke( sourceToEdit, newSource, this );
+				reporter.Invoke( sourceToEdit, newSource, () => Dialog.Dismiss() );
 			};
 
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Neutral ).Click += ( sender, args ) => deletedReporter.Invoke( sourceToEdit, this );
+			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Neutral ).Click += ( sender, args ) => deletedReporter.Invoke( sourceToEdit, () => Dialog.Dismiss() );
 		}
 
 		/// <summary>
@@ -110,7 +110,7 @@ namespace DBTest
 		/// <summary>
 		/// The delegate used to report back source changes
 		/// </summary>
-		public delegate void SourceChanged( Source originalSource, Source newSource, SourceEditDialogFragment sourceEditDialog );
+		public delegate void SourceChanged( Source originalSource, Source newSource, Action dismissDialogAction );
 
 		/// <summary>
 		/// Delegate to report source changes
@@ -121,7 +121,7 @@ namespace DBTest
 		/// The delegate used to report back source deletion requests
 		/// </summary>
 		/// <param name="sourceToDelete"></param>
-		public delegate void SourceDeleted( Source sourceToDelete, SourceEditDialogFragment sourceEditDialog );
+		public delegate void SourceDeleted( Source sourceToDelete, Action dismissDialogAction );
 
 		/// <summary>
 		/// Delegate to report source deletions

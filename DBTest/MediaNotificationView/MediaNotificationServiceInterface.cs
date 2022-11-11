@@ -1,12 +1,13 @@
 ﻿using Android.Content;
 using Android.OS;
+using CoreMP;
 
 namespace DBTest
 {
 	/// <summary>
 	/// The MediaNotificationServiceInterface class provides an interface to the MediaNotificationService for the rest of the system
 	/// </summary>
-	class MediaNotificationServiceInterface : Java.Lang.Object, IServiceConnection, MediaNotificationController.INotificationReporter,
+	internal class MediaNotificationServiceInterface : Java.Lang.Object, IServiceConnection, MediaNotificationController.INotificationReporter,
 		MediaNotificationService.IServiceCallbacks
 	{
 		public MediaNotificationServiceInterface( Context context )
@@ -23,10 +24,7 @@ namespace DBTest
 		/// <summary>
 		/// Called to stop the service
 		/// </summary>
-		public void StopService()
-		{
-			controlService?.Stop();
-		}
+		public void StopService() => controlService?.Stop();
 
 		/// <summary>
 		/// Called when the data associated with this view is first read or accessed

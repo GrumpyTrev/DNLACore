@@ -1,4 +1,6 @@
-﻿namespace DBTest
+﻿using CoreMP;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The SelectDeviceCommandHandler class is used to process a request to select a playback device

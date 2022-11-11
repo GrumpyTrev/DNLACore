@@ -2,11 +2,12 @@
 using Android.Content;
 using Android.Views;
 using Android.Widget;
+using CoreMP;
 using System;
 
 namespace DBTest
 {
-	class MediaControllerView : BaseBoundControl, View.IOnClickListener, MediaControllerController.IMediaReporter
+	internal class MediaControllerView : BaseBoundControl, View.IOnClickListener, MediaControllerController.IMediaReporter
 	{
 		/// <summary>
 		/// Bind to the specified view.
@@ -50,16 +51,10 @@ namespace DBTest
 				};
 
 				// Process play next button clicks
-				view.FindViewById<ImageButton>( Resource.Id.skip_next ).Click += ( sender, args ) => 
-				{
-					MediaControllerController.PlayNext();
-				};
+				view.FindViewById<ImageButton>( Resource.Id.skip_next ).Click += ( sender, args ) => MediaControllerController.PlayNext();
 
 				// Process play previous button clicks
-				view.FindViewById<ImageButton>( Resource.Id.skip_prev ).Click += ( sender, args ) => 
-				{
-					MediaControllerController.PlayPrevious();
-				};
+				view.FindViewById<ImageButton>( Resource.Id.skip_prev ).Click += ( sender, args ) => MediaControllerController.PlayPrevious();
 
 				// Assume no playback device available at startup. Hide everything
 				DeviceAvailable();

@@ -4,13 +4,14 @@ using Android.Content;
 using Android.Graphics;
 using Android.Views;
 using Android.Widget;
+using CoreMP;
 
 namespace DBTest
 {
 	/// <summary>
 	/// The SongsDisplayAdapter is used to display AlbumPlaylistItem songs in a list view
 	/// </summary>
-	class SongsDisplayAdapter : BaseAdapter, AdapterView.IOnItemClickListener
+	internal class SongsDisplayAdapter : BaseAdapter, AdapterView.IOnItemClickListener
 	{
 		/// <summary>
 		/// Save the data and st up the click listener

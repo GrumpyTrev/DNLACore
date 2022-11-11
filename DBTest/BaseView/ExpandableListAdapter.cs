@@ -6,6 +6,7 @@ using Android.Content;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
+using CoreMP;
 
 namespace DBTest
 {
@@ -135,7 +136,7 @@ namespace DBTest
 		/// Update the data and associated sections displayed by the list view
 		/// </summary>
 		/// <param name="newData"></param>
-		public void SetData( List<T> newData, SortSelector.SortType sortType )
+		public void SetData( List<T> newData, SortType sortType )
 		{
 			// If this is the first time data has been set then restore group expansions and the Action Mode.
 			// If data is being replaced then clear all state data related to the previous data
@@ -823,7 +824,7 @@ namespace DBTest
 		/// <summary>
 		/// The type of sorting applied to the data - used for indexing
 		/// </summary>
-		protected SortSelector.SortType SortType { get; set; } = SortSelector.SortType.alphabetic;
+		protected SortType SortType { get; set; } = SortType.alphabetic;
 
 		/// <summary>
 		/// Inflator used to create the item view 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using CoreMP;
 
 namespace DBTest
 {
@@ -21,7 +20,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int _ ) => 
-			LibrarySelectionDialogFragment.Show( "Select library to clear", -1, Libraries.LibraryCollection, 
+			LibrarySelectionDialogFragment.Show( "Select library to clear", -1, LibraryManagementViewModel.AvailableLibraries, 
 				selectionCallback: ( selectedLibrary ) =>
 
 				// When a library has been selected, confirm the clearance
@@ -34,7 +33,7 @@ namespace DBTest
 
 						// Start the clear process, but don't wait for it to finish
 						bool clearFinished = false;
-						ClearLibraryAsync( selectedLibrary,
+						MainApp.CommandInterface.ClearLibraryAsync( selectedLibrary,
 							() =>
 							{
 								clearFinished = true;
@@ -50,16 +49,6 @@ namespace DBTest
 								progressDialogFragment?.UpdateDialogueState( clearFinished );
 							} );
 				} ) );
-
-		/// <summary>
-		/// Clear the selected library and then let the user know
-		/// </summary>
-		private async void ClearLibraryAsync( Library libraryToClear, Action finishedAction )
-		{
-			await Task.Run( () => LibraryManagementController.ClearLibrary( libraryToClear ) );
-
-			finishedAction.Invoke();
-		}
 
 		/// <summary>
 		/// The command identity associated with this handler

@@ -64,10 +64,10 @@
   <ItemGroup>
     <Compile Include="AlbumsView\AlbumsAdapterModel.cs" />
     <Compile Include="AlbumsView\AlbumsAdapter.cs" />
-    <Compile Include="AlbumsView\AlbumsViewModel.cs" />
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="Application\ApplicationShutdownService.cs" />
     <Compile Include="Application\ApplicationShutdownInterface.cs" />
+    <Compile Include="Application\WifiMontor.cs" />
     <Compile Include="BaseView\ActionModeHandler.cs" />
     <Compile Include="BaseView\GotoTopControl.cs" />
     <Compile Include="BaseView\MultiScrollListenerExpandableListView.cs" />
@@ -76,36 +76,16 @@
     <Compile Include="CommandHandlers\SynchAlbumStatusCommandHandler.cs" />
     <Compile Include="CommandHandlers\NewLibraryCommandHandler.cs" />
     <Compile Include="LibraryManagement\NewLibraryNameDialogFragment.cs" />
-    <Compile Include="LibraryScanning\UPnPScanner.cs" />
     <Compile Include="MediaControllerView\MediaControllerView.cs" />
-    <Compile Include="AutoplayManagement\AutoplayModel.cs" />
     <Compile Include="BaseView\AlbumViewHolder.cs" />
     <Compile Include="BaseView\BaseBoundControl.cs" />
     <Compile Include="BaseView\ExpandableListViewHolder.cs" />
     <Compile Include="BaseView\FragmentTitles.cs" />
     <Compile Include="BaseView\NotificationDialogFragment.cs" />
-    <Compile Include="BaseView\BaseViewModel.cs" />
     <Compile Include="CommandHandlers\MarkAlbumsCommandHandler.cs" />
-    <Compile Include="Controllers\MediaNotificationController.cs" />
-    <Compile Include="Controllers\MediaControllerController.cs" />
     <Compile Include="BaseView\ConfirmationDialogFragment.cs" />
-    <Compile Include="MediaControllerView\MediaControllerViewModel.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationViewModel.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationServiceInterface.cs" />
-    <Compile Include="Messages\MediaControlPlayNextMessage.cs" />
-    <Compile Include="Messages\MediaControlPlayPreviousMessage.cs" />
-    <Compile Include="Messages\MediaControlStartMessage.cs" />
-    <Compile Include="Messages\MediaControlSeekToMessage.cs" />
-    <Compile Include="Messages\MediaControlPauseMessage.cs" />
-    <Compile Include="Messages\MediaPlayingMessage.cs" />
-    <Compile Include="Messages\MediaProgressMessage.cs" />
-    <Compile Include="Messages\ShuffleModeChangedMessage.cs" />
-    <Compile Include="Messages\SongFinishedMessage.cs" />
-    <Compile Include="Messages\PlaylistUpdatedMessage.cs" />
-    <Compile Include="Model\Playlist.cs" />
-    <Compile Include="Model\AlbumPlaylist.cs" />
-    <Compile Include="Model\Song.cs" />
-    <Compile Include="Model\Songs.cs" />
     <Compile Include="PlaybackManagement\BasePlayback.cs" />
     <Compile Include="PlaybackManagement\LocalPlayback.cs" />
     <Compile Include="PlaybackManagement\PlaybackRouter.cs" />
@@ -134,96 +114,27 @@
     <Compile Include="CommandHandlers\ScanLibraryCommandHandler.cs" />
     <Compile Include="CommonUI\CommandToolbar.cs" />
     <Compile Include="CommonUI\MultiSpinner.cs" />
-    <Compile Include="Controllers\AlbumsController.cs" />
-    <Compile Include="Controllers\ArtistsController.cs" />
-    <Compile Include="Controllers\AutoplayController.cs" />
-    <Compile Include="Controllers\DataReporter.cs" />
-    <Compile Include="Controllers\FilterManagementController.cs" />
-    <Compile Include="Controllers\PlaybackModeController.cs" />
-    <Compile Include="Controllers\LibraryNameDisplayController.cs" />
-    <Compile Include="Controllers\LibraryManagementController.cs" />
-    <Compile Include="Controllers\LibraryScanController.cs" />
-    <Compile Include="Controllers\PlaybackManagementController.cs" />
-    <Compile Include="Controllers\NowPlayingController.cs" />
-    <Compile Include="Controllers\PlaylistsController.cs" />
     <Compile Include="ArtistsView\ArtistsAdapter.cs" />
-    <Compile Include="Application\ConnectionDetailsModel.cs" />
     <Compile Include="BaseView\ExpandableListAdapter.cs" />
     <Compile Include="BaseView\ExpandableListAdapterModel.cs" />
-    <Compile Include="Controllers\PlaybackSelectionController.cs" />
-    <Compile Include="Controllers\StorageController.cs" />
-    <Compile Include="DbAccess\DbAccess.cs" />
-    <Compile Include="FilterManagement\FilterManagementModel.cs" />
     <Compile Include="FilterManagement\FilterSelectionDialogFragment.cs" />
-    <Compile Include="FilterManagement\TagGroup.cs" />
-    <Compile Include="FilterManagement\FilterSelection.cs" />
+    <Compile Include="FilterManagement\FilterSelector.cs" />
     <Compile Include="LibraryManagement\LibrarySelectionDialogFragment.cs" />
     <Compile Include="LibraryManagement\SourceDisplayAdapter.cs" />
     <Compile Include="LibraryManagement\SourceSelectionDialogFragment.cs" />
     <Compile Include="LibraryManagement\ClearProgressDialogFragment.cs" />
-    <Compile Include="LibraryManagement\LibraryScanModel.cs" />
     <Compile Include="LibraryManagement\ScanProgressDialogFragment.cs" />
     <Compile Include="LibraryManagement\SourceEditDialogFragment.cs" />
     <Compile Include="LibraryOptionsView\LibraryNameDisplay.cs" />
-    <Compile Include="LibraryOptionsView\LibraryNameViewModel.cs" />
     <Compile Include="AutoplayManagement\AutoplayOptionsDialogFragment.cs" />
-    <Compile Include="LibraryScanning\FTPScanner.cs" />
     <Compile Include="BaseView\IAdapterActionHandler.cs" />
     <Compile Include="BaseView\IPageVisible.cs" />
-    <Compile Include="UPnP\BrowseFolderResponse.cs" />
-    <Compile Include="UPnP\BrowseItemResponse.cs" />
-    <Compile Include="UPnP\DeviceDiscovery.cs" />
-    <Compile Include="UPnP\DlnaRequestHelper.cs" />
-    <Compile Include="Helpers\Logging.cs" />
-    <Compile Include="Helpers\StringExtensions.cs" />
-    <Compile Include="LibraryScanning\InternalScanner.cs" />
-    <Compile Include="LibraryScanning\SongStorage.cs" />
     <Compile Include="Application\MainApp.cs" />
-    <Compile Include="Messages\AlbumsDeletedMessage.cs" />
-    <Compile Include="Messages\PlaybackModelChangedMessage.cs" />
-    <Compile Include="Messages\StorageDataAvailableMessage.cs" />
-    <Compile Include="Messages\PlaySongMessage.cs" />
-    <Compile Include="Messages\PlaybackDeviceAvailableMessage.cs" />
-    <Compile Include="Messages\SelectedLibraryChangedMessage.cs" />
-    <Compile Include="Messages\AlbumPlayedStateChangedMessage.cs" />
-    <Compile Include="Messages\SongStartedMessage.cs" />
-    <Compile Include="Messages\TagDeletedMessage.cs" />
-    <Compile Include="Messages\TagDetailsChangedMessage.cs" />
-    <Compile Include="Messages\TagMembershipChangedMessage.cs" />
-    <Compile Include="Model\Album.cs" />
-    <Compile Include="Model\GenrePopulation.cs" />
-    <Compile Include="Model\GenrePopulations.cs" />
-    <Compile Include="Model\Population.cs" />
-    <Compile Include="Model\TaggedAlbums.cs" />
-    <Compile Include="Model\Tag.cs" />
-    <Compile Include="Model\Tags.cs" />
-    <Compile Include="Model\Artist.cs" />
-    <Compile Include="Model\Autoplay.cs" />
-    <Compile Include="Model\Autoplays.cs" />
-    <Compile Include="Model\SongPlaylist.cs" />
-    <Compile Include="Model\Playlists.cs" />
-    <Compile Include="Model\Libraries.cs" />
-    <Compile Include="Model\ArtistAlbums.cs" />
-    <Compile Include="Model\Artists.cs" />
-    <Compile Include="Model\Albums.cs" />
-    <Compile Include="Model\Playback.cs" />
-    <Compile Include="Model\Source.cs" />
-    <Compile Include="Model\Sources.cs" />
-    <Compile Include="UPnP\DLNAScanner.cs" />
-    <Compile Include="PlaybackManagement\HttpServer.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationService.cs" />
-    <Compile Include="UPnP\PlaybackDevice.cs" />
-    <Compile Include="UPnP\PlaybackDevices.cs" />
-    <Compile Include="PlaybackManagement\PlaybackManagerModel.cs" />
-    <Compile Include="Messages\MessageRegistration.cs" />
-    <Compile Include="Helpers\MultiDictionary.cs" />
-    <Compile Include="Messages\BaseMessage.cs" />
-    <Compile Include="Messages\SongSelectedMessage.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapter.cs" />
     <Compile Include="NowPlayingView\NowPlayingFragment.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapterModel.cs" />
     <Compile Include="BaseView\PagedFragment.cs" />
-    <Compile Include="PlaybackModeView\PlaybackModeModel.cs" />
     <Compile Include="PlaybackModeView\PlaybackModeView.cs" />
     <Compile Include="PlaybackSelection\SelectDeviceDialogFragment.cs" />
     <Compile Include="PlaylistsView\NewPlaylistNameDialogFragment.cs" />
@@ -233,18 +144,10 @@
     <Compile Include="PlaylistsView\PlaylistsFragment.cs" />
     <Compile Include="ArtistsView\ArtistsFragment.cs" />
     <Compile Include="Application\MainActivity.cs" />
-    <Compile Include="Model\MediaLibrary.cs" />
-    <Compile Include="LibraryScanning\MP3TagExtractor.cs" />
-    <Compile Include="PlaybackSelection\PlaybackSelectionModel.cs" />
     <Compile Include="PlaylistsView\SongsDisplayAdapter.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="LibraryScanning\ScannedAlbum.cs" />
-    <Compile Include="LibraryScanning\ScannedSong.cs" />
     <Compile Include="Application\TabsFragmentPagerAdapter.cs" />
-    <Compile Include="ArtistsView\ArtistsViewModel.cs" />
-    <Compile Include="NowPlayingView\NowPlayingViewModel.cs" />
-    <Compile Include="PlaylistsView\PlaylistsViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -613,6 +516,13 @@
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\duplicate.png" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CoreMP\CoreMP.csproj">
+      <Project>{b211f80e-2192-4c9b-8540-5a53597432b5}</Project>
+      <Name>CoreMP</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
     Other similar extension points exist, see Microsoft.Common.targets.

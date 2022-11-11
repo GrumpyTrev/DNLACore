@@ -1,6 +1,7 @@
 ﻿using Android.Content;
 using Android.Views;
 using Android.Widget;
+using CoreMP;
 
 namespace DBTest
 {
@@ -12,7 +13,7 @@ namespace DBTest
 		/// <summary>
 		/// Bind to the specified view.
 		/// </summary>
-		/// <param name="menu"></param>
+		/// <param name="view"></param>
 		public override void BindToView( View view, Context context )
 		{
 			if ( view != null )
@@ -26,18 +27,22 @@ namespace DBTest
 					// Create a Popup for this text view and route it's selections to the CommandRouter
 					titlePopup = new PopupMenu( context, titleTextView );
 					titlePopup.Inflate( Resource.Menu.menu_library );
-					titlePopup.MenuItemClick += ( sender, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
+					titlePopup.MenuItemClick += ( _, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
 
 					// Show the popup when the textview is selected
-					titleTextView.Click += ( sender, args ) => titlePopup.Show();
+					titleTextView.Click += ( _, _ ) => titlePopup.Show();
 
-					LibraryNameDisplayController.DataReporter = this;
+					// Register for changes to the LibraryNameViewModel and update the displayed library name when there has been a change
+					NotificationHandler.Register( typeof( LibraryNameViewModel ), ( string _ ) => titleTextView.Text = LibraryNameViewModel.LibraryName );
 				}
 			}
 			else
 			{
 				titleTextView = null;
 				titlePopup = null;
+
+				// Remove any model notifications
+				NotificationHandler.Deregister();
 			}
 		}
 

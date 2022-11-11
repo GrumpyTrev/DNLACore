@@ -1,4 +1,6 @@
-﻿namespace DBTest
+﻿using CoreMP;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The ScanLibraryCommandHandler class is used to process a request to scan a library
@@ -10,7 +12,7 @@
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) =>
-			LibrarySelectionDialogFragment.Show( "Select library to scan", -1, Libraries.LibraryCollection, LibrarySelected );
+			LibrarySelectionDialogFragment.Show( "Select library to scan", -1, LibraryManagementViewModel.AvailableLibraries, LibrarySelected );
 
 		/// <summary>
 		/// Delegate called when the scan process has finished

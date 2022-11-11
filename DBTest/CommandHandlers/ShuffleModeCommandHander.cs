@@ -1,4 +1,6 @@
-﻿namespace DBTest
+﻿using CoreMP;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The ShuffleModeCommandHander class is used to process a request to toggle the Shuffle play mode

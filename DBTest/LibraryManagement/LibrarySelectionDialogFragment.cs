@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Android.App;
 using Android.OS;
+using CoreMP;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 
@@ -16,7 +18,7 @@ namespace DBTest
 		/// Show the dialogue with the specified title and initially selected library
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void Show( string title, int initialSelection, List<Library> libraries, LibrarySelected selectionCallback )
+		public static void Show( string title, int initialSelection, List<Library> libraries, Action< Library > selectionCallback )
 		{
 			// Save the parameters statically so that they survive a configuration change
 			dialogueTitle = title;
@@ -69,11 +71,6 @@ namespace DBTest
 		/// <summary>
 		/// The delegate used to report back library selections
 		/// </summary>
-		private static LibrarySelected reporter = null;
-
-		/// <summary>
-		/// Delegate type used to report back the selected library
-		/// </summary>
-		public delegate void LibrarySelected( Library selectedLibrary );
+		private static Action<Library> reporter = null;
 	}
 }

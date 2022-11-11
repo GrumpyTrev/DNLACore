@@ -2,7 +2,7 @@
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-
+using CoreMP;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 using FragmentManager = Android.Support.V4.App.FragmentManager;
@@ -64,15 +64,13 @@ namespace DBTest
 			fastSpreadLimitLayout.Visibility = ( AutoplayModel.CurrentAutoplay.Spread == Autoplay.SpreadType.Fast ) ? ViewStates.Visible : ViewStates.Gone;
 
 			// We need to know when Fast Spread has been selected so that the spinner can be show or hidden as appropriate
-			spreadGroup.CheckedChange += ( sender, args ) =>
-			{
-				fastSpreadLimitLayout.Visibility = ( ( Autoplay.SpreadType )GetIndexOfSelectedChild( spreadGroup ) == Autoplay.SpreadType.Fast ) 
+			spreadGroup.CheckedChange += ( sender, args ) => 
+				fastSpreadLimitLayout.Visibility = ( ( Autoplay.SpreadType )GetIndexOfSelectedChild( spreadGroup ) == Autoplay.SpreadType.Fast )
 					? ViewStates.Visible : ViewStates.Gone;
-			};
 
 			// Set up the handlers for the buttons
 			// This layout contains its own buttons so that their order and position can be controlled
-			dialogView.FindViewById<Button>( Resource.Id.auto_cancel ).Click += ( sender, args ) =>	{ Dismiss(); };
+			dialogView.FindViewById<Button>( Resource.Id.auto_cancel ).Click += ( sender, args ) => Dismiss();
 
 			// Report back the new Autoplay record for the Play and Queue buttons
 			dialogView.FindViewById<Button>( Resource.Id.auto_play ).Click += ( sender, args ) =>

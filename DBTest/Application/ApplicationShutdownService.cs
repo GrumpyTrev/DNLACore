@@ -8,7 +8,7 @@ namespace DBTest
 	/// The ApplicationShutdownService is used to trap application shutdown and pass it back to its interface
 	/// </summary>
 	[Service]
-	class ApplicationShutdownService : Service
+	internal class ApplicationShutdownService : Service
 	{
 		/// <summary>
 		/// Called when the service has been created to return the IBinder instance for the service

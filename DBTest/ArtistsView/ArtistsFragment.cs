@@ -1,7 +1,6 @@
-﻿using Android.Views;
-using Android.Widget;
+﻿using Android.Widget;
+using CoreMP;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -35,13 +34,13 @@ namespace DBTest
 		public override void DataAvailable() => Activity.RunOnUiThread( () =>
 		{
 			// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-			Adapter.SetData( ArtistsViewModel.ArtistsAndAlbums.ToList(), BaseModel.SortSelector.ActiveSortType );
+			Adapter.SetData( ArtistsViewModel.ArtistsAndAlbums.ToList(), ArtistsViewModel.SortSelection.ActiveSortType );
 
 			// Indicate whether or not a filter has been applied
 			AppendToTabTitle();
 
 			// Update the icon as well
-			ArtistsViewModel.FilterSelector.DisplayFilterIcon();
+			FilterSelector.DisplayFilterIcon();
 
 			base.DataAvailable();
 		} );
@@ -70,11 +69,6 @@ namespace DBTest
 
             ActionMode.AllSelected = ( selectedObjects.Artists.Count == ArtistsViewModel.Artists.Count );
         }
-
-        /// <summary>
-        /// Called when the sort selector has changed the sort order
-        /// </summary>
-        public override void SortOrderChanged() => ArtistsController.SortArtists();
 
         /// <summary>
         /// Called when the Select All checkbox has been clicked on the Action Bar.
@@ -118,12 +112,9 @@ namespace DBTest
 		/// <summary>
 		/// The FilterSelection object used by this fragment
 		/// </summary>
-		protected override FilterSelection FilterSelector { get; } = ArtistsViewModel.FilterSelector;
+		protected override FilterSelector FilterSelector { get; } = new FilterSelector( ArtistsController.SetNewFilter, ArtistsViewModel.FilterSelection );
 
-		/// <summary>
-		/// The common model features are contained in the BaseViewModel
-		/// </summary>
-		protected override BaseViewModel BaseModel { get; } = ArtistsViewModel.BaseModel;
+		protected override SortSelector SortSelector { get; } = new SortSelector( ArtistsController.SortArtists, ArtistsViewModel.SortSelection );
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

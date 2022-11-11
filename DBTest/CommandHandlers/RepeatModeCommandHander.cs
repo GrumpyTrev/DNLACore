@@ -1,4 +1,6 @@
-﻿namespace DBTest
+﻿using CoreMP;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The RepeatModeCommandHander class is used to process a request to toggle the Repeat play mode

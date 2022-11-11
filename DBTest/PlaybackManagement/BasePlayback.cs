@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
+using CoreMP;
 
 namespace DBTest
 {
@@ -18,7 +19,7 @@ namespace DBTest
 		/// <summary>
 		/// Register interest in the availability of UPnP servers
 		/// </summary>
-		static BasePlayback() => MainApp.RegisterPlaybackCapabilityCallback( deviceCallback );
+		static BasePlayback() => CoreMPApp.RegisterPlaybackCapabilityCallback( deviceCallback );
 
 		/// <summary>
 		/// Called when the playback system is being shutdown.

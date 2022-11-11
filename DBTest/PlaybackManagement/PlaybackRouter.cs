@@ -1,4 +1,5 @@
 ﻿using Android.Content;
+using CoreMP;
 
 namespace DBTest
 {
@@ -6,7 +7,7 @@ namespace DBTest
 	/// The PlaybackRouter is responsible for routing playback instruction to a particular playback device according to the 
 	/// current selection
 	/// </summary>
-	class PlaybackRouter: PlaybackManagementController.IPlaybackReporter, BasePlayback.IPlaybackCallbacks
+	internal class PlaybackRouter: PlaybackManagementController.IPlaybackReporter, BasePlayback.IPlaybackCallbacks
 	{
 		/// <summary>
 		/// PlaybackRouter constructor

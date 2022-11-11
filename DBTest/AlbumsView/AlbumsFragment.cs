@@ -1,6 +1,6 @@
 ﻿using Android.Widget;
+using CoreMP;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
@@ -30,13 +30,13 @@ namespace DBTest
 		public override void DataAvailable() => Activity.RunOnUiThread( () =>
 		{
 			// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-			Adapter.SetData( AlbumsViewModel.Albums.ToList(), BaseModel.SortSelector.ActiveSortType );
+			Adapter.SetData( AlbumsViewModel.Albums.ToList(), AlbumsViewModel.SortSelection.ActiveSortType );
 
 			// Indicate whether or not a filter has been applied
 			AppendToTabTitle();
 
 			// Update the icon as well
-			AlbumsViewModel.FilterSelector.DisplayFilterIcon();
+			FilterSelector.DisplayFilterIcon();
 
 			base.DataAvailable();
 		} );
@@ -63,12 +63,6 @@ namespace DBTest
 
 			ActionMode.AllSelected = ( selectedObjects.Albums.Count == AlbumsViewModel.Albums.Count );
 		}
-
-		/// <summary>
-		/// Called when the sort selector has changes the sort order
-		/// No need to wait for this to finish. Albums display will be refreshed when it is complete
-		/// </summary>
-		public override void SortOrderChanged() => AlbumsController.SortData();
 
 		/// <summary>
 		/// Called when the Select All checkbox has been clicked on the Action Bar.
@@ -112,12 +106,9 @@ namespace DBTest
 		/// <summary>
 		/// The FilterSelection object used by this fragment
 		/// </summary>
-		protected override FilterSelection FilterSelector { get; } = AlbumsViewModel.FilterSelector;
+		protected override FilterSelector FilterSelector { get; } = new FilterSelector( AlbumsController.SetNewFilter, AlbumsViewModel.FilterSelection );
 
-		/// <summary>
-		/// The common model features are contained in the BaseViewModel
-		/// </summary>
-		protected override BaseViewModel BaseModel { get; } = AlbumsViewModel.BaseModel;
+		protected override SortSelector SortSelector { get; } = new SortSelector( AlbumsController.SortData, AlbumsViewModel.SortSelection );
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

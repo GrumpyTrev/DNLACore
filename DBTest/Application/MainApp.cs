@@ -7,12 +7,12 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
-using SQLite;
+using CoreMP;
 
 namespace DBTest
 {
 	[Application]
-	internal class MainApp : Application, Logger.ILogger
+	internal class MainApp : Application, ICoreMP
 	{
 		/// <summary>
 		/// Base constructor which must be implemented if it is to successfully inherit from the Application
@@ -24,20 +24,20 @@ namespace DBTest
 		{
 			instance = this;
 
-			// Set up logging
-			Logger.Reporter = this;
+			// Create an instance of the CoreMPApp to interface to the CoreMP library
+			coreMPInterface = new CoreMPApp();
+
+			// Set up the link from the CoreMP libarary to this UI implementation
+			coreMPInterface.SetInterface( this );
+
+			// Start monitoring the WiFi
+			new WifiMontor( this, ( wifiAvailable ) => coreMPInterface.WifiStateChanged( wifiAvailable ) );
 		}
 
 		/// <summary>
 		/// Called when the activity has checked or obtained the storage permission
 		/// </summary>
 		public static void StoragePermissionGranted() => Task.Run( () => instance.PostPermissionInitialisation() );
-
-		/// Add the specified interface to the callback colletion
-		/// </summary>
-		/// <param name="callback"></param>
-		public static void RegisterPlaybackCapabilityCallback( DeviceDiscovery.IDeviceDiscoveryChanges callback ) => 
-			instance.deviceDiscoverer.RegisterCallback( callback );
 
 		/// <summary>
 		/// Log a message
@@ -62,6 +62,12 @@ namespace DBTest
 		/// </summary>
 		/// <param name="message"></param>
 		public void Error( string message ) => UiSwitchingHandler.Post( () => Toast.MakeText( this, message, ToastLength.Long ).Show() );
+
+		/// <summary>
+		/// Post an action onto the UI thread
+		/// </summary>
+		/// <param name="post"></param>
+		public void PostAction( Action post ) => UiSwitchingHandler.Post( post );
 
 		/// <summary>
 		/// Bind the controls to the menu
@@ -98,22 +104,23 @@ namespace DBTest
 			instance.mediaNotificationServiceInterface.StopService();
 		}
 
+		public string StoragePath => Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
+
+		/// <summary>
+		/// Allow static access to the CoreMP command interface
+		/// </summary>
+		public static Commander CommandInterface => instance.coreMPInterface.CommandInterface;
+
 		/// <summary>
 		/// Initialisation to be performed once we know that storage permissions have been obtained
 		/// </summary>
 		private void PostPermissionInitialisation()
 		{
-			// Initialise the storage
-			InitialiseStorage();
+			// Let the CoreMP library know that it can start initialising the storage
+			coreMPInterface.Initialise();
 
 			// Bind the command handlers to their command identities
 			CommandRouter.BindHandlers();
-
-			// Configure the controllers
-			ConfigureControllers();
-
-			// Initialise the network monitoring
-			deviceDiscoverer = new DeviceDiscovery( Context );
 
 			// Create a PlaybackRouter.
 			playbackRouter = new PlaybackRouter( Context );
@@ -123,89 +130,6 @@ namespace DBTest
 
 			// Start the ApplicationShutdownService
 			applicationShutdownInterface = new ApplicationShutdownInterface( Context );
-		}
-
-		/// <summary>
-		/// Configure all the controllers
-		/// </summary>
-		private void ConfigureControllers()
-		{
-			AlbumsController.GetControllerData();
-			ArtistsController.GetControllerData();
-			PlaylistsController.GetControllerData();
-			LibraryNameDisplayController.GetControllerData();
-			FilterManagementController.GetControllerData();
-			PlaybackSelectionController.GetControllerData();
-			AutoplayController.GetControllerData();
-			PlaybackModeController.GetControllerData();
-			PlaybackManagementController.GetControllerData();
-			MediaControllerController.GetControllerData();
-			MediaNotificationController.GetControllerData();
-            NowPlayingController.GetControllerData();
-        }
-
-        /// <summary>
-        /// Initialisze access to the persistent storage
-        /// </summary>
-        private void InitialiseStorage()
-		{
-			// Path to the locally stored database
-			string databasePath = Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
-
-			// The synchronous and aynchronous connectionn
-			ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
-			ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath )
-			{
-				// Tracing when required
-				Tracer = ( message ) => Logger.Log( message ),
-
-				// Tracing currently required
-				Trace = true
-			};
-
-			// Initialise the rest of the ConnectionDetailsModel if required
-			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
-		}
-
-		/// <summary>
-		/// Make sure that the database exists and extract the current library
-		/// </summary>
-		private int InitialiseDatabase()
-		{
-			int currentLibraryId = -1;
-
-			bool createTables = false;
-
-			try
-			{
-				if ( createTables == true )
-				{
-					// Create the tables if they don't already exist
-					ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Artist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylistItem>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Autoplay>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<GenrePopulation>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylistItem>();
-				}
-
-				// Check for a Playback record which will tell us the currently selected library
-				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault().DBLibraryId;
-			}
-			catch ( SQLite.SQLiteException )
-			{
-			}
-
-			return currentLibraryId;
 		}
 
 		/// <summary>
@@ -219,14 +143,9 @@ namespace DBTest
 		private static MainApp instance = null;
 
 		/// <summary>
-		/// The one and only Http server used to serve local files to remote devices
-		/// </summary>
-		private static readonly SimpleHTTPServer localServer = new( "", 8080 );
-
-		/// <summary>
 		/// The DeviceDiscovery instance used to monitor the network and scan for DLNA devices
 		/// </summary>
-		private DeviceDiscovery deviceDiscoverer = null;
+		private readonly DeviceDiscovery deviceDiscoverer = null;
 
 		/// <summary>
 		/// The PlaybackMonitor instance used to monitor the state of the playback system
@@ -262,5 +181,10 @@ namespace DBTest
 		/// The control used to interface to the application shutdown service
 		/// </summary>
 		private ApplicationShutdownInterface applicationShutdownInterface = null;
+
+		/// <summary>
+		/// The CoreMPApp instance used to iunterface to the CoreMP library
+		/// </summary>
+		private readonly CoreMPApp coreMPInterface = null;
 	}
 }

@@ -1,12 +1,13 @@
 ﻿using System;
 using Android.Widget;
+using CoreMP;
 
 namespace DBTest
 {
 	/// <summary>
 	/// View holder for the group Song items
 	/// </summary>
-	class SongViewHolder : ExpandableListViewHolder
+	internal class SongViewHolder : ExpandableListViewHolder
 	{
 		public void DisplaySong( SongPlaylistItem playlistItem )
 		{

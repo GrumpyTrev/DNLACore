@@ -1,0 +1,319 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace CoreMP
+{
+	/// <summary>
+	/// The ArtistsController is the Controller for the ArtistsView. It responds to ArtistsView commands and maintains Artists data in the
+	/// ArtistsViewModel
+	/// </summary>
+	public class ArtistsController
+	{
+		/// <summary>
+		/// Public constructor to allow permanent message registrations
+		/// </summary>
+		static ArtistsController()
+		{
+			TagMembershipChangedMessage.Register( TagMembershipChanged );
+			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+			TagDetailsChangedMessage.Register( TagDetailsChanged );
+			TagDeletedMessage.Register( TagDeleted );
+			AlbumPlayedStateChangedMessage.Register( AlbumChanged );
+		}
+
+		/// <summary>
+		/// Get the Artist data 
+		/// </summary>
+		public static void GetControllerData() => dataReporter.GetData();
+
+		/// <summary>
+		/// Get the contents for the specified Artist
+		/// </summary>
+		/// <param name="theArtist"></param>
+		public static void GetArtistContents( Artist theArtist ) => theArtist.GetSongs();
+
+		/// <summary>
+		/// Get the contents for the specified ArtistAlbum
+		/// </summary>
+		/// <param name="artistAlbum"></param>
+		/// <returns></returns>
+		public static void GetArtistAlbumContents( ArtistAlbum artistAlbum ) => Artist.GetArtistAlbumSongs( artistAlbum );
+
+		/// <summary>
+		/// Apply the specified filter to the data being displayed
+		/// </summary>
+		/// <param name="newFilter"></param>
+		public static void SetNewFilter( Tag newFilter )
+		{
+			// Update the model
+			ArtistsViewModel.FilterSelection.CurrentFilter = newFilter;
+
+			// No need to wait for this to be applied
+			ApplyFilter();
+		}
+
+		/// <summary>
+		/// Sort the Artists according to the currently selected sort order
+		/// </summary>
+		public static void SortArtists() => Task.Run( () =>
+		{
+			switch ( ArtistsViewModel.SortSelection.CurrentSortOrder )
+			{
+				case SortOrder.alphaDescending:
+				case SortOrder.alphaAscending:
+				{
+					if ( ArtistsViewModel.SortSelection.CurrentSortOrder == SortOrder.alphaAscending )
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => a.Name.RemoveThe().CompareTo( b.Name.RemoveThe() ) );
+					}
+					else
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => b.Name.RemoveThe().CompareTo( a.Name.RemoveThe() ) );
+					}
+
+					// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted but before the scroll indexing
+					PrepareCombinedList();
+
+					// Generate the fast scroll data for alpha sorting
+					GenerateIndex( ( artist ) => artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper() );
+
+					break;
+				}
+
+				case SortOrder.idAscending:
+				case SortOrder.idDescending:
+				{
+					if ( ArtistsViewModel.SortSelection.CurrentSortOrder == SortOrder.idAscending )
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => a.Id.CompareTo( b.Id ) );
+					}
+					else
+					{
+						ArtistsViewModel.Artists.Sort( ( a, b ) => b.Id.CompareTo( a.Id ) );
+					}
+
+					// Prepare the combined Artist/ArtistAlbum list - this has to be done after the Artists have been sorted.
+					// No fast scroll indexing is required for Id sort order
+					PrepareCombinedList();
+
+					ArtistsViewModel.FastScrollSections = null;
+					ArtistsViewModel.FastScrollSectionLookup = null;
+
+					break;
+				}
+			}
+
+			// Publish the data
+			DataReporter?.DataAvailable();
+		} );
+
+		/// <summary>
+		/// Called during startup, or library change, when the storage data is available
+		/// </summary>
+		/// <param name="message"></param>
+		private static void StorageDataAvailable()
+		{
+			// Save the libray being used locally to detect changes
+			ArtistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
+
+			// Get the Artists we are interested in
+			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
+
+			// Do the sorting of ArtistAlbum entries off the UI thread
+			SortArtistAlbums();
+
+			// Apply the current filter and get the data ready for display 
+			ApplyFilter();
+		}
+
+		/// <summary>
+		/// Apply the current filter to the data being displayed
+		/// Once the Artists have been filtered prepare them for display by sorting and combinig them with their ArtistAlbum entries
+		/// </summary>
+		/// <param name="newFilter"></param>
+		private static void ApplyFilter() => Task.Run( () =>
+		{
+			// alphabetic and identity sorting are available to the user
+			ArtistsViewModel.SortSelection.MakeAvailable( new List<SortType> { SortType.alphabetic, SortType.identity } );
+
+			// Check for no simple or group tag filters
+			if ( ArtistsViewModel.FilterSelection.FilterApplied == false )
+			{
+				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists;
+			}
+			else
+			{
+				// Combine the simple and group tabs
+				ArtistsViewModel.FilteredAlbumsIds = ArtistsViewModel.FilterSelection.CombineAlbumFilters();
+
+				// Now get all the artist identities of the albums that are tagged
+				HashSet<int> artistIds = ArtistAlbums.ArtistAlbumCollection.
+					Where( aa => ArtistsViewModel.FilteredAlbumsIds.Contains( aa.AlbumId ) ).Select( aa => aa.ArtistId ).Distinct().ToHashSet();
+
+				// Now get the Artists from the list of artist ids
+				ArtistsViewModel.Artists = ArtistsViewModel.UnfilteredArtists.Where( art => artistIds.Contains( art.Id ) ).ToList();
+
+				// If the TagOrder flag is set then set the sort order to Id order.
+				if ( ArtistsViewModel.FilterSelection.TagOrderFlag == true )
+				{
+					ArtistsViewModel.SortSelection.ActiveSortType = SortType.identity;
+				}
+			}
+
+			// Sort the artists to the order specified in the SortSelector and publish the data
+			SortArtists();
+		} );
+
+		/// <summary>
+		/// Sort the ArtistAlbum entries in each Artist by the album year
+		/// </summary>
+		private static void SortArtistAlbums() => Task.Run( () =>
+			ArtistsViewModel.UnfilteredArtists.ForEach( art => art.ArtistAlbums.Sort( ( a, b ) => a.Album.Year.CompareTo( b.Album.Year ) ) ) );
+
+		/// <summary>
+		/// Prepare the combined Artist/ArtistAlbum list from the current Artists list
+		/// </summary>
+		private static void PrepareCombinedList()
+		{
+			// Make sure the list is empty - it should be
+			ArtistsViewModel.ArtistsAndAlbums.Clear();
+
+			// These have already been filtered
+			foreach ( Artist artist in ArtistsViewModel.Artists )
+			{
+				ArtistsViewModel.ArtistsAndAlbums.Add( artist );
+
+				// If there is no filter add all the albums, otherwise only add the albums that are in the filter
+				ArtistsViewModel.ArtistsAndAlbums.AddRange( ( ArtistsViewModel.FilterSelection.FilterApplied == false ) ? artist.ArtistAlbums :
+					artist.ArtistAlbums.Where( alb => ArtistsViewModel.FilteredAlbumsIds.Contains( alb.AlbumId ) == true ) );
+			}
+		}
+
+		/// <summary>
+		/// Called when a TagMembershipChangedMessage has been received
+		/// If there is no filtering or if the tag being filtered on has not changed then no action is required.
+		/// Otherwise the data must be refreshed
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagMembershipChanged( List< string > changedTags )
+		{
+			if ( ArtistsViewModel.FilterSelection.FilterContainsTags( changedTags ) == true )
+			{
+				// Reapply the same filter. No need to wait for this.
+				ApplyFilter();
+			}
+		}
+
+		/// <summary>
+		/// Called when a SelectedLibraryChangedMessage has been received
+		/// Clear the current data and the filter and then reload
+		/// </summary>
+		/// <param name="_"></param>
+		private static void SelectedLibraryChanged( int _ )
+		{
+			// Clear the displayed data and filter
+			ArtistsViewModel.ClearModel();
+
+			// Reload the library specific artist data
+			StorageDataAvailable();
+		}
+
+		/// <summary>
+		/// Called when a TagDetailsChangedMessage has been received
+		/// If the tag is currently being used to filter the albums then update the filter and
+		/// redisplay the albums
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagDetailsChanged( Tag changedTag )
+		{
+			if ( ArtistsViewModel.FilterSelection.CurrentFilterName == changedTag.Name )
+			{
+				// Reapply the same filter
+				ApplyFilter();
+			}
+		}
+
+		/// <summary>
+		/// Called when a TagDeletedMessage has been received
+		/// If the tag is currently being used to filter the albums then remove the filter and redisplay
+		/// </summary>
+		/// <param name="message"></param>
+		private static void TagDeleted( Tag deletedTag )
+		{
+			if ( ArtistsViewModel.FilterSelection.CurrentFilterName == deletedTag.Name )
+			{
+				SetNewFilter( null );
+			}
+		}
+
+		/// <summary>
+		/// Called when a AlbumPlayedStateChangedMessage had been received.
+		/// If the album is in the library being displayed then refresh the display
+		/// </summary>
+		/// <param name="message"></param>
+		private static void AlbumChanged( Album changedAlbum )
+		{
+			// Only process this album if it is in the same library as is being displayed
+			// It may be in another library if this is being called as part of a library synchronisation process
+			if ( changedAlbum.LibraryId == ArtistsViewModel.LibraryId )
+			{
+				DataReporter?.DataAvailable();
+			}
+		}
+		
+		/// <summary>
+		/// Generate the fast scroll indexes using the provided function to obtain the section name
+		/// The sorted albums have already been moved/copied to the ArtistsViewModel.ArtistsAndAlbums list
+		/// </summary>
+		/// <param name="sectionNameProvider"></param>
+		private static void GenerateIndex( Func<Artist, string> sectionNameProvider )
+		{
+			// Initialise the index collections - the 
+			ArtistsViewModel.FastScrollSections = new List<Tuple<string, int>>();
+			ArtistsViewModel.FastScrollSectionLookup = new int[ ArtistsViewModel.ArtistsAndAlbums.Count ];
+
+			// Keep track of when a section has already been added to the FastScrollSections collection
+			Dictionary<string, int> sectionLookup = new Dictionary<string, int>();
+
+			// Keep track of the last section index allocated or found for an Artist as it will also be used for the associated ArtistAlbum entries
+			int sectionIndex = -1;
+
+			int index = 0;
+			foreach ( object artistOrAlbum in ArtistsViewModel.ArtistsAndAlbums )
+			{
+				// Only add section names for Artists, not ArtistAlbums
+				if ( artistOrAlbum is Artist artist )
+				{
+					// If this is the first occurrence of the section name then add it to the FastScrollSections collection together with the index 
+					string sectionName = sectionNameProvider( artist );
+					sectionIndex = sectionLookup.GetValueOrDefault( sectionName, -1 );
+					if ( sectionIndex == -1 )
+					{
+						sectionIndex = sectionLookup.Count;
+						sectionLookup[ sectionName ] = sectionIndex;
+						ArtistsViewModel.FastScrollSections.Add( new Tuple<string, int>( sectionName, index ) );
+					}
+				}
+
+				// Provide a quick section lookup for this entry
+				ArtistsViewModel.FastScrollSectionLookup[ index++ ] = sectionIndex;
+			}
+		}
+
+		/// <summary>
+		/// The interface instance used to report back controller results
+		/// </summary>
+		public static DataReporter.IReporter DataReporter
+		{
+			private get => dataReporter.Reporter;
+			set => dataReporter.Reporter = value;
+		}
+
+		/// <summary>
+		/// The DataReporter instance used to handle storage availability reporting
+		/// </summary>
+		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+	}
+}

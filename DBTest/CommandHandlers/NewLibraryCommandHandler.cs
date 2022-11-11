@@ -1,4 +1,6 @@
-﻿namespace DBTest
+﻿using CoreMP;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The NewLibraryCommandHandler class is used to process a request to add a new library.
@@ -28,14 +30,14 @@
 			else
 			{
 				// Check for a duplicate
-				if ( Libraries.LibraryNames.Contains( libraryName ) == true )
+				if ( LibraryManagementViewModel.LibraryNames.Contains( libraryName ) == true )
 				{
 					alertText = DuplicateLibraryError;
 				}
 				else
 				{
 					// Create a new library
-					LibraryManagementController.CreateLibrary( libraryName );
+					MainApp.CommandInterface.CreateLibrary( libraryName );
 				}
 			}
 

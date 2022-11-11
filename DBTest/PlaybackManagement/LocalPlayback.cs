@@ -3,6 +3,7 @@ using Android.Media;
 using Android.OS;
 using Android.Runtime;
 using System;
+using CoreMP;
 
 namespace DBTest
 {

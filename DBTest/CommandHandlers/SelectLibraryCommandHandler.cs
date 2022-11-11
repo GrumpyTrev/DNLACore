@@ -1,4 +1,6 @@
-﻿namespace DBTest
+﻿using CoreMP;
+
+namespace DBTest
 {
 	/// <summary>
 	/// The SelectLibraryCommandHandler class is used to process a request to select a new library
@@ -10,14 +12,8 @@
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) => 
-			LibrarySelectionDialogFragment.Show( "Select library to display", Libraries.Index( ConnectionDetailsModel.LibraryId ), Libraries.LibraryCollection,
-				LibrarySelected );
-
-		/// <summary>
-		/// Called when a library has been selected.
-		/// </summary>
-		/// <param name="selectedLibrary"></param>
-		public void LibrarySelected( Library selectedLibrary ) => LibraryManagementController.SelectLibrary( selectedLibrary );
+			LibrarySelectionDialogFragment.Show( "Select library to display", LibraryManagementViewModel.SelectedLibraryIndex, 
+				LibraryManagementViewModel.AvailableLibraries, ( Library selectedLibrary ) => MainApp.CommandInterface.SelectLibrary( selectedLibrary ) );
 
 		/// <summary>
 		/// The command identity associated with this handler

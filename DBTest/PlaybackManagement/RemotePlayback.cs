@@ -1,5 +1,6 @@
 ﻿using Android.Content;
 using Android.OS;
+using CoreMP;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -59,7 +60,7 @@ namespace DBTest
 		/// <summary>
 		/// Send a stop request to the DNLA device
 		/// </summary>
-		public async override void Stop()
+		public override async void Stop()
 		{
 			// Assume the DLMA request will complte and clear some state variables first
 			IsPlaying = false;
@@ -96,7 +97,7 @@ namespace DBTest
 		/// <summary>
 		/// Send a Pause request to the DNLA device
 		/// </summary>
-		public async override void Pause()
+		public override async void Pause()
 		{
 			string request = DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#Pause",
 				PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "Pause" ) );
@@ -122,7 +123,7 @@ namespace DBTest
 		/// <summary>
 		/// Send a play request to the DNLA device
 		/// </summary>
-		public async override void Resume()
+		public override async void Resume()
 		{
 			if ( await PlaySong() == true )
 			{
@@ -337,6 +338,6 @@ namespace DBTest
 		/// <summary>
 		/// Lock used to keep the app alive
 		/// </summary>
-		private PowerManager.WakeLock wakeLock = null;
+		private readonly PowerManager.WakeLock wakeLock = null;
 	}
 }

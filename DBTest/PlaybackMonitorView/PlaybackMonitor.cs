@@ -1,6 +1,7 @@
 ﻿using Android.Content;
 using Android.Support.V7.Widget;
 using Android.Views;
+using CoreMP;
 
 namespace DBTest
 {
@@ -8,7 +9,7 @@ namespace DBTest
 	/// The PlaybackMonitor monitors the availability of the currently selected playback device and of the wifi network and
 	/// displays a summary as an icon
 	/// </summary>
-	class PlaybackMonitor : BaseBoundControl
+	internal class PlaybackMonitor : BaseBoundControl
 	{
 		/// <summary>
 		/// Get a notiification whenever the PlaybackSelectionModel changes
@@ -35,16 +36,10 @@ namespace DBTest
 					// Create a Popup for this button and route it's selections to the CommandRouter
 					popupMenu = new PopupMenu( context, imageButton );
 					popupMenu.Inflate( Resource.Menu.menu_playback_options );
-					popupMenu.MenuItemClick += ( sender, args ) =>
-					{
-						CommandRouter.HandleCommand( args.Item.ItemId );
-					};
+					popupMenu.MenuItemClick += ( sender, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
 
 					// Show the popup when the button is selected
-					imageButton.Click += ( sender, args ) =>
-					{
-						popupMenu.Show();
-					};
+					imageButton.Click += ( sender, args ) => popupMenu.Show();
 
 					DisplayMonitorIcon();
 				}

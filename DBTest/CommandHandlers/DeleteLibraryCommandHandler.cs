@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using CoreMP;
 
 namespace DBTest
 {
@@ -22,10 +21,10 @@ namespace DBTest
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int _ ) =>
-			LibrarySelectionDialogFragment.Show( "Select library to delete", -1, Libraries.LibraryCollection,
+			LibrarySelectionDialogFragment.Show( "Select library to delete", -1, LibraryManagementViewModel.AvailableLibraries,
 				selectionCallback: ( selectedLibrary ) =>
 				{
-					if ( LibraryManagementController.IsEmpty( selectedLibrary ) == false )
+					if ( MainApp.CommandInterface.CheckLibraryEmpty( selectedLibrary ) == false )
 					{
 						// When a library has been selected, confirm the clearance
 						ConfirmationDialogFragment.Show( $"Are you sure you want to delete the {selectedLibrary.Name} library",
@@ -38,7 +37,7 @@ namespace DBTest
 				} );
 
 		/// <summary>
-		/// Delete the specified library off the UI thread and display a dialogue showing progress
+		/// Satrt deleting the specified library and display a dialogue showing progress
 		/// </summary>
 		/// <param name="libraryToDelete"></param>
 		private void DeleteLibrary( Library libraryToDelete )
@@ -48,7 +47,7 @@ namespace DBTest
 
 			// Start the clear process, but don't wait for it to finish
 			bool clearFinished = false;
-			DeleteLibraryAsync( libraryToDelete,
+			MainApp.CommandInterface.DeleteLibraryAsync( libraryToDelete,
 				() =>
 				{
 					clearFinished = true;
@@ -63,16 +62,6 @@ namespace DBTest
 					progressDialogFragment = dialogue;
 					progressDialogFragment?.UpdateDialogueState( clearFinished );
 				} );
-		}
-
-		/// <summary>
-		/// Delete the selected library off the user thread and then report back the deletion
-		/// </summary>
-		private async void DeleteLibraryAsync( Library libraryToDelete, Action finishedAction )
-		{
-			await Task.Run( () => LibraryManagementController.DeleteLibrary( libraryToDelete ) );
-
-			finishedAction.Invoke();
 		}
 
 		/// <summary>

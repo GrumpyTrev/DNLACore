@@ -1,13 +1,14 @@
 ﻿using Android.Content;
 using Android.Support.V7.Widget;
 using Android.Views;
+using CoreMP;
 
 namespace DBTest
 {
 	/// <summary>
 	/// The PlaybackModeView class displays the current playback mode and allows the user to change the playback mode
 	/// </summary>
-	class PlaybackModeView : BaseBoundControl, DataReporter.IReporter
+	internal class PlaybackModeView : BaseBoundControl, DataReporter.IReporter
 	{
 		/// <summary>
 		/// Bind to the specified menu item.
@@ -30,10 +31,7 @@ namespace DBTest
 					// Create a Popup for this button and route it's selections to the CommandRouter
 					titlePopup = new PopupMenu( context, imageButton );
 					titlePopup.Inflate( Resource.Menu.menu_playback );
-					titlePopup.MenuItemClick += ( sender, args ) =>
-					{
-						CommandRouter.HandleCommand( args.Item.ItemId );
-					};
+					titlePopup.MenuItemClick += ( sender, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
 
 					// Show the popup when the button is selected
 					imageButton.Click += ( sender, args ) =>
