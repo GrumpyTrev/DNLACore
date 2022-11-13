@@ -62,7 +62,7 @@ namespace CoreMP
 			CreateSourceForLibrary( newLibrary );
 
 			// Add an empty NowPlaying list
-			Playlist nowPlaying = new SongPlaylist() { Name = Playlists.NowPlayingPlaylistName, LibraryId = newLibrary.Id };
+			Playlist nowPlaying = new SongPlaylist() { Name = Playlist.NowPlayingPlaylistName, LibraryId = newLibrary.Id };
 			await Playlists.AddPlaylistAsync( nowPlaying );
 			nowPlaying.SongIndex = -1;
 
@@ -100,7 +100,7 @@ namespace CoreMP
 				LibraryId = libraryForSource.Id
 			};
 
-			Sources.AddSource( newSource );
+			libraryForSource.AddSource( newSource );
 		}
 
 		/// <summary>
@@ -110,7 +110,7 @@ namespace CoreMP
 		public static void DeleteSource( Source sourceToDelete )
 		{
 			// Remove the Source from the Source collections
-			Sources.DeleteSource( sourceToDelete );
+			Libraries.GetLibraryById( sourceToDelete.LibraryId ).DeleteSource( sourceToDelete );
 
 			// Get all the songs associated with this source
 			sourceToDelete.GetSongs();
@@ -220,7 +220,7 @@ namespace CoreMP
 				foreach ( Playlist playlistToDelete in playlistsToDelete )
 				{
 					// Don't delete the Now Playing Playlist
-					if ( playlistToDelete.Name != Playlists.NowPlayingPlaylistName )
+					if ( playlistToDelete.Name != Playlist.NowPlayingPlaylistName )
 					{
 						Playlists.DeletePlaylist( playlistToDelete );
 					}
@@ -287,8 +287,7 @@ namespace CoreMP
 			nowPlaying.SongIndex = -1;
 
 			// Delete all the songs in each of the sources associated with the library
-			List<Source> sources = Sources.GetSourcesForLibrary( libId );
-			foreach ( Source source in sources )
+			foreach ( Source source in libraryToClear.Sources )
 			{
 				Songs.DeleteSongs( Songs.GetSourceSongs( source.Id ) );
 				source.Songs = null;
@@ -312,9 +311,9 @@ namespace CoreMP
 			ClearLibrary( libraryToDelete );
 
 			// Delete all the sources associated with the library
-			foreach ( Source sourceToDelete in Sources.GetSourcesForLibrary( libraryToDelete.Id ) )
+			foreach ( Source sourceToDelete in libraryToDelete.Sources )
 			{
-				Sources.DeleteSource( sourceToDelete );
+				libraryToDelete.DeleteSource( sourceToDelete );
 			}
 
 			// Delete the library

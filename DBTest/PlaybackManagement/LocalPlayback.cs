@@ -10,7 +10,7 @@ namespace DBTest
 	/// <summary>
 	/// The LocalPlayback class is used to control the local playing of music using an Android MusicPlayer component
 	/// </summary>
-	public class LocalPlayback: BasePlayback, MediaPlayer.IOnPreparedListener, MediaPlayer.IOnErrorListener, MediaPlayer.IOnCompletionListener
+	public class LocalPlayback: BasePlayback
 	{
 		/// <summary>
 		/// Called when the class instance is first created
@@ -21,8 +21,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the MediaPlayer has finished playing the current song
 		/// </summary>
-		/// <param name="mp"></param>
-		public void OnCompletion( MediaPlayer _ )
+		public void OnCompletion()
 		{
 			IsPlaying = false;
 			localPlayer.Reset();
@@ -32,11 +31,10 @@ namespace DBTest
 		/// <summary>
 		/// Called when the MediaPlayer has encounter an error condition
 		/// </summary>
-		/// <param name="mp"></param>
 		/// <param name="what"></param>
 		/// <param name="extra"></param>
 		/// <returns></returns>
-		public bool OnError( MediaPlayer _, [GeneratedEnum] MediaError what, int extra )
+		public bool OnError( [GeneratedEnum] MediaError what, int extra )
 		{
 			localPlayer.Reset();
 			isPreparing = false;
@@ -49,8 +47,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the MediaPlayer has finished preparing a song source and is now ready to play the song
 		/// </summary>
-		/// <param name="mp"></param>
-		public void OnPrepared( MediaPlayer _ )
+		public void OnPrepared()
 		{
 			localPlayer.Start();
 			IsPlaying = true;
@@ -201,9 +198,11 @@ namespace DBTest
 				// Forced to use deprecated SetAudioStreamType for API < 21
 				localPlayer.SetAudioStreamType( Stream.Music );
 			}
-			localPlayer.SetOnPreparedListener( this );
-			localPlayer.SetOnErrorListener( this );
-			localPlayer.SetOnCompletionListener( this );
+
+			MediaPlayerInterface playInterface = new MediaPlayerInterface( this );
+			localPlayer.SetOnPreparedListener( playInterface );
+			localPlayer.SetOnErrorListener( playInterface );
+			localPlayer.SetOnCompletionListener( playInterface );
 		}
 
 		/// <summary>
@@ -215,5 +214,33 @@ namespace DBTest
 		/// Flag to indicate that the media player is in the middle of preparing a file for playback
 		/// </summary>
 		private bool isPreparing = false;
+	}
+
+	internal class MediaPlayerInterface : Java.Lang.Object, MediaPlayer.IOnPreparedListener, MediaPlayer.IOnErrorListener, MediaPlayer.IOnCompletionListener
+	{
+		public MediaPlayerInterface( LocalPlayback localPlayback ) => playbackInstance = localPlayback;
+
+		/// <summary>
+		/// Called when the MediaPlayer has finished playing the current song
+		/// </summary>
+		/// <param name="mp"></param>
+		public void OnCompletion( MediaPlayer _ ) => playbackInstance.OnCompletion();
+
+		/// <summary>
+		/// Called when the MediaPlayer has encounter an error condition
+		/// </summary>
+		/// <param name="mp"></param>
+		/// <param name="what"></param>
+		/// <param name="extra"></param>
+		/// <returns></returns>
+		public bool OnError( MediaPlayer _, [GeneratedEnum] MediaError what, int extra ) => playbackInstance.OnError( what, extra );
+
+		/// <summary>
+		/// Called when the MediaPlayer has finished preparing a song source and is now ready to play the song
+		/// </summary>
+		/// <param name="mp"></param>
+		public void OnPrepared( MediaPlayer _ ) => playbackInstance.OnPrepared();
+
+		private readonly LocalPlayback playbackInstance = null;
 	}
 }

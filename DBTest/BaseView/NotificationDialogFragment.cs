@@ -19,7 +19,7 @@ namespace DBTest
 		/// <param name="title"></param>
 		public static void ShowFragment( FragmentManager manager, string title )
 		{
-			NotificationDialogFragment dialog = new NotificationDialogFragment { Arguments = new Bundle() };
+			NotificationDialogFragment dialog = new () { Arguments = new Bundle() };
 			dialog.Arguments.PutString( "title", title );
 			dialog.Show( manager, "fragment_notification_tag" );
 		}

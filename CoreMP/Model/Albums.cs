@@ -8,7 +8,7 @@ namespace CoreMP
 	/// The Albums class holds a collection of all the Albums entries read from storage.
 	/// It allows access to Albums entries by Id and automatically persists changes back to storage
 	/// </summary>	
-	public static class Albums
+	internal static class Albums
 	{
 		/// <summary>
 		/// Get the Albums collection from storage

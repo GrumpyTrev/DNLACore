@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The AlbumsAdapterModel class holds the current state of the AlbumsAdapter class
 	/// </summary>
-	static class AlbumsAdapterModel
+	internal static class AlbumsAdapterModel
 	{
 		/// <summary>
 		/// The model for the base ExpandableListAdapter

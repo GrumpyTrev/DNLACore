@@ -13,7 +13,7 @@ namespace DBTest
 		{
 			Title.Text = playlistItem.Song.Title;
 			Duration.Text = TimeSpan.FromSeconds( playlistItem.Song.Length ).ToString( @"mm\:ss" );
-			Artist.Text = string.Format( "{0} : {1}", playlistItem.Artist.Name, Albums.GetAlbumById( playlistItem.Song.AlbumId ).Name );
+			Artist.Text = string.Format( "{0} : {1}", playlistItem.Artist.Name, playlistItem.Song.Album.Name );
 		}
 
 		public TextView Artist { get; set; }

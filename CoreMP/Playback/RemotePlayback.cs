@@ -1,11 +1,8 @@
-﻿using Android.Content;
-using Android.OS;
-using CoreMP;
-using System;
+﻿using System;
 using System.Globalization;
 using System.Threading.Tasks;
 
-namespace DBTest
+namespace CoreMP
 {
 	/// <summary>
 	/// The RemotePlaybackService is a service used to control the remote playing of music via a DLNA device
@@ -14,16 +11,6 @@ namespace DBTest
 	/// </summary>
 	public class RemotePlayback : BasePlayback
 	{
-		/// <summary>
-		/// Class constructor. Use the supplied Context to obtain a WakeLock
-		/// </summary>
-		public RemotePlayback( Context context )
-		{
-			// Get an instance of the PowerManager to aquire a wake lock
-			PowerManager pm = PowerManager.FromContext( context );
-			wakeLock = pm.NewWakeLock( WakeLockFlags.Partial, "DBTest" );
-		}
-
 		/// <summary>
 		/// Play the currently selected song
 		/// </summary>
@@ -291,24 +278,12 @@ namespace DBTest
 		/// <summary>
 		/// Aquire the wakelock if not already held
 		/// </summary>
-		private void AquireLock()
-		{
-			if ( wakeLock.IsHeld == false )
-			{
-				wakeLock.Acquire();
-			}
-		}
+		private void AquireLock() => CoreMPApp.AquireWakeLock();
 
 		/// <summary>
 		/// Release the wakelock if hels
 		/// </summary>
-		private void ReleaseLock()
-		{
-			if ( wakeLock.IsHeld == true )
-			{
-				wakeLock.Release();
-			}
-		}
+		private void ReleaseLock() => CoreMPApp.ReleaseWakeLock();
 
 		/// <summary>
 		/// The duration as reported from the remote device
@@ -334,10 +309,5 @@ namespace DBTest
 		/// Flag indicating that the next track should be played the next time the position is obtained
 		/// </summary>
 		private bool changeTrackNextTime = false;
-
-		/// <summary>
-		/// Lock used to keep the app alive
-		/// </summary>
-		private readonly PowerManager.WakeLock wakeLock = null;
 	}
 }

@@ -43,7 +43,7 @@ namespace CoreMP
 	}
 
 	[Table( "Library" )]
-	public class Library
+	public partial class Library
 	{
 		[PrimaryKey, AutoIncrement, Column( "_id" )]
 		public int Id { get; set; }

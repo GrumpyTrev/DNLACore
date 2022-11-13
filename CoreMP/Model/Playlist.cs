@@ -209,5 +209,10 @@ namespace CoreMP
 		/// </summary>
 		[Ignore]
 		public List<PlaylistItem> PlaylistItems { get; set; } = new List<PlaylistItem>();
+
+		/// <summary>
+		/// The name given to the Now Playing playlist
+		/// </summary>
+		public const string NowPlayingPlaylistName = "Now Playing";
 	}
 }

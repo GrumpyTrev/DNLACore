@@ -42,7 +42,6 @@ namespace CoreMP
 		{
 			await Songs.GetDataAsync();
 			await Albums.GetDataAsync();
-			await Sources.GetDataAsync();
 			await Artists.GetDataAsync();
 			await ArtistAlbums.GetDataAsync();
             await Libraries.GetDataAsync();

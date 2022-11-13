@@ -43,9 +43,12 @@ namespace CoreMP
 					await Task.Run( async () =>
 					{
 						// Iterate all the sources associated with this library. Get the songs as well as we're going to need them below
-						List<Source> sources = Sources.GetSourcesAndSongsForLibrary( LibraryScanModel.LibraryBeingScanned.Id );
+						foreach ( Source source in LibraryScanModel.LibraryBeingScanned.Sources )
+						{
+							source.GetSongs();
+						}
 
-						foreach ( Source source in sources )
+						foreach ( Source source in LibraryScanModel.LibraryBeingScanned.Sources )
 						{
 							// Add the songs from this source to a dictionary
 							Dictionary<string, Song> pathLookup = new Dictionary<string, Song>( source.Songs.ToDictionary( song => song.Path ) );

@@ -14,6 +14,8 @@ namespace CoreMP
 
 			// Initialise the network monitoring
 			deviceDiscoverer = new DeviceDiscovery();
+
+			playbackRouter = new PlaybackRouter();
 		}
 
 		/// <summary>
@@ -38,10 +40,22 @@ namespace CoreMP
 		}
 
 		/// <summary>
+		/// Called when the UI has shutdown
+		/// </summary>
+		public void Shutdown() => playbackRouter.StopRouter();
+
+		/// <summary>
 		/// Pass on wifi state changes to the DeviceDiscoverer instance
 		/// </summary>
 		/// <param name="wifiAvailable"></param>
 		public void WifiStateChanged( bool wifiAvailable ) => deviceDiscoverer.OnWiFiStateChanged( wifiAvailable );
+
+		/// <summary>
+		/// Commander class used to pass all commands on to
+		/// </summary>
+		public Commander CommandInterface { get; } = new Commander();
+
+		public void SetLocalPlayer( BasePlayback localPlayer ) => playbackRouter.SetLocalPlayback( localPlayer );
 
 		/// <summary>
 		/// Add the specified interface to the callback colletion
@@ -56,10 +70,9 @@ namespace CoreMP
 		/// <param name="actionToPost"></param>
 		public static void Post( Action actionToPost ) => coreInterface.PostAction( actionToPost );
 
-		/// <summary>
-		/// Commander class used to pass all commands on to
-		/// </summary>
-		public Commander CommandInterface { get; } = new Commander();
+		public static void AquireWakeLock() => coreInterface.AquireWakeLock();
+
+		public static void ReleaseWakeLock() => coreInterface.ReleaseWakeLock();
 
 		/// <summary>
 		/// Configure all the controllers
@@ -156,6 +169,11 @@ namespace CoreMP
 		/// The DeviceDiscovery instance used to monitor the network and scan for DLNA devices
 		/// </summary>
 		private readonly DeviceDiscovery deviceDiscoverer = null;
+
+		/// <summary>
+		/// The PlaybackRouter used to pass playback requests to the the correct playback device
+		/// </summary>
+		private readonly PlaybackRouter playbackRouter = null;
 
 		/// <summary>
 		/// The interface used to access the UI system

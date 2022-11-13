@@ -13,6 +13,25 @@ namespace CoreMP
         [Ignore]
         public Artist Artist { get; set; } = null;
 
-        public enum ScanActionType { NotMatched, Matched, Differ, New };
+		/// <summary>
+		/// The Album that this song is on.
+		/// This value is only obtained on demand
+		/// </summary>
+		private Album album = null;
+		[Ignore]
+		public Album Album
+		{
+			get
+			{
+				if ( album == null )
+				{
+					album = Albums.GetAlbumById( AlbumId );
+				}
+
+				return album;
+			}
+		}
+
+		public enum ScanActionType { NotMatched, Matched, Differ, New };
     }
 }

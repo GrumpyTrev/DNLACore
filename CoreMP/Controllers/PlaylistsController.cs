@@ -201,7 +201,7 @@ namespace CoreMP
 		{
 			// Attempt to find matching songs for each SongPlaylistItem in the SongPlaylist
 			// Need to access the songs via the Sources associated with the Library
-			List<Source> sources = Sources.GetSourcesForLibrary( libraryId );
+			List<Source> sources = Libraries.GetLibraryById( libraryId ).Sources.ToList(); ;
 
 			// Keep track of the matching songs
 			List<Song> songsToAdd = new List<Song>();

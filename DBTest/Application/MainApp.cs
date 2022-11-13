@@ -30,8 +30,14 @@ namespace DBTest
 			// Set up the link from the CoreMP libarary to this UI implementation
 			coreMPInterface.SetInterface( this );
 
+			// Tell the CoreMP how to play locally
+			coreMPInterface.SetLocalPlayer( new LocalPlayback( this ) );
+
 			// Start monitoring the WiFi
 			new WifiMontor( this, ( wifiAvailable ) => coreMPInterface.WifiStateChanged( wifiAvailable ) );
+
+			// Create a wake lock for use during playback
+			wakeLock = new KeepAwake( this );
 		}
 
 		/// <summary>
@@ -100,11 +106,24 @@ namespace DBTest
 		/// </summary>
 		public static void Shutdown()
 		{
-			instance.playbackRouter.StopRouter();
 			instance.mediaNotificationServiceInterface.StopService();
+			instance.coreMPInterface.Shutdown();
 		}
 
+		/// <summary>
+		/// The path used to store the media database
+		/// </summary>
 		public string StoragePath => Path.Combine( Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "Test.db3" );
+
+		/// <summary>
+		/// Aquire the wakelock
+		/// </summary>
+		public void AquireWakeLock() => wakeLock.AquireLock();
+
+		/// <summary>
+		/// Relesae the wakelock
+		/// </summary>
+		public void ReleaseWakeLock() => wakeLock.ReleaseLock();
 
 		/// <summary>
 		/// Allow static access to the CoreMP command interface
@@ -122,9 +141,6 @@ namespace DBTest
 			// Bind the command handlers to their command identities
 			CommandRouter.BindHandlers();
 
-			// Create a PlaybackRouter.
-			playbackRouter = new PlaybackRouter( Context );
-
 			// Start the MediaNotificationService
 			mediaNotificationServiceInterface = new MediaNotificationServiceInterface( Context );
 
@@ -141,11 +157,6 @@ namespace DBTest
 		/// THe one and only MainApp
 		/// </summary>
 		private static MainApp instance = null;
-
-		/// <summary>
-		/// The DeviceDiscovery instance used to monitor the network and scan for DLNA devices
-		/// </summary>
-		private readonly DeviceDiscovery deviceDiscoverer = null;
 
 		/// <summary>
 		/// The PlaybackMonitor instance used to monitor the state of the playback system
@@ -168,11 +179,6 @@ namespace DBTest
 		private readonly MediaControllerView mediaControllerView = new();
 
 		/// <summary>
-		/// The PlaybackRouter used to pass playback requests to the the correct playback device
-		/// </summary>
-		private PlaybackRouter playbackRouter = null;
-
-		/// <summary>
 		/// The control used to interface to the media notification service
 		/// </summary>
 		private MediaNotificationServiceInterface mediaNotificationServiceInterface = null;
@@ -186,5 +192,10 @@ namespace DBTest
 		/// The CoreMPApp instance used to iunterface to the CoreMP library
 		/// </summary>
 		private readonly CoreMPApp coreMPInterface = null;
+
+		/// <summary>
+		/// KeepAwake instance used during playback
+		/// </summary>
+		private readonly KeepAwake wakeLock = null;
 	}
 }

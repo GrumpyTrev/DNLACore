@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,6 +23,19 @@ namespace CoreMP
 				LibraryCollection = await DbAccess.LoadAsync<Library>();
 
 				LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();
+
+				// Get the Sources and populate the Source collection for each Library
+				// Get the current set of sources
+				List<Source> sourceCollection = await DbAccess.LoadAsync<Source>();
+
+				// Set the ScanSource, ScanType, LocalAccess and RemoteAccess fields. 
+				sourceCollection.ForEach( source => source.InitialiseAccess() );
+
+				// Link these sources with their libraries
+				foreach ( Library libraryToLink in LibraryCollection )
+				{
+					libraryToLink.Sources = sourceCollection.Where( source => source.LibraryId == libraryToLink.Id ).ToList();
+				}
 			}
 		}
 

@@ -67,6 +67,7 @@
     <Compile Include="AlbumsView\AlbumsFragment.cs" />
     <Compile Include="Application\ApplicationShutdownService.cs" />
     <Compile Include="Application\ApplicationShutdownInterface.cs" />
+    <Compile Include="Application\KeepAwake.cs" />
     <Compile Include="Application\WifiMontor.cs" />
     <Compile Include="BaseView\ActionModeHandler.cs" />
     <Compile Include="BaseView\GotoTopControl.cs" />
@@ -86,10 +87,7 @@
     <Compile Include="BaseView\ConfirmationDialogFragment.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationViewModel.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationServiceInterface.cs" />
-    <Compile Include="PlaybackManagement\BasePlayback.cs" />
     <Compile Include="PlaybackManagement\LocalPlayback.cs" />
-    <Compile Include="PlaybackManagement\PlaybackRouter.cs" />
-    <Compile Include="PlaybackManagement\RemotePlayback.cs" />
     <Compile Include="PlaybackMonitorView\PlaybackMonitor.cs" />
     <Compile Include="BaseView\SortSelector.cs" />
     <Compile Include="CommandHandlers\AutoplayCommandHandler.cs" />

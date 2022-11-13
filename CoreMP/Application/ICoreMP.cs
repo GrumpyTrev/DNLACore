@@ -17,5 +17,15 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="post"></param>
 		public void PostAction( Action post );
+
+		/// <summary>
+		/// Prevent the playback device from pausing the application during playback
+		/// </summary>
+		public void AquireWakeLock();
+
+		/// <summary>
+		/// Allow the playback device to pause the application
+		/// </summary>
+		public void ReleaseWakeLock();
 	}
 }

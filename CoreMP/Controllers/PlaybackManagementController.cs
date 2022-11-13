@@ -1,4 +1,6 @@
-﻿namespace CoreMP
+﻿using System.Linq;
+
+namespace CoreMP
 {
 	/// <summary>
 	/// The PlaybackManagementController is the Controller for the MediaControl. It responds to MediaControl commands and maintains media player data in the
@@ -33,7 +35,7 @@
 			PlaybackManagerModel.LibraryId = ConnectionDetailsModel.LibraryId;
 
 			// Get the sources associated with the library
-			PlaybackManagerModel.Sources = Sources.GetSourcesForLibrary( PlaybackManagerModel.LibraryId );
+			PlaybackManagerModel.Sources = Libraries.GetLibraryById( PlaybackManagerModel.LibraryId ).Sources.ToList();
 
 			PlaybackManagerModel.DataValid = true;
 

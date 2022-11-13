@@ -72,10 +72,10 @@ namespace DBTest
 		private bool LongSortAction()
 		{
 			// Create a Popup menu containing the sort options
-			PopupMenu playlistsMenu = new PopupMenu( popupContext, imageButton );
+			PopupMenu playlistsMenu = new( popupContext, imageButton );
 
 			// Need some way of associating the selected menu item with the pairing type
-			Dictionary<IMenuItem, SortType> pairingTypeLookup = new Dictionary<IMenuItem, SortType>();
+			Dictionary<IMenuItem, SortType> pairingTypeLookup = new();
 
 			foreach ( KeyValuePair< SortType, SortSelectionModel.SortPairing> pair in SortData.SortPairings )
 			{

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace CoreMP
 {
-    public static class Songs
+    internal static class Songs
     {
         /// <summary>
         /// Get the Songs collection from storage

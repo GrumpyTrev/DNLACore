@@ -18,7 +18,7 @@ namespace DBTest
 		{
 			if ( selectedObjects.ParentPlaylist != null )
 			{
-				if ( selectedObjects.ParentPlaylist.Name == Playlists.NowPlayingPlaylistName )
+				if ( selectedObjects.ParentPlaylist.Name == Playlist.NowPlayingPlaylistName )
 				{
 					if ( commandIdentity == Resource.Id.move_up )
 					{
@@ -71,7 +71,7 @@ namespace DBTest
 
 				// If this is the NowPlaying list then the move up command is valid if the first playlist item is not selected, and the
 				// move down command is valid if the last playlist item is not selected
-				if ( selectedObjects.ParentPlaylist.Name == Playlists.NowPlayingPlaylistName )
+				if ( selectedObjects.ParentPlaylist.Name == Playlist.NowPlayingPlaylistName )
 				{
 					isValid = ( selectedObjects.PlaylistItems.Any( item => ( item.Id == keyItemId ) ) == false );
 				}

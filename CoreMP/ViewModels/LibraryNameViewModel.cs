@@ -15,7 +15,7 @@
 			set
 			{
 				libraryName = value;
-				NotificationHandler.NotifyPropertyChanged();
+				NotificationHandler.NotifyPropertyChanged( null );
 			}
 		}
 	}

@@ -37,7 +37,7 @@ namespace CoreMP
 			whoMadeRegistration.Remove( callerClassName );
 		}
 
-		public static void NotifyPropertyChanged( [CallerFilePath] string filePath = "", [CallerMemberName] string propertyName = "" )
+		public static void NotifyPropertyChanged( object sender, [CallerFilePath] string filePath = "", [CallerMemberName] string propertyName = "" )
 		{
 			// Get the file name (class name ) from the filePath
 			string callerClassName = GetFileNameWithoutExtension( filePath );
@@ -52,7 +52,7 @@ namespace CoreMP
 					// Forward the message to all registered listeners
 					foreach ( NotificationDelegate callback in messageRegistrations )
 					{
-						callback.Invoke( propertyName );
+						callback.Invoke( sender, propertyName );
 					}
 				} );
 			}
@@ -62,7 +62,7 @@ namespace CoreMP
 		/// The delegate type used to report back property change notifications
 		/// </summary>
 		/// <param name="message"></param>
-		public delegate void NotificationDelegate( string message );
+		public delegate void NotificationDelegate( object sender, string message );
 
 		/// <summary>
 		/// Get the file name without leading directories and extenstion

@@ -56,6 +56,6 @@ namespace DBTest
 		/// <summary>
 		/// The set of listeners handled by this class
 		/// </summary>
-		private readonly List<AbsListView.IOnScrollListener> listeners = new List<AbsListView.IOnScrollListener>();
+		private readonly List<AbsListView.IOnScrollListener> listeners = new ();
 	}
 }

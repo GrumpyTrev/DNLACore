@@ -2,14 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
-using CoreMP;
 
-namespace DBTest
+namespace CoreMP
 {
 	/// <summary>
 	/// Base functionality for a playback service
 	/// </summary>
-	public abstract class BasePlayback : Java.Lang.Object
+	public abstract class BasePlayback
 	{
 		/// <summary>
 		/// Start the position check timer. This will only be processed by derived classes if they are playing
@@ -316,7 +315,7 @@ namespace DBTest
 		/// <summary>
 		/// The single instance of the RemoteDeviceCallback class
 		/// </summary>
-		private static readonly RemoteDeviceCallback deviceCallback = new();
+		private static readonly RemoteDeviceCallback deviceCallback = new RemoteDeviceCallback();
 
 		/// <summary>
 		/// The interface defining the calls back to the application

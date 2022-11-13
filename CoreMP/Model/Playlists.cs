@@ -9,7 +9,7 @@ namespace CoreMP
 	/// The Playlists class holds a collection of all the SongPlaylist and AlbumPlaylist entries read from storage.
 	/// It allows access to these entries and automatically persists changes back to storage
 	/// </summary>	
-	public static class Playlists
+	internal static class Playlists
 	{
 		/// <summary>
 		/// Get the Playlists collection from storage
@@ -59,14 +59,14 @@ namespace CoreMP
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
 		public static List<Playlist> GetPlaylistsForLibrary( int libraryId ) =>
-			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name != NowPlayingPlaylistName ) ).ToList();
+			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name != Playlist.NowPlayingPlaylistName ) ).ToList();
 
 		/// <summary>
 		/// Get the Now Playing playlist for the specified library
 		/// </summary>
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
-		public static Playlist GetNowPlayingPlaylist( int libraryId ) => GetPlaylist( NowPlayingPlaylistName, libraryId );
+		public static Playlist GetNowPlayingPlaylist( int libraryId ) => GetPlaylist( Playlist.NowPlayingPlaylistName, libraryId );
 
 		/// <summary>
 		/// Get a playlist given its name and library
@@ -76,28 +76,6 @@ namespace CoreMP
 		/// <returns></returns>
 		public static Playlist GetPlaylist( string name, int libraryId ) =>
 			PlaylistCollection.Where( play => ( play.LibraryId == libraryId ) && ( play.Name == name ) ).FirstOrDefault();
-
-		/// <summary>
-		/// Get the parent playlist for a playlistitem
-		/// </summary>
-		/// <param name="playlistId"></param>
-		/// <returns></returns>
-		public static Playlist GetParentPlaylist( PlaylistItem playlistItem )
-		{
-			Playlist parentPlaylist = null;
-
-			// Playlist ids are not unique as they are held in different tables, so we need to match the playlist type as well as its id
-			if ( playlistItem is SongPlaylistItem )
-			{
-				parentPlaylist = PlaylistCollection.Where( play => ( play.Id == playlistItem.PlaylistId ) && ( play is SongPlaylist ) ).FirstOrDefault();
-			}
-			else
-			{
-				parentPlaylist = PlaylistCollection.Where( play => ( play.Id == playlistItem.PlaylistId ) && ( play is AlbumPlaylist ) ).FirstOrDefault();
-			}
-
-			return parentPlaylist;
-		}
 
 		/// <summary>
 		/// Delete the specified Playlist from the collections and from the storage
@@ -166,7 +144,7 @@ namespace CoreMP
 		{
 			foreach ( Playlist playlist in PlaylistCollection )
 			{
-				if ( playlist.Name != NowPlayingPlaylistName )
+				if ( playlist.Name != Playlist.NowPlayingPlaylistName )
 				{
 					playlist.CheckForAdjacentSongEntries( previousSongIdentity, currentSongIdentity );
 				}
@@ -181,7 +159,7 @@ namespace CoreMP
 		{
 			foreach ( Playlist playlist in PlaylistCollection )
 			{
-				if ( playlist.Name != NowPlayingPlaylistName )
+				if ( playlist.Name != Playlist.NowPlayingPlaylistName )
 				{
 					playlist.SongFinished( songIdentity );
 				}
@@ -192,10 +170,5 @@ namespace CoreMP
 		/// The set of Playlists currently held in storage
 		/// </summary>
 		public static List<Playlist> PlaylistCollection { get; set; } = null;
-
-		/// <summary>
-		/// The name given to the Now Playing playlist
-		/// </summary>
-		public const string NowPlayingPlaylistName = "Now Playing";
 	}
 }

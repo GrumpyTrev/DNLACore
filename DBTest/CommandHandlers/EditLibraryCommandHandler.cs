@@ -28,17 +28,7 @@ namespace DBTest
 
 						// The user has requested that a new source be added to the selected library
 						// Add a new source and tell the SourceSelectionDialogFragment that it needs to redisplay its data
-						newSourceCallback: () =>
-						{
-							MainApp.CommandInterface.CreateSourceForLibrary( selectedLibrary );
-
-							// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
-							sourceSelectionDialog?.OnSourceChanged();
-						},
-
-						// Called when the SourceSelectionDialogFragment dialog is displayed( OnResume )
-						// Save the reference for updating the sources if tey are edited
-						bindCallback: ( dialogue ) => sourceSelectionDialog = dialogue ) );
+						newSourceCallback: () => MainApp.CommandInterface.CreateSourceForLibrary( selectedLibrary ) ) );
 
 		/// <summary>
 		/// Called when an updated source has been submitted for saving
@@ -55,9 +45,6 @@ namespace DBTest
 			{
 				// Something has changed so update the source
 				originalSource.UpdateSource( newSource );
-
-				// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
-				sourceSelectionDialog?.OnSourceChanged();
 
 				// Dismiss the dialogue
 				dismissDialogAction.Invoke();
@@ -80,9 +67,6 @@ namespace DBTest
 					// Delete the source
 					MainApp.CommandInterface.DeleteSource( sourceToDelete );
 
-					// Need to tell the SourceSelectionDialogFragment that it needs to redisplay its data
-					sourceSelectionDialog?.OnSourceChanged();
-
 					// Dismiss the dialogue
 					dismissDialogAction.Invoke();
 				} );
@@ -91,10 +75,5 @@ namespace DBTest
 		/// The command identity associated with this handler
 		/// </summary>
 		protected override int CommandIdentity { get; } = Resource.Id.edit_library;
-
-		/// <summary>
-		/// SourceSelectionDialogFragment reference held so that it can be infromed of source detail changes
-		/// </summary>
-		private SourceSelectionDialogFragment sourceSelectionDialog = null;
 	}
 }

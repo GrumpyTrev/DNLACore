@@ -1,7 +1,4 @@
-﻿using Android.Content;
-using CoreMP;
-
-namespace DBTest
+﻿namespace CoreMP
 {
 	/// <summary>
 	/// The PlaybackRouter is responsible for routing playback instruction to a particular playback device according to the 
@@ -12,13 +9,18 @@ namespace DBTest
 		/// <summary>
 		/// PlaybackRouter constructor
 		/// </summary>
-		public PlaybackRouter( Context context )
+		public PlaybackRouter()
 		{
-			localPlayback = new LocalPlayback( context ) { Reporter = this };
-			remotePlayback = new RemotePlayback( context ) { Reporter = this };
+			remotePlayback = new RemotePlayback() { Reporter = this };
 
 			// Link this router to the controller
 			PlaybackManagementController.DataReporter = this;
+		}
+
+		public void SetLocalPlayback( BasePlayback localPlayer )
+		{
+			localPlayback = localPlayer;
+			localPlayback.Reporter = this;
 		}
 
 		/// <summary>
@@ -27,7 +29,7 @@ namespace DBTest
 		/// </summary>
 		public void StopRouter()
 		{
-			localPlayback.StopConnection();
+			localPlayback?.StopConnection();
 			remotePlayback.StopConnection();
 
 			// As this instance is being destroyed don't leave any references hanging around
@@ -166,7 +168,7 @@ namespace DBTest
 		/// <summary>
 		/// The local playback instance
 		/// </summary>
-		private readonly BasePlayback localPlayback = null;
+		private BasePlayback localPlayback = null;
 
 		/// <summary>
 		/// The remote (DLNA) playback instance

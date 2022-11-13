@@ -8,7 +8,7 @@ namespace CoreMP
 	/// The Artists class holds a collection of all the Artists entries read from storage.
 	/// It allows access to Artists entries by Id and automatically persists changes back to storage
 	/// </summary>	
-	public static class ArtistAlbums
+	internal static class ArtistAlbums
 	{
 		/// <summary>
 		/// Get the Artists collection from storage

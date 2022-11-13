@@ -51,7 +51,7 @@ namespace DBTest
 			{
 				foreach ( Song selectedSong in selectedObjects.Songs )
 				{
-					selectedGenres.AddRange( ArtistAlbums.GetArtistAlbumById( selectedSong.ArtistAlbumId ).Album.Genre.Split( ';' ).ToList() );
+					selectedGenres.AddRange( selectedSong.Album.Genre.Split( ';' ).ToList() );
 				}
 			}
 

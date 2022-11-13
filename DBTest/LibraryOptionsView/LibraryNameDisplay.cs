@@ -33,7 +33,7 @@ namespace DBTest
 					titleTextView.Click += ( _, _ ) => titlePopup.Show();
 
 					// Register for changes to the LibraryNameViewModel and update the displayed library name when there has been a change
-					NotificationHandler.Register( typeof( LibraryNameViewModel ), ( string _ ) => titleTextView.Text = LibraryNameViewModel.LibraryName );
+					NotificationHandler.Register( typeof( LibraryNameViewModel ), ( _,  _ ) => titleTextView.Text = LibraryNameViewModel.LibraryName );
 				}
 			}
 			else

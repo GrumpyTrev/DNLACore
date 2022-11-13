@@ -53,7 +53,7 @@ namespace DBTest
 			// Determine if there is a parent playlist
 			if ( PlaylistItems.Count > 0 )
 			{
-				ParentPlaylist = CoreMP.Playlists.GetParentPlaylist( PlaylistItems[ 0 ] );
+				ParentPlaylist = PlaylistItems[ 0 ].GetParentPlaylist();
 			}
 		}
 
