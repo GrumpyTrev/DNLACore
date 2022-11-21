@@ -199,7 +199,7 @@ namespace DBTest
 				localPlayer.SetAudioStreamType( Stream.Music );
 			}
 
-			MediaPlayerInterface playInterface = new MediaPlayerInterface( this );
+			MediaPlayerInterface playInterface = new ( this );
 			localPlayer.SetOnPreparedListener( playInterface );
 			localPlayer.SetOnErrorListener( playInterface );
 			localPlayer.SetOnCompletionListener( playInterface );

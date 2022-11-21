@@ -7,33 +7,32 @@ using Android.Widget;
 using CoreMP;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
-using FragmentManager = Android.Support.V4.App.FragmentManager;
 
 namespace DBTest
 {
 	/// <summary>
 	/// Used to allow the user to select a library source to edit
 	/// </summary>
-	internal class SourceSelectionDialogFragment : DialogFragment, SourceDisplayAdapter.IReporter
+	internal class SourceSelectionDialog : DialogFragment
 	{
 		/// <summary>
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Library displayLibrary, SourceSelected callback, NewSourceRequested newSourceCallback )
+		public static void Show( Library displayLibrary, Action< Source > sourceSelectedAction, Action newSourceAction )
 		{
 			// Save the parameters so that they are available after a configuration change
 			libraryToDisplay = displayLibrary;
-			reporter = callback;
-			newSourceReporter = newSourceCallback;
+			sourceSelectedCallback = sourceSelectedAction;
+			newSourceReporter = newSourceAction;
 
-			new SourceSelectionDialogFragment().Show( manager, "fragment_source_selection" );
+			new SourceSelectionDialog().Show( CommandRouter.Manager, "fragment_source_selection" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public SourceSelectionDialogFragment()
+		public SourceSelectionDialog()
 		{
 		}
 
@@ -50,7 +49,9 @@ namespace DBTest
 			// Create an adapter for the list view to display the main source details
 			// Keep a reference to the adapter so that we can refresh the data if a source is changed
 			ListView sourceView = layout.FindViewById<ListView>( Resource.Id.sourceList );
-			sourceAdapter = new SourceDisplayAdapter( Context, libraryToDisplay.Sources, sourceView, this );
+			SourceDisplayAdapter sourceAdapter = new( Context, libraryToDisplay.Sources, sourceView,
+				( Source selectedSource ) => sourceSelectedCallback.Invoke( selectedSource ) );
+			
 			sourceView.Adapter = sourceAdapter;
 
 			// Register interest in the Library's sources
@@ -58,6 +59,7 @@ namespace DBTest
 			{
 				if ( sender == libraryToDisplay )
 				{
+					// Refresh the adapter
 					sourceAdapter.SetData( libraryToDisplay.Sources );
 				}
 			} );
@@ -69,22 +71,23 @@ namespace DBTest
 			return new AlertDialog.Builder( Activity )
 				.SetTitle( string.Format( "{0} sources", libraryToDisplay.Name ) )
 				.SetView( layout )
+				// Don't set an handler for the New Source button to prevent automatic dialog closure
 				.SetNeutralButton( "New Source", ( EventHandler<DialogClickEventArgs> )null )
 				.SetPositiveButton( "Done", delegate { } ).Create();
 		}
 
 		/// <summary>
-		/// Bind this dialogue to its command handler.
-		/// The command handler will then update the dialogue's state
+		/// Install a handler for the New button
 		/// </summary>
 		public override void OnResume()
 		{
 			base.OnResume();
-
-			// Install a handler for the New button
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Neutral ).Click += ( sender, args ) => newSourceReporter.Invoke();
+			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Neutral ).Click += ( _, _ ) => newSourceReporter.Invoke();
 		}
 
+		/// <summary>
+		/// When the dialog is destroyed get rid of any outstanding notification registrations
+		/// </summary>
 		public override void OnPause()
 		{
 			base.OnPause();
@@ -92,40 +95,18 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a source has been selected
-		/// Report the selection back to the command handler
-		/// </summary>
-		/// <param name="selectedSource"></param>
-		public void OnSourceSelected( Source selectedSource ) => reporter?.Invoke( selectedSource );
-
-		/// <summary>
-		/// Delegate type used to report back the selected source
-		/// </summary>
-		public delegate void SourceSelected( Source selectedSource );
-
-		/// <summary>
 		/// The delegate to call when a source has been selected for editing
 		/// </summary>
-		private static SourceSelected reporter = null;
-
-		/// <summary>
-		/// Delegate type used to report back a new source request
-		/// </summary>
-		public delegate void NewSourceRequested();
+		private static Action<Source> sourceSelectedCallback = null;
 
 		/// <summary>
 		/// The delegate to call when a new source request has been made
 		/// </summary>
-		private static NewSourceRequested newSourceReporter = null;
+		private static Action newSourceReporter = null;
 
 		/// <summary>
 		/// The library to display
 		/// </summary>
 		private static Library libraryToDisplay = null;
-
-		/// <summary>
-		/// The Adapter showing the sources
-		/// </summary>
-		private SourceDisplayAdapter sourceAdapter = null;
 	}
 }

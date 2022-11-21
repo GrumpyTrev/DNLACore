@@ -176,7 +176,7 @@ namespace DBTest
 			// Display an error message if the playlist name is not valid. 
 			if ( alertText.Length > 0 )
 			{
-				NotificationDialogFragment.ShowFragment( CommandRouter.Manager, alertText );
+				NotificationDialog.Show( alertText );
 			}
 			else
 			{
@@ -201,8 +201,6 @@ namespace DBTest
 
 				foreach ( Album album in selectedObjects.Albums )
 				{
-					AlbumsController.GetAlbumContents( album );
-
 					foreach ( Song song in album.Songs )
 					{
 						selectedSongs.Remove( song.Id );

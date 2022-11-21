@@ -1,5 +1,4 @@
 ﻿using System;
-using SQLite;
 
 namespace CoreMP
 {
@@ -11,9 +10,6 @@ namespace CoreMP
 		public CoreMPApp()
 		{
 			instance = this;
-
-			// Initialise the network monitoring
-			deviceDiscoverer = new DeviceDiscovery();
 
 			playbackRouter = new PlaybackRouter();
 		}
@@ -33,7 +29,7 @@ namespace CoreMP
 		/// </summary>
 		public void Initialise()
 		{
-			InitialiseStorage( coreInterface.StoragePath );
+			new ConnectionController().InitialiseConnection( coreInterface.StoragePath );
 
 			// Configure the controllers
 			ConfigureControllers();
@@ -62,7 +58,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="callback"></param>
 		public static void RegisterPlaybackCapabilityCallback( DeviceDiscovery.IDeviceDiscoveryChanges callback ) =>
-			instance.deviceDiscoverer.RegisterCallback( callback );
+			deviceDiscoverer.RegisterCallback( callback );
 
 		/// <summary>
 		/// Post an Action onto the UI thread
@@ -79,81 +75,14 @@ namespace CoreMP
 		/// </summary> 
 		private void ConfigureControllers()
 		{
-			AlbumsController.GetControllerData();
-			ArtistsController.GetControllerData();
 			PlaylistsController.GetControllerData();
-			LibraryNameDisplayController.GetControllerData();
-			LibraryManagementController.GetControllerData();
-			FilterManagementController.GetControllerData();
 			PlaybackSelectionController.GetControllerData();
-			AutoplayController.GetControllerData();
 			PlaybackModeController.GetControllerData();
 			PlaybackManagementController.GetControllerData();
 			MediaControllerController.GetControllerData();
 			MediaNotificationController.GetControllerData();
             NowPlayingController.GetControllerData();
         }
-
-        /// <summary>
-        /// Initialisze access to the persistent storage
-        /// </summary>
-        private void InitialiseStorage( string databasePath )
-		{
-			// The synchronous and aynchronous connectionn
-			ConnectionDetailsModel.SynchConnection = new SQLiteConnection( databasePath );
-			ConnectionDetailsModel.AsynchConnection = new SQLiteAsyncConnection( databasePath )
-			{
-				// Tracing when required
-				Tracer = ( message ) => Logger.Log( message ),
-
-				// Tracing currently required
-				Trace = true
-			};
-
-			// Initialise the rest of the ConnectionDetailsModel if required
-			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
-		}
-
-		/// <summary>
-		/// Make sure that the database exists and extract the current library
-		/// </summary>
-		private int InitialiseDatabase()
-		{
-			int currentLibraryId = -1;
-
-			bool createTables = false;
-
-			try
-			{
-				if ( createTables == true )
-				{
-					// Create the tables if they don't already exist
-					ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Artist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylistItem>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Autoplay>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<GenrePopulation>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylistItem>();
-				}
-
-				// Check for a Playback record which will tell us the currently selected library
-				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault().DBLibraryId;
-			}
-			catch ( SQLite.SQLiteException )
-			{
-			}
-
-			return currentLibraryId;
-		}
 
 		/// <summary>
 		/// The one and only MainApp
@@ -163,12 +92,14 @@ namespace CoreMP
 		/// <summary>
 		/// The one and only Http server used to serve local files to remote devices
 		/// </summary>
+#pragma warning disable IDE0052 // Remove unread private members
 		private static readonly SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
+#pragma warning restore IDE0052 // Remove unread private members
 
 		/// <summary>
 		/// The DeviceDiscovery instance used to monitor the network and scan for DLNA devices
 		/// </summary>
-		private readonly DeviceDiscovery deviceDiscoverer = null;
+		private static readonly DeviceDiscovery deviceDiscoverer = new DeviceDiscovery();
 
 		/// <summary>
 		/// The PlaybackRouter used to pass playback requests to the the correct playback device

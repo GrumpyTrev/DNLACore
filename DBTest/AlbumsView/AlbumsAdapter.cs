@@ -59,7 +59,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sectionIndex"></param>
 		/// <returns></returns>
-		public override int GetPositionForSection( int sectionIndex ) => AlbumsViewModel.FastScrollSections[ sectionIndex ].Item2;
+		public override int GetPositionForSection( int sectionIndex ) => fastScrollSections[ sectionIndex ].Item2;
 
 		/// <summary>
 		/// Return the names of all the sections
@@ -76,11 +76,6 @@ namespace DBTest
 			bool selectionChanged = false;
 			for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
 			{
-				if ( Groups[ groupIndex ].Songs == null )
-				{
-					contentsProvider.ProvideGroupContents( Groups[ groupIndex ] );
-				}
-
 				selectionChanged |= SelectGroupContents( groupIndex, select );
 				selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
 			}
@@ -166,8 +161,7 @@ namespace DBTest
 
 			// Display the album. Specify the genre test directly according to the current sort mode
 			Album album = Groups[ groupPosition ];
-			string genreText = ( SortType != SortType.genre ) ? album.Genre
-				: AlbumsViewModel.FastScrollSections[ AlbumsViewModel.FastScrollSectionLookup[ groupPosition ] ].Item1;
+			string genreText = ( SortType != SortType.genre ) ? album.Genre : fastScrollSections[ FastScrollSectionLookup[ groupPosition ] ].Item1;
 
 			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, genreText );
 
@@ -191,11 +185,6 @@ namespace DBTest
 		protected override bool SelectLongClickedItem( int tag ) => true;
 
 		/// <summary>
-		/// The section lookup used for fast scrolling
-		/// </summary>
-		protected override int[] FastScrollLookup { get; } = AlbumsViewModel.FastScrollSectionLookup;
-
-		/// <summary>
 		/// This is called by the base class when new data has been provided in order to create some of the fast scroll data.
 		/// Most of this has already been done in the AlbumsController.
 		/// All that is missing is the copying of the section names into an array of Java strings
@@ -205,13 +194,13 @@ namespace DBTest
 			// Clear the array first in case there are none
 			javaSections = null;
 
-			if ( AlbumsViewModel.FastScrollSections != null )
+			if ( fastScrollSections != null )
 			{
-				// Size the section array from the AlbumsViewModel.FastScrollSections
-				javaSections = new Java.Lang.Object[ AlbumsViewModel.FastScrollSections.Count ];
+				// Size the section array from the fastScrollSections
+				javaSections = new Java.Lang.Object[ fastScrollSections.Count ];
 				for ( int index = 0; index < javaSections.Length; ++index )
 				{
-					javaSections[ index ] = new Java.Lang.String( AlbumsViewModel.FastScrollSections[ index ].Item1 );
+					javaSections[ index ] = new Java.Lang.String( fastScrollSections[ index ].Item1 );
 				}
 			}
 		}

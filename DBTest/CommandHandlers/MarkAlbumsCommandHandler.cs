@@ -63,7 +63,7 @@ namespace DBTest
 				// Mark the selected albums as played
 				foreach ( Album album in selectedObjects.Albums )
 				{
-					FilterManagementController.AddAlbumToTag( FilterManagementModel.JustPlayedTag, album );
+					MainApp.CommandInterface.AddAlbumToTag( FilterManagementModel.JustPlayedTag, album );
 				}
 
 				commandCallback.PerformAction();
@@ -73,7 +73,7 @@ namespace DBTest
 				// Mark the selected albums as not-played
 				foreach ( Album album in selectedObjects.Albums )
 				{
-					FilterManagementController.RemoveAlbumFromTag( FilterManagementModel.JustPlayedTag, album );
+					MainApp.CommandInterface.RemoveAlbumFromTag( FilterManagementModel.JustPlayedTag, album );
 				}
 
 				commandCallback.PerformAction();

@@ -19,9 +19,9 @@ namespace CoreMP
 			LibraryId = -1;
 			FilteredAlbumsIds.Clear();
 			SortSelection.ActiveSortType = SortType.alphabetic; // This also sets the sort order to alphabetic ascending
-			FastScrollSections = null;
-			FastScrollSectionLookup = null;
 		}
+
+		public static ModelAvailable Available { get; } = new ModelAvailable();
 
 		/// <summary>
 		/// The list of artists that has been obtained from the database. These are sorted and filtered by the user.
@@ -38,27 +38,6 @@ namespace CoreMP
 		/// </summary>
 		public static List<object> ArtistsAndAlbums { get; set; } = new List<object>();
 
-		//
-		// The following two collections are used for fast scrolling
-		// The Adapter requires 3 things
-		// 1) A list of all the section names in display order
-		// 2) The starting index for each section
-		// 3) The section index for each album
-		//
-		// The section names can be obtained from FastScrollSections
-		// The starting index for a section is FastScrollSections[ sectionIndex ]
-		// The section index for an album is FastScrollSectionLookup[ albumIndex ]
-		//
-		/// <summary>
-		/// Lookup table specifying the strings used when fast scrolling, and the index into the ArtistsAndAlbums collection
-		/// </summary>
-		public static List<Tuple<string, int>> FastScrollSections = null;
-
-		/// <summary>
-		/// Array of the section indexes associated with each ArtistsAndAlbums entry
-		/// </summary>
-		public static int[] FastScrollSectionLookup = null;
-
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
@@ -69,9 +48,7 @@ namespace CoreMP
 		/// </summary>
 		public static HashSet<int> FilteredAlbumsIds { get; set; } = new HashSet<int>();
 		
-
 		public static FilterSelectionModel FilterSelection { get; } = new FilterSelectionModel();
-
 
 		public static SortSelectionModel SortSelection { get; } = new SortSelectionModel();
 	}

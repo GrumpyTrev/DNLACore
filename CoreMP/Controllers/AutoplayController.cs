@@ -7,17 +7,16 @@ namespace CoreMP
 	/// <summary>
 	/// The AutoplayController class is the controller for the AutoplayManagement
 	/// </summary>
-	public class AutoplayController
+	internal class AutoplayController
 	{
 		/// <summary>
 		/// Create the one and only instance of the controller
 		/// </summary>
-		static AutoplayController() => SongSelectedMessage.Register( SongSelected );
-
-		/// <summary>
-		/// Get the Controller data
-		/// </summary>
-		public static void GetControllerData() => dataReporter.GetData();
+		public AutoplayController()
+		{
+			NotificationHandler.Register( typeof( Playlists ), SongSelected );
+			NotificationHandler.Register( typeof( StorageController ), StorageDataAvailable );
+		}
 
 		/// <summary>
 		/// Start filling the NowPlaying list with the first set of songs
@@ -26,7 +25,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="selectedSong"></param>
 		/// <param name="genres"></param>
-		public static void StartAutoplay( IEnumerable<Song> selectedSongs, IEnumerable<string> genres, bool playNow )
+		public void StartAutoplay( IEnumerable<Song> selectedSongs, IEnumerable<string> genres, bool playNow )
 		{
 			// Clear any existing Genre/Album populations from the Autoplay record
 			AutoplayModel.CurrentAutoplay.Clear();
@@ -66,7 +65,7 @@ namespace CoreMP
 		/// Get the Autoplay record for the current library
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void StorageDataAvailable()
+		private async void StorageDataAvailable()
 		{
 			// Link the Autoplay records with their Populations
 			await Autoplays.LinkPopulationsAsync();
@@ -83,7 +82,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="songs"></param>
 		/// <returns></returns>
-		private static void GenerateSongs( List<Song> songs )
+		private void GenerateSongs( List<Song> songs )
 		{
 			Random generator = new Random();
 
@@ -159,9 +158,6 @@ namespace CoreMP
 					// Now choose an Album from that population
 					Album album = selectedPopulation.Albums[ generator.Next( 0, selectedPopulation.Albums.Count ) ];
 
-					// Make sure that all the songs are available for the album
-					album.GetSongs();
-
 					// Now add a song
 					songs.Add( album.Songs[ generator.Next( 0, album.Songs.Count ) ] );
 
@@ -181,7 +177,7 @@ namespace CoreMP
 		/// All the songs prior to the song index are removed except for the last "LeaveSongs"
 		/// Only proceed with any of this processing if autoplay is active
 		/// </summary>
-		private static void SongSelected()
+		private void SongSelected()
 		{
 			if ( PlaybackModeModel.AutoOn == true )
 			{
@@ -228,11 +224,6 @@ namespace CoreMP
 		private const int LeaveSongs = 10;
 
 		/// The last population index used to select from
-		private static int populationNumber = -1;
-
-		/// <summary>
-		/// The DataReporter instance used to handle storage availability reporting
-		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private int populationNumber = -1;
 	}
 }

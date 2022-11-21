@@ -7,27 +7,17 @@ namespace CoreMP
 	/// <summary>
 	/// The FilterManagementController class responds to filter selection commands and reflects changes to other controllers
 	/// </summary>
-	public class FilterManagementController
+	internal class FilterManagementController
 	{
 		/// <summary>
 		/// Register for external filter change messages
 		/// </summary>
-		static FilterManagementController()
+		public FilterManagementController()
 		{
 			SongStartedMessage.Register( SongStarted );
 			AlbumsDeletedMessage.Register( AlbumsDeleted );
+			NotificationHandler.Register( typeof( StorageController ), StorageDataAvailable );
 		}
-
-		/// <summary>
-		/// Get the Controller data
-		/// </summary>
-		public static void GetControllerData() => dataReporter.GetData();
-
-		/// <summary>
-		/// Return a list of the names of all the tags.
-		/// </summary>
-		/// <returns></returns>
-		public static List<string> GetTagNames() => Tags.TagsCollection?.Select( tag => tag.Name ).ToList() ?? new List<string>();
 
 		/// <summary>
 		/// Form Tags and associated TaggedAlbum entries for each genre
@@ -83,7 +73,7 @@ namespace CoreMP
 			genres.Tags.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
 
 			// Display all the tags and the number of albums associated with them
-			bool displayTags = false;
+			bool displayTags = true;
 
 			if ( displayTags == true )
 			{
@@ -104,7 +94,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="toTag"></param>
 		/// <param name="albumToAdd"></param>
-		public static void AddAlbumToTag( Tag toTag, Album albumToAdd, bool synchronise = true )
+		public void AddAlbumToTag( Tag toTag, Album albumToAdd, bool synchronise = true )
 		{
 			// Get the set of TaggedAlbum entries in this tag for the album's library
 			List<TaggedAlbum> tagEntriesInSameLibrary = toTag.TaggedAlbums.Where( ta => ta.Album.LibraryId == albumToAdd.LibraryId ).ToList();
@@ -169,7 +159,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="fromTag"></param>
 		/// <param name="albumId"></param>
-		public static void RemoveAlbumFromTag( Tag fromTag, Album albumToRemove )
+		public void RemoveAlbumFromTag( Tag fromTag, Album albumToRemove )
 		{
 			// Check if the album is actually tagged
 			TaggedAlbum taggedAlbum = fromTag.TaggedAlbums.SingleOrDefault( tag => ( tag.AlbumId == albumToRemove.Id ) );
@@ -201,7 +191,7 @@ namespace CoreMP
 		/// <summary>
 		/// Synchronise the 'played' status of albums across all the libraries
 		/// </summary>
-		public static void SynchroniseAlbumPlayedStatus()
+		public void SynchroniseAlbumPlayedStatus()
 		{
 			// Find all the unique Album/Artist name combinations associated with the JustPlayedTag
 			List<(string Name, string ArtistName)> distinctAlbums = 
@@ -239,7 +229,7 @@ namespace CoreMP
 		/// Called during startup when data is available from storage
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void StorageDataAvailable()
+		private async void StorageDataAvailable()
 		{
 			// Extract the 'system' tags from this list for easy access later
 			FilterManagementModel.JustPlayedTag = Tags.GetTagByName( JustPlayedTagName );
@@ -255,7 +245,7 @@ namespace CoreMP
 		/// Link the TaggedAlbum entries to their Tags and set the Album entry in the TaggedAlbum  
 		/// </summary>
 		/// <returns></returns>
-		private static async Task LinkInTaggedAlbums() => await Task.Run( () =>
+		private async Task LinkInTaggedAlbums() => await Task.Run( () =>
 		{
 			// Tags indexed by their ids
 			Dictionary<int, Tag> tagLookup = Tags.TagsCollection.ToDictionary( tag => tag.Id );
@@ -296,7 +286,7 @@ namespace CoreMP
 		/// Create the NotPlayed tag based on the Just Played tag
 		/// </summary>
 		/// <returns></returns>
-		private static async Task CreateNotPlayedTagAsync() => await Task.Run( () =>
+		private async Task CreateNotPlayedTagAsync() => await Task.Run( () =>
 		{
 			// Create a new Not Played tag
 			FilterManagementModel.NotPlayedTag = new Tag() { Name = NotPlayedTagName, ShortName = NotPlayedTagName, Synchronise = true };
@@ -321,7 +311,7 @@ namespace CoreMP
 		/// Add the associated album to the Just Played tag 
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongStarted( Song songPlayed )
+		private void SongStarted( Song songPlayed )
 		{
 			// Assume that the album does not need adding to the tag
 			bool addTag = false;
@@ -367,7 +357,7 @@ namespace CoreMP
 		/// Do not synchronise as this is due to a library scan and not the user removing albums from a tag
 		/// </summary>
 		/// <param name="message"></param>
-		private static void AlbumsDeleted( List<int> deletedAlbums )
+		private void AlbumsDeleted( List<int> deletedAlbums )
 		{
 			// Get the list of deleted albums and apply to each tag
 			HashSet<int> deletedAlbumIds = deletedAlbums.ToHashSet();
@@ -420,10 +410,5 @@ namespace CoreMP
 		/// The name given to the "Not played" tag
 		/// </summary>
 		public const string NotPlayedTagName = "Not played";
-
-		/// <summary>
-		/// The DataReporter instance used to handle storage availability reporting
-		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

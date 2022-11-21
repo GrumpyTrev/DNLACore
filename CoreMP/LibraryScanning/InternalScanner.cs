@@ -11,7 +11,11 @@ namespace CoreMP
 		/// Public constructor supplying the interface used to store scanned songs
 		/// </summary>
 		/// <param name="songInterface"></param>
-		public InternalScanner( SongStorage songInterface ) => storageInterface = songInterface;
+		public InternalScanner( SongStorage songInterface, Func<bool> cancelledCheck )
+		{
+			storageInterface = songInterface;
+			scanCancelledCheck = cancelledCheck;
+		}
 
 		/// <summary>
 		/// Start scanning the contents of the FTP server at the specified IP address
@@ -31,7 +35,7 @@ namespace CoreMP
 		/// <returns></returns>
 		public async Task ScanDirectory( string directoryName )
 		{
-			if ( ( CancelRequested?.Invoke() ?? false ) == false )
+			if ( scanCancelledCheck.Invoke() == false )
 			{
 				// Access the directory details
 				DirectoryInfo info = new DirectoryInfo( directoryName );
@@ -118,14 +122,8 @@ namespace CoreMP
 		private string rootDirectory;
 
 		/// <summary>
-		/// Delegate used to determine if this task has been cancelled
+		/// Function to call to check if the scan has been cancelled
 		/// </summary>
-		/// <returns></returns>
-		public delegate bool CancelRequestedDelegate();
-
-		/// <summary>
-		/// Instance of CancelRequestedDelegate delegate
-		/// </summary>
-		public CancelRequestedDelegate CancelRequested { private get; set; } = null;
+		private readonly Func<bool> scanCancelledCheck = null;
 	}
 }

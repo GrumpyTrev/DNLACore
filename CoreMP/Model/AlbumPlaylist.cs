@@ -24,9 +24,6 @@ namespace CoreMP
 			{
 				playlistItem.Album = Albums.GetAlbumById( playlistItem.AlbumId );
 
-				// Get the contents of this playlist as the SongIndex processing assumes that the Songs are available
-				playlistItem.Album.GetSongs();
-
 				// If this item is empty then don't add it to the AlbumPlaylist
 				if ( playlistItem.Album.Songs.Count == 0 )
 				{
@@ -93,7 +90,11 @@ namespace CoreMP
 					if ( playlistItem.Index != itemIndex )
 					{
 						playlistItem.Index = itemIndex;
+
+						// No need to wait for this 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 						DbAccess.UpdateAsync( playlistItem );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					}
 
 					itemIndex++;

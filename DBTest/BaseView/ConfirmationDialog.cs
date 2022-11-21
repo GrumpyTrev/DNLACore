@@ -10,7 +10,7 @@ namespace DBTest
 	/// <summary>
 	/// Dialogue requesting a confirmation of an action
 	/// </summary>
-	internal class ConfirmationDialogFragment : DialogFragment
+	internal class ConfirmationDialog : DialogFragment
 	{
 		/// <summary>
 		/// Show the fragment
@@ -24,13 +24,13 @@ namespace DBTest
 			positiveButtonText = positiveText;
 			negativeButtonText = negativeText;
 
-			new ConfirmationDialogFragment().Show( CommandRouter.Manager, "fragment_confirmation_tag" );
+			new ConfirmationDialog().Show( CommandRouter.Manager, "fragment_confirmation_tag" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public ConfirmationDialogFragment() => Cancelable = false;
+		public ConfirmationDialog() => Cancelable = false;
 
 		/// <summary>
 		/// Create the dialogue	

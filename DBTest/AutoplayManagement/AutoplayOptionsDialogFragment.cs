@@ -48,7 +48,7 @@ namespace DBTest
 			Spinner fastSpreadSpinner = dialogView.FindViewById<Spinner>( Resource.Id.fastSpreadLimit );
 			LinearLayout fastSpreadLimitLayout = dialogView.FindViewById<LinearLayout>( Resource.Id.fastSpreadLimitLayout );
 
-			ArrayAdapter<int> adapter = new ArrayAdapter<int>( Context, Resource.Layout.select_dialog_item_material, new int[] { 0, 1, 2, 3, 4, 5 } );
+			ArrayAdapter<int> adapter = new( Context, Resource.Layout.select_dialog_item_material, new int[] { 0, 1, 2, 3, 4, 5 } );
 			fastSpreadSpinner.Adapter = adapter;
 
 			// Only initialise if we are not restoring
@@ -64,22 +64,22 @@ namespace DBTest
 			fastSpreadLimitLayout.Visibility = ( AutoplayModel.CurrentAutoplay.Spread == Autoplay.SpreadType.Fast ) ? ViewStates.Visible : ViewStates.Gone;
 
 			// We need to know when Fast Spread has been selected so that the spinner can be show or hidden as appropriate
-			spreadGroup.CheckedChange += ( sender, args ) => 
+			spreadGroup.CheckedChange += ( _, _ ) => 
 				fastSpreadLimitLayout.Visibility = ( ( Autoplay.SpreadType )GetIndexOfSelectedChild( spreadGroup ) == Autoplay.SpreadType.Fast )
 					? ViewStates.Visible : ViewStates.Gone;
 
 			// Set up the handlers for the buttons
 			// This layout contains its own buttons so that their order and position can be controlled
-			dialogView.FindViewById<Button>( Resource.Id.auto_cancel ).Click += ( sender, args ) => Dismiss();
+			dialogView.FindViewById<Button>( Resource.Id.auto_cancel ).Click += ( _, _ ) => Dismiss();
 
 			// Report back the new Autoplay record for the Play and Queue buttons
-			dialogView.FindViewById<Button>( Resource.Id.auto_play ).Click += ( sender, args ) =>
+			dialogView.FindViewById<Button>( Resource.Id.auto_play ).Click += ( _, _ ) =>
 			{
 				reporter.Invoke( CreateNewAutoplay( spreadGroup, targetGroup, weightGroup, fastSpreadSpinner.SelectedItemPosition ), true );
 				Dismiss();
 			};
 
-			dialogView.FindViewById<Button>( Resource.Id.auto_queue ).Click += ( sender, args ) =>
+			dialogView.FindViewById<Button>( Resource.Id.auto_queue ).Click += (_, _ ) =>
 			{
 				reporter.Invoke( CreateNewAutoplay( spreadGroup, targetGroup, weightGroup, fastSpreadSpinner.SelectedItemPosition ), false );
 				Dismiss();
@@ -99,7 +99,7 @@ namespace DBTest
 		/// <param name="target"></param>
 		/// <param name="weight"></param>
 		/// <returns></returns>
-		private Autoplay CreateNewAutoplay( RadioGroup spread, RadioGroup target, RadioGroup weight, int fastSpreadLimit ) => new Autoplay()
+		private Autoplay CreateNewAutoplay( RadioGroup spread, RadioGroup target, RadioGroup weight, int fastSpreadLimit ) => new()
 		{
 			Spread = ( Autoplay.SpreadType )GetIndexOfSelectedChild( spread ),
 			Target = ( Autoplay.TargetType )GetIndexOfSelectedChild( target ),

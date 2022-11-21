@@ -79,7 +79,7 @@ namespace DBTest
 			// Display an error message if the playlist name is not valid. Do not dismiss the dialog
 			if ( alertText.Length > 0 )
 			{
-				NotificationDialogFragment.ShowFragment( CommandRouter.Manager, alertText );
+				NotificationDialog.Show( alertText );
 			}
 		}
 

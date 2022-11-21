@@ -30,7 +30,7 @@ namespace DBTest
 					if ( selectedObjects.Playlists.Count == 1 )
 					{
 						// Deletion of songs and playlist - confirm first
-						ConfirmationDialogFragment.Show( "Do you want to delete the Playlist?", () => PlaylistDeleteSelected( true ), () => PlaylistDeleteSelected( false ) );
+						ConfirmationDialog.Show( "Do you want to delete the Playlist?", () => PlaylistDeleteSelected( true ), () => PlaylistDeleteSelected( false ) );
 					}
 					else
 					{

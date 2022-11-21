@@ -19,7 +19,9 @@ namespace CoreMP
 			Name = newName;
 
 			// Update the item in the model. No need to wait for this.
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			DbAccess.UpdateAsync( this );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		/// <summary>
@@ -35,7 +37,9 @@ namespace CoreMP
 				DBSongIndex = value;
 
 				// No need to wait for the update to complete
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				DbAccess.UpdateAsync( this );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 				// Report this change
 				new PlaylistUpdatedMessage() { UpdatedPlaylist = this }.Send();
@@ -111,7 +115,9 @@ namespace CoreMP
 					itemToCheck.Index = index;
 
 					// Update the item in the model. No need to wait for this.
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					DbAccess.UpdateAsync( itemToCheck );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}
 			}
 		}

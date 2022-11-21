@@ -34,7 +34,8 @@ namespace DBTest
 		/// </summary>
 		/// <param name="currentFilter"></param>
 		/// <returns></returns>
-		public void SelectFilter() => FilterSelectionDialogFragment.ShowFragment( CommandRouter.Manager, FilterData.CurrentFilter, FilterData.TagGroups, selectionDelegate );
+		public void SelectFilter() => 
+			FilterSelectionDialogFragment.ShowFragment( CommandRouter.Manager, FilterData.CurrentFilter, FilterData.TagGroups, FilterData.GetTagNames(), selectionDelegate );
 
 		/// <summary>
 		/// Set the filter icon according to whether or not filtering is in effect

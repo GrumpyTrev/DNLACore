@@ -186,7 +186,9 @@ namespace DBTest
 		/// <summary>
 		/// The control used to interface to the application shutdown service
 		/// </summary>
+#pragma warning disable IDE0052 // Remove unread private members
 		private ApplicationShutdownInterface applicationShutdownInterface = null;
+#pragma warning restore IDE0052 // Remove unread private members
 
 		/// <summary>
 		/// The CoreMPApp instance used to iunterface to the CoreMP library

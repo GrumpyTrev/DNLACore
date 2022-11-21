@@ -1,5 +1,7 @@
 ﻿using Android.Widget;
 using CoreMP;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DBTest
@@ -13,24 +15,55 @@ namespace DBTest
 
 		/// <summary>
 		/// Get all the Song entries associated with a specified Album.
+		/// These are now read on demand in the Album, so no action is required here
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public void ProvideGroupContents( Album theAlbum )
+		public void ProvideGroupContents( Album _ )
 		{
-			if ( theAlbum.Songs == null )
-			{
-				AlbumsController.GetAlbumContents( theAlbum );
-			}
 		}
 
 		/// <summary>
 		/// Called when the Controller has obtained the Albums data
 		/// Pass it on to the adapter
 		/// </summary>
-		public override void DataAvailable() => Activity.RunOnUiThread( () =>
+		public override void DataAvailable()
 		{
+			// Generate the Fast Scroll data required by the adapter
+			List<Tuple<string, int>> fastScrollSections = null;
+			int[] fastScrollSectionLookup = null;
+
+			// Do the indexing according to the sort order stored in the model
+			switch ( AlbumsViewModel.SortSelection.CurrentSortOrder )
+			{
+				case SortOrder.alphaAscending:
+				case SortOrder.alphaDescending:
+				{
+					GenerateIndex( ref fastScrollSections, ref fastScrollSectionLookup, ( album, index ) => album.Name.RemoveThe().Substring( 0, 1 ).ToUpper() );
+					break;
+				}
+
+				case SortOrder.yearAscending:
+				case SortOrder.yearDescending:
+				{
+					GenerateIndex( ref fastScrollSections, ref fastScrollSectionLookup, ( album, index ) => album.Year.ToString() );
+					break;
+				}
+
+				case SortOrder.genreAscending:
+				{
+					GenerateIndex( ref fastScrollSections, ref fastScrollSectionLookup, ( album, index ) => AlbumsViewModel.AlbumIndexToGenreLookup[ index ] );
+					break;
+				}
+
+				case SortOrder.genreDescending:
+				{
+					GenerateIndex( ref fastScrollSections, ref fastScrollSectionLookup, ( album, index ) => AlbumsViewModel.AlbumIndexToGenreLookup[ AlbumsViewModel.Albums.Count - 1 - index ] );
+					break;
+				}
+			}
+
 			// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-			Adapter.SetData( AlbumsViewModel.Albums.ToList(), AlbumsViewModel.SortSelection.ActiveSortType );
+			Adapter.SetData( AlbumsViewModel.Albums.ToList(), AlbumsViewModel.SortSelection.ActiveSortType, fastScrollSections, fastScrollSectionLookup );
 
 			// Indicate whether or not a filter has been applied
 			AppendToTabTitle();
@@ -39,7 +72,7 @@ namespace DBTest
 			FilterSelector.DisplayFilterIcon();
 
 			base.DataAvailable();
-		} );
+		}
 
 		/// <summary>
 		/// Called when the number of selected items (songs) has changed.
@@ -75,7 +108,19 @@ namespace DBTest
 		/// Action to be performed after the main view has been created
 		/// Initialise the AlbumsController
 		/// </summary>
-		protected override void PostViewCreateAction() => AlbumsController.DataReporter = this;
+		protected override void PostViewCreateAction()
+		{
+			NotificationHandler.Register( typeof( AlbumsViewModel ), () => DataAvailable() );
+			NotificationHandler.Register( typeof( Album ), ( sender, _ ) =>
+			{
+				// Is this album being displayed
+				int albumId = ( ( Album )sender ).Id;
+				if ( AlbumsViewModel.Albums.Any( album => album.Id == albumId ) == true )
+				{
+					Adapter.NotifyDataSetInvalidated();
+				}
+			} );
+		}
 
 		/// <summary>
 		/// Create the Data Adapter required by this fragment
@@ -86,7 +131,39 @@ namespace DBTest
 		/// Called to release any resources held by the fragment
 		/// Remove this object from the controller
 		/// </summary>
-		protected override void ReleaseResources() => AlbumsController.DataReporter = null;
+		protected override void ReleaseResources() => NotificationHandler.Deregister();
+
+		/// <summary>
+		/// Generate the fast scroll indexes using the provided function to obtain the section name
+		/// The sorted albums have already been moved/copied to the AlbumsViewModel.Albums list
+		/// </summary>
+		/// <param name="sectionNameProvider"></param>
+		private static void GenerateIndex( ref List<Tuple<string, int>> fastScrollSections, ref int[] fastScrollSectionLookup, Func<Album, int, string> sectionNameProvider )
+		{
+			// Initialise the index collections
+			fastScrollSections = new List<Tuple<string, int>>();
+			fastScrollSectionLookup = new int[ AlbumsViewModel.Albums.Count ];
+
+			// Keep track of when a section has already been added to the FastScrollSections collection
+			Dictionary<string, int> sectionLookup = new();
+
+			int index = 0;
+			foreach ( Album album in AlbumsViewModel.Albums )
+			{
+				// If this is the first occurrence of the section name then add it to the FastScrollSections collection together with the index 
+				string sectionName = sectionNameProvider( album, index );
+				int sectionIndex = sectionLookup.GetValueOrDefault( sectionName, -1 );
+				if ( sectionIndex == -1 )
+				{
+					sectionIndex = sectionLookup.Count;
+					sectionLookup[ sectionName ] = sectionIndex;
+					fastScrollSections.Add( new Tuple<string, int>( sectionName, index ) );
+				}
+
+				// Provide a quick section lookup for this album
+				fastScrollSectionLookup[ index++ ] = sectionIndex;
+			}
+		}
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -106,9 +183,9 @@ namespace DBTest
 		/// <summary>
 		/// The FilterSelection object used by this fragment
 		/// </summary>
-		protected override FilterSelector FilterSelector { get; } = new FilterSelector( AlbumsController.SetNewFilter, AlbumsViewModel.FilterSelection );
+		protected override FilterSelector FilterSelector { get; } = new FilterSelector( MainApp.CommandInterface.FilterAlbums, AlbumsViewModel.FilterSelection );
 
-		protected override SortSelector SortSelector { get; } = new SortSelector( AlbumsController.SortData, AlbumsViewModel.SortSelection );
+		protected override SortSelector SortSelector { get; } = new SortSelector( MainApp.CommandInterface.SortAlbums, AlbumsViewModel.SortSelection );
 
 		/// <summary>
 		/// Constant strings for the Action Mode bar text

@@ -113,7 +113,10 @@ namespace CoreMP
 				while ( true )
 				{
 					HttpListenerContext context = await listener.GetContextAsync();
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					Task.Factory.StartNew( () => Process( context ) );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}
 			}
 			catch ( ObjectDisposedException )

@@ -35,8 +35,10 @@ namespace CoreMP
 			actualSources.Add( sourceToAdd );
 			observableSources.Add( sourceToAdd );
 
-			// Need to wait for the source to be added to ensure that its ID is available
+			// No need to wait for the source to be added
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			DbAccess.InsertAsync( sourceToAdd );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 			// Initialise any source data that may not have been set in the new source
 			sourceToAdd.InitialiseAccess();

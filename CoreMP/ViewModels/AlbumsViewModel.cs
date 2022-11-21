@@ -18,9 +18,9 @@ namespace CoreMP
 			FilteredAlbums = null;
 			GenreSortedAlbums = null;
 			LibraryId = -1;
-			FastScrollSections = null;
-			FastScrollSectionLookup = null;
 		}
+
+		public static ModelAvailable Available { get; } = new ModelAvailable();
 
 		/// <summary>
 		/// The list of albums that is available to be displayed. These will have been filtered and sorted according to the current sort order and 
@@ -48,29 +48,6 @@ namespace CoreMP
 		/// The list of albums for the current library that has been obtained from the database before any sorting or filtering
 		/// </summary>
 		public static List<Album> UnfilteredAlbums { get; set; } = null;
-
-		//
-		// The following two collections are used for fast scrolling
-		// The Adapter requires 3 things
-		// 1) A list of all the section names in display order
-		// 2) The starting index for each section
-		// 3) The section index for each album
-		//
-		// The section names can be obtained from FastScrollSections
-		// The starting index for a section is FastScrollSections[ sectionIndex ]
-		// The section index for an album is FastScrollSectionLookup[ albumIndex ]
-		//
-		// The FastScrollSectionLookup is also used when displaying albums in genre order to obtain the genre (section name) for each album 
-		//
-		/// <summary>
-		/// Lookup table specifying the strings used when fast scrolling, and the index into the Albums collection
-		/// </summary>
-		public static List<Tuple<string, int>> FastScrollSections = null;
-
-		/// <summary>
-		/// Array of the section indexes associated with each album
-		/// </summary>
-		public static int[] FastScrollSectionLookup = null;
 
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained

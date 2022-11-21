@@ -18,6 +18,11 @@ namespace CoreMP
 		public List<ScannedSong> Songs { get; set; } = new List<ScannedSong>();
 
 		/// <summary>
+		/// The Source from which this ScannedAlbum has been found
+		/// </summary>
+		public Source ScanSource { get; set; }
+
+		/// <summary>
 		/// Are all the songs from the same artist
 		/// </summary>
 		public bool SingleArtist { get; set; } = true;

@@ -136,8 +136,11 @@ namespace DBTest
 		/// Update the data and associated sections displayed by the list view
 		/// </summary>
 		/// <param name="newData"></param>
-		public void SetData( List<T> newData, SortType sortType )
+		public void SetData( List<T> newData, SortType sortType, List<Tuple<string, int>> fastScrollSectionsList = null, int[] fastScrollSectionIndex = null )
 		{
+			fastScrollSections = fastScrollSectionsList;
+			FastScrollSectionLookup = fastScrollSectionIndex;
+
 			// If this is the first time data has been set then restore group expansions and the Action Mode.
 			// If data is being replaced then clear all state data related to the previous data
 			// Only restore group expansions if there is any data to display
@@ -347,7 +350,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		public int GetSectionForPosition( int position ) => ( FastScrollLookup == null ) ? 0 : FastScrollLookup[ Math.Min( position, FastScrollLookup.Length - 1 ) ];
+		public int GetSectionForPosition( int position ) => ( FastScrollSectionLookup == null ) ? 0 : FastScrollSectionLookup[ Math.Min( position, FastScrollSectionLookup.Length - 1 ) ];
 
 		/// <summary>
 		/// Return the names of all the sections
@@ -638,8 +641,8 @@ namespace DBTest
 		/// The FastScrollSectionLookup provided by the derived adapter
 		/// </summary>
 		/// <returns></returns>
-		protected virtual int[] FastScrollLookup{ get; } = null;
-
+		protected virtual int[] FastScrollSectionLookup { get; set; } = null;
+		
 		/// <summary>
 		/// Called to perform the actual group collapse or expansion asynchronously
 		/// If a group is being expanded then get its contents if not previously displayed
@@ -855,6 +858,11 @@ namespace DBTest
 		/// The section names sent back to the Java Adapter base class
 		/// </summary>
 		protected Java.Lang.Object[] javaSections = null;
+
+		/// <summary>
+		/// Lookup table specifying the strings used when fast scrolling, and the index into the data collection
+		/// </summary>
+		protected List<Tuple<string, int>> fastScrollSections = null;
 
 		/// <summary>
 		/// Data for the IsUserActive property

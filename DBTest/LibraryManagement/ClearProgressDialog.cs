@@ -10,7 +10,7 @@ namespace DBTest
 	/// <summary>
 	/// Display a progress dialogue whilst clearing or deleting the specified library
 	/// </summary>
-	internal class ClearProgressDialogFragment : DialogFragment
+	internal class ClearProgressDialog : DialogFragment
 	{
 		/// <summary>
 		/// Show the dialogue
@@ -23,13 +23,13 @@ namespace DBTest
 			binder = callback;
 			isClearance = clearance;
 
-			new ClearProgressDialogFragment().Show( CommandRouter.Manager, "fragment_clear_progress" );
+			new ClearProgressDialog().Show( CommandRouter.Manager, "fragment_clear_progress" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public ClearProgressDialogFragment() => Cancelable = false;
+		public ClearProgressDialog() => Cancelable = false;
 
 		/// <summary>
 		/// Create the dialogue	
@@ -73,7 +73,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// The delegate used to report back the ClearProgressDialogFragment object
+		/// The delegate used to report back the ClearProgressDialog object
 		/// </summary>
 		private static BindDialog binder = null;
 
@@ -83,9 +83,9 @@ namespace DBTest
 		private static bool isClearance = false;
 
 		/// <summary>
-		/// Delegate type used to report back the ClearProgressDialogFragment object
+		/// Delegate type used to report back the ClearProgressDialog object
 		/// </summary>
-		public delegate void BindDialog( ClearProgressDialogFragment dialogue );
+		public delegate void BindDialog( ClearProgressDialog dialogue );
 
 		/// <summary>
 		/// The name of the library to clear

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Android.Content;
 using Android.Graphics;
 using Android.Views;
@@ -69,7 +68,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="sectionIndex"></param>
 		/// <returns></returns>
-		public override int GetPositionForSection( int sectionIndex ) => ArtistsViewModel.FastScrollSections[ sectionIndex ].Item2;
+		public override int GetPositionForSection( int sectionIndex ) => fastScrollSections[ sectionIndex ].Item2;
 
 		/// <summary>
 		/// Return the names of all the sections
@@ -151,13 +150,13 @@ namespace DBTest
 			// Clear the array first in case there are none
 			javaSections = null;
 
-			if ( ArtistsViewModel.FastScrollSections != null )
+			if ( fastScrollSections != null )
 			{
 				// Size the section array from the ArtistsViewModel.FastScrollSections
-				javaSections = new Java.Lang.Object[ ArtistsViewModel.FastScrollSections.Count ];
+				javaSections = new Java.Lang.Object[ fastScrollSections.Count ];
 				for ( int index = 0; index < javaSections.Length; ++index )
 				{
-					javaSections[ index ] = new Java.Lang.String( ArtistsViewModel.FastScrollSections[ index ].Item1 );
+					javaSections[ index ] = new Java.Lang.String( fastScrollSections[ index ].Item1 );
 				}
 			}
 		}
@@ -413,11 +412,6 @@ namespace DBTest
 		/// </summary>
 		/// <param name="tag"></param>
 		protected override bool SelectLongClickedItem( int tag ) => ( IsGroupTag( tag ) == false ) || ( Groups[ GetGroupFromTag( tag ) ] is ArtistAlbum );
-
-		/// <summary>
-		/// The section lookup used for fast scrolling
-		/// </summary>
-		protected override int[] FastScrollLookup { get; } = ArtistsViewModel.FastScrollSectionLookup;
 
 		/// <summary>
 		/// Find the Artist index associated with the specified ArtistAlbum index

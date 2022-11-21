@@ -129,8 +129,8 @@ namespace CoreMP
 			{
 				GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId ).SongIndex = value;
 
-				// Inform controllers about this
-				new SongSelectedMessage().Send();
+				// Publish this change
+				NotificationHandler.NotifyPropertyChanged( null );
 			}
 		}
 

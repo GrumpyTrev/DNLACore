@@ -32,7 +32,9 @@ namespace CoreMP
 				PlaybackInstance.DBPlaybackDeviceName = value;
 
 				// No need to wait for the update to complete
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				DbAccess.UpdateAsync( PlaybackInstance );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			}
 		}
 
@@ -48,7 +50,9 @@ namespace CoreMP
 				PlaybackInstance.DBLibraryId = value;
 
 				// No need to wait for the update to complete
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				DbAccess.UpdateAsync( PlaybackInstance );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			}
 		}
 
@@ -64,7 +68,9 @@ namespace CoreMP
 				PlaybackInstance.DBRepeatPlayOn = value;
 
 				// No need to wait for the update to complete
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				DbAccess.UpdateAsync( PlaybackInstance );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			}
 		}
 
@@ -80,7 +86,9 @@ namespace CoreMP
 				PlaybackInstance.DBShufflePlayOn = value;
 
 				// No need to wait for the update to complete
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				DbAccess.UpdateAsync( PlaybackInstance );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			}
 		}
 
@@ -96,7 +104,9 @@ namespace CoreMP
 				PlaybackInstance.DBAutoPlayOn = value;
 
 				// No need to wait for the update to complete
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				DbAccess.UpdateAsync( PlaybackInstance );
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			}
 		}
 

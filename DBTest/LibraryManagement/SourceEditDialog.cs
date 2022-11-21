@@ -1,5 +1,4 @@
 ﻿using System;
-
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -8,33 +7,32 @@ using Android.Widget;
 using CoreMP;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
-using FragmentManager = Android.Support.V4.App.FragmentManager;
 
 namespace DBTest
 {
 	/// <summary>
 	/// Tag editor dialogue based on DialogFragment to provide activity configuration support
 	/// </summary>
-	internal class SourceEditDialogFragment : DialogFragment
+	internal class SourceEditDialog : DialogFragment
 	{
 		/// <summary>
 		/// Show the dialogue displaying the scan progress and start the scan
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Source sourceToEdit, SourceChanged callback, SourceDeleted deletedCallback )
+		public static void Show( Source sourceToEdit, Action<Source, Source, Action> changedAction, Action<Source, Action > deletedAction )
 		{
 			// Save the parameters so that they are available after a configuration change
-			SourceEditDialogFragment.sourceToEdit = sourceToEdit;
-			reporter = callback;
-			deletedReporter = deletedCallback;
+			SourceEditDialog.sourceToEdit = sourceToEdit;
+			changedCallback = changedAction;
+			deletedCallback = deletedAction;
 
-			new SourceEditDialogFragment().Show( manager, "fragment_edit_source" );
+			new SourceEditDialog().Show( CommandRouter.Manager, "fragment_edit_source" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public SourceEditDialogFragment()
+		public SourceEditDialog()
 		{
 		}
 
@@ -71,6 +69,7 @@ namespace DBTest
 			return new AlertDialog.Builder( Activity )
 				.SetTitle( "Edit source" )
 				.SetView( editView )
+				// Install an empty handler for 'Save' and 'Delete' to prevent automatic dialog cancelling
 				.SetPositiveButton( "Save", ( EventHandler<DialogClickEventArgs> )null )
 				.SetNegativeButton( "Cancel", delegate { } )
 				.SetNeutralButton( "Delete", ( EventHandler<DialogClickEventArgs> )null )
@@ -78,13 +77,13 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Install a handler for the Save button
+		/// Install a handlers for the Save and Delete buttons
 		/// </summary>
 		public override void OnResume()
 		{
 			base.OnResume();
 
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) => {
+			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Click += ( _, _ ) => {
 
 				Source newSource = new ()
 				{
@@ -96,10 +95,10 @@ namespace DBTest
 				};
 
 				// Report back the old and new source records
-				reporter.Invoke( sourceToEdit, newSource, () => Dialog.Dismiss() );
+				changedCallback.Invoke( sourceToEdit, newSource, Dialog.Dismiss );
 			};
 
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Neutral ).Click += ( sender, args ) => deletedReporter.Invoke( sourceToEdit, () => Dialog.Dismiss() );
+			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Neutral ).Click += ( _, _ ) => deletedCallback.Invoke( sourceToEdit, Dialog.Dismiss );
 		}
 
 		/// <summary>
@@ -108,25 +107,14 @@ namespace DBTest
 		private static Source sourceToEdit = null;
 
 		/// <summary>
-		/// The delegate used to report back source changes
-		/// </summary>
-		public delegate void SourceChanged( Source originalSource, Source newSource, Action dismissDialogAction );
-
-		/// <summary>
 		/// Delegate to report source changes
 		/// </summary>
-		private static SourceChanged reporter = null;
-
-		/// <summary>
-		/// The delegate used to report back source deletion requests
-		/// </summary>
-		/// <param name="sourceToDelete"></param>
-		public delegate void SourceDeleted( Source sourceToDelete, Action dismissDialogAction );
+		private static Action<Source, Source, Action> changedCallback = null;
 
 		/// <summary>
 		/// Delegate to report source deletions
 		/// </summary>
-		private static SourceDeleted deletedReporter = null;
+		private static Action<Source, Action> deletedCallback = null;
 
 		/// <summary>
 		/// The dialogue fields updated by the user. These must be available outside of the OnCreateDialog method

@@ -12,7 +12,7 @@ namespace DBTest
 	/// <summary>
 	/// The LibrarySelectionDialogFragment is used to select a library to perform an action on
 	/// </summary>
-	internal class LibrarySelectionDialogFragment : DialogFragment
+	internal class LibrarySelectionDialog : DialogFragment
 	{
 		/// <summary>
 		/// Show the dialogue with the specified title and initially selected library
@@ -26,13 +26,13 @@ namespace DBTest
 			availableLibraries = libraries;
 			reporter = selectionCallback;
 
-			new LibrarySelectionDialogFragment().Show( CommandRouter.Manager, "fragment_library_selection" );
+			new LibrarySelectionDialog().Show( CommandRouter.Manager, "fragment_library_selection" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public LibrarySelectionDialogFragment()
+		public LibrarySelectionDialog()
 		{
 		}
 

@@ -14,8 +14,8 @@ namespace DBTest
 		/// </summary>
 		/// <param name="_"></param>
 		public override void HandleCommand( int _ ) => 
-			ConfirmationDialogFragment.Show( "Do you want to synchronise the albums played state across all libraries?",
-				() => FilterManagementController.SynchroniseAlbumPlayedStatus() );
+			ConfirmationDialog.Show( "Do you want to synchronise the albums played state across all libraries?",
+				() => MainApp.CommandInterface.SynchroniseAlbumPlayedStatus() );
 
 		/// <summary>
 		/// The command identity associated with this handler

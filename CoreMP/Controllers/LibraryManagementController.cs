@@ -9,19 +9,21 @@ namespace CoreMP
 	/// The LibraryManagementController is the Controller for the LibraryManagement view. It responds to LibraryManagement commands and maintains library data 
 	/// in the LibraryManagementViewModel
 	/// </summary>
-	internal static class LibraryManagementController
+	internal class LibraryManagementController
 	{
 		/// <summary>
-		/// Get the library name data 
+		/// Public constructor to allow message registrations
 		/// </summary>
-		public static void GetControllerData() => new DataReporter( StorageDataAvailable ).GetData();
+		public LibraryManagementController() =>
+			// Register for the main data available event.
+			NotificationHandler.Register( typeof( StorageController ), StorageDataAvailable );
 
 		/// <summary>
 		/// Update the selected libary in the database and the ConnectionDetailsModel.
 		/// Notify other controllers
 		/// </summary>
 		/// <param name="selectedLibrary">The newly selected library</param>
-		public static void SelectLibrary( Library selectedLibrary )
+		public void SelectLibrary( Library selectedLibrary )
 		{
 			// Only process this if the library has changed
 			if ( selectedLibrary.Id != ConnectionDetailsModel.LibraryId )
@@ -41,7 +43,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="libraryToClear"></param>
 		/// <returns></returns>
-		public static async void ClearLibraryAsync( Library libraryToClear, Action finishedAction )
+		public async void ClearLibraryAsync( Library libraryToClear, Action finishedAction )
 		{
 			await Task.Run( () => ClearLibrary( libraryToClear ) );
 
@@ -52,7 +54,7 @@ namespace CoreMP
 		/// Add a new library with a default source to the collection
 		/// </summary>
 		/// <param name="libraryName"></param>
-		public static async void CreateLibrary( string libraryName )
+		public async void CreateLibrary( string libraryName )
 		{
 			// Create a library with a default source and display the source editing fragment
 			Library newLibrary = new Library() { Name = libraryName };
@@ -76,7 +78,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="libraryToClear"></param>
 		/// <returns></returns>
-		public static async void DeleteLibraryAsync( Library libraryToDelete, Action finishedAction )
+		public async void DeleteLibraryAsync( Library libraryToDelete, Action finishedAction )
 		{
 			await Task.Run( () => DeleteLibrary( libraryToDelete ) );
 
@@ -90,7 +92,7 @@ namespace CoreMP
 		/// Create a new Source and add to the sources collections
 		/// </summary>
 		/// <param name="libraryForSource"></param>
-		public static void CreateSourceForLibrary( Library libraryForSource )
+		public void CreateSourceForLibrary( Library libraryForSource )
 		{
 			Source newSource = new Source()
 			{
@@ -107,7 +109,7 @@ namespace CoreMP
 		/// Delete the Source and all its associated Songs, ArtistAlbums, Albums, Artists and Playlists
 		/// </summary>
 		/// <param name="sourceToDelete"></param>
-		public static void DeleteSource( Source sourceToDelete )
+		public void DeleteSource( Source sourceToDelete )
 		{
 			// Remove the Source from the Source collections
 			Libraries.GetLibraryById( sourceToDelete.LibraryId ).DeleteSource( sourceToDelete );
@@ -153,9 +155,6 @@ namespace CoreMP
 						}
 
 						// Check for songs in the Album as well
-						// Make sure the songs have been read in
-						artAlbum.Album.GetSongs();
-
 						if ( ( songsInArtAlbum.Count == artAlbum.Album.Songs.Count ) || ( artAlbum.Album.Songs.Count == 0 ) )
 						{
 							// All the Album's songs have been removed. Delete it
@@ -242,13 +241,13 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="libraryToCheck"></param>
 		/// <returns></returns>
-		public static bool CheckLibraryEmpty( Library libraryToCheck ) => ( Artists.ArtistCollection.Any( art => art.LibraryId == libraryToCheck.Id ) == false );
+		public  bool CheckLibraryEmpty( Library libraryToCheck ) => ( Artists.ArtistCollection.Any( art => art.LibraryId == libraryToCheck.Id ) == false );
 
 		/// <summary>
 		/// Called during startup when the storage data is available
 		/// Initialise the LibraryManagementViewModel
 		/// </summary>
-		private static void StorageDataAvailable()
+		private void StorageDataAvailable()
 		{
 			LibraryManagementViewModel.AvailableLibraries = Libraries.LibraryCollection.ToList();
 			LibraryManagementViewModel.LibraryNames = Libraries.LibraryNames.ToList();

@@ -7,32 +7,31 @@ using Android.Views.InputMethods;
 using Android.Widget;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
-using FragmentManager = Android.Support.V4.App.FragmentManager;
 
 namespace DBTest
 {
 	/// <summary>
 	/// New library name dialogue based on DialogFragment to provide activity configuration support
 	/// </summary>
-	internal class NewLibraryNameDialogFragment : DialogFragment
+	internal class NewLibraryNameDialog : DialogFragment
 	{
 		/// <summary>
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, NameEntered nameCallback, string dialogTitle, string libraryName )
+		public static void Show( string dialogTitle, string libraryName, Action< string, Action> newNameAction )
 		{
-			reporter = nameCallback;
+			newNameCallback = newNameAction;
 			title = dialogTitle;
 			name = libraryName;
 
-			new NewLibraryNameDialogFragment().Show( manager, "fragment_new_library_name" );
+			new NewLibraryNameDialog().Show( CommandRouter.Manager, "fragment_new_library_name" );
 		}
 
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public NewLibraryNameDialogFragment()
+		public NewLibraryNameDialog()
 		{
 		}
 
@@ -78,7 +77,7 @@ namespace DBTest
 			AlertDialog alert = ( AlertDialog )Dialog;
 
 			// Install a handler for the Ok button that performs the validation and playlist creation
-			alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) => reporter?.Invoke( libraryName.Text, this );
+			alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) => newNameCallback.Invoke( libraryName.Text, Dismiss );
 		}
 
 		/// <summary>
@@ -95,12 +94,7 @@ namespace DBTest
 		/// <summary>
 		/// The delegate used to report back the library name
 		/// </summary>
-		private static NameEntered reporter = null;
-
-		/// <summary>
-		/// Delegate type used to report back the library name
-		/// </summary>
-		public delegate void NameEntered( string libraryName, NewLibraryNameDialogFragment libraryNameFragment );
+		private static Action<string, Action> newNameCallback = null;
 
 		/// <summary>
 		/// The control holding the name of the new playlist

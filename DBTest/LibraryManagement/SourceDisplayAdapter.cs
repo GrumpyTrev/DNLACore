@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Android.Content;
 using Android.Views;
 using Android.Widget;
@@ -8,13 +9,13 @@ namespace DBTest
 {
 	internal class SourceDisplayAdapter : BaseAdapter, AdapterView.IOnItemClickListener
 	{
-		public SourceDisplayAdapter( Context context, List< Source > sources, ListView parent, IReporter reporter )
+		public SourceDisplayAdapter( Context context, List< Source > sources, ListView parent, Action<Source> selectedAction )
 		{
 			inflator = ( LayoutInflater )context.GetSystemService( Context.LayoutInflaterService );
 			this.sources = sources;
 			this.parent = parent;
 
-			Reporter = reporter;
+			sourceSelectionCallback = selectedAction;
 
 			parent.OnItemClickListener = this;
 		}
@@ -50,7 +51,7 @@ namespace DBTest
 			int actualPosition = position - this.parent.HeaderViewsCount;
 			if ( actualPosition >= 0 )
 			{
-				Reporter?.OnSourceSelected( sources[ position - this.parent.HeaderViewsCount ] );
+				sourceSelectionCallback.Invoke( sources[ position - this.parent.HeaderViewsCount ] );
 			}
 		}
 
@@ -86,14 +87,6 @@ namespace DBTest
 		/// <summary>
 		/// The interface used to report back group status changes
 		/// </summary>
-		private IReporter Reporter { get; set; } = null;
-
-		/// <summary>
-		/// The interface used to report back group status changes
-		/// </summary>
-		public interface IReporter
-		{
-			void OnSourceSelected( Source selectedSource );
-		}
+		private readonly Action<Source> sourceSelectionCallback = null;
 	}
 }

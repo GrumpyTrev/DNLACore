@@ -11,7 +11,12 @@ namespace CoreMP
 		/// Public constructor supplying the interface used to store scanned songs
 		/// </summary>
 		/// <param name="songInterface"></param>
-		public UPnPScanner( SongStorage songInterface ) => storageInterface = songInterface;
+		public UPnPScanner( SongStorage songInterface, Func<bool> cancelledCheck, PlaybackDevices playbackDevices )
+		{
+			storageInterface = songInterface;
+			scanCancelledCheck = cancelledCheck;
+			remoteDevices = playbackDevices;
+		}
 
 		/// <summary>
 		/// Start the process of retrieving music content from the specfied Content Server
@@ -21,7 +26,7 @@ namespace CoreMP
 		public async Task Scan( string serverName )
 		{
 			// See if there is a UPnP server available with the specified name
-			server = RemoteDevices.FindDevice( serverName );
+			server = remoteDevices.FindDevice( serverName );
 			if ( server != null )
 			{
 				// Traverse the directories returned from the server
@@ -36,7 +41,7 @@ namespace CoreMP
 		/// <returns></returns>
 		public async Task ScanDirectory( string objectId, int directoryLevel, bool inStorageFolder, int childCount )
 		{
-			if ( ( CancelRequested?.Invoke() ?? false ) == false )
+			if ( scanCancelledCheck.Invoke() == false )
 			{
 				List<BrowseFolderItem> items = await GetDirectoryContents( objectId, childCount );
 
@@ -77,7 +82,7 @@ namespace CoreMP
 		/// <returns></returns>
 		private async Task ScanItems( string directoryId, string itemCount )
 		{
-			if ( ( CancelRequested?.Invoke() ?? false ) == false )
+			if ( scanCancelledCheck.Invoke() == false )
 			{
 				int numItems = int.Parse( itemCount );
 				int startingIndex = 0;
@@ -242,18 +247,12 @@ namespace CoreMP
 		/// <summary>
 		/// The Remote Devices available to be scanned
 		/// </summary>
-		public PlaybackDevices RemoteDevices { get; set; }
+		private readonly PlaybackDevices remoteDevices = null;
 
 		/// <summary>
-		/// Delegate used to determine if this task has been cancelled
+		/// Function to call to check if the scan has been cancelled
 		/// </summary>
-		/// <returns></returns>
-		public delegate bool CancelRequestedDelegate();
-
-		/// <summary>
-		/// Instance of CancelRequestedDelegate delegate
-		/// </summary>
-		public CancelRequestedDelegate CancelRequested { private get; set; } = null;
+		private readonly Func<bool> scanCancelledCheck = null;
 
 		/// <summary>
 		/// The interface used to store scanned songs

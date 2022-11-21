@@ -283,16 +283,12 @@ namespace CoreMP
 
 				duplicatedPlaylist.AddAlbums( albumsToAdd );
 
-				// Make sure that all of the albums have thier song contents available
-				albumsToAdd.ForEach( album => album.GetSongs() );
-
 				// If all the albums in the playlist were found then set the song index as well. This assuming that the albums contain the same
 				// number of songe
 				if ( duplicatedPlaylist.PlaylistItems.Count == playlistToDuplicate.PlaylistItems.Count )
 				{
 					duplicatedPlaylist.SongIndex = playlistToDuplicate.SongIndex;
 				}
-
 			}
 		}
 

@@ -15,7 +15,7 @@
 			PlaybackDeviceAvailableMessage.Register( DeviceAvailable );
 			MediaPlayingMessage.Register( MediaPlaying );
 			SongFinishedMessage.Register( SongFinished );
-			SongSelectedMessage.Register( SongSelected );
+			NotificationHandler.Register( typeof( Playlists ), SongSelected );
 		}
 
 		/// <summary>

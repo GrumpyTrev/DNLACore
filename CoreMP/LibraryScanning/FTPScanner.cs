@@ -13,7 +13,11 @@ namespace CoreMP
 		/// Public constructor supplying the interface used to store scanned songs
 		/// </summary>
 		/// <param name="songInterface"></param>
-		public FTPScanner( SongStorage songInterface ) => storageInterface = songInterface;
+		public FTPScanner( SongStorage songInterface, Func<bool> cancelledCheck )
+		{
+			storageInterface = songInterface;
+			scanCancelledCheck = cancelledCheck;
+		}
 
 		/// <summary>
 		/// Start scanning the contents of the FTP server at the specified IP address
@@ -64,7 +68,7 @@ namespace CoreMP
 				items.Add( new DirectoryItem {
 					Created = dateTime,
 					IsDirectory = ( line.Substring( 24, 5 ).ToUpper() == "<DIR>" ),
-					Name = line.Substring( 39 ),
+					Name = line[ 39.. ],
 					Base = directoryName
 				} ); 
 			}
@@ -74,7 +78,7 @@ namespace CoreMP
 
 			// Use a while loop and check for cancellation
 			int itemIndex = 0;
-			while ( ( itemIndex < items.Count ) && ( ( CancelRequested?.Invoke() ?? false ) == false ) )
+			while ( ( itemIndex < items.Count ) && ( scanCancelledCheck.Invoke() == false ) )
 			{
 				DirectoryItem item = items[ itemIndex++ ];
 
@@ -164,15 +168,9 @@ namespace CoreMP
 		private int songCount;
 
 		/// <summary>
-		/// Delegate used to determine if this task has been cancelled
+		/// Function to call to check if the scan has been cancelled
 		/// </summary>
-		/// <returns></returns>
-		public delegate bool CancelRequestedDelegate();
-
-		/// <summary>
-		/// Instance of CancelRequestedDelegate delegate
-		/// </summary>
-		public CancelRequestedDelegate CancelRequested { private get; set; } = null;
+		private readonly Func<bool> scanCancelledCheck = null;
 
 		/// <summary>
 		/// Directory and file information gathered during directory requests to the FTP server

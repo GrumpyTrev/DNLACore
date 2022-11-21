@@ -44,7 +44,7 @@ namespace CoreMP
 			await Albums.GetDataAsync();
 			await Artists.GetDataAsync();
 			await ArtistAlbums.GetDataAsync();
-            await Libraries.GetDataAsync();
+			await Libraries.GetDataAsync();
 			await Playback.GetDataAsync();
 			await Playlists.GetDataAsync();
 			await Autoplays.GetDataAsync();
@@ -63,7 +63,7 @@ namespace CoreMP
 
 			DataAvailable = true;
 			new StorageDataAvailableMessage().Send();
-        }
+		}
 
 		/// <summary>
 		/// Once the Artists have been read in their associated ArtistAlbums can be read as well and linked to them
@@ -84,7 +84,7 @@ namespace CoreMP
 				artAlbum.Album = Albums.GetAlbumById( artAlbum.AlbumId );
 
 				if ( artAlbum.Album != null )
-				{  
+				{
 					// Save a reference to the Artist in the ArtistAlbum
 					artAlbum.Artist = Artists.GetArtistById( artAlbum.ArtistId );
 
@@ -177,7 +177,16 @@ namespace CoreMP
 		/// <summary>
 		/// Is the managed storage available
 		/// </summary>
-		private static bool DataAvailable { get; set; } = false;
+		private static bool dataAvailable = false;
+		private static bool DataAvailable
+		{
+			get => dataAvailable;
+			set
+			{
+				dataAvailable = value;
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
+			}
+		}
 
 		/// <summary>
 		/// If the managed storage currently being read

@@ -22,12 +22,14 @@ namespace DBTest
 		/// Show the dialogue displaying the specified list of tags and the current tag
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Tag currentFilter, List<TagGroup> tagGroups, FilterSelector.FilterSelectionDelegate selectionDelegate )
+		public static void ShowFragment( FragmentManager manager, Tag currentFilter, List<TagGroup> tagGroups, List< string > tagNames, 
+			FilterSelector.FilterSelectionDelegate selectionDelegate )
 		{
 			// Save the currently selected filter and delegate to survive a rotation.
 			CurrentlySelectedFilter = currentFilter;
 			SelectionDelegate = selectionDelegate;
 			CurrentlySelectedTagGroups = tagGroups;
+			TagNames = tagNames;
 
 			new FilterSelectionDialogFragment().Show( manager, "fragment_select_filter" );
 		}
@@ -40,7 +42,7 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Create the dialogue. When a library is selected pass it to the ScanProgressDialogFragment 	
+		/// Create the dialogue. When a library is selected pass it to the ScanProgressDialog 	
 		/// </summary>
 		/// <param name="savedInstanceState"></param>
 		/// <returns></returns>
@@ -69,14 +71,14 @@ namespace DBTest
 		private void InitialiseTagSpinner( Spinner tagSpinner )
 		{
 			// Form a list of the tag choices including None
-			List<string> tagNames = new List<string> { "None" };
-			tagNames.AddRange( FilterManagementController.GetTagNames() );
+			List<string> tagNames = new() { "None" };
+			tagNames.AddRange( TagNames );
 
 			// Which one of these is currently selected
 			int currentTagIndex = ( CurrentlySelectedFilter != null ) ? tagNames.IndexOf( CurrentlySelectedFilter.Name ) : 0;
 
 			// Create an adapter for the spinner to display the tag names
-			ArrayAdapter<string> spinnerAdapter = new ArrayAdapter<string>( Context, Resource.Layout.select_dialog_item_material, tagNames.ToArray() );
+			ArrayAdapter<string> spinnerAdapter = new( Context, Resource.Layout.select_dialog_item_material, tagNames.ToArray() );
 			spinnerAdapter.SetDropDownViewResource( Resource.Layout.support_simple_spinner_dropdown_item );
 
 			// Associate the adapter with the spinner and preselect the current entry
@@ -116,11 +118,11 @@ namespace DBTest
 		private void OnOk( MultiSpinner genreSpinner, Spinner tagSpinner )
 		{
 			// Get the selected record from the Genre spinner. If not all of the items are selected then add an entry for each selected item to a new TagGroup
-			List<TagGroup> selectedGroups = new List<TagGroup>();
+			List<TagGroup> selectedGroups = new();
 
 			if ( genreSpinner.SelectionRecord.All( genre => genre ) == false )
 			{
-				TagGroup group = new TagGroup() { Name = FilterManagementModel.GenreTags.Name };
+				TagGroup group = new() { Name = FilterManagementModel.GenreTags.Name };
 				selectedGroups.Add( group );
 
 				// Merge the Spinner's selection record and the Genre tags into a single list and then add to the new group any tags that are selected
@@ -178,5 +180,10 @@ namespace DBTest
 		/// Any currently selected tag groups
 		/// </summary>
 		private static List<TagGroup> CurrentlySelectedTagGroups { get; set; } = null;
+
+		/// <summary>
+		/// The names of the available tags
+		/// </summary>
+		private static List<string> TagNames { get; set; } = null;
 	}
 }

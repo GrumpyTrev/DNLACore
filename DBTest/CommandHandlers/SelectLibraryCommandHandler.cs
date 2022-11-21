@@ -12,7 +12,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) => 
-			LibrarySelectionDialogFragment.Show( "Select library to display", LibraryManagementViewModel.SelectedLibraryIndex, 
+			LibrarySelectionDialog.Show( "Select library to display", LibraryManagementViewModel.SelectedLibraryIndex, 
 				LibraryManagementViewModel.AvailableLibraries, ( Library selectedLibrary ) => MainApp.CommandInterface.SelectLibrary( selectedLibrary ) );
 
 		/// <summary>

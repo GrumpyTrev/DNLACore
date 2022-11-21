@@ -15,7 +15,7 @@ namespace CoreMP
 		/// </summary>
 		static NowPlayingController()
 		{
-			SongSelectedMessage.Register( SongSelected );
+			NotificationHandler.Register( typeof( Playlists ), SongSelected );
 			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
 			ShuffleModeChangedMessage.Register( ShuffleModeChanged );
 			MediaControlPlayNextMessage.Register( MediaControlPlayNext );

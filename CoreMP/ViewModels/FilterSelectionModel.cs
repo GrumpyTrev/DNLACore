@@ -127,6 +127,11 @@ namespace CoreMP
 		}
 
 		/// <summary>
+		/// Return a list of the names of all the tags.
+		/// </summary>
+		public List<string> GetTagNames() => Tags.TagsCollection.Select( tag => tag.Name ).ToList();
+
+		/// <summary>
 		/// List of TagGroups containing currently selected Tags.
 		/// A TagGroup only needs to be stored here if some and not all of the tags are selected.
 		/// </summary>
