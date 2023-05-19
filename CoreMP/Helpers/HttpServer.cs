@@ -121,6 +121,11 @@ namespace CoreMP
 			}
 			catch ( ObjectDisposedException )
 			{
+				Logger.Log( "ObjectDisposedException in HttpServer,Listen" );
+			}
+			catch ( Exception )
+			{
+				Logger.Log( "Exception in HttpServer,Listen" );
 			}
 		}
 

@@ -8,7 +8,7 @@ namespace DBTest
 	/// <summary>
 	/// The PlaybackModeView class displays the current playback mode and allows the user to change the playback mode
 	/// </summary>
-	internal class PlaybackModeView : BaseBoundControl, DataReporter.IReporter
+	internal class PlaybackModeView : BaseBoundControl
 	{
 		/// <summary>
 		/// Bind to the specified menu item.
@@ -31,10 +31,10 @@ namespace DBTest
 					// Create a Popup for this button and route it's selections to the CommandRouter
 					titlePopup = new PopupMenu( context, imageButton );
 					titlePopup.Inflate( Resource.Menu.menu_playback );
-					titlePopup.MenuItemClick += ( sender, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
+					titlePopup.MenuItemClick += ( _, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
 
 					// Show the popup when the button is selected
-					imageButton.Click += ( sender, args ) =>
+					imageButton.Click += ( _, _ ) =>
 					{
 						// Set the submenu item text according to the current state of the individual playback attributes
 						titlePopup.Menu.FindItem( Resource.Id.repeat_on_off ).SetTitle( PlaybackModeModel.RepeatOn ? "Repeat off" : "Repeat on" );
@@ -46,19 +46,17 @@ namespace DBTest
 					DisplayPlaybackIcon();
 				}
 
-				PlaybackModeController.DataReporter = this;
+				NotificationHandler.Register( typeof( PlaybackModeModel ), () => DisplayPlaybackIcon() );
 			}
 			else
 			{
 				imageButton = null;
 				titlePopup = null;
+
+				// Remove any model notifications
+				NotificationHandler.Deregister();
 			}
 		}
-
-		/// <summary>
-		/// Called when the playback mode data has been first read or when it changes
-		/// </summary>
-		public void DataAvailable() => DisplayPlaybackIcon();
 
 		/// <summary>
 		/// Display the icon associated with the current playback state

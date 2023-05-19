@@ -6,93 +6,107 @@ namespace CoreMP
 	/// The PlaybackManagementController is the Controller for the MediaControl. It responds to MediaControl commands and maintains media player data in the
 	/// PlaybackManagerModel
 	/// </summary>
-	public class PlaybackManagementController
+	internal class PlaybackManagementController
 	{
 		/// <summary>
 		/// Register for external playing list change messages
 		/// </summary>
-		static PlaybackManagementController()
+		public PlaybackManagementController()
 		{
-			PlaybackDeviceAvailableMessage.Register( DeviceAvailable );
+			router = new PlaybackRouter( ( playing ) =>
+			{
+				if ( playing == true )
+				{
+					new SongStartedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
+				}
+				else
+				{
+					new SongFinishedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
+				}
+			} );
+
+			// Register for the main data available event.
+			NotificationHandler.Register( typeof( StorageController ), () => StorageDataAvailable() );
+
+			NotificationHandler.Register( typeof( PlaybackSelectionModel ), "SelectedDevice", DeviceAvailable );
 			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
 			PlaySongMessage.Register( PlaySong );
-			MediaControlPauseMessage.Register( MediaControlPause );
-			MediaControlSeekToMessage.Register( MediaControlSeekTo );
-			MediaControlStartMessage.Register( MediaControlStart );
 		}
-
-		/// <summary>
-		/// Get the Controller data
-		/// </summary>
-		public static void GetControllerData() => dataReporter.GetData();
 
 		/// <summary>
 		/// Called when the playback data is available to be displayed
 		/// </summary>
-		private static void StorageDataAvailable()
+		private void StorageDataAvailable()
 		{
-			// Save the libray being used locally to detect changes
-			PlaybackManagerModel.LibraryId = ConnectionDetailsModel.LibraryId;
-
 			// Get the sources associated with the library
-			PlaybackManagerModel.Sources = Libraries.GetLibraryById( PlaybackManagerModel.LibraryId ).Sources.ToList();
+			PlaybackManagerModel.Sources = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).Sources.ToList();
 
 			PlaybackManagerModel.DataValid = true;
 
 			// Let the views know that playback data is available
-			DataReporter?.DataAvailable();
+			router.DataAvailable();
 		}
 
 		/// <summary>
-		/// Called when a new song is being played.
-		/// Pass this on to the relevant controller, not this one
+		/// Called when a shutdown has been detected. Pass this on to the router
 		/// </summary>
-		/// <param name="songPlayed"></param>
-		public static void SongStarted() => new SongStartedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
+		public void StopRouter() => router.StopRouter();
 
 		/// <summary>
-		/// Called when the current song has finished being played.
-		/// Select the next song to play
+		/// Pass the local playback device to the router
 		/// </summary>
-		/// <param name="songPlayed"></param>
-		public static void SongFinished() => new SongFinishedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
+		/// <param name="localPlayer"></param>
+		public void SetLocalPlayer( BasePlayback localPlayer ) => router.SetLocalPlayback( localPlayer );
 
 		/// <summary>
-		/// Called when the PlaybackDeviceAvailableMessage message is received
+		/// Pass on a pause request to the reporter
+		/// </summary>
+		/// <param name="_message"></param>
+		public void MediaControlPause() => router.Pause();
+
+		/// <summary>
+		/// Pass on a play previous request to the reporter
+		/// </summary>
+		/// <param name="_message"></param>
+		public void MediaControlStart() => router.Start();
+
+		/// <summary>
+		/// Called when the PlaybackSelectionModel SelectedDevice has changed
 		/// If this is a change then report it
 		/// </summary>
 		/// <param name="message"></param>
-		private static void DeviceAvailable( PlaybackDevice newDevice )
+		private void DeviceAvailable()
 		{
 			PlaybackDevice oldDevice = PlaybackManagerModel.AvailableDevice;
 
 			// Check for no new device
-			if ( newDevice == null )
+			if ( PlaybackSelectionModel.SelectedDevice == null )
 			{
 				// If there was an exisiting availabel device then repoprt this change
 				if ( oldDevice != null )
 				{
 					PlaybackManagerModel.AvailableDevice = null;
-					DataReporter?.SelectPlaybackDevice( oldDevice );
+					router.SelectPlaybackDevice( oldDevice );
 				}
 			}
 			// If there was no available device then save the new device and report the change
 			else if ( oldDevice == null )
 			{
-				PlaybackManagerModel.AvailableDevice = newDevice;
-				DataReporter?.SelectPlaybackDevice( oldDevice );
+				PlaybackManagerModel.AvailableDevice = PlaybackSelectionModel.SelectedDevice;
+				router.SelectPlaybackDevice( oldDevice );
 			}
 			// If the old and new are different type (local/remote) then report the change
-			else if ( oldDevice.IsLocal != newDevice.IsLocal )
+			else if ( oldDevice.IsLocal != PlaybackSelectionModel.SelectedDevice.IsLocal )
 			{
-				PlaybackManagerModel.AvailableDevice = newDevice;
-				DataReporter?.SelectPlaybackDevice( oldDevice );
+				PlaybackManagerModel.AvailableDevice = PlaybackSelectionModel.SelectedDevice;
+				router.SelectPlaybackDevice( oldDevice );
 			}
 			// If both devices are remote but different then report the change
-			else if ( ( oldDevice.IsLocal == false ) && ( newDevice.IsLocal == false ) && ( oldDevice.FriendlyName != newDevice.FriendlyName ) )
+			else if ( ( oldDevice.IsLocal == false ) && ( PlaybackSelectionModel.SelectedDevice.IsLocal == false ) &&
+				( oldDevice.FriendlyName != PlaybackSelectionModel.SelectedDevice.FriendlyName ) )
 			{
-				PlaybackManagerModel.AvailableDevice = newDevice;
-				DataReporter?.SelectPlaybackDevice( oldDevice );
+				PlaybackManagerModel.AvailableDevice = PlaybackSelectionModel.SelectedDevice;
+				router.SelectPlaybackDevice( oldDevice );
 			}
 		}
 
@@ -101,73 +115,33 @@ namespace CoreMP
 		/// Inform the reporter and reload the playback data
 		/// </summary>
 		/// <param name="_"></param>
-		private static void SelectedLibraryChanged( int _)
+		private void SelectedLibraryChanged( int _ )
 		{
-			DataReporter?.LibraryChanged();
+			router.LibraryChanged();
 			StorageDataAvailable();
 		}
 
 		/// <summary>
 		/// Called in response to the receipt of a PlaySongMessage
 		/// </summary>
-		private static void PlaySong( Song songToPlay, bool dontPlay )
+		private void PlaySong( Song songToPlay, bool dontPlay )
 		{
 			PlaybackManagerModel.CurrentSong = songToPlay;
 
 			if ( ( PlaybackManagerModel.CurrentSong != null ) && ( dontPlay == false ) )
 			{
-				DataReporter?.PlayCurrentSong();
+				router.PlayCurrentSong();
 			}
 			else
 			{
-				DataReporter?.Stop();
+				router.Stop();
 			}
 		}
 
 		/// <summary>
-		/// Pass on a pause request to the reporter
+		/// The PlaybackRouter used to route requests to the selected playback device
 		/// </summary>
-		/// <param name="_message"></param>
-		private static void MediaControlPause() => DataReporter?.Pause();
-
-		/// <summary>
-		/// Pass on a seek request to the reporter
-		/// </summary>
-		/// <param name="_message"></param>
-		private static void MediaControlSeekTo( int position ) => DataReporter?.SeekTo( position );
-
-		/// <summary>
-		/// Pass on a play previous request to the reporter
-		/// </summary>
-		/// <param name="_message"></param>
-		private static void MediaControlStart() => DataReporter?.Start();
-
-		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public static IPlaybackReporter DataReporter
-		{
-			get => ( IPlaybackReporter )dataReporter.Reporter;
-			set => dataReporter.Reporter = value;
-		}
-
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface IPlaybackReporter : DataReporter.IReporter
-		{
-			void SelectPlaybackDevice( PlaybackDevice oldSelectedDevice );
-			void PlayCurrentSong();
-			void Pause();
-			void SeekTo( int position );
-			void Start();
-			void LibraryChanged();
-			void Stop();
-		}
-
-		/// <summary>
-		/// The DataReporter instance used to handle storage availability reporting
-		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private readonly PlaybackRouter router;
 	}
 }
+

@@ -22,22 +22,22 @@ namespace DBTest
 				{
 					if ( commandIdentity == Resource.Id.move_up )
 					{
-						NowPlayingController.MoveItemsUp( selectedObjects.PlaylistItems );
+						MainApp.CommandInterface.MoveItemsUp( selectedObjects.PlaylistItems );
 					}
 					else
 					{
-						NowPlayingController.MoveItemsDown( selectedObjects.PlaylistItems );
+						MainApp.CommandInterface.MoveItemsDown( selectedObjects.PlaylistItems );
 					}
 				}
 				else
 				{
 					if ( commandIdentity == Resource.Id.move_up )
 					{
-						PlaylistsController.MoveItemsUp( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
+						MainApp.CommandInterface.MoveItemsUp( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
 					}
 					else
 					{
-						PlaylistsController.MoveItemsDown( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
+						MainApp.CommandInterface.MoveItemsDown( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
 					}
 				}
 			}

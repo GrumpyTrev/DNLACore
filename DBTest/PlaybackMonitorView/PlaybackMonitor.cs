@@ -12,11 +12,6 @@ namespace DBTest
 	internal class PlaybackMonitor : BaseBoundControl
 	{
 		/// <summary>
-		/// Get a notiification whenever the PlaybackSelectionModel changes
-		/// </summary>
-		public PlaybackMonitor() => PlaybackModelChangedMessage.Register( PlaybackModelChanged );
-
-		/// <summary>
 		/// Bind to the specified menu item.
 		/// Replace the standard view associated with the menu item with out own reduced margin version
 		/// Store the AppCompatImageButton from the view
@@ -36,18 +31,24 @@ namespace DBTest
 					// Create a Popup for this button and route it's selections to the CommandRouter
 					popupMenu = new PopupMenu( context, imageButton );
 					popupMenu.Inflate( Resource.Menu.menu_playback_options );
-					popupMenu.MenuItemClick += ( sender, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
+					popupMenu.MenuItemClick += ( _, args ) => CommandRouter.HandleCommand( args.Item.ItemId );
 
 					// Show the popup when the button is selected
-					imageButton.Click += ( sender, args ) => popupMenu.Show();
+					imageButton.Click += ( _, _ ) => popupMenu.Show();
 
 					DisplayMonitorIcon();
+
+					// Register interest in PlaybackSelectionModel changes
+					NotificationHandler.Register( typeof( PlaybackSelectionModel ), PlaybackModelChanged );
 				}
 			}
 			else
 			{
 				imageButton = null;
 				popupMenu = null;
+
+				// Deregister interest
+				NotificationHandler.Deregister();
 			}
 		}
 
@@ -58,7 +59,8 @@ namespace DBTest
 		{
 			// Determine the playbackState from the PlaybackSelectionModel
 			// First, is the selected device local or remote. Assume local if not set yet
-			if ( ( PlaybackSelectionModel.SelectedDeviceName.Length == 0 ) || ( PlaybackSelectionModel.SelectedDeviceName == PlaybackSelectionModel.LocalDeviceName ) )
+			if ( ( PlaybackSelectionModel.SelectedDeviceName.Length == 0 ) || 
+				 ( ( PlaybackSelectionModel.SelectedDevice != null ) && ( PlaybackSelectionModel.SelectedDevice.IsLocal == true ) ) )
 			{
 				// Local device
 				playbackState = ( PlaybackSelectionModel.WifiAvailable == true ) ? PlaybackStateEnum.localPlaybackWifi : PlaybackStateEnum.localPlaybackNoWifi;

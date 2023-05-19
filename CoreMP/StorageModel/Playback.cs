@@ -4,10 +4,41 @@ using System.Threading.Tasks;
 namespace CoreMP
 {
 	/// <summary>
-	/// The Playback class holds the Playback details read from storage
+	/// The Playback class specifies which song in which library is currently being played, and on which device playback is currently routed
+	/// It also holds play mode features such as repeat, shuffle and auto. 
 	/// </summary>
-	public partial class Playback
+	[Table( "Playback" )]
+	public class Playback
 	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		[Column( "LibraryId" )]
+		public int DBLibraryId { get; set; }
+
+		/// <summary>
+		/// The name of the currently selected playback device
+		/// </summary>
+		[Column( "PlaybackDeviceName" )]
+		public string DBPlaybackDeviceName { get; set; }
+
+		/// <summary>
+		/// Is repeat play on
+		/// </summary>
+		[Column( "RepeatPlayOn" )]
+		public bool DBRepeatPlayOn { get; set; }
+
+		/// <summary>
+		/// Is shuffle play on
+		/// </summary>
+		[Column( "ShufflePlayOn" )]
+		public bool DBShufflePlayOn { get; set; }
+
+		/// <summary>
+		/// Is auto play on
+		/// </summary>
+		[Column( "AutoPlayOn" )]
+		public bool DBAutoPlayOn { get; set; }
 		/// <summary>
 		/// Get the Playback object from storage
 		/// </summary>

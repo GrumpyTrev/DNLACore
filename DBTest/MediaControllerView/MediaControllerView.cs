@@ -7,13 +7,13 @@ using System;
 
 namespace DBTest
 {
-	internal class MediaControllerView : BaseBoundControl, View.IOnClickListener, MediaControllerController.IMediaReporter
+	internal class MediaControllerView : BaseBoundControl, View.IOnClickListener
 	{
 		/// <summary>
 		/// Bind to the specified view.
 		/// </summary>
 		/// <param name="menu"></param>
-		public override void BindToView( View view, Context context )
+		public override void BindToView( View view, Context _ )
 		{
 			if ( view != null )
 			{
@@ -38,23 +38,23 @@ namespace DBTest
 
 				// Respond to play/pause buitton presses
 				playButton = view.FindViewById<ImageButton>( Resource.Id.play );
-				playButton.Click += ( sender, args ) => 
+				playButton.Click += ( _, _ ) => 
 				{
 					if ( MediaControllerViewModel.IsPlaying == true )
 					{
-						MediaControllerController.Pause();
+						MainApp.CommandInterface.Pause();
 					}
 					else
 					{
-						MediaControllerController.Start();
+						MainApp.CommandInterface.Start();
 					}
 				};
 
 				// Process play next button clicks
-				view.FindViewById<ImageButton>( Resource.Id.skip_next ).Click += ( sender, args ) => MediaControllerController.PlayNext();
+				view.FindViewById<ImageButton>( Resource.Id.skip_next ).Click += ( _, _ ) => MainApp.CommandInterface.PlayNext();
 
 				// Process play previous button clicks
-				view.FindViewById<ImageButton>( Resource.Id.skip_prev ).Click += ( sender, args ) => MediaControllerController.PlayPrevious();
+				view.FindViewById<ImageButton>( Resource.Id.skip_prev ).Click += ( _, _ ) => MainApp.CommandInterface.PlayPrevious();
 
 				// Assume no playback device available at startup. Hide everything
 				DeviceAvailable();
@@ -62,13 +62,36 @@ namespace DBTest
 				// Display the appropriate playing/not playing icons 
 				PlayStateChanged();
 
-				// Link in to the controller
-				MediaControllerController.DataReporter = this;
+				// Register interest in MediaControllerViewModel changes
+				NotificationHandler.Register( typeof( MediaControllerViewModel ), "IsSet", () =>
+				{
+					// Model data is available
+					SetProgress( MediaControllerViewModel.Duration, MediaControllerViewModel.CurrentPosition );
+					PlayStateChanged();
+					DeviceAvailable();
+				} );
+
+				NotificationHandler.Register( typeof( MediaControllerViewModel ), "PlaybackDeviceAvailable", DeviceAvailable );
+				NotificationHandler.Register( typeof( MediaControllerViewModel ), "IsPlaying", PlayStateChanged );
+				NotificationHandler.Register( typeof( MediaControllerViewModel ), "CurrentPosition", 
+					() => SetProgress( MediaControllerViewModel.Duration, MediaControllerViewModel.CurrentPosition ) );
+				NotificationHandler.Register( typeof( MediaControllerViewModel ), "SongPlaying", () =>
+				{
+					if ( MediaControllerViewModel.SongPlaying == null )
+					{
+						songTitle.Text = "";
+						SetProgress( 0, 0 );
+					}
+					else
+					{
+						songTitle.Text = string.Format( "{0} : {1}", MediaControllerViewModel.SongPlaying.Title, MediaControllerViewModel.SongPlaying.Artist.Name );
+					}
+				} );
 			}
 			else
 			{
-				// Unlink from the controller
-				MediaControllerController.DataReporter = null;
+				// Degister interest in MediaControllerViewModel changes
+				NotificationHandler.Deregister();
 			}
 		}
 
@@ -104,7 +127,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the choosen playback device is either detected as either available or not available
 		/// </summary>
-		public void DeviceAvailable()
+		private void DeviceAvailable()
 		{
 			if ( MediaControllerViewModel.PlaybackDeviceAvailable == true )
 			{
@@ -122,40 +145,8 @@ namespace DBTest
 		/// Called when the play state has changed
 		/// Display either the play or pause buttons
 		/// </summary>
-		public void PlayStateChanged() => 
+		private void PlayStateChanged() => 
 			playButton.SetImageResource( ( MediaControllerViewModel.IsPlaying == true ) ? Resource.Drawable.pause : Resource.Drawable.play );
-
-		/// <summary>
-		/// Called when the Song being played has changed
-		/// </summary>
-		public void SongPlayingChanged()
-		{
-			if ( MediaControllerViewModel.SongPlaying == null )
-			{
-				songTitle.Text = "";
-				SetProgress( 0, 0 );
-			}
-			else
-			{
-				songTitle.Text = string.Format( "{0} : {1}", MediaControllerViewModel.SongPlaying.Title, MediaControllerViewModel.SongPlaying.Artist.Name );
-			}
-		}
-
-		/// <summary>
-		/// Called when the current position of the playing song has changed.
-		/// </summary>
-		public void MediaProgress() => SetProgress( MediaControllerViewModel.Duration, MediaControllerViewModel.CurrentPosition );
-
-		/// <summary>
-		/// Called when the view's data has been read from storage.
-		/// Update the views state
-		/// </summary>
-		public void DataAvailable()
-		{
-			SetProgress( MediaControllerViewModel.Duration, MediaControllerViewModel.CurrentPosition );
-			PlayStateChanged();
-			DeviceAvailable();
-		}
 
 		/// <summary>
 		/// Update the progress controls

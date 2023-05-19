@@ -1,20 +1,20 @@
-﻿namespace CoreMP
+﻿using System;
+
+namespace CoreMP
 {
 	/// <summary>
 	/// The PlaybackRouter is responsible for routing playback instruction to a particular playback device according to the 
 	/// current selection
 	/// </summary>
-	internal class PlaybackRouter: PlaybackManagementController.IPlaybackReporter, BasePlayback.IPlaybackCallbacks
+	internal class PlaybackRouter: BasePlayback.IPlaybackCallbacks
 	{
 		/// <summary>
 		/// PlaybackRouter constructor
 		/// </summary>
-		public PlaybackRouter()
+		public PlaybackRouter( Action<bool> playingCallback )
 		{
+			songPlayingCallback = playingCallback;
 			remotePlayback = new RemotePlayback() { Reporter = this };
-
-			// Link this router to the controller
-			PlaybackManagementController.DataReporter = this;
 		}
 
 		public void SetLocalPlayback( BasePlayback localPlayer )
@@ -31,15 +31,11 @@
 		{
 			localPlayback?.StopConnection();
 			remotePlayback.StopConnection();
-
-			// As this instance is being destroyed don't leave any references hanging around
-			PlaybackManagementController.DataReporter = null;
 		}
 
 		/// <summary>
 		/// Called when the media data has been received or updated
 		/// </summary>
-		/// <param name="songsReplaced"></param>
 		public void DataAvailable()
 		{
 			// If a playback device has already been selected in the model then select it now
@@ -99,33 +95,9 @@
 		}
 
 		/// <summary>
-		/// Can the selected playback be paused
-		/// </summary>
-		/// <returns></returns>
-		public bool CanPause() => selectedPlayback?.CanPause() ?? false;
-
-		/// <summary>
-		/// Does the selected playback support seeking forward
-		/// </summary>
-		/// <returns></returns>
-		public bool CanSeekBackward() => selectedPlayback?.CanSeekBackward() ?? false;
-
-		/// <summary>
-		/// Does the selected playback support seeking backward
-		/// </summary>
-		/// <returns></returns>
-		public bool CanSeekForward() => selectedPlayback?.CanSeekForward() ?? false;
-
-		/// <summary>
 		/// Pause the selected playback
 		/// </summary>
 		public void Pause() => selectedPlayback?.Pause();
-
-		/// <summary>
-		/// Seek to the specified position
-		/// </summary>
-		/// <param name="pos"></param>
-		public void SeekTo( int pos ) => selectedPlayback?.SeekTo( pos );
 
 		/// <summary>
 		/// Start or resume playback
@@ -146,12 +118,12 @@
 		/// <summary>
 		/// Called when a new song is being played. Pass this on to the controller
 		/// </summary>
-		public void SongStarted() => PlaybackManagementController.SongStarted();
+		public void SongStarted() => songPlayingCallback( true );
 
 		/// <summary>
 		/// Called when the current song has finished being played
 		/// </summary>
-		public void SongFinished() => PlaybackManagementController.SongFinished();
+		public void SongFinished() => songPlayingCallback( false );
 
 		/// <summary>
 		/// Called by the current playback to report the current position and duration
@@ -179,5 +151,10 @@
 		/// The currently selected Playback instance
 		/// </summary>
 		private BasePlayback selectedPlayback = null;
+
+		/// <summary>
+		/// Callback to use to report the song playing state
+		/// </summary>
+		private readonly Action<bool> songPlayingCallback;
 	}
 }

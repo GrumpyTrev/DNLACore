@@ -1,9 +1,18 @@
 ﻿using System.Linq;
+using SQLite;
 
 namespace CoreMP
 {
-	public partial class PlaylistItem
+	public class PlaylistItem
 	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		[Column( "Track" )]
+		public int Index { get; set; }
+
+		public int PlaylistId { get; set; }
+
 		/// <summary>
 		/// Get the parent playlist for a playlistitem
 		/// </summary>

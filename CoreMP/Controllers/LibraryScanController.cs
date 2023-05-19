@@ -11,11 +11,6 @@ namespace CoreMP
 	internal class LibraryScanController
 	{
 		/// <summary>
-		/// Public constructor. Register for UPnP devices
-		/// </summary>
-		public LibraryScanController() => CoreMPApp.RegisterPlaybackCapabilityCallback( scannableDevices );
-
-		/// <summary>
 		/// Asynchronous method called to carry out a library scan
 		/// </summary>
 		/// <param name="libraryToScan"></param>
@@ -46,8 +41,31 @@ namespace CoreMP
 						// Get the songs as well as we're going to need them below
 						source.GetSongs();
 
-						// Add the songs from this source to a dictionary
-						Dictionary<string, Song> pathLookup = new Dictionary<string, Song>( source.Songs.ToDictionary( song => song.Path ) );
+						// Add the songs from this source to a dictionary. For UPnP sources don't use the path stored with the song as that may have
+						// changed. Instead use a combination of the Artist Name, Song Name, Album Name and track number
+						Dictionary<string, Song> pathLookup = null;
+						if ( source.AccessMethod != Source.AccessType.UPnP )
+						{
+							pathLookup = new Dictionary<string, Song>( source.Songs.ToDictionary( song => song.Path ) );
+						}
+						else
+						{
+							pathLookup = new Dictionary<string, Song>();
+
+							foreach ( Song songToAdd in source.Songs )
+							{
+								string key = $"{songToAdd.Album.ArtistName}:{songToAdd.Title}:{songToAdd.Album.Name}:{songToAdd.Track}";
+
+								if ( pathLookup.ContainsKey( key ) == false )
+								{
+									pathLookup[ key ] = songToAdd;
+								}
+								else
+								{
+									Logger.Log( string.Format( $"Duplicate song key {key}" ) );
+								}
+							}
+						}
 
 						// Reset the scan action for all Songs
 						source.Songs.ForEach( song => song.ScanAction = Song.ScanActionType.NotMatched );
@@ -69,7 +87,7 @@ namespace CoreMP
 						else if ( source.AccessMethod == Source.AccessType.UPnP )
 						{
 							// Scan using the generic UPnPScanner but with our callbacks
-							await new UPnPScanner( scanStorage, scanCancelledCheck, scannableDevices.RemoteDevices ).Scan( source.ScanSource );
+							await new UPnPScanner( scanStorage, scanCancelledCheck ).Scan( source.ScanSource );
 						}
 
 						// Add any unmatched songs to a list that'll be processed when all sources have been scanned
@@ -442,10 +460,5 @@ namespace CoreMP
 		/// The Artists in the Library being scanned
 		/// </summary>
 		private Dictionary<string, Artist> artistsInLibrary = null;
-
-		/// <summary>
-		/// ScanDevices instance used to keep track of the UPnP devices that can be scanned
-		/// </summary>
-		private ScanDevices scannableDevices = new ScanDevices();
 	}
 }

@@ -141,12 +141,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Seek to the specified position
-		/// </summary>
-		/// <param name="position"></param>
-		public override void SeekTo( int position ) => localPlayer.SeekTo( position );
-
-		/// <summary>
 		/// Get the current position of the playing song
 		/// </summary>
 		public override int CurrentPosition

@@ -11,7 +11,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, NotificationDelegate callback, [CallerFilePath] string filePath = "" ) => 
+		public static void Register( Type classType, NotificationDelegate callback, [CallerFilePath] string filePath = "" ) =>
 			Register( classType, new DelegateContainer( callback ), filePath );
 
 		/// <summary>
@@ -19,9 +19,24 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, NotificationDelegateNoParams callback, [CallerFilePath] string filePath = "" ) => 
+		public static void Register( Type classType, NotificationDelegateNoParams callback, [CallerFilePath] string filePath = "" ) =>
 			Register( classType, new DelegateContainer( callback ), filePath );
 
+		/// <summary>
+		/// Registers interest in notifications from the specified class with parameters
+		/// </summary>
+		/// <param name="callback">The callback to use when a notification is made</param>
+		/// <param name="classType">The class to register</param>
+		public static void Register( Type classType, string propertyName, NotificationDelegate callback, [CallerFilePath] string filePath = "" ) =>
+			Register( classType, new DelegateContainer( callback, propertyName ), filePath );
+
+		/// <summary>
+		/// Registers interest in notifications from the specified class with no parameters
+		/// </summary>
+		/// <param name="callback">The callback to use when a notification is made</param>
+		/// <param name="classType">The class to register</param>
+		public static void Register( Type classType, string propertyName, NotificationDelegateNoParams callback, [CallerFilePath] string filePath = "" ) =>
+			Register( classType, new DelegateContainer( callback, propertyName ), filePath );
 
 		/// <summary>
 		/// Deregister all notifications for the calling class
@@ -63,7 +78,10 @@ namespace CoreMP
 					// Forward the message to all registered listeners
 					foreach ( DelegateContainer callback in messageRegistrations )
 					{
-						callback.Invoke( sender, propertyName );
+						if ( ( callback.PropertyName == null ) || ( callback.PropertyName == propertyName ) )
+						{
+							callback.Invoke( sender, propertyName );
+						}
 					}
 				} );
 			}
@@ -135,7 +153,10 @@ namespace CoreMP
 			{
 				Tuple<object, string> notification = savedNotifications[ classType.Name ];
 
-				CoreMPApp.Post( () => container.Invoke( notification.Item1, notification.Item2 ) );
+				if ( ( container.PropertyName == null ) || ( container.PropertyName == notification.Item2 ) )
+				{
+					CoreMPApp.Post( () => container.Invoke( notification.Item1, notification.Item2 ) );
+				}
 			}
 		}
 
@@ -157,9 +178,17 @@ namespace CoreMP
 		/// </summary>
 		private class DelegateContainer
 		{
-			public DelegateContainer( NotificationDelegate notification ) => notificationDelegate = notification;
+			public DelegateContainer( NotificationDelegate notification, string property = null )
+			{
+				notificationDelegate = notification;
+				PropertyName = property;
+			}
 
-			public DelegateContainer( NotificationDelegateNoParams notification ) => notificationDelegateNoParams = notification;
+			public DelegateContainer( NotificationDelegateNoParams notification, string property = null )
+			{
+				notificationDelegateNoParams = notification;
+				PropertyName = property;
+			}
 
 			public void Invoke( object sender, string message )
 			{
@@ -172,6 +201,8 @@ namespace CoreMP
 					notificationDelegateNoParams.Invoke();
 				}
 			}
+
+			public string PropertyName { get; private set; } = null;
 
 			private readonly NotificationDelegate notificationDelegate = null;
 			private readonly NotificationDelegateNoParams notificationDelegateNoParams = null;

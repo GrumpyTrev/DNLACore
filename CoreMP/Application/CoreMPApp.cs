@@ -6,13 +6,9 @@ namespace CoreMP
 	{
 		/// <summary>
 		/// Base constructor
+		/// Save a pointer to the one and only CoreMPApp
 		/// </summary>
-		public CoreMPApp()
-		{
-			instance = this;
-
-			playbackRouter = new PlaybackRouter();
-		}
+		public CoreMPApp() => Instance = this;
 
 		/// <summary>
 		/// Save the interface provided by the UI implementation
@@ -30,15 +26,13 @@ namespace CoreMP
 		public void Initialise()
 		{
 			new ConnectionController().InitialiseConnection( coreInterface.StoragePath );
-
-			// Configure the controllers
-			ConfigureControllers();
+			StorageController.ReadManagedCollections();
 		}
 
 		/// <summary>
 		/// Called when the UI has shutdown
 		/// </summary>
-		public void Shutdown() => playbackRouter.StopRouter();
+		public void Shutdown() => CommandInterface.StopRouter();
 
 		/// <summary>
 		/// Pass on wifi state changes to the DeviceDiscoverer instance
@@ -51,14 +45,7 @@ namespace CoreMP
 		/// </summary>
 		public Commander CommandInterface { get; } = new Commander();
 
-		public void SetLocalPlayer( BasePlayback localPlayer ) => playbackRouter.SetLocalPlayback( localPlayer );
-
-		/// <summary>
-		/// Add the specified interface to the callback colletion
-		/// </summary>
-		/// <param name="callback"></param>
-		public static void RegisterPlaybackCapabilityCallback( DeviceDiscovery.IDeviceDiscoveryChanges callback ) =>
-			deviceDiscoverer.RegisterCallback( callback );
+		public void SetLocalPlayer( BasePlayback localPlayer ) => CommandInterface.SetLocalPlayer( localPlayer );
 
 		/// <summary>
 		/// Post an Action onto the UI thread
@@ -71,23 +58,9 @@ namespace CoreMP
 		public static void ReleaseWakeLock() => coreInterface.ReleaseWakeLock();
 
 		/// <summary>
-		/// Configure all the controllers
-		/// </summary> 
-		private void ConfigureControllers()
-		{
-			PlaylistsController.GetControllerData();
-			PlaybackSelectionController.GetControllerData();
-			PlaybackModeController.GetControllerData();
-			PlaybackManagementController.GetControllerData();
-			MediaControllerController.GetControllerData();
-			MediaNotificationController.GetControllerData();
-            NowPlayingController.GetControllerData();
-        }
-
-		/// <summary>
-		/// The one and only MainApp
+		/// The one and only CoreMPApp
 		/// </summary>
-		private static CoreMPApp instance = null;
+		public static CoreMPApp Instance { get; private set; }
 
 		/// <summary>
 		/// The one and only Http server used to serve local files to remote devices
@@ -100,11 +73,6 @@ namespace CoreMP
 		/// The DeviceDiscovery instance used to monitor the network and scan for DLNA devices
 		/// </summary>
 		private static readonly DeviceDiscovery deviceDiscoverer = new DeviceDiscovery();
-
-		/// <summary>
-		/// The PlaybackRouter used to pass playback requests to the the correct playback device
-		/// </summary>
-		private readonly PlaybackRouter playbackRouter = null;
 
 		/// <summary>
 		/// The interface used to access the UI system

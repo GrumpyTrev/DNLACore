@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace DBTest
 {
-	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>, DataReporter.IReporter
+	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -110,7 +110,7 @@ namespace DBTest
 		/// </summary>
 		protected override void PostViewCreateAction()
 		{
-			NotificationHandler.Register( typeof( AlbumsViewModel ), () => DataAvailable() );
+			NotificationHandler.Register( typeof( AlbumsViewModel ), DataAvailable );
 			NotificationHandler.Register( typeof( Album ), ( sender, _ ) =>
 			{
 				// Is this album being displayed

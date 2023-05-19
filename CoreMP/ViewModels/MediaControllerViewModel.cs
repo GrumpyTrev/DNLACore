@@ -5,61 +5,74 @@
 	/// </summary>
 	public static class MediaControllerViewModel
 	{
-		/// <summary>
-		/// Clear the data held by this model
-		/// </summary>
-		public static void ClearModel()
-		{
-			PlaybackDeviceAvailable = false;
-			CurrentPosition = 0;
-			Duration = 0;
-			IsPlaying = false;
-			SongPlaying = null;
-		}
+		public static ModelAvailable Available { get; } = new ModelAvailable();
 
 		/// <summary>
 		/// Is there a playback device currently available
 		/// </summary>
-		public static bool PlaybackDeviceAvailable { get; set; } = false;
-
-		/// <summary>
-		/// Buffer percentage - not used
-		/// </summary>
-		public static int BufferPercentage => 0;
+		private static bool playbackDeviceAvailable = false;
+		public static bool PlaybackDeviceAvailable
+		{
+			get => playbackDeviceAvailable;
+			set
+			{
+				playbackDeviceAvailable = value;
+				NotificationHandler.NotifyPropertyChanged( null );
+			}
+		}
 
 		/// <summary>
 		/// The current playback position in milliseconds
 		/// </summary>
-		public static int CurrentPosition { get; set; } = 0;
+		private static int currentPosition = 0;
+		public static int CurrentPosition
+		{
+			get => currentPosition;
+			set
+			{
+				currentPosition = value;
+				NotificationHandler.NotifyPropertyChanged( null );
+			}
+		}
 
 		/// <summary>
 		/// The total duration of the track in milliseconds
 		/// </summary>
-		public static int Duration { get; set; } = 0;
+		private static int duration = 0;
+		public static int Duration
+		{
+			get => duration;
+			set
+			{
+				duration = value;
+				NotificationHandler.NotifyPropertyChanged( null );
+			}
+		}
 
 		/// <summary>
 		/// The current song being played
 		/// </summary>
-		public static Song SongPlaying { get; set; } = null;
+		private static Song songPlaying = null;
+		public static Song SongPlaying
+		{
+			get => songPlaying; set
+			{
+				songPlaying = value;
+				NotificationHandler.NotifyPropertyChanged( null );
+			}
+		}
 
 		/// <summary>
 		/// Is the track being played
 		/// </summary>
-		public static bool IsPlaying { get; set; } = false;
-
-		/// <summary>
-		/// Can playback be paused
-		/// </summary>
-		public static bool CanPause { get; set; } = true;
-
-		/// <summary>
-		/// Can the playback position be moved forward
-		/// </summary>
-		public static bool CanSeekForeward { get; set; } = true;
-
-		/// <summary>
-		/// Can the playback position be moved backward
-		/// </summary>
-		public static bool CanSeekBackward { get; set; } = true;
+		private static bool isPlaying = false;
+		public static bool IsPlaying
+		{
+			get => isPlaying; set
+			{
+				isPlaying = value;
+				NotificationHandler.NotifyPropertyChanged( null );
+			}
+		}
 	}
 }

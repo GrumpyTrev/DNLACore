@@ -8,30 +8,27 @@ namespace CoreMP
 	/// The NowPlayingController is the Controller for the NowPlayingView. It responds to NowPlayingView commands and maintains Now Playing data in the
 	/// NowPlayingViewModel
 	/// </summary>
-	public class NowPlayingController
+	internal class NowPlayingController
 	{
 		/// <summary>
 		/// Register for external Now Playing list change messages
 		/// </summary>
-		static NowPlayingController()
+		public NowPlayingController()
 		{
-			NotificationHandler.Register( typeof( Playlists ), SongSelected );
-			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
-			ShuffleModeChangedMessage.Register( ShuffleModeChanged );
-			MediaControlPlayNextMessage.Register( MediaControlPlayNext );
-			MediaControlPlayPreviousMessage.Register( MediaControlPlayPrevious );
-			SongFinishedMessage.Register( SongFinished );
-		}
+			NotificationHandler.Register( typeof( StorageController ), () =>
+			{
+				StorageDataAvailable();
 
-		/// <summary>
-		/// Get the SongPlaylist data
-		/// </summary>
-		public static void GetControllerData() => dataReporter.GetData();
+				SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+				ShuffleModeChangedMessage.Register( ShuffleModeChanged );
+				SongFinishedMessage.Register( SongFinished );
+			});
+		}
 
 		/// <summary>
 		/// Set the selected song in the database and play it
 		/// </summary>
-		public static void UserSongSelected( int songIndex, bool playSong = true )
+		public void UserSongSelected( int songIndex, bool playSong = true )
 		{
 			NowPlayingViewModel.CurrentSongIndex = songIndex;
 
@@ -44,7 +41,7 @@ namespace CoreMP
 
 		/// <summary>
 		/// Add the songs from the playlist to the Now Playing list
-		/// If this set is replacing the current contents (clearFirst == true ) then clear the Now Playimng list
+		/// If this set is replacing the current contents (clearFirst == true ) then clear the Now Playing list
 		/// first.
 		/// If a resume has been selected and the current contents are being replaced then add all of the
 		/// playlist's songs but set the current song to the resume point. If resume has been selected and the playlist is 
@@ -54,7 +51,7 @@ namespace CoreMP
 		/// <param name="playlistToAdd"></param>
 		/// <param name="clearFirst"></param>
 		/// <param name="resume"></param>
-		public static void AddPlaylistToNowPlayingList( Playlist playlistToAdd, bool clearFirst, bool resume )
+		public void AddPlaylistToNowPlayingList( Playlist playlistToAdd, bool clearFirst, bool resume )
 		{
 			// Should the Now Playing playlist be cleared first
 			if ( clearFirst == true )
@@ -87,7 +84,7 @@ namespace CoreMP
 			SetStartingPointForNewList( clearFirst, newCurrentIndex );
 
 			// Report change to UI
-			DataReporter?.DataAvailable();
+			NowPlayingViewModel.Available.IsSet = true;
 		}
 
 		/// <summary>
@@ -95,7 +92,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="clearFirst"></param>
-		public static void AddSongsToNowPlayingList( IEnumerable<Song> songsToAdd, bool clearFirst )
+		public void AddSongsToNowPlayingList( IEnumerable<Song> songsToAdd, bool clearFirst )
 		{
 			// Should the Now Playing playlist be cleared first
 			if ( clearFirst == true )
@@ -110,7 +107,7 @@ namespace CoreMP
 			SetStartingPointForNewList( clearFirst, 0 );
 
 			// Report change to UI
-			DataReporter?.DataAvailable();
+			NowPlayingViewModel.Available.IsSet = true;
 		}
 
 		/// <summary>
@@ -119,7 +116,7 @@ namespace CoreMP
 		/// This can be done by examining the track numbers of the items to be deleted
 		/// </summary>
 		/// <param name="items"></param>
-		public static void DeleteNowPlayingItems( IEnumerable<PlaylistItem> items )
+		public void DeleteNowPlayingItems( IEnumerable<PlaylistItem> items )
 		{
 			// Record the currently selected song so its track number can be checked after the delete
 			PlaylistItem currentPlaylistItem = null;
@@ -152,27 +149,27 @@ namespace CoreMP
 			AdjustSelectedSongIndex( currentPlaylistItem );
 
 			// Report change to UI
-			DataReporter?.DataAvailable();
+			NowPlayingViewModel.Available.IsSet = true;
 		}
 
 		/// <summary>
 		/// Move a set of selected items down the Now Playing playlist and update the track numbers
 		/// </summary>
 		/// <param name="items"></param>
-		public static void MoveItemsDown( IEnumerable<PlaylistItem> items ) => MoveItems( items, false );
+		public void MoveItemsDown( IEnumerable<PlaylistItem> items ) => MoveItems( items, false );
 
 		/// <summary>
 		/// Move a set of selected items up the Now Playing playlist and update the track numbers
 		/// </summary>
 		/// <param name="items"></param>
-		public static void MoveItemsUp( IEnumerable<PlaylistItem> items ) => MoveItems( items, true );
+		public void MoveItemsUp( IEnumerable<PlaylistItem> items ) => MoveItems( items, true );
 
 		/// <summary>
 		/// Move the selected items up or down the list
 		/// </summary>
 		/// <param name="items"></param>
 		/// <param name="moveUp"></param>
-		private static void MoveItems( IEnumerable<PlaylistItem> items, bool moveUp )
+		private void MoveItems( IEnumerable<PlaylistItem> items, bool moveUp )
 		{
 			// Record the currently selected song so its track number can be checked after the move
 			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.CurrentSongIndex == -1 ) ? null
@@ -191,13 +188,13 @@ namespace CoreMP
 			AdjustSelectedSongIndex( currentPlaylistItem );
 
 			// Report that the playlist has been updated - don't use NowPlayingDataAvailable as that will clear the selections
-			DataReporter?.PlaylistUpdated();
+			NowPlayingViewModel.PlaylistUpdated = true;
 		}
 
 		/// <summary>
 		/// Called when the SongPlaylist data is available to be displayed, or needs to be refreshed
 		/// </summary>
-		private static void StorageDataAvailable()
+		private void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
 			NowPlayingViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
@@ -209,22 +206,15 @@ namespace CoreMP
 			NowPlayingViewModel.CurrentSongIndex = Playlists.CurrentSongIndex;
 			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong, DontPlay = true }.Send();
 
-			DataReporter?.DataAvailable();
+			NowPlayingViewModel.Available.IsSet = true;
 		}
-
-		/// <summary>
-		/// Called when the SongSelectedMessage is received
-		/// Inform the reporter 
-		/// </summary>
-		/// <param name="message"></param>
-		private static void SongSelected() => DataReporter?.SongSelected();
 
 		/// <summary>
 		/// Called when a SelectedLibraryChangedMessage has been received
 		/// Reload the data
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SelectedLibraryChanged( int _ ) => StorageDataAvailable();
+		private void SelectedLibraryChanged( int _ ) => StorageDataAvailable();
 
 		/// <summary>
 		/// Called when a ShuffleModeChangedMessage is received.
@@ -232,7 +222,7 @@ namespace CoreMP
 		/// If Shuffle mode has been turned on then shuffle the current playlist
 		/// </summary>
 		/// <param name="message"></param>
-		private static void ShuffleModeChanged()
+		private void ShuffleModeChanged()
 		{
 			if ( Playback.ShufflePlayOn == true )
 			{
@@ -244,7 +234,7 @@ namespace CoreMP
 		/// Play the next song in the playlist
 		/// </summary>
 		/// <param name="_message"></param>
-		private static void MediaControlPlayNext()
+		public void MediaControlPlayNext()
 		{
 			NowPlayingViewModel.CurrentSongIndex = ( NowPlayingViewModel.CurrentSongIndex == ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) ) ?
 				0 : NowPlayingViewModel.CurrentSongIndex + 1;
@@ -256,7 +246,7 @@ namespace CoreMP
 		/// Play the previous song in the playlist
 		/// </summary>
 		/// <param name="_message"></param>
-		private static void MediaControlPlayPrevious()
+		public void MediaControlPlayPrevious()
 		{
 			NowPlayingViewModel.CurrentSongIndex = ( NowPlayingViewModel.CurrentSongIndex > 0 ) ? NowPlayingViewModel.CurrentSongIndex - 1 :
 				NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1;
@@ -270,7 +260,7 @@ namespace CoreMP
 		/// If shuffle mode is on then shuffle the songs before playimng the first one
 		/// </summary>
 		/// <param name="_"></param>
-		private static void SongFinished( Song _ )
+		private void SongFinished( Song _ )
 		{
 			if ( NowPlayingViewModel.CurrentSongIndex < ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) )
 			{
@@ -300,13 +290,13 @@ namespace CoreMP
 		/// Shuffle the current playlist items
 		/// Extract the songs from the playlist and add them back to it. The AddSongsToNowPlayingList method will appply the shuffle
 		/// </summary>
-		private static void ShufflePlaylistItems() => AddSongsToNowPlayingList( NowPlayingViewModel.NowPlayingPlaylist.GetSongs(), true );
+		private void ShufflePlaylistItems() => AddSongsToNowPlayingList( NowPlayingViewModel.NowPlayingPlaylist.GetSongs(), true );
 
 		/// <summary>
 		/// Shuffle the list of specified songs if Shuffle is on
 		/// </summary>
 		/// <param name="songs"></param>
-		private static List<Song> ApplyShuffle( List<Song> songs )
+		private List<Song> ApplyShuffle( List<Song> songs )
 		{
 			if ( Playback.ShufflePlayOn == true )
 			{
@@ -328,7 +318,7 @@ namespace CoreMP
 		/// Adjust the index of the currently selected song if it does not match the adjusted track number of the song
 		/// </summary>
 		/// <param name="selectedSong"></param>
-		private static void AdjustSelectedSongIndex( PlaylistItem selectedSong )
+		private void AdjustSelectedSongIndex( PlaylistItem selectedSong )
 		{
 			if ( selectedSong != null )
 			{
@@ -344,7 +334,7 @@ namespace CoreMP
 		/// <summary>
 		/// Clear the Now Playing list - stopping any current song playing
 		/// </summary>
-		private static void ClearNowPlayingList()
+		private void ClearNowPlayingList()
 		{
 			// Before clearing the list reset the selected song to stop it being played
 			NowPlayingViewModel.CurrentSongIndex = -1;
@@ -359,7 +349,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="isNew"></param>
 		/// <param name="startingIndex"></param>
-		private static void SetStartingPointForNewList( bool isNew, int startingIndex )
+		private void SetStartingPointForNewList( bool isNew, int startingIndex )
 		{
 			// If the list was cleared and there are now some items in the list select the song to play and play it
 			if ( ( isNew == true ) & ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > startingIndex ) )
@@ -372,29 +362,6 @@ namespace CoreMP
 		/// <summary>
 		/// The random number generator used to shuffle the list
 		/// </summary>
-		private static readonly Random rng = new Random();
-
-		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public static INowPlayingReporter DataReporter
-		{
-			private get => ( INowPlayingReporter )dataReporter.Reporter;
-			set => dataReporter.Reporter = value;
-		}
-
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface INowPlayingReporter : DataReporter.IReporter
-		{
-			void SongSelected();
-			void PlaylistUpdated();
-		}
-
-		/// <summary>
-		/// The DataReporter instance used to handle storage availability reporting
-		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private readonly Random rng = new Random();
 	}
 }

@@ -95,7 +95,7 @@ namespace DBTest
 		/// </summary>
 		protected override void PostViewCreateAction()
 		{
-			NotificationHandler.Register( typeof( ArtistsViewModel ), () => DataAvailable() );
+			NotificationHandler.Register( typeof( ArtistsViewModel ), DataAvailable );
 			NotificationHandler.Register( typeof( Album ), ( sender, _ ) =>
 			{
 				// Only process this album if it is in the same library as is being displayed

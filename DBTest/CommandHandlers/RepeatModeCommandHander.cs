@@ -11,7 +11,7 @@ namespace DBTest
 		/// Called to handle the command. Pass on to the PlaybackModeController
 		/// </summary>
 		/// <param name="commandIdentity"></param>
-		public override void HandleCommand( int commandIdentity ) => PlaybackModeController.RepeatOn = !PlaybackModeModel.RepeatOn;
+		public override void HandleCommand( int commandIdentity ) => CoreMPApp.Instance.CommandInterface.SetRepeat( !PlaybackModeModel.RepeatOn );
 
 		/// <summary>
 		/// The command identity associated with this handler

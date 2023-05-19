@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -11,11 +12,10 @@ namespace CoreMP
 		/// Public constructor supplying the interface used to store scanned songs
 		/// </summary>
 		/// <param name="songInterface"></param>
-		public UPnPScanner( SongStorage songInterface, Func<bool> cancelledCheck, PlaybackDevices playbackDevices )
+		public UPnPScanner( SongStorage songInterface, Func<bool> cancelledCheck )
 		{
 			storageInterface = songInterface;
 			scanCancelledCheck = cancelledCheck;
-			remoteDevices = playbackDevices;
 		}
 
 		/// <summary>
@@ -26,7 +26,7 @@ namespace CoreMP
 		public async Task Scan( string serverName )
 		{
 			// See if there is a UPnP server available with the specified name
-			server = remoteDevices.FindDevice( serverName );
+			server = DevicesModel.RemoteDevices.FindServer( serverName );
 			if ( server != null )
 			{
 				// Traverse the directories returned from the server
@@ -109,14 +109,14 @@ namespace CoreMP
 							{
 								Logger.Log( $"Processing song no {++songNo} : [{item.artist[ 0 ].Value}] [{item.title}] [{item.album}] [{item.originalTrackNumber}]" );
 
-								// For the filepath use the item descriptor but remove the ip address and port as these are specific to the current device's 
-								// network config which may change
+								// For the filepath use a key derived from the song itself as the path reported in the BrowseItem may have changed
+								string songKey = $"{item.artist[ 0 ].Value}:{item.title}:{item.album}:{item.originalTrackNumber}";
 								string filePath = item.res.Value.Replace( $"http://{server.IPAddress}:{server.Port}/", "" );
 
 								DateTime modifiedTime = DateTimeOffset.FromUnixTimeSeconds( Int32.Parse( item.modificationTime ) ).LocalDateTime;
 
 								// At this point if the library is only being rescanned then there may be no reason to actually add the song
-								if ( storageInterface.DoesSongRequireScanning( filePath, modifiedTime ) == true )
+								if ( storageInterface.DoesSongRequireScanning( songKey, modifiedTime ) == true )
 								{
 									// Create a ScannedSong from this item and add it to the list
 									ScannedSong itemSong = MakeScannedSong( item );
@@ -124,6 +124,15 @@ namespace CoreMP
 									itemSong.SourcePath = filePath;
 
 									songs.Add( itemSong );
+								}
+								else
+								{
+									// The path associated with the song may have changed
+									Song songToCheck = storageInterface.GetSongFromPath( songKey );
+									if ( (songToCheck != null ) && ( songToCheck.Path != filePath ) )
+									{
+										songToCheck.Path = filePath;
+									}
 								}
 							}
 
@@ -243,11 +252,6 @@ namespace CoreMP
 
 			return itemSong;
 		}
-
-		/// <summary>
-		/// The Remote Devices available to be scanned
-		/// </summary>
-		private readonly PlaybackDevices remoteDevices = null;
 
 		/// <summary>
 		/// Function to call to check if the scan has been cancelled

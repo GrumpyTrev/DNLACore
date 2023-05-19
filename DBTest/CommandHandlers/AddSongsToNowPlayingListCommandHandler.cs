@@ -33,8 +33,8 @@ namespace DBTest
 
 					ConfirmationDialog.Show( 
 						$"This playlist is currently playing '{currentSong.Title}' by '{artistName}'. Do you want to continue or start from the beginning?",
-						() => NowPlayingController.AddPlaylistToNowPlayingList( parentPlaylist, commandIdentity == Resource.Id.play_now, true ),
-						() => NowPlayingController.AddPlaylistToNowPlayingList( parentPlaylist, commandIdentity == Resource.Id.play_now, false ),
+						() => MainApp.CommandInterface.AddPlaylistToNowPlayingList( parentPlaylist, commandIdentity == Resource.Id.play_now, true ),
+						() => MainApp.CommandInterface.AddPlaylistToNowPlayingList( parentPlaylist, commandIdentity == Resource.Id.play_now, false ),
 						"Continue", "Start" );
 				}
 				else
@@ -53,13 +53,13 @@ namespace DBTest
 						}
 					}
 
-					NowPlayingController.AddSongsToNowPlayingList( selectedSongs, ( commandIdentity == Resource.Id.play_now ) );
+					MainApp.CommandInterface.AddSongsToNowPlayingList( selectedSongs, ( commandIdentity == Resource.Id.play_now ) );
 				}
 			}
 			// Otherwise just use the selected songs themselves
 			else
 			{
-				NowPlayingController.AddSongsToNowPlayingList( selectedObjects.Songs, ( commandIdentity == Resource.Id.play_now ) );
+				MainApp.CommandInterface.AddSongsToNowPlayingList( selectedObjects.Songs, ( commandIdentity == Resource.Id.play_now ) );
 			}
 
 			commandCallback.PerformAction();

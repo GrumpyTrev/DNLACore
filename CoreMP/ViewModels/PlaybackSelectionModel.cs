@@ -1,4 +1,6 @@
-﻿namespace CoreMP
+﻿using System.Collections.Generic;
+
+namespace CoreMP
 {
 	/// <summary>
 	/// The PlaybackSelectionModel holds the remote devices and associated data obtained by the PlaybackSelectionController
@@ -6,15 +8,29 @@
 	public static class PlaybackSelectionModel
 	{
 		/// <summary>
-		/// The remote devices that have been discovered
+		/// Used to notify changes to the model
 		/// </summary>
-		public static PlaybackDevices RemoteDevices { get; } = new PlaybackDevices();
+		public static ModelAvailable Available { get; } = new ModelAvailable();
+
+		/// <summary>
+		/// The remote devices capable of playback that have been have been discovered
+		/// </summary>
+		public static List<PlaybackDevice> PlaybackCapableDevices { get; set; } = new List<PlaybackDevice>();
 
 		/// <summary>
 		/// The currently selected playback device
 		/// This property is only set if the selected device name is available
 		/// </summary>
-		public static PlaybackDevice SelectedDevice { get; set; } = null;
+		private static PlaybackDevice selectedDevice = null;
+		public static PlaybackDevice SelectedDevice
+		{
+			get => selectedDevice;
+			set
+			{
+				selectedDevice = value;
+				NotificationHandler.NotifyPropertyChanged( null );
+			}
+		}
 
 		/// <summary>
 		/// THe name of the currently selected device.
@@ -26,10 +42,5 @@
 		/// The state of the wi-fi network 
 		/// </summary>
 		public static bool WifiAvailable { get; set; } = false;
-
-		/// <summary>
-		/// The name of the one and only local device
-		/// </summary>
-		public const string LocalDeviceName = "Local playback";
 	}
 }

@@ -4,8 +4,30 @@ using SQLite;
 
 namespace CoreMP
 {
+	/// <summary>
+	/// The GenrePopulation class is used to hold one or more Genres stored as a delimited string
+	/// </summary>
+	[Table( "GenrePopulation" )]
 	public partial class GenrePopulation
 	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		/// <summary>
+		/// The semicolon delimited list of genres held by this class
+		/// </summary>
+		public string GenreString { get; set; } = "";
+
+		/// <summary>
+		/// The population number of this record
+		/// </summary>
+		public int Index { get; set; } = -1;
+
+		/// <summary>
+		/// Link to the Autoplay instance that uses this set of Genres
+		/// </summary>
+		public int AutoplayId { get; set; }
+
 		/// <summary>
 		/// The list of genres extracted from the delimited string
 		/// </summary>

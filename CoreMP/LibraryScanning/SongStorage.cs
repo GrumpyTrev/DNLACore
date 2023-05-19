@@ -24,7 +24,7 @@ namespace CoreMP
 		/// Group the songs into albums by album name
 		/// </summary>
 		/// <param name="songs"></param>
-			public async Task SongsScanned( List<ScannedSong> songs )
+		public async Task SongsScanned( List<ScannedSong> songs )
 		{
 			Dictionary<string, ScannedAlbum> albumGroups = new Dictionary<string, ScannedAlbum>();
 
@@ -99,6 +99,13 @@ namespace CoreMP
 
 			return scanRequired;
 		}
+
+		/// <summary>
+		/// Allow the collection to be accessed by path
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		public Song GetSongFromPath( string path ) => songLookup.GetValueOrDefault( path );
 
 		/// <summary>
 		/// The ScannedAlbum instances that have been scanned and need processing through the library

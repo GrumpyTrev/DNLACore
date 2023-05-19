@@ -7,8 +7,45 @@ namespace CoreMP
 	/// <summary>
 	/// The Autoplay class contains auto-playlist configuration details
 	/// </summary>
-	public partial class Autoplay
+	[Table( "Autoplay" )]
+	public class Autoplay
 	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public int LibraryId { get; set; }
+
+		/// <summary>
+		/// The genre populaton used for the last generation
+		/// </summary>
+		public int LastPopulation { get; set; } = -1;
+
+		/// <summary>
+		/// How fast are genres added as songs are played
+		/// </summary>
+		public SpreadType Spread { get; set; } = SpreadType.Slow;
+
+		public enum SpreadType { NoSpread, Fast, Slow };
+
+		/// <summary>
+		/// The maximum number of times the list of genres is expanded 
+		/// </summary>
+		public int FastSpreadLimit { get; set; } = 2;
+
+		/// <summary>
+		/// Are all populations the target of the next generated song, or just populations linked to the current song
+		/// </summary>
+		public TargetType Target { get; set; } = TargetType.AllPopulations;
+
+		public enum TargetType { AllPopulations, NextPopulation };
+
+		/// <summary>
+		/// How are selection weighted.
+		/// </summary>
+		public WeightType Weight { get; set; } = WeightType.None;
+
+		public enum WeightType { None, Centre, Edge };
+
 		/// <summary>
 		/// Intialise the Population list from the GenrePopulation records
 		/// </summary>

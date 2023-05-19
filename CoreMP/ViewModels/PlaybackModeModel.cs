@@ -6,13 +6,6 @@
 	public static class PlaybackModeModel
 	{
 		/// <summary>
-		/// Clear the data held by this model
-		/// </summary>
-		public static void ClearModel()
-		{
-		}
-
-		/// <summary>
 		/// Form the ActivePlayMode from the repeat, shuffle and auto flag
 		/// </summary>
 		public static void UpdateActivePlayMode()
@@ -40,6 +33,9 @@
 			{
 				ActivePlayMode = PlayModeType.LinearPlay;
 			}
+
+			// Report this change
+			NotificationHandler.NotifyPropertyChanged( null );
 		}
 
 		/// <summary>

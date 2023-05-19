@@ -16,11 +16,6 @@ namespace CoreMP
 		public BasePlayback() => positionTimer = new Timer( timer => PositionTimerElapsed(), null, TimerPeriod, TimerPeriod );
 
 		/// <summary>
-		/// Register interest in the availability of UPnP servers
-		/// </summary>
-		static BasePlayback() => CoreMPApp.RegisterPlaybackCapabilityCallback( deviceCallback );
-
-		/// <summary>
 		/// Called when the playback system is being shutdown.
 		/// Allow derived classes to release system resources
 		/// </summary>
@@ -89,12 +84,6 @@ namespace CoreMP
 		/// Reset the player
 		/// </summary>
 		public abstract void Reset();
-
-		/// <summary>
-		/// Seek to the specified position
-		/// </summary>
-		/// <param name="position"></param>
-		public abstract void SeekTo( int position );
 
 		/// <summary>
 		/// Called when the associated application is shutting down.
@@ -221,10 +210,9 @@ namespace CoreMP
 					case Source.AccessType.UPnP:
 						{
 							// Find the device assoicated with the source
-							PlaybackDevice sourceDevice = RemoteDevices.FindDevice( songSource.Name );
+							PlaybackDevice sourceDevice = DevicesModel.RemoteDevices.FindServer( songSource.Name );
 							sourceName = $"http://{sourceDevice.IPAddress}:{sourceDevice.Port}/{songPath}";
 							break;
-
 						}
 					default:
 						break;
@@ -236,7 +224,7 @@ namespace CoreMP
 				if ( songSource.AccessMethod == Source.AccessType.UPnP )
 				{
 					// Find the device assoicated with the source
-					PlaybackDevice sourceDevice = RemoteDevices.FindDevice( songSource.Name );
+					PlaybackDevice sourceDevice = DevicesModel.RemoteDevices.FindServer( songSource.Name );
 					sourceName = $"http://{sourceDevice.IPAddress}:{sourceDevice.Port}/{songPath}";
 				}
 				else
@@ -257,25 +245,6 @@ namespace CoreMP
 		/// Report that the current song has finished
 		/// </summary>
 		protected void ReportSongFinished() => Reporter.SongFinished();
-
-		/// <summary>
-		/// Called when a new remote media device has been detected
-		/// </summary>
-		/// <param name="device"></param>
-		private static void NewDeviceDetected( PlaybackDevice device )
-		{
-			// Add this device to the model if it supports content discovery
-			if ( device.ContentUrl.Length > 0 )
-			{
-				RemoteDevices.AddDevice( device );
-			}
-		}
-
-		/// <summary>
-		/// Called when a remote media device is no longer available
-		/// </summary>
-		/// <param name="device"></param>
-		private static void DeviceNotAvailable( PlaybackDevice device ) => RemoteDevices.RemoveDevice( device );
 
 		/// <summary>
 		/// The instance used to report back significant events
@@ -308,16 +277,6 @@ namespace CoreMP
 		private const int TimerPeriod = 1000;
 
 		/// <summary>
-		/// The remote devices that have been discovered
-		/// </summary>
-		private static PlaybackDevices RemoteDevices { get; } = new PlaybackDevices();
-
-		/// <summary>
-		/// The single instance of the RemoteDeviceCallback class
-		/// </summary>
-		private static readonly RemoteDeviceCallback deviceCallback = new RemoteDeviceCallback();
-
-		/// <summary>
 		/// The interface defining the calls back to the application
 		/// </summary>
 		public interface IPlaybackCallbacks
@@ -326,38 +285,6 @@ namespace CoreMP
 			void SongStarted();
 			void SongFinished();
 			void ProgressReport( int position, int duration );
-		}
-
-		/// <summary>
-		/// Implementation of the DeviceDiscovery.IDeviceDiscoveryChanges interface
-		/// </summary>
-		private class RemoteDeviceCallback : DeviceDiscovery.IDeviceDiscoveryChanges
-		{
-			/// <summary>
-			/// Called to report the available devices - when registration is first made
-			/// </summary>
-			/// <param name="devices"></param>
-			public void AvailableDevices( PlaybackDevices devices ) =>
-				devices.DeviceCollection.ForEach( device => BasePlayback.NewDeviceDetected( device ) );
-
-			/// <summary>
-			/// Called when one or more devices are no longer available
-			/// </summary>
-			/// <param name="devices"></param>
-			public void UnavailableDevices( PlaybackDevices devices ) =>
-					devices.DeviceCollection.ForEach( device => BasePlayback.DeviceNotAvailable( device ) );
-
-			/// <summary>
-			/// Called when the wifi network state changes
-			/// </summary>
-			/// <param name="state"></param>
-			public void NetworkState( bool state ) { }
-
-			/// <summary>
-			/// Called when a new DLNA device has been detected
-			/// </summary>
-			/// <param name="device"></param>
-			public void NewDeviceDetected( PlaybackDevice device ) => BasePlayback.NewDeviceDetected( device );
 		}
 	}
 }

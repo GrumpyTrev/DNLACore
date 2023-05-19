@@ -6,8 +6,37 @@ namespace CoreMP
 	/// <summary>
 	/// The tag class contains a list of tagged albums
 	/// </summary>
-	public partial class Tag
+	[Table( "Tag" )]
+	public class Tag
 	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		/// <summary>
+		/// The full name of the tag
+		/// </summary>
+		public string Name { get; set; }
+
+		/// <summary>
+		/// Name to be displayed in tab when filter applied
+		/// </summary>
+		public string ShortName { get; set; }
+
+		/// <summary>
+		/// Sort tagged albums by tag id
+		/// </summary>
+		public bool TagOrder { get; set; } = false;
+
+		/// <summary>
+		/// Synchronise tagged albums across libraries
+		/// </summary>
+		public bool Synchronise { get; set; } = false;
+
+		/// <summary>
+		/// Should this tag be persisted in storage
+		/// </summary>
+		public bool PersistTag { get; set; } = false;
+
 		/// <summary>
 		/// Delete a set of TaggedAlbum entries from the tag
 		/// </summary>

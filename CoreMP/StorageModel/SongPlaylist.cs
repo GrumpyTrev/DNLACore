@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using SQLite;
 
 namespace CoreMP
 {
 	/// <summary>
 	/// The SongPlaylist class contains an ordered collection of songs wrapped up in SongPlaylistItems
 	/// </summary>
-	public partial class SongPlaylist : Playlist
+	[Table( "PlayList" )]
+	public class SongPlaylist : Playlist
 	{
 		/// <summary>
 		/// Get the PlaylistItems and associated songs for this playlist

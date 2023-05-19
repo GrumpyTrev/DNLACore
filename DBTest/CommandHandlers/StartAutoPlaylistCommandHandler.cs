@@ -58,7 +58,7 @@ namespace DBTest
 			// Make genre list unique
 			selectedGenres = selectedGenres.Distinct().ToList();
 
-			MainApp.CommandInterface.StartAutoplay( selectedObjects.Songs, selectedGenres, commandIdentity == Resource.Id.auto_play );
+			MainApp.CommandInterface.StartAutoplay( selectedObjects.Songs, selectedGenres );
 
 			commandCallback.PerformAction();
 		}

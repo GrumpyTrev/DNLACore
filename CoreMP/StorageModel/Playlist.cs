@@ -10,6 +10,21 @@ namespace CoreMP
 	/// </summary>
 	public abstract partial class Playlist
 	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		public int LibraryId { get; set; }
+
+		/// <summary>
+		/// The index of the song curently selected in the SongPlaylist
+		/// For the NowPlaying playlist this is the song being played, for all other playlists this is the song 
+		/// that was being played when that playlist was playing.
+		/// </summary>
+		[Column( "SongIndex" )]
+		public int DBSongIndex { get; set; }
+
 		/// <summary>
 		/// Change the name of this playlist
 		/// </summary>

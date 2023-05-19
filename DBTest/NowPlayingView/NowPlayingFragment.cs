@@ -1,11 +1,10 @@
 ﻿using Android.Widget;
 using CoreMP;
-using System.Threading.Tasks;
 
 namespace DBTest
 {
 	public class NowPlayingFragment : PagedFragment<PlaylistItem>, ExpandableListAdapter<PlaylistItem>.IGroupContentsProvider<PlaylistItem>,
-		NowPlayingController.INowPlayingReporter, NowPlayingAdapter.IActionHandler
+		NowPlayingAdapter.IActionHandler
 	{
         /// <summary>
         /// Default constructor required for system view hierarchy restoration
@@ -40,24 +39,11 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a the Now Playing playlist has been updated
-		/// Pass on the changes to the adpater
-		/// </summary>
-		/// <param name="message"></param>
-		public void PlaylistUpdated() => ( ( NowPlayingAdapter )Adapter ).PlaylistUpdated( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems );
-
-		/// <summary>
 		/// Called when a song has been selected by the user
 		/// Pass this change to the controller
 		/// </summary>
 		/// <param name="itemNo"></param>
-		public void SongSelected( int itemNo ) => NowPlayingController.UserSongSelected( itemNo );
-
-		/// <summary>
-		/// Called when song selection has been reported by the controller
-		/// Pass on the changes to the adapter
-		/// </summary>
-		public void SongSelected() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex );
+		public void SongSelected( int itemNo ) => MainApp.CommandInterface.UserSongSelected( itemNo );
 
         /// <summary>
         /// Called when the Select All checkbox has been clicked on the Action Bar.
@@ -83,14 +69,21 @@ namespace DBTest
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
-		/// Initialise the NowPlayingController
+		/// Register for data model changes
 		/// </summary>
-		protected override void PostViewCreateAction() => NowPlayingController.DataReporter = this;
+		protected override void PostViewCreateAction()
+		{
+			NotificationHandler.Register( typeof( NowPlayingViewModel ), DataAvailable );
+			NotificationHandler.Register( typeof( NowPlayingViewModel ), "CurrentSongIndex",
+				() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex ) );
+			NotificationHandler.Register( typeof( NowPlayingViewModel ), "PlaylistUpdated",
+				() => ( ( NowPlayingAdapter )Adapter ).PlaylistUpdated( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems ) );
+		}
 
 		/// <summary>
 		/// Called to release any resources held by the fragment
 		/// </summary>
-		protected override void ReleaseResources() => NowPlayingController.DataReporter = null;
+		protected override void ReleaseResources() => NotificationHandler.Deregister();
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment

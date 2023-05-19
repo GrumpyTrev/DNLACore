@@ -5,9 +5,22 @@
 	/// </summary>
 	public static class NowPlayingViewModel
 	{
+		/// <summary>
+		/// Allow changes to this model to be monitored
+		/// </summary>
+		public static ModelAvailable Available { get; } = new ModelAvailable();
+
 		/// The Now Playing playlist that has been obtained from the database
 		/// </summary>
 		public static SongPlaylist NowPlayingPlaylist { get; set; } = null;
+
+		/// <summary>
+		/// Property introduced to trigger a notification when changes to the playlist have been made (and completed)
+		/// </summary>
+		public static bool PlaylistUpdated
+		{
+			set => NotificationHandler.NotifyPropertyChanged( null );
+		}
 
 		/// <summary>
 		/// The index of the song currently being played
@@ -17,18 +30,12 @@
 			get => Playlists.CurrentSongIndex;
 			set
 			{
-				// Normalise the value being set
-				if ( value >= NowPlayingPlaylist.PlaylistItems.Count )
-				{
-					Playlists.CurrentSongIndex = -1;
-				}
-				else
-				{
-					Playlists.CurrentSongIndex = value;
-				}
+				Playlists.CurrentSongIndex = value;
 
 				CurrentSong = ( ( Playlists.CurrentSongIndex == -1 ) || ( NowPlayingPlaylist == null ) ) ? null :
 					( ( SongPlaylistItem )NowPlayingPlaylist.PlaylistItems[ Playlists.CurrentSongIndex ] ).Song;
+
+				NotificationHandler.NotifyPropertyChanged( null );
 			}
 		}
 

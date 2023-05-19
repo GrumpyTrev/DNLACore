@@ -42,7 +42,7 @@ namespace DBTest
 		{
 			if ( confirm == true )
 			{
-				PlaylistsController.DuplicatePlaylist( playlistsBeingDuplicated[ playlistIndex ] );
+				MainApp.CommandInterface.DuplicatePlaylist( playlistsBeingDuplicated[ playlistIndex ] );
 			}
 
 			DuplicateNextPlaylist();
@@ -58,7 +58,7 @@ namespace DBTest
 				Playlist nextPlaylist = playlistsBeingDuplicated[ playlistIndex ];
 
 				// If the playlist already exists in other libraries then prompt for deletion
-				if ( PlaylistsController.CheckForOtherPlaylists( nextPlaylist.Name, ConnectionDetailsModel.LibraryId ) == true )
+				if ( MainApp.CommandInterface.CheckForOtherPlaylists( nextPlaylist.Name, PlaylistsViewModel.LibraryId ) == true )
 				{
 					ConfirmationDialog.Show( $"Playlist [{nextPlaylist.Name}] already exists in other libraries. Are you sure you want to duplicate it?",
 						() => DuplicationConfirmed( true), () => DuplicationConfirmed( false ) );
@@ -66,7 +66,7 @@ namespace DBTest
 				else
 				{
 					// Duplicate the playlist in the other libraries
-					PlaylistsController.DuplicatePlaylist( nextPlaylist );
+					MainApp.CommandInterface.DuplicatePlaylist( nextPlaylist );
 
 					DuplicateNextPlaylist();
 				}

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -14,14 +16,14 @@ namespace CoreMP
 	/// If a device is found that has been previously seen then they will not be queries, the previous result of the query will be retained.
 	/// This assumes that a device does not change its ability to support DLNA services.
 	/// </summary>
-	public class DLNAScanner
+	internal class DLNAScanner
 	{
 		/// <summary>
 		/// Public constructor
-		/// Save the callback used to report new DLNA capable devices
+		/// Save the PlaybackDevices used to report new DLNA capable devices
 		/// </summary>
-		/// <param name="callback"></param>
-		public DLNAScanner( CapableDeviceDetectedDelegate callback ) => deviceReporter = callback;
+		/// <param name="devices"></param>
+		public DLNAScanner( PlaybackDevices devices ) => activeDevices = devices;
 
 		/// <summary>
 		/// Send out a series of multicast DLNA search requests
@@ -69,7 +71,7 @@ namespace CoreMP
 					if ( newDevice != null )
 					{
 						// Has this device been seen before
-						PlaybackDevice existingDevice = scannedDevices.FindDevice( newDevice );
+						PlaybackDevice existingDevice = scannedDevices.SingleOrDefault( dev => newDevice.Equals( dev ) );
 						if ( existingDevice != null )
 						{
 							existingDevice.CommunicationFailureCount = 0;
@@ -77,13 +79,13 @@ namespace CoreMP
 							// If this device supports the transport service then report it
 							if ( existingDevice.CanPlayMedia == PlaybackDevice.CanPlayMediaType.Yes )
 							{
-								deviceReporter( existingDevice );
+								activeDevices.AddDevice( existingDevice );
 							}
 						}
 						else
 						{
 							// This is a new device, add it to the scanned devices and determine if it supports the transport service
-							scannedDevices.AddDevice( newDevice );
+							scannedDevices.Add( newDevice );
 							newDevice.CommunicationFailureCount = 0;
 
 							GetTransportServiceAsync( newDevice );
@@ -190,21 +192,10 @@ namespace CoreMP
 				// Only report this device if it can playback or supports the content service
 				if ( ( targetDevice.CanPlayMedia == PlaybackDevice.CanPlayMediaType.Yes ) || ( targetDevice.ContentUrl.Length > 0 ) )
 				{
-					deviceReporter( targetDevice );
+					activeDevices.AddDevice( targetDevice );
 				}
 			}
 		}
-
-		/// <summary>
-		/// Delegate to invoke when a playback capable device has been discovered
-		/// </summary>
-		/// <param name="device"></param>
-		public delegate void CapableDeviceDetectedDelegate( PlaybackDevice device );
-
-		/// <summary>
-		/// Delegate type to invoke when a playback capable device has been discovered
-		/// </summary>
-		private readonly CapableDeviceDetectedDelegate deviceReporter = null;
 
 		/// <summary>
 		/// Advertisement multicast address
@@ -227,9 +218,15 @@ namespace CoreMP
 		private readonly Byte[] discoveryBytes = Encoding.UTF8.GetBytes( string.Format( SearchRequest, MulticastIP, MulticastPort, 3 ) );
 
 		/// <summary>
-		/// Keep track of all devices discovered by this class
+		/// Keep track of all devices discovered by this class. Devices are never removed from this list even if they are no longer
+		/// available. The PlaybackDevices instance is used to keep track of devices that can be reached.
 		/// </summary>
-		private readonly PlaybackDevices scannedDevices = new PlaybackDevices();
+		private readonly List<PlaybackDevice> scannedDevices = new List<PlaybackDevice>();
+
+		/// <summary>
+		/// The devices that have been found by the DLNA scan. This collection is actively maintained by the DeviceDiscovery class
+		/// </summary>
+		private readonly PlaybackDevices activeDevices = null;
 
 		/// <summary>
 		/// The UdpClient used to receive SSDP discovery responses

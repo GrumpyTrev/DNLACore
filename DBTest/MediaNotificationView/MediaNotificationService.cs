@@ -84,15 +84,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the media played is about to stop
-		/// </summary>
-		public void PlayStopped()
-		{
-			SongPlaying = false;
-			RemoveNotification();
-		}
-
-		/// <summary>
 		/// Initialise the bits and bobs used for the notification
 		/// </summary>
 		private void InitialiseNotification()

@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using SQLite;
 
 namespace CoreMP
 {
 	/// <summary>
 	/// The AlbumPlaylist class contains an ordered collection of songs wrapped up in SongPlaylistItems
 	/// </summary>
-	public partial class AlbumPlaylist : Playlist
+	[Table( "AlbumPlayList" )]
+	public class AlbumPlaylist : Playlist
 	{
 		/// <summary>
 		/// Get the PlaylistItems and associated songs for this playlist
@@ -24,14 +26,22 @@ namespace CoreMP
 			{
 				playlistItem.Album = Albums.GetAlbumById( playlistItem.AlbumId );
 
-				// If this item is empty then don't add it to the AlbumPlaylist
-				if ( playlistItem.Album.Songs.Count == 0 )
+				// If the album is not found then don't add it to the AlbumPlaylist
+				if ( playlistItem.Album != null )
 				{
-					orphanPlaylistItems.Add( playlistItem );
+					// If this item is empty then don't add it to the AlbumPlaylist
+					if ( playlistItem.Album.Songs.Count == 0 )
+					{
+						orphanPlaylistItems.Add( playlistItem );
+					}
+					else
+					{
+						PlaylistItems.Add( playlistItem );
+					}
 				}
 				else
 				{
-					PlaylistItems.Add( playlistItem );
+					orphanPlaylistItems.Add( playlistItem );
 				}
 			}
 

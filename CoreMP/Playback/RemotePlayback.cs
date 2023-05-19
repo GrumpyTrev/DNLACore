@@ -99,10 +99,6 @@ namespace CoreMP
 			}
 		}
 
-		public override void SeekTo( int _ )
-		{
-		}
-
 		public override void Reset()
 		{
 		}

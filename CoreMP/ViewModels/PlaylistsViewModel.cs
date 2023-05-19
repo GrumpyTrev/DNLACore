@@ -19,6 +19,11 @@ namespace CoreMP
 		}
 
 		/// <summary>
+		/// Allow changes to this model to be monitored
+		/// </summary>
+		public static ModelAvailable Available { get; } = new ModelAvailable();
+
+		/// <summary>
 		/// The list of PlayLists for the current library
 		/// </summary>
 		public static List<Playlist> Playlists { get; set; } = new List<Playlist>();
@@ -37,5 +42,13 @@ namespace CoreMP
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
 		public static int LibraryId { get; set; } = -1;
+
+		/// <summary>
+		/// Property introduced to trigger a notification when changes to a playlist have been made
+		/// </summary>
+		public static void PlaylistUpdated( Playlist updatedPlaylist )
+		{
+			NotificationHandler.NotifyPropertyChanged( updatedPlaylist );
+		}
 	}
 }

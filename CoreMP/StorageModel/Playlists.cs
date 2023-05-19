@@ -127,7 +127,10 @@ namespace CoreMP
 
 			set
 			{
-				GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId ).SongIndex = value;
+				Playlist nowPlayingList = GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId );
+
+				// Normalise the value being set
+				nowPlayingList.SongIndex = ( value >= nowPlayingList.PlaylistItems.Count ) ? -1 : value ;
 
 				// Publish this change
 				NotificationHandler.NotifyPropertyChanged( null );

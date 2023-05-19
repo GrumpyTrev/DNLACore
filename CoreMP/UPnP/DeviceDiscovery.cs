@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 
 namespace CoreMP
@@ -15,32 +14,12 @@ namespace CoreMP
 		/// <param name="appContext"></param>
 		public DeviceDiscovery()
 		{
-			// Provide the DNLA scanner with its callback
-			scanner = new DLNAScanner( DeviceDiscovered );
+			// Provide the DNLA scanner with the device collection to add devices to
+			scanner = new DLNAScanner( DevicesModel.RemoteDevices );
 
 			// Initialise but don't start the timer
 			scanTimer = new Timer( timer => StartDLNAScan(), null, Timeout.Infinite, Timeout.Infinite );
 		}
-
-		/// <summary>
-		/// Add the specified interface to the callback colletion
-		/// </summary>
-		/// <param name="callback"></param>
-		public void RegisterCallback( IDeviceDiscoveryChanges callback )
-		{
-			if ( callbacks.Contains( callback ) == false )
-			{
-				callbacks.Add( callback );
-				callback.AvailableDevices( devices );
-				callback.NetworkState( wifiAvailable );
-			}
-		}
-
-		/// <summary>
-		/// Remove the specified inteferace from the callback collection
-		/// </summary>
-		/// <param name="callback"></param>
-		public void UnregisterCallback( IDeviceDiscoveryChanges callback ) => callbacks.Remove( callback );
 
 		/// <summary>
 		/// Called when the state of the WiFi has been reported as changed
@@ -52,11 +31,11 @@ namespace CoreMP
 		/// <param name="linkProperties"></param>
 		public void OnWiFiStateChanged( bool newWifiState )
 		{
-			if ( newWifiState != wifiAvailable )
+			if ( newWifiState != DevicesModel.WifiAvailable )
 			{
-				wifiAvailable = newWifiState;
+				DevicesModel.WifiAvailable = newWifiState;
 
-				if ( wifiAvailable == true )
+				if ( DevicesModel.WifiAvailable == true )
 				{
 					scanTimer.Change( 0, TimerPeriod );
 				}
@@ -66,12 +45,8 @@ namespace CoreMP
 					scanTimer.Change( Timeout.Infinite, Timeout.Infinite );
 
 					// Clear all the available devices
-					callbacks.ForEach( callback => callback.UnavailableDevices( devices ) );
-					devices.DeviceCollection.Clear();
+					DevicesModel.RemoteDevices.Clear();
 				}
-
-				// Report the new network state
-				callbacks.ForEach( callback => callback.NetworkState( wifiAvailable ) );
 			}
 		}
 
@@ -84,56 +59,18 @@ namespace CoreMP
 		{
 			// Check if any existing devices have missed a number of consecutive scans.
 			// This works on the results of the previous scan
-			PlaybackDevices missingDevices = new PlaybackDevices()
-			{
-				DeviceCollection = devices.DeviceCollection.Where( dev => ( ++dev.CommunicationFailureCount > PlaybackDevice.CommunicationFailureLimit ) ).ToList()
-			};
+			List<PlaybackDevice> missingDevices = DevicesModel.RemoteDevices.MissingDevices();
 
 			// Remove the missing devices from the collection
-			missingDevices.DeviceCollection.ForEach( dev => devices.DeviceCollection.Remove( dev ) );
-
-			// Report any missing devices
-			if ( missingDevices.DeviceCollection.Count > 0 )
-			{
-				callbacks.ForEach( callback => callback.UnavailableDevices( missingDevices ) );
-			}
+			missingDevices.ForEach( dev => DevicesModel.RemoteDevices.RemoveDevice( dev ) );
 
 			scanner.DiscoverDevices();
 		}
 
 		/// <summary>
-		/// Called when a playback device has been discovered.
-		/// If this device has not already been found then report it to all registered interfaces
-		/// </summary>
-		/// <param name="device"></param>
-		private void DeviceDiscovered( PlaybackDevice device )
-		{
-			if ( devices.AddDevice( device ) == true )
-			{
-				// Report this new device
-				callbacks.ForEach( callback => callback.NewDeviceDetected( device ) );
-			}
-		}
-
-		/// <summary>
-		/// Is the wifi network available
-		/// </summary>
-		private bool wifiAvailable = false;
-
-		/// <summary>
 		/// Timer used to schedulre DLNA scans
 		/// </summary>
 		private readonly Timer scanTimer = null;
-
-		/// <summary>
-		/// The PlaybackDevices discovered 
-		/// </summary>
-		private readonly PlaybackDevices devices = new PlaybackDevices();
-
-		/// <summary>
-		/// Registered IDeviceDiscoveryChanges callbacks
-		/// </summary>
-		private readonly List<IDeviceDiscoveryChanges> callbacks = new List<IDeviceDiscoveryChanges>();
 
 		/// <summary>
 		/// The DLNAScanner used to discover DNLA rendering devices
@@ -144,35 +81,5 @@ namespace CoreMP
 		/// The time between DLNA scans
 		/// </summary>
 		private const int TimerPeriod = 30000;
-
-		/// <summary>
-		/// Interface used to report back DeviceDiscovery changes
-		/// </summary>
-		public interface IDeviceDiscoveryChanges
-		{
-			/// <summary>
-			/// Called when the wifi network state changes
-			/// </summary>
-			/// <param name="state"></param>
-			void NetworkState( bool state );
-
-			/// <summary>
-			/// Called when a new DLNA device has been detected
-			/// </summary>
-			/// <param name="device"></param>
-			void NewDeviceDetected( PlaybackDevice device );
-
-			/// <summary>
-			/// Called to report the available devices - when registration is first made
-			/// </summary>
-			/// <param name="devices"></param>
-			void AvailableDevices( PlaybackDevices devices );
-
-			/// <summary>
-			/// Called when one or more devices are no longer available
-			/// </summary>
-			/// <param name="devices"></param>
-			void UnavailableDevices( PlaybackDevices devices );
-		}
 	}
 }

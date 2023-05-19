@@ -92,13 +92,13 @@ namespace DBTest
 			if ( menuId < PlaylistsViewModel.SongPlaylists.Count )
 			{
 				// Add the selected songs to the selected playlist
-				PlaylistsController.AddSongsToPlaylist( selectedObjects.Songs, PlaylistsViewModel.SongPlaylists[ menuId ] );
+				MainApp.CommandInterface.AddSongsToPlaylist( selectedObjects.Songs, PlaylistsViewModel.SongPlaylists[ menuId ] );
 				commandCallback.PerformAction();
 			}
 			else if ( menuId < PlaylistsViewModel.Playlists.Count )
 			{
 				// Add the selected albumns to the selected playlist
-				PlaylistsController.AddAlbumsToPlaylist( selectedObjects.Albums, PlaylistsViewModel.AlbumPlaylists[ menuId - PlaylistsViewModel.SongPlaylists.Count ] );
+				MainApp.CommandInterface.AddAlbumsToPlaylist( selectedObjects.Albums, PlaylistsViewModel.AlbumPlaylists[ menuId - PlaylistsViewModel.SongPlaylists.Count ] );
 				commandCallback.PerformAction();
 			}
 			else
@@ -138,7 +138,7 @@ namespace DBTest
 		/// Called when a playlist name has been entered has been selected.
 		/// </summary>
 		/// <param name="selectedLibrary"></param>
-		private async void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment, bool isAlbum )
+		private void NameEntered( string playlistName, NewPlaylistNameDialogFragment playlistNameFragment, bool isAlbum )
 		{
 			string alertText = "";
 
@@ -150,21 +150,18 @@ namespace DBTest
 			else
 			{
 				// Check for a playlist of the same type with the same name.
-				if ( ( ( isAlbum == true ) && ( PlaylistsViewModel.AlbumPlaylists.Exists( albList => albList.Name == playlistName ) == false ) ) || 
+				if ( ( ( isAlbum == true ) && ( PlaylistsViewModel.AlbumPlaylists.Exists( albList => albList.Name == playlistName ) == false ) ) ||
 					 ( PlaylistsViewModel.SongPlaylists.Exists( albList => albList.Name == playlistName ) == false ) )
 				{
 					// Create a SongPlaylist or AlbumPlaylist as appropriate and add the Songs/Albums to it
 					if ( isAlbum == false )
 					{
 						// Create the playlist and add the songs to it
-						// Need to wait for the playlist to be stored as we are going to access it's Id straight away
-						SongPlaylist newPlaylist = await PlaylistsController.AddSongPlaylistAsync( playlistName );
-						PlaylistsController.AddSongsToPlaylist( selectedObjects.Songs, newPlaylist );
+						MainApp.CommandInterface.AddSongsToNewPlaylist( selectedObjects.Songs, playlistName );
 					}
 					else
 					{
-						AlbumPlaylist newPlaylist = await PlaylistsController.AddAlbumPlaylistAsync( playlistName );
-						PlaylistsController.AddAlbumsToPlaylist( selectedObjects.Albums, newPlaylist );
+						MainApp.CommandInterface.AddAlbumsToNewPlaylist( selectedObjects.Albums, playlistName );
 					}
 				}
 				else

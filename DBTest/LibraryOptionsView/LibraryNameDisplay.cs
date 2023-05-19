@@ -8,7 +8,7 @@ namespace DBTest
 	/// <summary>
 	/// The LibraryNameDisplay class is used to display the name of the current library and to pass click events on to the appropriate command handler
 	/// </summary>
-	internal class LibraryNameDisplay : BaseBoundControl, DataReporter.IReporter
+	internal class LibraryNameDisplay : BaseBoundControl
 	{
 		/// <summary>
 		/// Bind to the specified view.
@@ -45,12 +45,6 @@ namespace DBTest
 				NotificationHandler.Deregister();
 			}
 		}
-
-		/// <summary>
-		/// Called when the Library name is first known or changes
-		/// </summary>
-		/// <param name="libraryName"></param>
-		public void DataAvailable() => titleTextView.Text = LibraryNameViewModel.LibraryName;
 
 		/// <summary>
 		/// The TextView to display the Library name

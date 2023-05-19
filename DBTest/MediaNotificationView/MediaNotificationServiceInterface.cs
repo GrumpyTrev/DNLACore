@@ -7,8 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// The MediaNotificationServiceInterface class provides an interface to the MediaNotificationService for the rest of the system
 	/// </summary>
-	internal class MediaNotificationServiceInterface : Java.Lang.Object, IServiceConnection, MediaNotificationController.INotificationReporter,
-		MediaNotificationService.IServiceCallbacks
+	internal class MediaNotificationServiceInterface : Java.Lang.Object, IServiceConnection, MediaNotificationService.IServiceCallbacks
 	{
 		public MediaNotificationServiceInterface( Context context )
 		{
@@ -18,7 +17,10 @@ namespace DBTest
 			// Bind to the service
 			context.BindService( new Intent( context, typeof( MediaNotificationService ) ), this, Bind.None );
 
-			MediaNotificationController.DataReporter = this;
+			// Register interest in notification provided via the MediaNotificationViewModel
+			NotificationHandler.Register( typeof( MediaNotificationViewModel ), "SongStarted", ( sender, _ ) => controlService.SongStarted( ( Song )sender ) );
+			NotificationHandler.Register( typeof( MediaNotificationViewModel ), "SongFinished", ( _, _ ) => controlService.SongFinished());
+			NotificationHandler.Register( typeof( MediaNotificationViewModel ), "IsPlaying", ( sender, _ ) => controlService.IsPlaying( ( bool )sender ) );
 		}
 
 		/// <summary>
@@ -27,43 +29,14 @@ namespace DBTest
 		public void StopService() => controlService?.Stop();
 
 		/// <summary>
-		/// Called when the data associated with this view is first read or accessed
-		/// </summary>
-		public void DataAvailable()
-		{
-		}
-
-		/// <summary>
-		/// Called when the playing of a song has been stopped rather than just paused
-		/// </summary>
-		public void PlayStopped() => controlService?.PlayStopped();
-
-		/// <summary>
-		/// Called when the song being played has changed
-		/// </summary>
-		/// <param name="song"></param>
-		public void SongStarted( Song song ) => controlService.SongStarted( song );
-
-		/// <summary>
-		/// Called when the song being played has finished
-		/// </summary>
-		public void SongFinished() => controlService.SongFinished();		
-		
-		/// <summary>
-		/// Called when the playing state of the song changes
-		/// </summary>
-		/// <param name="isPlaying"></param>
-		public void IsPlaying( bool isPlaying ) => controlService.IsPlaying( isPlaying );
-
-		/// <summary>
 		/// Called when the user resumes play via the notification
 		/// </summary>
-		public void MediaPlay() => MediaNotificationController.MediaPlay();
+		public void MediaPlay() => MainApp.CommandInterface.Start();
 
 		/// <summary>
 		/// Called when the user pauses play via the notification
 		/// </summary>
-		public void MediaPause() => MediaNotificationController.MediaPause();
+		public void MediaPause() => MainApp.CommandInterface.Pause();
 
 		/// <summary>
 		/// Called when the running service has connected to this manager

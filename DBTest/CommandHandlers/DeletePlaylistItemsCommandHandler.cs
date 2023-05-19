@@ -20,7 +20,7 @@ namespace DBTest
 			if ( ( selectedObjects.ParentPlaylist != null ) && ( selectedObjects.ParentPlaylist.Name == Playlist.NowPlayingPlaylistName ) )
 			{
 				// Process this Now Playing command
-				NowPlayingController.DeleteNowPlayingItems( selectedObjects.PlaylistItems );
+				MainApp.CommandInterface.DeleteNowPlayingItems( selectedObjects.PlaylistItems );
 				commandCallback.PerformAction();
 			}
 			else
@@ -35,14 +35,14 @@ namespace DBTest
 					else
 					{
 						// Deletion of items from a playlist
-						PlaylistsController.DeletePlaylistItems( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
+						MainApp.CommandInterface.DeletePlaylistItems( selectedObjects.ParentPlaylist, selectedObjects.PlaylistItems );
 						commandCallback.PerformAction();
 					}
 				}
 				else if ( selectedObjects.Playlists.Count == 1 )
 				{
 					// Deletion of a playlist with no songs
-					PlaylistsController.DeletePlaylist( selectedObjects.Playlists[ 0 ] );
+					MainApp.CommandInterface.DeletePlaylist( selectedObjects.Playlists[ 0 ] );
 					commandCallback.PerformAction();
 				}
 			}
@@ -86,11 +86,11 @@ namespace DBTest
 		{
 			if ( deletePlaylist == true )
 			{
-				PlaylistsController.DeletePlaylist( selectedObjects.Playlists[ 0 ] );
+				MainApp.CommandInterface.DeletePlaylist( selectedObjects.Playlists[ 0 ] );
 			}
 			else
 			{
-				PlaylistsController.DeletePlaylistItems( selectedObjects.Playlists[ 0 ], selectedObjects.PlaylistItems );
+				MainApp.CommandInterface.DeletePlaylistItems( selectedObjects.Playlists[ 0 ], selectedObjects.PlaylistItems );
 			}
 
 			commandCallback.PerformAction();

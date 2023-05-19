@@ -10,7 +10,7 @@ namespace DBTest
 		/// <summary>
 		/// Constructor - register interest in Playback Device changes
 		/// </summary>
-		public SelectDeviceCommandHandler() => PlaybackModelChangedMessage.Register( PlaybackDevicesChanged );
+		public SelectDeviceCommandHandler() => NotificationHandler.Register( typeof(PlaybackSelectionModel),() => deviceSelectionDialog?.PlaybackDevicesChanged() );
 
 		/// <summary>
 		/// Called to handle the command. Show the device selection dialogue
@@ -27,13 +27,7 @@ namespace DBTest
 		/// Called when a Playback Device has been selected
 		/// </summary>
 		/// <param name="selectedSource"></param>
-		private void DeviceSelected( string selectedDevice ) => PlaybackSelectionController.SetSelectedPlayback( selectedDevice );
-
-		/// <summary>
-		/// Called when the available Playback Devices has changed
-		/// If the SelectDeviceDialogFragment is showing then inform it of the changed
-		/// </summary>
-		private void PlaybackDevicesChanged() => deviceSelectionDialog?.PlaybackDevicesChanged();
+		private void DeviceSelected( string selectedDevice ) => MainApp.CommandInterface.SetSelectedPlayback( selectedDevice );
 
 		/// <summary>
 		/// Called when the SelectDeviceDialogFragment dialog is displayed (OnResume)

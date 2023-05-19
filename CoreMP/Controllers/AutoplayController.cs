@@ -25,7 +25,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="selectedSong"></param>
 		/// <param name="genres"></param>
-		public void StartAutoplay( IEnumerable<Song> selectedSongs, IEnumerable<string> genres, bool playNow )
+		public void StartAutoplay( IEnumerable<Song> selectedSongs, IEnumerable<string> genres )
 		{
 			// Clear any existing Genre/Album populations from the Autoplay record
 			AutoplayModel.CurrentAutoplay.Clear();
@@ -53,11 +53,11 @@ namespace CoreMP
 			List<Song> songs = new List<Song>( selectedSongs );
 			GenerateSongs( songs );
 
-			// Add these songs to the NowPlaying list either replacing or just adding them to the list
-			NowPlayingController.AddSongsToNowPlayingList( songs, playNow );
+			// Add these songs to the NowPlaying list
+			CoreMPApp.Instance.CommandInterface.AddSongsToNowPlayingList( songs, true );
 
 			// Set Autoplay active 
-			PlaybackModeController.AutoOn = true;
+			CoreMPApp.Instance.CommandInterface.SetAuto( true );
 		}
 
 		/// <summary>
@@ -195,13 +195,13 @@ namespace CoreMP
 						GenerateSongs( songs );
 
 						// Add these songs to the NowPlaying list
-						NowPlayingController.AddSongsToNowPlayingList( songs, false );
+						CoreMPApp.Instance.CommandInterface.AddSongsToNowPlayingList( songs, false );
 
 						// Remove 'played' songs
 						int songsToRemove = Math.Max( 0, currentSongIndex - LeaveSongs );
 						if ( songsToRemove > 0 )
 						{
-							NowPlayingController.DeleteNowPlayingItems( nowPlaying.PlaylistItems.GetRange( 0, songsToRemove ) );
+							CoreMPApp.Instance.CommandInterface.DeleteNowPlayingItems( nowPlaying.PlaylistItems.GetRange( 0, songsToRemove ) );
 						}
 					}
 				}

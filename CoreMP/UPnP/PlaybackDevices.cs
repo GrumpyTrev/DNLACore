@@ -1,15 +1,33 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace CoreMP
 {
 	/// <summary>
 	/// The PlaybackDevices contains a collection of PlaybackDevice instances
+	/// In fact two collections are kept, devices that support pplayback and those that support browsing
 	/// </summary>
-	public class PlaybackDevices
+	internal class PlaybackDevices
 	{
 		/// <summary>
-		/// Add a device to the collection if it is unique
+		/// Default constructor
+		/// </summary>
+		public PlaybackDevices()
+		{
+			// Create a device for local playback and add it to the playback collection
+			localDevice = new PlaybackDevice()
+			{
+				CanPlayMedia = PlaybackDevice.CanPlayMediaType.Yes,
+				IsLocal = true,
+				FriendlyName = LocalDeviceName
+			};
+
+			PlaybackDeviceCollection.Add( localDevice );
+		}
+
+		/// <summary>
+		/// Add a device to the collection(s) if it is unique
 		/// </summary>
 		/// <param name="deviceToAdd"></param>
 		/// <returns></returns>
@@ -20,41 +38,77 @@ namespace CoreMP
 			if ( deviceUnique == true )
 			{
 				DeviceCollection.Add( deviceToAdd );
+
+				if ( deviceToAdd.ContentUrl.Length > 0 )
+				{
+					BrowseableDeviceCollection.Add( deviceToAdd );
+				}
+
+				if ( deviceToAdd.CanPlayMedia == PlaybackDevice.CanPlayMediaType.Yes )
+				{
+					PlaybackDeviceCollection.Add( deviceToAdd );
+				}
 			}
 
 			return deviceUnique;
 		}
 
 		/// <summary>
-		/// Rem ove this device from the collection if present
+		/// Remove this device from the collection(s)
 		/// </summary>
 		/// <param name="device"></param>
-		/// <returns></returns>
-		public bool RemoveDevice( PlaybackDevice device ) => DeviceCollection.Remove( device );
+		public void RemoveDevice( PlaybackDevice device )
+		{
+			DeviceCollection.Remove( device );
+			PlaybackDeviceCollection.Remove( device );
+			BrowseableDeviceCollection.Remove( device );
+		}
 
 		/// <summary>
-		/// Return a list of all the devices that can play back media
+		/// Clear the collections
 		/// </summary>
-		/// <returns></returns>
-		public List<string> ConnectedDevices() => DeviceCollection.Select( device => device.FriendlyName ).ToList();
+		public void Clear()
+		{
+			DeviceCollection.Clear();
+			PlaybackDeviceCollection.Clear();
+			PlaybackDeviceCollection.Add( localDevice );
+			BrowseableDeviceCollection.Clear();
+		}
 
 		/// <summary>
-		/// Find a device given its friendly name
+		/// Which devices have exceeded their communication failure limit
 		/// </summary>
-		/// <param name="deviceName"></param>
 		/// <returns></returns>
-		public PlaybackDevice FindDevice( string deviceName ) => DeviceCollection.SingleOrDefault( device => device.FriendlyName == deviceName );
+		public List<PlaybackDevice> MissingDevices() => 
+			DeviceCollection.Where( dev => ( ++dev.CommunicationFailureCount > PlaybackDevice.CommunicationFailureLimit ) ).ToList();
 
 		/// <summary>
-		/// Find the specified device
+		/// Return a server with the specified name
 		/// </summary>
-		/// <param name="device"></param>
+		/// <param name="serverName"></param>
 		/// <returns></returns>
-		public PlaybackDevice FindDevice( PlaybackDevice device ) => DeviceCollection.SingleOrDefault( dev => device.Equals( dev ) );
+		public PlaybackDevice FindServer( string serverName ) => BrowseableDeviceCollection.SingleOrDefault( dev => dev.FriendlyName == serverName );
 
 		/// <summary>
-		/// The collection of devices
+		/// The collection of devices that support playback
 		/// </summary>
-		public List<PlaybackDevice> DeviceCollection { get; set; } = new List<PlaybackDevice>();
+		public ObservableCollection<PlaybackDevice> PlaybackDeviceCollection { get; set; } = new ObservableCollection<PlaybackDevice>();
+
+		/// <summary>
+		/// The collection of devices that support browsing
+		/// </summary>
+		public ObservableCollection<PlaybackDevice> BrowseableDeviceCollection { get; set; } = new ObservableCollection<PlaybackDevice>();
+
+		/// <summary>
+		/// The collection of all discovered devices
+		/// </summary>
+		private List<PlaybackDevice> DeviceCollection { get; set; } = new List<PlaybackDevice>();
+
+		private readonly PlaybackDevice localDevice = null;
+
+		/// <summary>
+		/// The name of the one and only local device
+		/// </summary>
+		public const string LocalDeviceName = "Local playback";
 	}
 }

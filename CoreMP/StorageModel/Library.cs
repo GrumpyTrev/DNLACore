@@ -4,8 +4,22 @@ using SQLite;
 
 namespace CoreMP
 {
-	public partial class Library
+	[Table( "Library" )]
+	public class Library
 	{
+		/// <summary>
+		/// Default constructor. Initialise the source collections
+		/// </summary>
+		public Library()
+		{
+			Sources = new List<Source>();
+		}
+
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
 		/// <summary>
 		/// The Source instances associated with this Library
 		/// </summary>

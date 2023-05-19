@@ -11,34 +11,9 @@ namespace CoreMP
 	internal static class StorageController
 	{
 		/// <summary>
-		/// Called to register interest in the availability of the managed storage collections
-		/// </summary>
-		/// <param name="callback"></param>
-		public static void RegisterInterestInDataAvailable( Action callback )
-		{
-			// If the data is available then call the callback
-			if ( DataAvailable == true )
-			{
-				callback();
-			}
-			else
-			{
-				// Data is not currently available. Register the callback with the StorageDataAvailableMessage
-				StorageDataAvailableMessage.Register( callback );
-
-				// If the data is not being read then start the read process
-				if ( DataBeingRead == false )
-				{
-					DataBeingRead = true;
-					ReadManagedCollections();
-				}
-			}
-		}
-
-		/// <summary>
 		/// Read all the managed collections and then tell any registered listeners
 		/// </summary>
-		private static async void ReadManagedCollections()
+		public static async void ReadManagedCollections()
 		{
 			await Songs.GetDataAsync();
 			await Albums.GetDataAsync();
@@ -61,8 +36,7 @@ namespace CoreMP
 			await CheckEmptyArtists();
 			await CheckAlbumsWithNoArtists();
 
-			DataAvailable = true;
-			new StorageDataAvailableMessage().Send();
+			NotificationHandler.NotifyPropertyChangedPersistent( null );
 		}
 
 		/// <summary>
@@ -173,24 +147,5 @@ namespace CoreMP
 			Albums.DeleteAlbums( orphanAlbums );
 
 		} );
-
-		/// <summary>
-		/// Is the managed storage available
-		/// </summary>
-		private static bool dataAvailable = false;
-		private static bool DataAvailable
-		{
-			get => dataAvailable;
-			set
-			{
-				dataAvailable = value;
-				NotificationHandler.NotifyPropertyChangedPersistent( null );
-			}
-		}
-
-		/// <summary>
-		/// If the managed storage currently being read
-		/// </summary>
-		private static bool DataBeingRead { get; set; } = false;
 	}
 }

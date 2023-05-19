@@ -3,24 +3,19 @@
 	/// <summary>
 	/// The PlaybackModeController is used to obtain the playback mode and respond to user and system initiated playback mode changes 
 	/// </summary>
-	public class PlaybackModeController
+	internal class PlaybackModeController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
 		/// </summary>
-		static PlaybackModeController()
-		{
-		}
-
-		/// <summary>
-		/// Get the playback mode data 
-		/// </summary>
-		public static void GetControllerData() => dataReporter.GetData();
+		public PlaybackModeController() =>
+			// Register for the main data available event.
+			NotificationHandler.Register( typeof( StorageController ), StorageDataAvailable );
 
 		/// <summary>
 		/// Update the state of the Auto play flag
 		/// </summary>
-		public static bool AutoOn
+		public bool AutoOn
 		{
 			set
 			{
@@ -40,7 +35,7 @@
 		/// <summary>
 		/// Update the state of the Repeat play flag
 		/// </summary>
-		public static bool RepeatOn
+		public bool RepeatOn
 		{
 			set
 			{
@@ -59,7 +54,7 @@
 		/// <summary>
 		/// Update the state of the Shuffle play flag
 		/// </summary>
-		public static bool ShuffleOn
+		public bool ShuffleOn
 		{
 			set
 			{
@@ -81,7 +76,7 @@
 		/// Called during startup, or library change, when the storage data is available
 		/// </summary>
 		/// <param name="message"></param>
-		private static void StorageDataAvailable()
+		private void StorageDataAvailable()
 		{
 			// Save the current playback mode obtained from the Playback object
 			PlaybackModeModel.AutoOn = Playback.AutoPlayOn;
@@ -90,22 +85,6 @@
 
 			// Update the summary state in the model
 			PlaybackModeModel.UpdateActivePlayMode();
-
-			DataReporter?.DataAvailable();
 		}
-
-		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public static DataReporter.IReporter DataReporter
-		{
-			get => dataReporter.Reporter;
-			set => dataReporter.Reporter = value;
-		}
-
-		/// <summary>
-		/// The DataReporter instance used to handle storage availability reporting
-		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
 	}
 }

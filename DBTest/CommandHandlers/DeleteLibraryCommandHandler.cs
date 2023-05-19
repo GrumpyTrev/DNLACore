@@ -6,8 +6,7 @@ namespace DBTest
 	/// The DeleteLibraryCommandHandler class is used to process a request to delete a library
 	/// The process involves displaying 3 dialogues.
 	/// First the LibrarySelectionDialog to select the library to delete.
-	/// If the library is not empty (has some artists associated with it) then confirm it's deletion.
-	/// Then the ConfirmationDialogFragment to confirm the clearance
+	/// If the library is not empty (has some artists associated with it) then confirm it's deletion using the ConfirmationDialogFragment.
 	/// Then the Library is cleared and the ClearProgressDialog is shown whilst the clearance is being carried out.
 	/// When the library has been cleared the title of the dialogue is changed and the user is allowed to dismiss the dialogue.
 	/// This is the only part of the process that needs to be aware of the fragment lifecycle.
@@ -17,7 +16,7 @@ namespace DBTest
 	internal class DeleteLibraryCommandHandler : CommandHandler
 	{
 		/// <summary>
-		/// Called to handle the command. Show the library selection dialogue and pass on any selected librray to the ClearConfirmationDialogFragment
+		/// Called to handle the command. Show the library selection dialogue and pass on any selected library to the ClearConfirmationDialogFragment
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int _ ) =>
@@ -26,7 +25,7 @@ namespace DBTest
 				{
 					if ( MainApp.CommandInterface.CheckLibraryEmpty( selectedLibrary ) == false )
 					{
-						// When a library has been selected, confirm the clearance
+						// When a populated library has been selected, confirm the clearance
 						ConfirmationDialog.Show( $"Are you sure you want to delete the {selectedLibrary.Name} library",
 							positiveCallback: () => DeleteLibrary( selectedLibrary ) );
 					}
@@ -37,7 +36,7 @@ namespace DBTest
 				} );
 
 		/// <summary>
-		/// Satrt deleting the specified library and display a dialogue showing progress
+		/// Start deleting the specified library and display a dialogue showing progress
 		/// </summary>
 		/// <param name="libraryToDelete"></param>
 		private void DeleteLibrary( Library libraryToDelete )
@@ -52,7 +51,9 @@ namespace DBTest
 				{
 					// Save a reference to the dialogue and update it's status
 					progressDialogFragment = dialogue;
-					progressDialogFragment.UpdateDialogueState( clearFinished );
+
+					// This could be null so use '?'
+					progressDialogFragment?.UpdateDialogueState( clearFinished );
 				} );
 
 			// Start the clear process, but don't wait for it to finish
@@ -60,9 +61,10 @@ namespace DBTest
 				() =>
 				{
 					clearFinished = true;
-					progressDialogFragment.UpdateDialogueState( clearFinished );
-				} );
 
+					// The progressDialogFragment could be null so use '?'
+					progressDialogFragment?.UpdateDialogueState( clearFinished );
+				} );
 		}
 
 		/// <summary>

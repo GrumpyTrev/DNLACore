@@ -6,8 +6,7 @@ using System.Linq;
 
 namespace DBTest
 {
-	public class PlaylistsFragment: PagedFragment<Playlist>, ExpandableListAdapter<Playlist>.IGroupContentsProvider<Playlist>, 
-		PlaylistsController.IPlaylistsReporter, PlaylistsAdapter.IActionHandler
+	public class PlaylistsFragment: PagedFragment<Playlist>, ExpandableListAdapter<Playlist>.IGroupContentsProvider<Playlist>, PlaylistsAdapter.IActionHandler
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -106,14 +105,19 @@ namespace DBTest
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
-		/// Initialise the PlaylistsController
+		/// Register for data model changes
 		/// </summary>
-		protected override void PostViewCreateAction() => PlaylistsController.DataReporter = this;
+		protected override void PostViewCreateAction()
+		{
+			NotificationHandler.Register( typeof( PlaylistsViewModel ), DataAvailable );
+			NotificationHandler.Register( typeof( PlaylistsViewModel ), "PlaylistUpdated",
+				( sender, message ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( ( Playlist )sender ) );
+		}
 
 		/// <summary>
 		/// Called to release any resources held by the fragment
 		/// </summary>
-		protected override void ReleaseResources() => PlaylistsController.DataReporter = null;
+		protected override void ReleaseResources() => NotificationHandler.Deregister();
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment

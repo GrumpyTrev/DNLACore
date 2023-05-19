@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -76,6 +75,9 @@ namespace CoreMP
 		{
 			LibraryCollection.Remove( libraryToDelete );
 			DbAccess.DeleteAsync( libraryToDelete );
+
+			// Reform the library names collection
+			LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();
 		}
 
 		/// <summary>

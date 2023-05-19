@@ -1,5 +1,4 @@
-﻿using SQLite;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace CoreMP
@@ -36,19 +35,16 @@ namespace CoreMP
 		/// <summary>
 		/// The set of Genre string associated with this population
 		/// </summary>
-		[Ignore]
 		public List<string> Genres { get; } = null;
 
 		/// <summary>
 		/// The set of Albums associated with this population
 		/// </summary>
-		[Ignore]
 		public List<Album> Albums { get; } = null;
 
 		/// <summary>
 		/// The GenrePopulation used to initialise this Population and to which any changes to the Population are stored
 		/// </summary>
-		[Ignore]
 		public GenrePopulation SeedPopulation { get; } = null;
 	}
 }

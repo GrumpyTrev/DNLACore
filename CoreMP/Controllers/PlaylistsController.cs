@@ -8,29 +8,29 @@ namespace CoreMP
 	/// The PlaylistsController is the Controller for the PlaylistsView. It responds to PlaylistsView commands and maintains SongPlaylist data in the
 	/// PlaylistsViewModel
 	/// /// </summary>
-	public class PlaylistsController
+	internal class PlaylistsController
 	{
 		/// <summary>
 		/// Public constructor providing the Database path and the interface instance used to report results
 		/// </summary>
-		static PlaylistsController()
+		public PlaylistsController()
 		{
-			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
-			SongStartedMessage.Register( SongStarted );
-			PlaylistUpdatedMessage.Register( PlaylistUpdated );
-			SongFinishedMessage.Register( SongFinished );
-		}
+			NotificationHandler.Register( typeof( StorageController ), () =>
+			{
+				StorageDataAvailable();
 
-		/// <summary>
-		/// Get the SongPlaylist data
-		/// </summary>
-		public static void GetControllerData() => dataReporter.GetData();
+				SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+				SongStartedMessage.Register( SongStarted );
+				PlaylistUpdatedMessage.Register( PlaylistUpdated );
+				SongFinishedMessage.Register( SongFinished );
+			} );
+		}
 
 		/// <summary>
 		/// Delete the specified playlist and its contents
 		/// </summary>
 		/// <param name="thePlaylist"></param>
-		public static void DeletePlaylist( Playlist thePlaylist )
+		public void DeletePlaylist( Playlist thePlaylist )
 		{
 			// Delete the playlist and then refresh the data held by the model
 			Playlists.DeletePlaylist( thePlaylist );
@@ -44,7 +44,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static void DeletePlaylistItems( Playlist thePlaylist, IEnumerable< PlaylistItem > items )
+		public void DeletePlaylistItems( Playlist thePlaylist, IEnumerable< PlaylistItem > items )
 		{
 			// Delete the items from the playlist
 			thePlaylist.DeletePlaylistItems( items.ToList() );
@@ -53,14 +53,14 @@ namespace CoreMP
 			thePlaylist.AdjustTrackNumbers();
 
 			// Report the change
-			DataReporter?.PlaylistUpdated( thePlaylist );
+			PlaylistsViewModel.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
 		/// Add a new SongPlaylist with the specified name to the current library
 		/// </summary>
 		/// <param name="playlistName"></param>
-		public static async Task<SongPlaylist> AddSongPlaylistAsync( string playlistName )
+		public async Task<SongPlaylist> AddSongPlaylistAsync( string playlistName )
 		{
 			SongPlaylist newPlaylist = new SongPlaylist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
 
@@ -76,7 +76,7 @@ namespace CoreMP
 		/// Add a new playlist with the specified name to the current library
 		/// </summary>
 		/// <param name="playlistName"></param>
-		public static async Task<AlbumPlaylist> AddAlbumPlaylistAsync( string playlistName )
+		public async Task<AlbumPlaylist> AddAlbumPlaylistAsync( string playlistName )
 		{
 			AlbumPlaylist newPlaylist = new AlbumPlaylist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
 
@@ -92,7 +92,7 @@ namespace CoreMP
 		/// Change the name of the specified playlist
 		/// </summary>
 		/// <param name="playlistName"></param>
-		public static void RenamePlaylist( Playlist playlist, string newName )
+		public void RenamePlaylist( Playlist playlist, string newName )
 		{
 			playlist.Rename( newName );
 
@@ -105,25 +105,60 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="songsToAdd"></param>
 		/// <param name="playlist"></param>
-		public static void AddSongsToPlaylist( IEnumerable<Song> songsToAdd, SongPlaylist playlist )
+		public void AddSongsToPlaylist( IEnumerable<Song> songsToAdd, SongPlaylist playlist )
 		{
 			playlist.AddSongs( songsToAdd );
 
 			// Report the change
-			DataReporter?.PlaylistUpdated( playlist );
+			PlaylistsViewModel.PlaylistUpdated( playlist );
 		}
+
+		/// <summary>
+		/// Create a new songs playlist and add a list of Songs to it
+		/// </summary>
+		/// <param name="songsToAdd"></param>
+		/// <param name="playlistName"></param>
+		public async void AddSongsToNewPlaylistAsync( IEnumerable<Song> songsToAdd, string playlistName )
+		{
+			SongPlaylist newPlaylist = new SongPlaylist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
+
+			await Playlists.AddPlaylistAsync( newPlaylist );
+
+			newPlaylist.AddSongs( songsToAdd );
+
+			// Refresh the playlists held by the model and report the change
+			StorageDataAvailable();
+		}
+
 
 		/// <summary>
 		/// Add a list of Albums to a specified playlist
 		/// </summary>
 		/// <param name="albumsToAdd"></param>
 		/// <param name="playlist"></param>
-		public static void AddAlbumsToPlaylist( IEnumerable<Album> albumsToAdd, AlbumPlaylist playlist )
+		public void AddAlbumsToPlaylist( IEnumerable<Album> albumsToAdd, AlbumPlaylist playlist )
 		{
 			playlist.AddAlbums( albumsToAdd );
 
 			// Report the change
-			DataReporter?.PlaylistUpdated( playlist );
+			PlaylistsViewModel.PlaylistUpdated( playlist );
+		}
+
+		/// <summary>
+		/// Create a new albums playlist and add a list of Albums to it
+		/// </summary>
+		/// <param name="albumsToAdd"></param>
+		/// <param name="playlistName"></param>
+		public async void AddAlbumsToNewPlaylist( IEnumerable<Album> albumsToAdd, string playlistName )
+		{
+			AlbumPlaylist newPlaylist = new AlbumPlaylist() { Name = playlistName, LibraryId = PlaylistsViewModel.LibraryId };
+
+			await Playlists.AddPlaylistAsync( newPlaylist );
+
+			newPlaylist.AddAlbums( albumsToAdd );
+
+			// Refresh the playlists held by the model and report the change
+			StorageDataAvailable();
 		}
 
 		/// <summary>
@@ -131,11 +166,11 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static void MoveItemsDown( Playlist thePlaylist, IEnumerable<PlaylistItem> items )
+		public void MoveItemsDown( Playlist thePlaylist, IEnumerable<PlaylistItem> items )
 		{
 			thePlaylist.MoveItemsDown( items );
 
-			DataReporter?.PlaylistUpdated( thePlaylist );
+			PlaylistsViewModel.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
@@ -143,11 +178,11 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public static void MoveItemsUp( Playlist thePlaylist, IEnumerable<PlaylistItem> items )
+		public void MoveItemsUp( Playlist thePlaylist, IEnumerable<PlaylistItem> items )
 		{
 			thePlaylist.MoveItemsUp( items );
 
-			DataReporter?.PlaylistUpdated( thePlaylist );
+			PlaylistsViewModel.PlaylistUpdated( thePlaylist );
 		}
 
 		/// <summary>
@@ -156,14 +191,14 @@ namespace CoreMP
 		/// <param name="name"></param>
 		/// <param name="playListLibrary"></param>
 		/// <returns></returns>
-		public static bool CheckForOtherPlaylists( string name, int playListLibrary ) =>
+		public bool CheckForOtherPlaylists( string name, int playListLibrary ) =>
 			Playlists.PlaylistCollection.Exists( list => ( list.Name == name ) && ( list.LibraryId != playListLibrary ) );
 
 		/// <summary>
 		/// Duplicate a playlist in the other libraries
 		/// </summary>
 		/// <param name="playlistToDuplicate"></param>
-		public static void DuplicatePlaylist( Playlist playlistToDuplicate )
+		public void DuplicatePlaylist( Playlist playlistToDuplicate )
 		{
 			// Duplicate the playlist in all libraries except the one it is in
 			foreach ( Library library in Libraries.LibraryCollection )
@@ -197,7 +232,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="playlistToDuplicate"></param>
 		/// <returns></returns>
-		private static async void DuplicateSongPlaylistAsync( SongPlaylist playlistToDuplicate, int libraryId )
+		private async void DuplicateSongPlaylistAsync( SongPlaylist playlistToDuplicate, int libraryId )
 		{
 			// Attempt to find matching songs for each SongPlaylistItem in the SongPlaylist
 			// Need to access the songs via the Sources associated with the Library
@@ -261,7 +296,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="playlistToDuplicate"></param>
 		/// <param name="libararyId"></param>
-		private static async void DuplicateAlbumPlaylistAsync( AlbumPlaylist playlistToDuplicate, int libraryId )
+		private async void DuplicateAlbumPlaylistAsync( AlbumPlaylist playlistToDuplicate, int libraryId )
 		{
 			List<Album> albumsToAdd = new List<Album>();
 			foreach ( AlbumPlaylistItem item in playlistToDuplicate.PlaylistItems )
@@ -296,7 +331,7 @@ namespace CoreMP
 		/// Called during startup, or library change, when the storage data is available
 		/// </summary>
 		/// <param name="message"></param>
-		private static async void StorageDataAvailable()
+		private async void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
 			PlaylistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
@@ -333,7 +368,7 @@ namespace CoreMP
 				PlaylistsViewModel.Playlists.AddRange( PlaylistsViewModel.AlbumPlaylists );
 			} );
 
-			DataReporter?.DataAvailable();
+			PlaylistsViewModel.Available.IsSet = true;
 		}
 
 		/// <summary>
@@ -341,7 +376,7 @@ namespace CoreMP
 		/// Clear the current data then reload
 		/// </summary>
 		/// <param name="_"></param>
-		private static void SelectedLibraryChanged( int _ )
+		private void SelectedLibraryChanged( int _ )
 		{
 			// Clear the displayed data
 			PlaylistsViewModel.ClearModel();
@@ -354,7 +389,7 @@ namespace CoreMP
 		/// Called when the SongStartedMessage has been received
 		/// </summary>
 		/// <param name="message"></param>
-		private static void SongStarted( Song songStarted )
+		private void SongStarted( Song songStarted )
 		{
 			// Update the song index for any playlists for which the previous song and the current song are adjacent 
 			Playlists.CheckForAdjacentSongEntries( previousSongIdentity, songStarted.Id );
@@ -366,35 +401,13 @@ namespace CoreMP
 		/// Called when the SongFinishedMessage has been received
 		/// </summary>
 		/// <param name="songPlayed"></param>
-		private static void SongFinished( Song songPlayed ) => Playlists.SongFinished( songPlayed.Id );
+		private void SongFinished( Song songPlayed ) => Playlists.SongFinished( songPlayed.Id );
 
 		/// <summary>
 		/// Called when a PlaylistUpdatedMessage has been received. Pass it on to the reporter
 		/// </summary>
 		/// <param name="message"></param>
-		private static void PlaylistUpdated( Playlist updatedPlaylist ) => DataReporter?.PlaylistUpdated( updatedPlaylist );
-
-		/// <summary>
-		/// The interface instance used to report back controller results
-		/// </summary>
-		public static IPlaylistsReporter DataReporter
-		{
-			get => ( IPlaylistsReporter )dataReporter.Reporter;
-			set => dataReporter.Reporter = value;
-		}
-
-		/// <summary>
-		/// The interface used to report back controller results
-		/// </summary>
-		public interface IPlaylistsReporter : DataReporter.IReporter
-		{
-			void PlaylistUpdated( Playlist playlist );
-		}
-
-		/// <summary>
-		/// The DataReporter instance used to handle storage availability reporting
-		/// </summary>
-		private static readonly DataReporter dataReporter = new DataReporter( StorageDataAvailable );
+		private static void PlaylistUpdated( Playlist updatedPlaylist ) => PlaylistsViewModel.PlaylistUpdated( updatedPlaylist );
 
 		/// <summary>
 		/// The previous song id that has been played

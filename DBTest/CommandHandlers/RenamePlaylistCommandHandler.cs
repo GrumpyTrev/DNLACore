@@ -67,7 +67,7 @@ namespace DBTest
 			else if ( ( ( listToRename is AlbumPlaylist ) && ( PlaylistsViewModel.AlbumPlaylists.Exists( albList => albList.Name == playlistName ) == false ) ) ||
 					  ( PlaylistsViewModel.SongPlaylists.Exists( albList => albList.Name == playlistName ) == false ) )
 			{
-				PlaylistsController.RenamePlaylist( listToRename, playlistName );
+				MainApp.CommandInterface.RenamePlaylist( listToRename, playlistName );
 				playlistNameFragment.Dismiss();
 				commandCallback.PerformAction();
 			}

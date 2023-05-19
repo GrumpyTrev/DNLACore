@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -45,7 +45,7 @@ namespace DBTest
 		public override Dialog OnCreateDialog( Bundle savedInstanceState )
 		{
 			// Lookup the currently selected device in the collection of device to get its index
-			devices = PlaybackSelectionModel.RemoteDevices.ConnectedDevices();
+			devices = PlaybackSelectionModel.PlaybackCapableDevices.Select( dev => dev.FriendlyName ).ToList();
 			initialDeviceIndex = devices.IndexOf( PlaybackSelectionModel.SelectedDeviceName );
 
 			return new AlertDialog.Builder( Activity )
@@ -101,7 +101,7 @@ namespace DBTest
 
 				// Clear and then reload the data
 				adapter.Clear();
-				devices = PlaybackSelectionModel.RemoteDevices.ConnectedDevices();
+				devices = PlaybackSelectionModel.PlaybackCapableDevices.Select( dev => dev.FriendlyName ).ToList();
 				adapter.AddAll( devices );
 				adapter.NotifyDataSetChanged();
 

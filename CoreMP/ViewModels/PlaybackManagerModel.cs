@@ -18,11 +18,6 @@ namespace CoreMP
 		public static List<Source> Sources { get; set; } = null;
 
 		/// <summary>
-		/// The id of the library for which a list of artists have been obtained
-		/// </summary>
-		public static int LibraryId { get; set; } = -1;
-
-		/// <summary>
 		/// The details of the selected available playback device
 		/// </summary>
 		public static PlaybackDevice AvailableDevice { get; set; } = null;

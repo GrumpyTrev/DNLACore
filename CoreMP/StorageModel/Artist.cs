@@ -6,8 +6,16 @@ namespace CoreMP
 	/// <summary>
 	/// The Artist class represents a named artist and associated albums
 	/// </summary>
-	public partial class Artist
+	[Table( "Artist" )]
+	public class Artist
 	{
+		[PrimaryKey, AutoIncrement, Column( "_id" )]
+		public int Id { get; set; }
+
+		public string Name { get; set; }
+
+		public int LibraryId { get; set; }
+
 		/// <summary>
 		/// Get the contents for the Artist
 		/// The ArtistAlbum entries have already been obtained so just get the Songs for them

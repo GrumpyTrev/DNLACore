@@ -310,7 +310,7 @@ namespace CoreMP
 			ClearLibrary( libraryToDelete );
 
 			// Delete all the sources associated with the library
-			foreach ( Source sourceToDelete in libraryToDelete.Sources )
+			foreach ( Source sourceToDelete in libraryToDelete.Sources.ToList() )
 			{
 				libraryToDelete.DeleteSource( sourceToDelete );
 			}

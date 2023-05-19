@@ -8,11 +8,12 @@
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
 		/// </summary>
-		public LibraryNameDisplayController() => NotificationHandler.Register( typeof( StorageController ), () =>
-												 {
-													 StorageDataAvailable();
-													 NotificationHandler.Register( typeof( ConnectionDetailsModel ), StorageDataAvailable );
-												 } );
+		public LibraryNameDisplayController() =>
+			NotificationHandler.Register( typeof( StorageController ), () =>
+			{
+				StorageDataAvailable();
+				NotificationHandler.Register( typeof( ConnectionDetailsModel ), StorageDataAvailable );
+			} );
 
 		/// <summary>
 		/// Called during startup when the storage data is available
