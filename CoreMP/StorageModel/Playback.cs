@@ -1,5 +1,4 @@
-﻿using SQLite;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace CoreMP
 {
@@ -7,144 +6,80 @@ namespace CoreMP
 	/// The Playback class specifies which song in which library is currently being played, and on which device playback is currently routed
 	/// It also holds play mode features such as repeat, shuffle and auto. 
 	/// </summary>
-	[Table( "Playback" )]
 	public class Playback
 	{
-		[PrimaryKey, AutoIncrement, Column( "_id" )]
-		public int Id { get; set; }
-
-		[Column( "LibraryId" )]
-		public int DBLibraryId { get; set; }
+		public virtual int LibraryId { get; set; }
 
 		/// <summary>
 		/// The name of the currently selected playback device
 		/// </summary>
-		[Column( "PlaybackDeviceName" )]
-		public string DBPlaybackDeviceName { get; set; }
+		public virtual string PlaybackDeviceName { get; set; }
 
 		/// <summary>
 		/// Is repeat play on
 		/// </summary>
-		[Column( "RepeatPlayOn" )]
-		public bool DBRepeatPlayOn { get; set; }
+		public virtual bool RepeatPlayOn { get; set; }
 
 		/// <summary>
 		/// Is shuffle play on
 		/// </summary>
-		[Column( "ShufflePlayOn" )]
-		public bool DBShufflePlayOn { get; set; }
+		public virtual bool ShufflePlayOn { get; set; }
 
 		/// <summary>
 		/// Is auto play on
 		/// </summary>
-		[Column( "AutoPlayOn" )]
-		public bool DBAutoPlayOn { get; set; }
-		/// <summary>
-		/// Get the Playback object from storage
-		/// </summary>
-		/// <returns></returns>
-		public static async Task GetDataAsync()
-		{
-			if ( PlaybackInstance == null )
-			{
-				PlaybackInstance = ( await DbAccess.LoadAsync<Playback>() )[0];
-			}
-		}
+		public virtual bool AutoPlayOn { get; set; }
+
+		public static void CollectionLoaded() { }
 
 		/// <summary>
 		/// Access the Playback PlaybackDeviceName
 		/// </summary>
-		[Ignore]
-		public static string PlaybackDeviceName
+		public static string SingletonPlaybackDeviceName
 		{
-			get => PlaybackInstance.DBPlaybackDeviceName;
-			set
-			{
-				PlaybackInstance.DBPlaybackDeviceName = value;
-
-				// No need to wait for the update to complete
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				DbAccess.UpdateAsync( PlaybackInstance );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			}
+			get => PlaybackInstance.PlaybackDeviceName;
+			set => PlaybackInstance.PlaybackDeviceName = value;
 		}
 
 		/// <summary>
 		/// Access the Playback LibraryId
 		/// </summary>
-		[Ignore]
-		public static int LibraryId
+		public static int SingletonLibraryId
 		{
-			get => PlaybackInstance.DBLibraryId;
-			set
-			{
-				PlaybackInstance.DBLibraryId = value;
-
-				// No need to wait for the update to complete
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				DbAccess.UpdateAsync( PlaybackInstance );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			}
+			get => PlaybackInstance.LibraryId;
+			set => PlaybackInstance.LibraryId = value;
 		}
 
 		/// <summary>
 		/// Access the Playback RepeatOn
 		/// </summary>
-		[Ignore]
-		public static bool RepeatPlayOn
+		public static bool SingletonRepeatPlayOn
 		{
-			get => PlaybackInstance.DBRepeatPlayOn;
-			set
-			{
-				PlaybackInstance.DBRepeatPlayOn = value;
-
-				// No need to wait for the update to complete
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				DbAccess.UpdateAsync( PlaybackInstance );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			}
+			get => PlaybackInstance.RepeatPlayOn;
+			set => PlaybackInstance.RepeatPlayOn = value;
 		}
 
 		/// <summary>
 		/// Access the Playback ShufflePlayOn
 		/// </summary>
-		[Ignore]
-		public static bool ShufflePlayOn
+		public static bool SingletonShufflePlayOn
 		{
-			get => PlaybackInstance.DBShufflePlayOn;
-			set
-			{
-				PlaybackInstance.DBShufflePlayOn = value;
-
-				// No need to wait for the update to complete
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				DbAccess.UpdateAsync( PlaybackInstance );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			}
+			get => PlaybackInstance.ShufflePlayOn;
+			set => PlaybackInstance.ShufflePlayOn = value;
 		}
 
 		/// <summary>
 		/// Access the Playback AutoPlayOn
 		/// </summary>
-		[Ignore]
-		public static bool AutoPlayOn
+		public static bool SingletonAutoPlayOn
 		{
-			get => PlaybackInstance.DBAutoPlayOn;
-			set
-			{
-				PlaybackInstance.DBAutoPlayOn = value;
-
-				// No need to wait for the update to complete
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				DbAccess.UpdateAsync( PlaybackInstance );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			}
+			get => PlaybackInstance.AutoPlayOn;
+			set => PlaybackInstance.AutoPlayOn = value;
 		}
 
 		/// <summary>
 		/// The Playback object read from storage
 		/// </summary>
-		[Ignore]
-		private static Playback PlaybackInstance { get; set; } = null;
+		public static Playback PlaybackInstance { get; set; } = null;
 	}
 }

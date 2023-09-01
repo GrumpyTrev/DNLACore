@@ -14,15 +14,7 @@ namespace CoreMP
 		/// Get the Artists collection from storage
 		/// </summary>
 		/// <returns></returns>
-		public static async Task GetDataAsync()
-		{
-			if ( ArtistCollection == null )
-			{
-				// Get the current set of artists and form the lookup tables
-				ArtistCollection = await DbAccess.LoadAsync<Artist>();
-				IdLookup = ArtistCollection.ToDictionary( art => art.Id );
-			}
-		}
+		public static void CollectionLoaded() => IdLookup = ArtistCollection.ToDictionary( art => art.Id );
 
 		/// <summary>
 		/// Return the artist with the specified Id or null if not found
@@ -38,8 +30,7 @@ namespace CoreMP
 		public static async Task AddArtistAsync( Artist artistToAdd )
 		{
 			// Need to wait for the Artist to be added so that its Id is available
-			await DbAccess.InsertAsync( artistToAdd );
-			ArtistCollection.Add( artistToAdd );
+			await ArtistCollection.AddAsync( artistToAdd );
 			IdLookup[ artistToAdd.Id ] = artistToAdd;
 		}
 
@@ -50,8 +41,6 @@ namespace CoreMP
 		/// <returns></returns>
 		public static void DeleteArtist( Artist artistToDelete )
 		{
-			// No need to wait for the Artist to be removed from storage
-			DbAccess.DeleteAsync( artistToDelete );
 			ArtistCollection.Remove( artistToDelete );
 			IdLookup.Remove( artistToDelete.Id );
 		}
@@ -62,8 +51,6 @@ namespace CoreMP
 		/// <param name="artistsToDelete"></param>
 		public static void DeleteArtists( IEnumerable< Artist> artistsToDelete )
 		{
-			DbAccess.DeleteItems( artistsToDelete );
-			
 			foreach ( Artist artistToDelete in artistsToDelete )
 			{
 				ArtistCollection.Remove( artistToDelete );
@@ -74,7 +61,7 @@ namespace CoreMP
 		/// <summary>
 		/// The set of Artists currently held in storage
 		/// </summary>
-		public static List<Artist> ArtistCollection { get; set; } = null;
+		public static ModelCollection<Artist> ArtistCollection { get; set; } = null;
 
 		/// <summary>
 		/// Lookup tables indexed by id

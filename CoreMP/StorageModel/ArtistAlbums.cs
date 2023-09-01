@@ -13,16 +13,7 @@ namespace CoreMP
 		/// <summary>
 		/// Get the Artists collection from storage
 		/// </summary>
-		/// <returns></returns>
-		public static async Task GetDataAsync()
-		{
-			if ( ArtistAlbumCollection == null )
-			{
-				// Get the current set of albums and form the lookup tables
-				ArtistAlbumCollection = await DbAccess.LoadAsync<ArtistAlbum>();
-				IdLookup = ArtistAlbumCollection.ToDictionary( alb => alb.Id );
-			}
-		}
+		public static void CollectionLoaded() => IdLookup = ArtistAlbumCollection.ToDictionary( alb => alb.Id );
 
 		/// <summary>
 		/// Add a new ArtistAlbum to the storage and the local collections
@@ -30,11 +21,8 @@ namespace CoreMP
 		/// <param name="artistAlbumToAdd"></param>
 		public static async Task AddArtistAlbumAsync( ArtistAlbum artistAlbumToAdd )
 		{
-			ArtistAlbumCollection.Add( artistAlbumToAdd );
-
 			// Need to wait for the ArtistAlbum to be added as that will set its ID
-			await DbAccess.InsertAsync( artistAlbumToAdd );
-
+			await ArtistAlbumCollection.AddAsync( artistAlbumToAdd );
 			IdLookup[ artistAlbumToAdd.Id ] = artistAlbumToAdd;
 		}
 
@@ -52,8 +40,6 @@ namespace CoreMP
 		/// <returns></returns>
 		public static void DeleteArtistAlbum( ArtistAlbum artistAlbumToDelete )
 		{
-			// No need to wait for the ArtistAlbum to be deleted from storage
-			DbAccess.DeleteAsync( artistAlbumToDelete );
 			ArtistAlbumCollection.Remove( artistAlbumToDelete );
 			IdLookup.Remove( artistAlbumToDelete.Id );
 		}
@@ -65,18 +51,16 @@ namespace CoreMP
 		/// <returns></returns>
 		public static void DeleteArtistAlbums( IEnumerable<ArtistAlbum> artistAlbumsToDelete )
 		{
-			DbAccess.DeleteItems( artistAlbumsToDelete );
 			foreach( ArtistAlbum artAlbum in artistAlbumsToDelete )
 			{
-				ArtistAlbumCollection.Remove( artAlbum );
-				IdLookup.Remove( artAlbum.Id );
+				DeleteArtistAlbum( artAlbum );
 			}
 		}
 
 		/// <summary>
 		/// The set of ArtistAlbums currently held in storage
 		/// </summary>
-		public static List<ArtistAlbum> ArtistAlbumCollection { get; set; } = null;
+		public static ModelCollection<ArtistAlbum> ArtistAlbumCollection { get; set; } = null;
 
 		/// <summary>
 		/// Lookup tables indexed by id

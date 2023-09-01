@@ -26,7 +26,7 @@ namespace CoreMP
 		public void Initialise()
 		{
 			new ConnectionController().InitialiseConnection( coreInterface.StoragePath );
-			StorageController.ReadManagedCollections();
+			StorageController.ReadManagedCollections( new SQLiteStorage() );
 		}
 
 		/// <summary>

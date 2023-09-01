@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using SQLite;
 
 namespace CoreMP
 {
 	/// <summary>
 	/// The Source class specifies where a set of somngs can be found on a local or remote device
 	/// </summary>
-	[Table( "Source" )]
 	public class Source
 	{
-		[PrimaryKey, AutoIncrement, Column( "_id" )]
-		public int Id { get; set; }
+		[Obsolete( "Do not create model instances directly", false )]
+		public Source() { }
+
+		public virtual int Id { get; set; }
 
 		/// <summary>
 		/// The name of this source for display purposes
@@ -88,7 +89,7 @@ namespace CoreMP
 		/// Update the source and save it to storaage
 		/// </summary>
 		/// <param name="newSource"></param>
-		public void UpdateSource( Source newSource )
+		public virtual void UpdateSource( Source newSource )
 		{
 			Name = newSource.Name;
 			FolderName = newSource.FolderName;
@@ -98,11 +99,6 @@ namespace CoreMP
 
 			// Make sure that member variable that depend on this data are also updated
 			InitialiseAccess();
-
-			// No need to wait for this to be written to storage
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			DbAccess.UpdateAsync( this );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		/// <summary>
@@ -121,29 +117,25 @@ namespace CoreMP
 		/// For remote devices this is '{IPAddress}'
 		/// For local devices this is '/{FolderName}/'
 		/// </summary>
-		[Ignore]
-		public string ScanSource { get; set; }
+		public virtual string ScanSource { get; set; }
 
 		/// <summary>
 		/// The location used to access the songs when playing them locally
 		/// For remote devices this will be 'http://{IPAddress}:{PortNo}/{FolderName}'
 		/// For local devices this will be '/{FolderName}'
 		/// </summary>
-		[Ignore]
-		public string LocalAccess { get; set; }
+		public virtual string LocalAccess { get; set; }
 
 		/// <summary>
 		/// The location used to access the songs when playing them remotely
 		/// For both remote and local devices this will be 'http://{IPAddress}:{PortNo}/{FolderName}'
 		/// </summary>
-		[Ignore]
-		public string RemoteAccess { get; set; }
+		public virtual string RemoteAccess { get; set; }
 
 		/// <summary>
 		/// All the songs associated with this source
 		/// </summary>
-		[Ignore]
-		public List<Song> Songs { get; set; }
+		public virtual List<Song> Songs { get; set; }
 
 		/// <summary>
 		/// The IP address of the local device

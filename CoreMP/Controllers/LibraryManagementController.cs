@@ -28,7 +28,7 @@ namespace CoreMP
 			// Only process this if the library has changed
 			if ( selectedLibrary.Id != ConnectionDetailsModel.LibraryId )
 			{
-				Playback.LibraryId = selectedLibrary.Id;
+				Playback.SingletonLibraryId = selectedLibrary.Id;
 				ConnectionDetailsModel.LibraryId = selectedLibrary.Id;
 				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary.Id }.Send();
 
@@ -57,7 +57,9 @@ namespace CoreMP
 		public async void CreateLibrary( string libraryName )
 		{
 			// Create a library with a default source and display the source editing fragment
-			Library newLibrary = new Library() { Name = libraryName };
+			Library newLibrary = StorageController.CreateLibrary();
+			newLibrary.Name = libraryName;
+
 			await Libraries.AddLibraryAsync( newLibrary );
 
 			// Add a source
@@ -94,13 +96,11 @@ namespace CoreMP
 		/// <param name="libraryForSource"></param>
 		public void CreateSourceForLibrary( Library libraryForSource )
 		{
-			Source newSource = new Source()
-			{
-				Name = libraryForSource.Name,
-				AccessMethod = Source.AccessType.Local,
-				FolderName = libraryForSource.Name,
-				LibraryId = libraryForSource.Id
-			};
+			Source newSource = StorageController.CreateSource();
+			newSource.Name = libraryForSource.Name;
+			newSource.AccessMethod = Source.AccessType.Local;
+			newSource.FolderName = libraryForSource.Name;
+			newSource.LibraryId = libraryForSource.Id;
 
 			libraryForSource.AddSource( newSource );
 		}
@@ -282,11 +282,14 @@ namespace CoreMP
 
 			// Delete the contents of the NowPlayingList but keep the playlist itself
 			Playlist nowPlaying = Playlists.GetNowPlayingPlaylist( libId );
-			nowPlaying.Clear();
-			nowPlaying.SongIndex = -1;
+			if ( nowPlaying != null )
+			{
+				nowPlaying.Clear();
+				nowPlaying.SongIndex = -1;
+			}
 
 			// Delete all the songs in each of the sources associated with the library
-			foreach ( Source source in libraryToClear.Sources )
+			foreach ( Source source in libraryToClear.LibrarySources )
 			{
 				Songs.DeleteSongs( Songs.GetSourceSongs( source.Id ) );
 				source.Songs = null;
@@ -310,10 +313,13 @@ namespace CoreMP
 			ClearLibrary( libraryToDelete );
 
 			// Delete all the sources associated with the library
-			foreach ( Source sourceToDelete in libraryToDelete.Sources.ToList() )
+			foreach ( Source sourceToDelete in libraryToDelete.LibrarySources.ToList() )
 			{
 				libraryToDelete.DeleteSource( sourceToDelete );
 			}
+
+			// Delete the NowPlayingList
+			Playlists.DeletePlaylist( Playlists.GetNowPlayingPlaylist( libraryToDelete.Id ) );
 
 			// Delete the library
 			Libraries.DeleteLibrary( libraryToDelete );

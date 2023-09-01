@@ -10,11 +10,8 @@ namespace CoreMP
         /// Get the Songs collection from storage
         /// </summary>
         /// <returns></returns>
-        public static async Task GetDataAsync()
+        public static void CollectionLoaded()
         {
-			// Get the current set of songs
-			SongCollection = await DbAccess.LoadAsync<Song>();
-
 			// Form the lookups
 			foreach ( Song song in SongCollection )
 			{
@@ -68,54 +65,22 @@ namespace CoreMP
 		public static async Task AddSongAsync( Song songToAdd )
 		{
 			// Must wait for this to get the song id
-			await DbAccess.InsertAsync( songToAdd );
-
-			lock ( lockObject )
-			{
-				SongCollection.Add( songToAdd );
-
-				if ( IdLookup.ContainsKey( songToAdd.Id ) == false )
-				{
-					IdLookup.Add( songToAdd.Id, songToAdd );
-					artistAlbumLookup.AddValue( songToAdd.ArtistAlbumId, songToAdd );
-					albumLookup.AddValue( songToAdd.AlbumId, songToAdd );
-				}
-				else
-				{
-					Logger.Log( $"Song {songToAdd.Title} from {songToAdd.Path} with id {songToAdd.Id} already added" );
-				}
-			}
+			await SongCollection.AddAsync( songToAdd );
+			IdLookup.Add( songToAdd.Id, songToAdd );
+			artistAlbumLookup.AddValue( songToAdd.ArtistAlbumId, songToAdd );
+			albumLookup.AddValue( songToAdd.AlbumId, songToAdd );
 		}
 
 		/// <summary>
 		/// Remove the supplied list of songs from local and persistent storage.
-		/// This is used for bulk deletion, so rather than removing each song from the collection, O(n), reform the collection ignoring
-		/// thoses to be delted
 		/// </summary>
 		/// <param name="songsToDelete"></param>
 		public static void DeleteSongs( List<Song> songsToDelete )
 		{
-			lock ( lockObject )
+			foreach ( Song songToDelete in songsToDelete )
 			{
-				// Form a hash from all the song ids being deleted
-				HashSet<int> songIds = new HashSet<int>( songsToDelete.Select( song => song.Id ) );
-
-				// Make a new collection that only contains entries not in the deleted songs
-				SongCollection = SongCollection.Where( song => songIds.Contains( song.Id ) == false ).ToList();
-
-				// Reform the lookups
-				artistAlbumLookup = new MultiDictionary<int, Song>();
-				albumLookup = new MultiDictionary<int, Song>();
-				IdLookup = new Dictionary<int, Song>();
-				foreach ( Song song in SongCollection )
-				{
-					IdLookup[ song.Id ] = song;
-					artistAlbumLookup.AddValue( song.ArtistAlbumId, song );
-					albumLookup.AddValue( song.AlbumId, song );
-				}
+				DeleteSong( songToDelete );
 			}
-
-			DbAccess.DeleteItems( songsToDelete );
 		}
 
 		/// <summary>
@@ -124,24 +89,16 @@ namespace CoreMP
 		/// <param name="songToDelete"></param>
 		public static void DeleteSong( Song songToDelete )
 		{
-			lock( lockObject )
-			{
-				if ( IdLookup.ContainsKey( songToDelete.Id ) == true )
-				{
-					SongCollection.Remove( songToDelete );
-					IdLookup.Remove( songToDelete.Id );
-					artistAlbumLookup[ songToDelete.ArtistAlbumId ].Remove( songToDelete );
-					albumLookup[ songToDelete.AlbumId ].Remove( songToDelete );
-				}
-			}
-
-			DbAccess.DeleteAsync( songToDelete );
+			SongCollection.Remove( songToDelete );
+			IdLookup.Remove( songToDelete.Id );
+			artistAlbumLookup[ songToDelete.ArtistAlbumId ].Remove( songToDelete );
+			albumLookup[ songToDelete.AlbumId ].Remove( songToDelete );
 		}
 
 		/// <summary>
 		/// The set of Songs currently held in storage
 		/// </summary>
-		public static List<Song> SongCollection { get; set; } = new List<Song>();
+		public static ModelCollection<Song> SongCollection { get; set; } = null;
 
         /// <summary>
         /// Lookup table indexed by song id
@@ -151,16 +108,11 @@ namespace CoreMP
 		/// <summary>
 		/// Lookup table indexed by ArtistAlbum id
 		/// </summary>
-		private static MultiDictionary<int, Song> artistAlbumLookup = new MultiDictionary<int, Song>();
+		private static readonly MultiDictionary<int, Song> artistAlbumLookup = new MultiDictionary<int, Song>();
 
 		/// <summary>
 		/// Lookup table indexed by Album id
 		/// </summary>
-		private static MultiDictionary<int, Song> albumLookup = new MultiDictionary<int, Song>();
-
-		/// <summary>
-		/// Object used to lock collections
-		/// </summary>
-		private static readonly object lockObject = new object();
+		private static readonly MultiDictionary<int, Song> albumLookup = new MultiDictionary<int, Song>();
     }
 }

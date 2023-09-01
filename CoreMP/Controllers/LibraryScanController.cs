@@ -36,7 +36,7 @@ namespace CoreMP
 
 				await Task.Run( async () =>
 				{
-					foreach ( Source source in libraryToScan.Sources )
+					foreach ( Source source in libraryToScan.LibrarySources )
 					{
 						// Get the songs as well as we're going to need them below
 						source.GetSongs();
@@ -206,17 +206,15 @@ namespace CoreMP
 				}
 
 				// Add the song to the database, the album and the album artist
-				Song songToAdd = new Song()
-				{
-					Title = songScanned.Tags.Title,
-					Track = songScanned.Track,
-					Path = songScanned.SourcePath,
-					ModifiedTime = songScanned.Modified,
-					Length = songScanned.Length,
-					AlbumId = songAlbum.Id,
-					ArtistAlbumId = songArtistAlbum.Id,
-					SourceId = album.ScanSource.Id
-				};
+				Song songToAdd = StorageController.CreateSong();
+				songToAdd.Title = songScanned.Tags.Title;
+				songToAdd.Track = songScanned.Track;
+				songToAdd.Path = songScanned.SourcePath;
+				songToAdd.ModifiedTime = songScanned.Modified;
+				songToAdd.Length = songScanned.Length;
+				songToAdd.AlbumId = songAlbum.Id;
+				songToAdd.ArtistAlbumId = songArtistAlbum.Id;
+				songToAdd.SourceId = album.ScanSource.Id;
 
 				// No need to wait for this
 				await Songs.AddSongAsync( songToAdd );
@@ -322,7 +320,10 @@ namespace CoreMP
 			// If no existing album create a new one
 			if ( songAlbum == null )
 			{
-				songAlbum = new Album() { Name = album.Name, LibraryId = libraryId };
+				songAlbum = StorageController.CreateAlbum();
+				songAlbum.Name = album.Name;
+				songAlbum.LibraryId = libraryId;
+
 				await Albums.AddAlbumAsync( songAlbum );
 
 				Logger.Log( string.Format( "Create album {0} Id: {1}", songAlbum.Name, songAlbum.Id ) );
@@ -345,7 +346,10 @@ namespace CoreMP
 			if ( songArtist == null )
 			{
 				// Create a new Artist and add it to the database
-				songArtist = new Artist() { Name = artistName, ArtistAlbums = new List<ArtistAlbum>(), LibraryId = libraryId };
+				songArtist = StorageController.CreateArtist();
+				songArtist.Name = artistName;
+				songArtist.LibraryId = libraryId;
+
 				await Artists.AddArtistAsync( songArtist );
 
 				Logger.Log( string.Format( "Artist: {0} not found. Created with Id: {1}", artistName, songArtist.Id ) );
@@ -379,15 +383,14 @@ namespace CoreMP
 			if ( songArtistAlbum == null )
 			{
 				// Create a new ArtistAlbum and add it to the database and the Artist
-				songArtistAlbum = new ArtistAlbum()
-				{
-					Name = songAlbum.Name,
-					Album = songAlbum,
-					Songs = new List<Song>(),
-					ArtistId = songArtist.Id,
-					Artist = songArtist,
-					AlbumId = songAlbum.Id
-				};
+				songArtistAlbum = StorageController.CreateArtistAlbum();
+				songArtistAlbum.Name = songAlbum.Name;
+				songArtistAlbum.Album = songAlbum;
+				songArtistAlbum.Songs = new List<Song>();
+				songArtistAlbum.ArtistId = songArtist.Id;
+				songArtistAlbum.Artist = songArtist;
+				songArtistAlbum.AlbumId = songAlbum.Id;
+
 				await ArtistAlbums.AddArtistAlbumAsync( songArtistAlbum );
 
 				Logger.Log( string.Format( "ArtistAlbum: {0} created with Id: {1}", songArtistAlbum.Name, songArtistAlbum.Id ) );

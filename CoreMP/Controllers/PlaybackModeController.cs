@@ -19,13 +19,13 @@
 		{
 			set
 			{
-				Playback.AutoPlayOn = value;
+				Playback.SingletonAutoPlayOn = value;
 
 				// If autoplay is now on, turn off repeat and shuffle
-				if ( Playback.AutoPlayOn == true )
+				if ( Playback.SingletonAutoPlayOn == true )
 				{
-					Playback.RepeatPlayOn = false;
-					Playback.ShufflePlayOn = false;
+					Playback.SingletonRepeatPlayOn = false;
+					Playback.SingletonShufflePlayOn = false;
 				}
 
 				StorageDataAvailable();
@@ -39,12 +39,12 @@
 		{
 			set
 			{
-				Playback.RepeatPlayOn = value;
+				Playback.SingletonRepeatPlayOn = value;
 
 				// If repeat is now on, turn off auto
-				if ( Playback.RepeatPlayOn == true )
+				if ( Playback.SingletonRepeatPlayOn == true )
 				{
-					Playback.AutoPlayOn = false;
+					Playback.SingletonAutoPlayOn = false;
 				}
 
 				StorageDataAvailable();
@@ -58,12 +58,12 @@
 		{
 			set
 			{
-				Playback.ShufflePlayOn = value;
+				Playback.SingletonShufflePlayOn = value;
 
 				// If shuffle is now on, turn off auto
-				if ( Playback.ShufflePlayOn == true )
+				if ( Playback.SingletonShufflePlayOn == true )
 				{
-					Playback.AutoPlayOn = false;
+					Playback.SingletonAutoPlayOn = false;
 				}
 
 				new ShuffleModeChangedMessage().Send();
@@ -79,9 +79,9 @@
 		private void StorageDataAvailable()
 		{
 			// Save the current playback mode obtained from the Playback object
-			PlaybackModeModel.AutoOn = Playback.AutoPlayOn;
-			PlaybackModeModel.RepeatOn = Playback.RepeatPlayOn;
-			PlaybackModeModel.ShuffleOn = Playback.ShufflePlayOn;
+			PlaybackModeModel.AutoOn = Playback.SingletonAutoPlayOn;
+			PlaybackModeModel.RepeatOn = Playback.SingletonRepeatPlayOn;
+			PlaybackModeModel.ShuffleOn = Playback.SingletonShufflePlayOn;
 
 			// Update the summary state in the model
 			PlaybackModeModel.UpdateActivePlayMode();

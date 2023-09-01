@@ -1,4 +1,4 @@
-﻿using SQLite;
+﻿using System;
 using System.Collections.Generic;
 
 namespace CoreMP
@@ -6,11 +6,12 @@ namespace CoreMP
 	/// <summary>
 	/// The Artist class represents a named artist and associated albums
 	/// </summary>
-	[Table( "Artist" )]
 	public class Artist
 	{
-		[PrimaryKey, AutoIncrement, Column( "_id" )]
-		public int Id { get; set; }
+		[Obsolete( "Do not create model instances directly", false )]
+		public Artist() { }
+
+		public virtual int Id { get; set; }
 
 		public string Name { get; set; }
 
@@ -44,8 +45,7 @@ namespace CoreMP
 			}
 		}
 
-		[Ignore]
-		public List<ArtistAlbum> ArtistAlbums { get; set; } = new List<ArtistAlbum>();
+		public virtual List<ArtistAlbum> ArtistAlbums { get; set; } = new List<ArtistAlbum>();
 
 		/// <summary>
 		/// Indicates when all the details for the Artist have been read

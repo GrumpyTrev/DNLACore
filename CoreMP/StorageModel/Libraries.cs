@@ -14,27 +14,14 @@ namespace CoreMP
 		/// Get the Library collection from storage
 		/// </summary>
 		/// <returns></returns>
-		public static async Task GetDataAsync()
+		public static void CollectionLoaded()
 		{
-			if ( LibraryCollection == null )
+			LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();
+
+			// Link the sources with their libraries
+			foreach ( Library libraryToLink in LibraryCollection )
 			{
-				// Get the current set of libraries
-				LibraryCollection = await DbAccess.LoadAsync<Library>();
-
-				LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();
-
-				// Get the Sources and populate the Source collection for each Library
-				// Get the current set of sources
-				List<Source> sourceCollection = await DbAccess.LoadAsync<Source>();
-
-				// Set the ScanSource, ScanType, LocalAccess and RemoteAccess fields. 
-				sourceCollection.ForEach( source => source.InitialiseAccess() );
-
-				// Link these sources with their libraries
-				foreach ( Library libraryToLink in LibraryCollection )
-				{
-					libraryToLink.Sources = sourceCollection.Where( source => source.LibraryId == libraryToLink.Id ).ToList();
-				}
+				libraryToLink.LibrarySources = Sources.SourceCollection.Where( source => source.LibraryId == libraryToLink.Id ).ToList();
 			}
 		}
 
@@ -58,10 +45,7 @@ namespace CoreMP
 		/// <param name="newLibrary"></param>
 		public static async Task AddLibraryAsync( Library newLibrary )
 		{
-			LibraryCollection.Add( newLibrary );
-
-			// Need to wait for the Library to be added to ensure that its ID is available
-			await DbAccess.InsertAsync( newLibrary );
+			await LibraryCollection.AddAsync( newLibrary );
 
 			// Reform the library names collection
 			LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();
@@ -74,7 +58,6 @@ namespace CoreMP
 		public static void DeleteLibrary( Library libraryToDelete )
 		{
 			LibraryCollection.Remove( libraryToDelete );
-			DbAccess.DeleteAsync( libraryToDelete );
 
 			// Reform the library names collection
 			LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();
@@ -83,7 +66,7 @@ namespace CoreMP
 		/// <summary>
 		/// The set of Library entries currently held in storage
 		/// </summary>
-		public static List<Library> LibraryCollection { get; private set; } = null;
+		public static ModelCollection<Library> LibraryCollection { get; internal set; } = null;
 
 		/// <summary>
 		/// The names of all the libraries

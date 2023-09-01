@@ -49,7 +49,7 @@ namespace DBTest
 			// Create an adapter for the list view to display the main source details
 			// Keep a reference to the adapter so that we can refresh the data if a source is changed
 			ListView sourceView = layout.FindViewById<ListView>( Resource.Id.sourceList );
-			SourceDisplayAdapter sourceAdapter = new( Context, libraryToDisplay.Sources, sourceView,
+			SourceDisplayAdapter sourceAdapter = new( Context, libraryToDisplay.LibrarySources, sourceView,
 				( Source selectedSource ) => sourceSelectedCallback.Invoke( selectedSource ) );
 			
 			sourceView.Adapter = sourceAdapter;
@@ -60,7 +60,7 @@ namespace DBTest
 				if ( sender == libraryToDisplay )
 				{
 					// Refresh the adapter
-					sourceAdapter.SetData( libraryToDisplay.Sources );
+					sourceAdapter.SetData( libraryToDisplay.LibrarySources );
 				}
 			} );
 

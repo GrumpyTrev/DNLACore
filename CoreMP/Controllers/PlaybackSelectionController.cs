@@ -59,7 +59,7 @@ namespace CoreMP
 			if ( selectedDevice != null )
 			{
 				// Save in storage
-				Playback.PlaybackDeviceName = selectedDevice.FriendlyName;
+				Playback.SingletonPlaybackDeviceName = selectedDevice.FriendlyName;
 
 				PlaybackSelectionModel.SelectedDeviceName = selectedDevice.FriendlyName;
 				PlaybackSelectionModel.SelectedDevice = selectedDevice;
@@ -88,13 +88,13 @@ namespace CoreMP
 		private void ReportLocalSelectedDevice()
 		{
 			// Use the Playback class to retrieve the last selected device
-			PlaybackSelectionModel.SelectedDeviceName = Playback.PlaybackDeviceName;
+			PlaybackSelectionModel.SelectedDeviceName = Playback.SingletonPlaybackDeviceName;
 
 			if ( PlaybackSelectionModel.SelectedDeviceName.Length == 0 )
 			{
 				// No device selected. Select the local device
 				PlaybackSelectionModel.SelectedDeviceName = PlaybackDevices.LocalDeviceName;
-				Playback.PlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
+				Playback.SingletonPlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
 			}
 
 			// If the selected device is available then report it

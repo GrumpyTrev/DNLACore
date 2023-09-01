@@ -11,18 +11,10 @@ namespace CoreMP
 	internal static class Albums
 	{
 		/// <summary>
-		/// Get the Albums collection from storage
+		/// Called when the Albums have been read from storage
 		/// </summary>
 		/// <returns></returns>
-		public static async Task GetDataAsync()
-		{
-			if ( AlbumCollection == null )
-			{
-				// Get the current set of albums and form the lookup tables
-				AlbumCollection = await DbAccess.LoadAsync<Album>();
-				IdLookup = AlbumCollection.ToDictionary( alb => alb.Id );
-			}
-		}
+		public static void CollectionLoaded() => IdLookup = AlbumCollection.ToDictionary( alb => alb.Id );
 
 		/// <summary>
 		/// Return the Album with the specified Id or null if not found
@@ -37,35 +29,28 @@ namespace CoreMP
 		/// <param name="albumToAdd"></param>
 		public static async Task AddAlbumAsync( Album albumToAdd )
 		{
-			AlbumCollection.Add( albumToAdd );
-
-			// Need to wait for the Album to be added to ensure that its ID is available
-			await DbAccess.InsertAsync( albumToAdd );
-
+			await AlbumCollection.AddAsync( albumToAdd );
 			IdLookup[ albumToAdd.Id ] = albumToAdd;
 		}
 
 		/// <summary>
-		/// Delete the specified Album from the storage and the collections
+		/// Delete the specified Album from the collections
 		/// </summary>
 		/// <param name="albumToDelete"></param>
 		/// <returns></returns>
 		public static void DeleteAlbum( Album albumToDelete )
 		{
-			// No need to wait for the delete
-			DbAccess.DeleteAsync( albumToDelete );
 			AlbumCollection.Remove( albumToDelete );
 			IdLookup.Remove( albumToDelete.Id );
 		}
 
 		/// <summary>
-		/// Delete the specified Albums from the storage and the collections
+		/// Delete the specified Albums from the collections
 		/// </summary>
 		/// <param name="albumToDelete"></param>
 		/// <returns></returns>
 		public static void DeleteAlbums( IEnumerable<Album> albumsToDelete )
 		{
-			DbAccess.DeleteItems( albumsToDelete );
 			foreach ( Album albumToDelete in albumsToDelete )
 			{
 				AlbumCollection.Remove( albumToDelete );
@@ -86,7 +71,7 @@ namespace CoreMP
 		/// <summary>
 		/// The set of Albums currently held in storage
 		/// </summary>
-		public static List<Album> AlbumCollection { get; set; } = null;
+		public static ModelCollection<Album> AlbumCollection { get; set; } = null;
 
 		/// <summary>
 		/// Lookup tables indexed by album id

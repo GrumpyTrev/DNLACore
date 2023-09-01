@@ -53,7 +53,7 @@ namespace CoreMP
 				}
 
 				// Check for a Playback record which will tell us the currently selected library
-				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<Playback>().FirstOrDefault().DBLibraryId;
+				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<SQLitePlayback>().FirstOrDefault().LibraryId;
 			}
 			catch ( SQLite.SQLiteException )
 			{

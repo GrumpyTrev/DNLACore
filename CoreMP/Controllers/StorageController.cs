@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CoreMP
@@ -13,14 +12,21 @@ namespace CoreMP
 		/// <summary>
 		/// Read all the managed collections and then tell any registered listeners
 		/// </summary>
-		public static async void ReadManagedCollections()
+		public static async void ReadManagedCollections( IStorageProvider storageProvider )
 		{
-			await Songs.GetDataAsync();
-			await Albums.GetDataAsync();
-			await Artists.GetDataAsync();
-			await ArtistAlbums.GetDataAsync();
-			await Libraries.GetDataAsync();
-			await Playback.GetDataAsync();
+			provider = storageProvider;
+
+			Loading = true;
+			await storageProvider.LoadCollectionsAsync();
+			Loading = false;
+
+			Songs.CollectionLoaded();
+			Albums.CollectionLoaded();
+			Artists.CollectionLoaded();
+			ArtistAlbums.CollectionLoaded();
+			Sources.CollectionLoaded();
+			Libraries.CollectionLoaded();
+			Playback.CollectionLoaded();
 			await Playlists.GetDataAsync();
 			await Autoplays.GetDataAsync();
 			await Tags.GetDataAsync();
@@ -38,6 +44,47 @@ namespace CoreMP
 
 			NotificationHandler.NotifyPropertyChangedPersistent( null );
 		}
+
+		/// <summary>
+		/// Create a storage aware Album instance
+		/// </summary>
+		/// <returns></returns>
+		public static Album CreateAlbum() => provider.CreateAlbum();
+
+		/// <summary>
+		/// Create a storage aware Artist instance
+		/// </summary>
+		/// <returns></returns>
+		public static Artist CreateArtist() => provider.CreateArtist();
+
+		/// <summary>
+		/// Create a storage aware Song instance
+		/// </summary>
+		/// <returns></returns>
+		public static Song CreateSong() => provider.CreateSong();
+
+		/// <summary>
+		/// Create a storage aware ArtistAlbum instance
+		/// </summary>
+		/// <returns></returns>
+		public static ArtistAlbum CreateArtistAlbum() => provider.CreateArtistAlbum();
+
+		/// <summary>
+		/// Create a storage aware Source instance
+		/// </summary>
+		/// <returns></returns>
+		public static Source CreateSource() => provider.CreateSource();
+
+		/// <summary>
+		/// Create a storage aware Library instance
+		/// </summary>
+		/// <returns></returns>
+		public static Library CreateLibrary() => provider.CreateLibrary();
+
+		/// <summary>
+		/// Keep track of when the model is being loaded
+		/// </summary>
+		public static bool Loading { get; set; } = false;
 
 		/// <summary>
 		/// Once the Artists have been read in their associated ArtistAlbums can be read as well and linked to them
@@ -147,5 +194,10 @@ namespace CoreMP
 			Albums.DeleteAlbums( orphanAlbums );
 
 		} );
+
+		/// <summary>
+		/// The IStorageProvider used to provide storage mechanism specific facilities
+		/// </summary>
+		private static IStorageProvider provider = null;
 	}
 }

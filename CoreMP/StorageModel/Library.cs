@@ -1,43 +1,26 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
 using SQLite;
 
 namespace CoreMP
 {
-	[Table( "Library" )]
 	public class Library
 	{
 		/// <summary>
-		/// Default constructor. Initialise the source collections
+		/// Default constructor.
 		/// </summary>
-		public Library()
-		{
-			Sources = new List<Source>();
-		}
+		[Obsolete( "Do not create model instances directly", false )]
+		public Library() { }
 
-		[PrimaryKey, AutoIncrement, Column( "_id" )]
-		public int Id { get; set; }
+		public virtual int Id { get; set; }
 
 		public string Name { get; set; }
 
 		/// <summary>
 		/// The Source instances associated with this Library
 		/// </summary>
-		private ObservableCollection<Source> observableSources;
-		private List<Source> actualSources;
 
-		[Ignore]
-		public List<Source> Sources
-		{
-			get => actualSources; 
-			
-			internal set
-			{
-				actualSources = value;
-				observableSources = new ObservableCollection<Source>( actualSources );
-				observableSources.CollectionChanged += ( sender, args ) => NotificationHandler.NotifyPropertyChanged( this );
-			}
-		}
+		public List<Source> LibrarySources { get; internal set; } = new List<Source>();
 
 		/// <summary>
 		/// Add a new source to the collection and to persistent storage
@@ -46,16 +29,19 @@ namespace CoreMP
 		/// <returns></returns>
 		public void AddSource( Source sourceToAdd )
 		{
-			actualSources.Add( sourceToAdd );
-			observableSources.Add( sourceToAdd );
-
-			// No need to wait for the source to be added
+			LibrarySources.Add( sourceToAdd );
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			DbAccess.InsertAsync( sourceToAdd );
+			Sources.AddSourceAsync( sourceToAdd );
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 			// Initialise any source data that may not have been set in the new source
 			sourceToAdd.InitialiseAccess();
+
+			// Report the change
+			if ( StorageController.Loading == false )
+			{
+				NotificationHandler.NotifyPropertyChanged( this );
+			}
 		}
 
 		/// <summary>
@@ -64,9 +50,14 @@ namespace CoreMP
 		/// <param name="sourceToDelete"></param>
 		public void DeleteSource( Source sourceToDelete )
 		{
-			actualSources.Remove( sourceToDelete );
-			observableSources.Remove( sourceToDelete );
-			DbAccess.DeleteAsync( sourceToDelete );
+			LibrarySources.Remove( sourceToDelete );
+			Sources.DeleteSource( sourceToDelete );
+
+			// Report the change
+			if ( StorageController.Loading == false )
+			{
+				NotificationHandler.NotifyPropertyChanged( this );
+			}
 		}
 	}
 }

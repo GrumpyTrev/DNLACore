@@ -39,7 +39,7 @@ namespace CoreMP
 		private void StorageDataAvailable()
 		{
 			// Get the sources associated with the library
-			PlaybackManagerModel.Sources = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).Sources.ToList();
+			PlaybackManagerModel.Sources = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).LibrarySources.ToList();
 
 			PlaybackManagerModel.DataValid = true;
 

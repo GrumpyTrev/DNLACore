@@ -38,7 +38,7 @@ namespace DBTest
 							{
 								// Save a reference to the dialogue and update it's status
 								progressDialogFragment = dialogue;
-								progressDialogFragment.UpdateDialogueState( clearFinished );
+								progressDialogFragment?.UpdateDialogueState( clearFinished );
 							} );
 
 						// Start the clear process, but don't wait for it to finish

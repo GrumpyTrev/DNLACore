@@ -83,12 +83,16 @@ namespace CoreMP
 		/// <param name="playlistToDelete"></param>
 		public static void DeletePlaylist( Playlist playlistToDelete )
 		{
-			PlaylistCollection.Remove( playlistToDelete );
+			// TEST
+			if ( playlistToDelete != null )
+			{
+				PlaylistCollection.Remove( playlistToDelete );
 
-			playlistToDelete.Clear();
+				playlistToDelete.Clear();
 
-			// Now delete the playlist itself. No need to wait for this to finish
-			DbAccess.DeleteAsync( playlistToDelete );
+				// Now delete the playlist itself. No need to wait for this to finish
+				DbAccess.DeleteAsync( playlistToDelete );
+			}
 		}
 
 		/// <summary>

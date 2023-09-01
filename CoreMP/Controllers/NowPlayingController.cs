@@ -13,17 +13,14 @@ namespace CoreMP
 		/// <summary>
 		/// Register for external Now Playing list change messages
 		/// </summary>
-		public NowPlayingController()
-		{
-			NotificationHandler.Register( typeof( StorageController ), () =>
-			{
-				StorageDataAvailable();
+		public NowPlayingController() => NotificationHandler.Register( typeof( StorageController ), () =>
+										 {
+											 StorageDataAvailable();
 
-				SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
-				ShuffleModeChangedMessage.Register( ShuffleModeChanged );
-				SongFinishedMessage.Register( SongFinished );
-			});
-		}
+											 SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+											 ShuffleModeChangedMessage.Register( ShuffleModeChanged );
+											 SongFinishedMessage.Register( SongFinished );
+										 } );
 
 		/// <summary>
 		/// Set the selected song in the database and play it
@@ -224,7 +221,7 @@ namespace CoreMP
 		/// <param name="message"></param>
 		private void ShuffleModeChanged()
 		{
-			if ( Playback.ShufflePlayOn == true )
+			if ( Playback.SingletonShufflePlayOn == true )
 			{
 				ShufflePlaylistItems();
 			}
@@ -267,10 +264,10 @@ namespace CoreMP
 				// Play the next song
 				NowPlayingViewModel.CurrentSongIndex++;
 			}
-			else if ( ( Playback.RepeatPlayOn == true ) && ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
+			else if ( ( Playback.SingletonRepeatPlayOn == true ) && ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
 			{
 				// If shuffle mode is on then shuffle the items before playing them
-				if ( Playback.ShufflePlayOn == true )
+				if ( Playback.SingletonShufflePlayOn == true )
 				{
 					ShufflePlaylistItems();
 				}
@@ -298,7 +295,7 @@ namespace CoreMP
 		/// <param name="songs"></param>
 		private List<Song> ApplyShuffle( List<Song> songs )
 		{
-			if ( Playback.ShufflePlayOn == true )
+			if ( Playback.SingletonShufflePlayOn == true )
 			{
 				int n = songs.Count;
 				while ( n > 1 )

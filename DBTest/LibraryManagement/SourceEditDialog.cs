@@ -85,6 +85,7 @@ namespace DBTest
 
 			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Click += ( _, _ ) => {
 
+#pragma warning disable CS0618 // Type or member is obsolete. Allowed as this Source is only used to hold edited values and is not itseld added to the model
 				Source newSource = new ()
 				{
 					Name = sourceName.Text,
@@ -93,6 +94,7 @@ namespace DBTest
 					IPAddress = ipAddress.Text,
 					AccessMethod = localButton.Checked ? Source.AccessType.Local : ftpButton.Checked ? Source.AccessType.FTP : Source.AccessType.UPnP
 				};
+#pragma warning restore CS0618 // Type or member is obsolete
 
 				// Report back the old and new source records
 				changedCallback.Invoke( sourceToEdit, newSource, Dialog.Dismiss );
