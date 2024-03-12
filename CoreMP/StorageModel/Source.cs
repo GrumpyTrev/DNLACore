@@ -146,7 +146,7 @@ namespace CoreMP
 			{
 				if ( localIPAddress == null )
 				{
-					localIPAddress = GetLocalIPv4( NetworkInterfaceType.Wireless80211 );
+					localIPAddress = GetLocalIPv4();
 				}
 
 				return localIPAddress;
@@ -156,18 +156,17 @@ namespace CoreMP
 		/// <summary>
 		/// Get the IP address of the local device
 		/// </summary>
-		/// <param name="_type"></param>
 		/// <returns></returns>
-		private static string GetLocalIPv4( NetworkInterfaceType _type )
+		private static string GetLocalIPv4()
 		{
 			string output = "";
 			foreach ( NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces() )
 			{
-				if ( item.NetworkInterfaceType == _type && item.OperationalStatus == OperationalStatus.Up )
+				if ( item.OperationalStatus == OperationalStatus.Up )
 				{
 					foreach ( UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses )
 					{
-						if ( ip.Address.AddressFamily == AddressFamily.InterNetwork )
+						if ( ( ip.Address.AddressFamily == AddressFamily.InterNetwork ) && ( System.Net.IPAddress.IsLoopback( ip.Address ) == false ) )
 						{
 							output = ip.Address.ToString();
 						}
