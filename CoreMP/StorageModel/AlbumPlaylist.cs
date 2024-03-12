@@ -225,7 +225,12 @@ namespace CoreMP
 		{
 			if ( songIndex == -1 )
 			{
-				songIndex = SongIndex;
+				// If no index is specified then use the index associated with this playlist.
+				// If there are not entries in this playlist then leave the index as -1
+				if ( PlaylistItems.Count > 0 )
+				{
+					songIndex = SongIndex;
+				}
 			}
 
 			return ( songIndex == -1 ) ? -1 :
