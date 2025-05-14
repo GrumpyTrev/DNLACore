@@ -35,7 +35,7 @@ namespace CoreMP
 				// Has a discovery client already been initialised
 				if ( discoveryClient == null )
 				{
-					discoveryClient = new UdpClient();
+					discoveryClient = new UdpClient( new IPEndPoint( IPAddress.Any, 0 ) ); 
 					discoveryClient.BeginReceive( new AsyncCallback( OnDiscoveryResponse ), discoveryClient );
 				}
 

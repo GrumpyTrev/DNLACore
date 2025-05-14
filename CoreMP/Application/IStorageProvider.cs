@@ -2,7 +2,7 @@
 
 namespace CoreMP
 {
-	internal interface IStorageProvider
+	public interface IStorageProvider
 	{
 		public Task LoadCollectionsAsync();
 

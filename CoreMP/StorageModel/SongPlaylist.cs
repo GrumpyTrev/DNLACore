@@ -87,7 +87,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="resume"></param>
 		/// <returns></returns>
-		internal override List<Song> GetSongsForPlayback( bool resume ) =>
+		public override List<Song> GetSongsForPlayback( bool resume ) =>
 			PlaylistItems.GetRange( SongIndex, PlaylistItems.Count - SongIndex ).Select( item => ( item as SongPlaylistItem ).Song ).ToList();
 
 		/// <summary>

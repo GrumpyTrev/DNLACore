@@ -196,7 +196,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="resume"></param>
 		/// <returns></returns>
-		internal abstract List<Song> GetSongsForPlayback( bool resume );
+		public abstract List<Song> GetSongsForPlayback( bool resume );
 
 		/// <summary>
 		/// Add an item to the collection and storage.

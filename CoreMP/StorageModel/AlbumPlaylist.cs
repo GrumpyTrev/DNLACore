@@ -156,7 +156,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="resume"></param>
 		/// <returns></returns>
-		internal override List<Song> GetSongsForPlayback( bool resume )
+		public override List<Song> GetSongsForPlayback( bool resume )
 		{
 			List<Song> songs = new List<Song>();
 

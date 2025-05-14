@@ -7,12 +7,12 @@ namespace CoreMP
 	/// The StorageController class is responsible for coordinating the reading from storage collections of data that are not library specific
 	/// and are not therefore re-read whenever the library changes. Other controllers can make use of library specific subsets of this data
 	/// </summary>
-	internal static class StorageController
+	public static class StorageController
 	{
 		/// <summary>
 		/// Read all the managed collections and then tell any registered listeners
 		/// </summary>
-		public static async void ReadManagedCollections( IStorageProvider storageProvider )
+		public static async Task ReadManagedCollections( IStorageProvider storageProvider )
 		{
 			provider = storageProvider;
 
