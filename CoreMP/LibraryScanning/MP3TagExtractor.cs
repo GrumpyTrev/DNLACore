@@ -242,31 +242,45 @@ namespace CoreMP
 				{
 					byte[] mp3DataBuffer = reader.ReadBytes( bufferSize );
 
-					// If VBR header present Xing, Info or VBRI should be present at offset 33
-					string possibleVBR = Encoding.UTF8.GetString( mp3DataBuffer, 33, 4 );
-					if ( ( possibleVBR == "Xing" ) || ( possibleVBR == "Info" ) )
+					// Not sure where these tags are so start at the begining
+					bool vbrTagFound = false;
+					int offset = 0;
+
+					while ( ( vbrTagFound ==  false) && ( offset < bufferSize - 3) )
 					{
-						int vbrOffset = 37;
-
-						// Read flags uint
-						uint flags = mp3DataBuffer.GetBigEndianInt( vbrOffset );
-						vbrOffset += 4;
-
-						if ( ( flags & 0x01 ) == 0x01 )
+						if ( ( mp3DataBuffer[ offset ] == 'X' ) || ( mp3DataBuffer[ offset ] == 'I' ) || ( mp3DataBuffer[ offset ] == 'V' ) )
 						{
-							// Read number of frames
-							noFrames = mp3DataBuffer.GetBigEndianInt( vbrOffset );
+							string possibleVBR = Encoding.UTF8.GetString( mp3DataBuffer, offset, 4 );
+							if ( ( possibleVBR == "Xing" ) || ( possibleVBR == "Info" ) )
+							{
+								vbrTagFound = true;
+
+								// Read flags uint
+								offset += 4;
+								uint flags = mp3DataBuffer.GetBigEndianInt( offset );
+
+								if ( ( flags & 0x01 ) == 0x01 )
+								{
+									// Read number of frames
+									offset += 4;
+									noFrames = mp3DataBuffer.GetBigEndianInt( offset );
+
+									bitRateEncoding = "VBR";
+								}
+							}
+							else if ( possibleVBR == "VBRI" )
+							{
+								vbrTagFound = true;
+
+								// Read number of frames as UInt32 after skipping 14 bytes
+								offset += 14;
+								noFrames = mp3DataBuffer.GetBigEndianInt( offset );
+
+								bitRateEncoding = "VBRI";
+							}
 						}
 
-						bitRateEncoding = "VBR";
-					}
-					else if ( possibleVBR == "VBRI" )
-					{
-						// Read number of frames as UInt32 after skipping 14 bytes
-						int offset = 47;
-
-						noFrames = mp3DataBuffer.GetBigEndianInt( offset );
-						bitRateEncoding = "VBRI";
+						offset++;
 					}
 				}
 				else
