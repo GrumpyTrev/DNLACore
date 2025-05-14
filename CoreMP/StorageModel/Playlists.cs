@@ -37,6 +37,12 @@ namespace CoreMP
 				// Link the playlists with their playlistitems
 				songPlaylists.ForEach( playlist => playlist.GetContents( songPlaylistItems ) );
 
+				// Delete any song playlists that have no items associated with them
+				List<SongPlaylist> emptySongPlaylists = songPlaylists.Where( list => ( list.Name != Playlist.NowPlayingPlaylistName ) &&
+					( list.PlaylistItems.Count == 0 ) ).ToList();
+				DbAccess.DeleteItems( emptySongPlaylists );
+				emptySongPlaylists.ForEach( playlist => songPlaylists.Remove( playlist ) );
+
 				// Add these to the main collection
 				PlaylistCollection.AddRange( songPlaylists );
 
