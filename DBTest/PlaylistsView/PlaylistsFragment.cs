@@ -2,7 +2,6 @@
 using Android.Views;
 using Android.Widget;
 using CoreMP;
-using System.Linq;
 
 namespace DBTest
 {
@@ -11,18 +10,14 @@ namespace DBTest
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
-		public PlaylistsFragment()
-		{
-		}
+		public PlaylistsFragment() { }
 
 		/// <summary>
 		/// Get all the entries associated with a specified SongPlaylist or AlbumPlaylist.
 		/// Both SongPlaylist and AlbumPlaylist items are now read at startup. So this is no longer required for them
 		/// </summary>
 		/// <param name="selectedGroup_"></param>
-		public void ProvideGroupContents( Playlist _ )
-		{
-		}
+		public void ProvideGroupContents( Playlist _ ) {}
 
 		/// <summary>
 		/// Called when the PlaylistsController has obtained or updated the playlists held in the model is received
@@ -31,7 +26,7 @@ namespace DBTest
 		/// <param name="message"></param>
 		public override void DataAvailable()
 		{
-			Adapter.SetData( PlaylistsViewModel.Playlists.ToList(), SortType.alphabetic );
+			Adapter.SetData( [ .. PlaylistsViewModel.Playlists ], SortType.alphabetic );
 			base.DataAvailable();
 		}
 
@@ -67,38 +62,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the Select All checkbox has been clicked on the Action Bar.
-		/// Pass this on to the adapter
-		/// </summary>
-		/// <param name="checkedState"></param>
-		public override void AllSelected( bool checkedState ) => ( ( PlaylistsAdapter )Adapter ).SelectAll( checkedState );
-
-		/// <summary>
-		/// Called when the number of selected items has changed.
-		/// Update the text to be shown in the Action Mode title
-		/// </summary>
-		protected override void SelectedItemsChanged( GroupedSelection selectedObjects )
-		{
-			if ( ( selectedObjects.PlaylistItems.Count == 0 ) && ( selectedObjects.Playlists.Count == 0 ) )
-			{
-				ActionMode.ActionModeTitle = NoItemsSelectedText;
-			}
-			else
-			{
-				int playlistCount = selectedObjects.Playlists.Count;
-				int songCount = selectedObjects.PlaylistItems.Count( item => item is SongPlaylistItem ) + 
-					selectedObjects.PlaylistItems.Where( item => item is AlbumPlaylistItem ).SelectMany( list => ( ( AlbumPlaylistItem )list ).Album.Songs ).Count();
-
-				string playlistText = ( playlistCount > 0 ) ? string.Format( "{0} playlist{1} ", playlistCount, ( playlistCount == 1 ) ? "" : "s" ) : "";
-				string songsText = ( songCount > 0 ) ? string.Format( "{0} song{1} ", songCount, ( songCount == 1 ) ? "" : "s" ) : "";
-
-				ActionMode.ActionModeTitle = string.Format( ItemsSelectedText, playlistText, songsText );
-			}
-
-			ActionMode.AllSelected = ( selectedObjects.Playlists.Count == PlaylistsViewModel.Playlists.Count );
-		}
-
-		/// <summary>
 		/// Create the Data Adapter required by this fragment
 		/// </summary>
 		protected override void CreateAdapter( ExpandableListView listView ) => Adapter = new PlaylistsAdapter( Context, listView, this, this );
@@ -120,6 +83,13 @@ namespace DBTest
 		protected override void ReleaseResources() => NotificationHandler.Deregister();
 
 		/// <summary>
+		/// Display the number of playlist items selected
+		/// </summary>
+		/// <param name="selectedObjects"></param>
+		/// <returns></returns>
+		protected override int SelectedItemCount( GroupedSelection selectedObjects ) => selectedObjects.PlaylistItems.Count;
+
+		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
 		/// </summary>
 		protected override int Layout { get; } = Resource.Layout.playlists_fragment;
@@ -133,11 +103,5 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_playlists;
-
-		/// <summary>
-		/// Constant strings for the Action Mode bar text
-		/// </summary>
-		private const string NoItemsSelectedText = "Select songs or playlist";
-		private const string ItemsSelectedText = "{0}{1}selected";
 	}
 }

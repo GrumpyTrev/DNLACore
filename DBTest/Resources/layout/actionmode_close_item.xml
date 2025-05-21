@@ -5,5 +5,7 @@
     android:contentDescription="?android:string/action_mode_done"
     android:layout_height="match_parent"
     android:layout_width="wrap_content"
-    android:visibility="gone"    
+	android:src="@drawable/abc_ic_ab_back_material"
+	android:background="@android:color/transparent"
+	android:paddingHorizontal="@dimen/backButtonPadding"
  />

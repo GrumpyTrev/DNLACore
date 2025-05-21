@@ -7,18 +7,16 @@ using CoreMP;
 
 namespace DBTest
 {
-	internal class ArtistsAdapter : ExpandableListAdapter<object>
+	/// <summary>
+	/// ArtistsAdapter constructor.
+	/// </summary>
+	/// <param name="context"></param>
+	/// <param name="parentView"></param>
+	/// <param name="provider"></param>
+	internal class ArtistsAdapter( Context context, ExpandableListView parentView, 
+		ExpandableListAdapter<object>.IGroupContentsProvider<object> provider, IAdapterEventHandler actionHandler ) : 
+		ExpandableListAdapter<object>( context, parentView, provider, ArtistsAdapterModel.BaseModel, actionHandler )
 	{
-		/// <summary>
-		/// ArtistsAdapter constructor.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parentView"></param>
-		/// <param name="provider"></param>
-		public ArtistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<object> provider, IAdapterEventHandler actionHandler ) :
-			base( context, parentView, provider, ArtistsAdapterModel.BaseModel, actionHandler )
-		{
-		}
 
 		/// <summary>
 		/// Number of child items of selected group
@@ -77,89 +75,15 @@ namespace DBTest
 		public override Java.Lang.Object[] GetSections() => javaSections;
 
 		/// <summary>
-		/// Override the base method in order to process Artist groups differently
+		/// Override the base method in order to not expand Artist groups
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="clickedView"></param>
 		/// <param name="groupPosition"></param>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public override bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id )
-		{
-			bool retVal = true;
-
-			if ( Groups[ groupPosition ] is Artist artist )
-			{
-				// If the Artist group is collapsed then expand all the ArtistAlbum groups that are collapsed
-				// If the Artist group is expanded then collapse all the ArtistAlbum groups that are expanded
-				bool expandGroup = !parent.IsGroupExpanded( groupPosition );
-
-				// Expand or collapse all of the ArtistAlbums associated with the Artist
-				PerformActionOnArtistAlbums( groupPosition, ( artistAlbumIndex ) =>
-				{
-					if ( parent.IsGroupExpanded( artistAlbumIndex ) != expandGroup )
-					{
-						base.OnGroupClick( parent, clickedView, artistAlbumIndex, id );
-					}
-				} );
-			}
-			else
-			{
-				retVal = base.OnGroupClick( parent, clickedView, groupPosition, id );
-			}
-
-			return retVal;
-		}
-
-        /// <summary>
-        /// Either select or deselect all the displayed items
-        /// </summary>
-        /// <param name="select"></param>
-        public void SelectAll( bool select )
-        {
-            bool selectionChanged = false;
-            for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
-            {
-                if ( Groups[ groupIndex ] is ArtistAlbum artistAlbum )
-                {
-                    if ( artistAlbum.Songs == null )
-                    {
-                        contentsProvider.ProvideGroupContents( Groups[ groupIndex ] );
-                    }
-
-                    selectionChanged |= SelectGroupContents( groupIndex, select );
-                }
-
-                selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
-            }
-
-            if ( selectionChanged == true )
-            {
-                stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
-                NotifyDataSetChanged();
-            }
-        }
-
-        /// <summary>
-        /// This is called by the base class when new data has been provided in order to create some of the fast scroll data.
-        /// Most of this has already been done in the ArtistsController.
-        /// All that is missing is the copying of the section names into an array of Java strings
-        /// </summary>
-        protected override void SetGroupIndex()
-		{
-			// Clear the array first in case there are none
-			javaSections = null;
-
-			if ( fastScrollSections != null )
-			{
-				// Size the section array from the ArtistsViewModel.FastScrollSections
-				javaSections = new Java.Lang.Object[ fastScrollSections.Count ];
-				for ( int index = 0; index < javaSections.Length; ++index )
-				{
-					javaSections[ index ] = new Java.Lang.String( fastScrollSections[ index ].Item1 );
-				}
-			}
-		}
+		public override bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id ) => 
+			( Groups[ groupPosition ] is Artist ) != false || base.OnGroupClick( parent, clickedView, groupPosition, id );
 
 		/// <summary>
 		/// Provide a view containing either album or song details at the specified position
@@ -179,7 +103,6 @@ namespace DBTest
 				convertView = inflator.Inflate( Resource.Layout.artists_song_layout, null );
 				convertView.Tag = new SongViewHolder()
 				{
-					SelectionBox = GetSelectionBox( convertView ),
 					Track = convertView.FindViewById<TextView>( Resource.Id.track ),
 					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
 					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
@@ -228,7 +151,6 @@ namespace DBTest
 					convertView = inflator.Inflate( Resource.Layout.artists_artist_layout, null );
 					convertView.Tag = new ArtistViewHolder()
 					{
-						SelectionBox = GetSelectionBox( convertView ),
 						Name = convertView.FindViewById<TextView>( Resource.Id.artistName )
 					};
 				}
@@ -245,7 +167,6 @@ namespace DBTest
 					convertView = inflator.Inflate( Resource.Layout.artists_album_layout, null );
 					convertView.Tag = new AlbumViewHolder()
 					{
-						SelectionBox = GetSelectionBox( convertView ),
 						AlbumName = convertView.FindViewById<TextView>( Resource.Id.albumName ),
 						Year = convertView.FindViewById<TextView>( Resource.Id.year ),
 						Genre = convertView.FindViewById<TextView>( Resource.Id.genre ),
@@ -253,7 +174,7 @@ namespace DBTest
 				}
 
 				// Display the album
-				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( ( ArtistAlbum )Groups[ groupPosition ], ActionMode );
+				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( ( ArtistAlbum )Groups[ groupPosition ] );
 			}
 
 			return convertView;
@@ -274,7 +195,7 @@ namespace DBTest
 		/// </summary>
 		private class AlbumViewHolder : ExpandableListViewHolder
 		{
-			public void DisplayAlbum( ArtistAlbum artistAlbum, bool actionMode )
+			public void DisplayAlbum( ArtistAlbum artistAlbum )
 			{
 				// Save the default colour if not already done so
 				if ( albumNameColour == Color.Fuchsia )
@@ -284,12 +205,6 @@ namespace DBTest
 
 				AlbumName.Text = artistAlbum.Name;
 				AlbumName.SetTextColor( ( artistAlbum.Album.Played == true ) ? Color.Black : albumNameColour );
-
-				// A very nasty workaround here. If action mode is in effect then remove the AlignParentLeft from the album name.
-				// When the Checkbox is being shown then the album name can be positioned between the checkbox and the album year, 
-				// but when there is no checkbox this does not work and the name has to be aligned with the parent.
-				// This seems to be too complicated for static layout
-				( ( RelativeLayout.LayoutParams )AlbumName.LayoutParameters ).AddRule( LayoutRules.AlignParentLeft, ( actionMode == true ) ? 0 : 1 );
 
 				// Set the year text
 				Year.Text = ( artistAlbum.Album.Year > 0 ) ? artistAlbum.Album.Year.ToString() : " ";
@@ -366,52 +281,39 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the collapse state of a group has changed.
-		/// If the group is an ArtistAlbum then check whether or not the parent Artist should be shown as expanded or collapsed
+		/// Special background rendering is required for the Artist item
 		/// </summary>
-		/// <param name="parent"></param>
-		/// <param name="groupPosition"></param>
-		protected override void GroupCollapseStateChanged( ExpandableListView parent, int groupPosition )
+		protected override void RenderBackground( View convertView )
 		{
-			if ( Groups[ groupPosition ] is ArtistAlbum artistAlbum )
+			// If this is an unselected Artist then work out if any of the ArtistAlbums, or any Songs in the ArtistAlbums are selected
+			if ( ( convertView.Tag is ArtistViewHolder artistView ) && ( IsItemSelected( artistView.ItemTag ) == false ) )
 			{
-				// Find the Artist associated with this ArtistAlbum
-				int artistPosition = FindArtistPosition( groupPosition );
+				bool anythingSelected = false;
 
-				// If the ArtistAlbum is now expanded then check if all the other ArtistAlbums are also expanded
-				// If the ArtistAlbum is now collapsed then collapse the Artist
-				if ( parent.IsGroupExpanded( groupPosition ) == true )
+				// The first ArtistAlbum to check should be the next group item
+				int albumIndex = GetGroupFromTag( artistView.ItemTag ) + 1;
+				while ( ( anythingSelected == false ) && ( albumIndex < Groups.Count ) && ( Groups[ albumIndex ] is ArtistAlbum ) )
 				{
-					// Need to check all of the ArtistAlbum entries associated with the Artist. If they are all expanded then expand the Artist as well
-					if ( CheckAllArtistAlbums( artistPosition, ( artistAlbumIndex ) => parent.IsGroupExpanded( artistAlbumIndex ) ) == true )
-					{
-						// Add this to the record of which groups are expanded
-						adapterModel.ExpandedGroups.Add( artistPosition );
+					int albumTag = FormGroupTag( albumIndex );
+					anythingSelected = IsItemSelected( albumTag ) || AnyChildSelected( albumTag );
 
-						// Now expand the group
-						parent.ExpandGroup( artistPosition );
-					}
+					albumIndex++;
+				}
+
+				if ( anythingSelected == true )
+				{
+					SetPartialBackground( convertView );
 				}
 				else
 				{
-					// If the parent is expanded then collapse it
-					if ( parent.IsGroupExpanded( artistPosition ) == true )
-					{
-						adapterModel.ExpandedGroups.Remove( artistPosition );
-
-						// Now collapse the group
-						parent.CollapseGroup( artistPosition );
-					}
+					SetUnselectedBackground( convertView );
 				}
 			}
+			else
+			{
+				base.RenderBackground( convertView );
+			}
 		}
-
-		/// <summary>
-		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
-		/// If the item selected when going into Action Mode is not an Artist item then select it
-		/// </summary>
-		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag ) => ( IsGroupTag( tag ) == false ) || ( Groups[ GetGroupFromTag( tag ) ] is ArtistAlbum );
 
 		/// <summary>
 		/// Find the Artist index associated with the specified ArtistAlbum index
@@ -420,25 +322,11 @@ namespace DBTest
 		/// <returns></returns>
 		private int FindArtistPosition( int artistAlbumPosition )
 		{
-			while ( Groups[ --artistAlbumPosition ] is ArtistAlbum ) {}
+			while ( Groups[ --artistAlbumPosition ] is ArtistAlbum )
+			{
+			}
 
 			return artistAlbumPosition;
-		}
-
-		/// <summary>
-		/// Perform the specified action on all the ArtistAlbum entries associated with an Artist
-		/// </summary>
-		/// <param name="artistPosition"></param>
-		/// <param name="action"></param>
-		private void PerformActionOnArtistAlbums( int artistPosition, Action<int> action )
-		{
-			int albumIndex = artistPosition + 1;
-			while ( ( albumIndex < Groups.Count ) && ( Groups[ albumIndex ] is ArtistAlbum ) )
-			{
-				// Perform the provided action on this ArtistAlbum entry
-				action( albumIndex );
-				albumIndex++;
-			}
 		}
 
 		/// <summary>

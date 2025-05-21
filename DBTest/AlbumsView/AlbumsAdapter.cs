@@ -9,19 +9,16 @@ namespace DBTest
 	/// <summary>
 	/// The AlbumsAdapter class displays album and song data in an ExpandableListView
 	/// </summary>
-	internal class AlbumsAdapter: ExpandableListAdapter< Album >
+	/// <remarks>
+	/// AlbumsAdapter constructor
+	/// </remarks>
+	/// <param name="context"></param>
+	/// <param name="parentView"></param>
+	/// <param name="provider"></param>
+	internal class AlbumsAdapter( Context context, ExpandableListView parentView,
+		ExpandableListAdapter<Album>.IGroupContentsProvider<Album> provider, IAdapterEventHandler actionHandler ) :
+		ExpandableListAdapter<Album>( context, parentView, provider, AlbumsAdapterModel.BaseModel, actionHandler )
 	{
-		/// <summary>
-		/// AlbumsAdapter constructor
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parentView"></param>
-		/// <param name="provider"></param>
-		public AlbumsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider< Album > provider, IAdapterEventHandler actionHandler ) :
-			base( context, parentView, provider,  AlbumsAdapterModel.BaseModel, actionHandler )
-		{
-		}
-
 		/// <summary>
 		/// Number of child items of selected group
 		/// </summary>
@@ -68,26 +65,6 @@ namespace DBTest
 		public override Java.Lang.Object[] GetSections() => javaSections;
 
 		/// <summary>
-		/// Either select or deselect all the displayed items
-		/// </summary>
-		/// <param name="select"></param>
-		public void SelectAll( bool select )
-		{
-			bool selectionChanged = false;
-			for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
-			{
-				selectionChanged |= SelectGroupContents( groupIndex, select );
-				selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
-			}
-
-			if ( selectionChanged == true )
-			{
-				stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
-				NotifyDataSetChanged();
-			}
-		}
-
-		/// <summary>
 		/// Provide a view containing song details at the specified position
 		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
 		/// </summary>
@@ -105,7 +82,6 @@ namespace DBTest
 				convertView = inflator.Inflate( Resource.Layout.albums_song_layout, null );
 				convertView.Tag = new SongViewHolder()
 				{
-					SelectionBox = GetSelectionBox( convertView ),
 					Track = convertView.FindViewById<TextView>( Resource.Id.track ),
 					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
 					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
@@ -151,7 +127,6 @@ namespace DBTest
 				convertView = inflator.Inflate( Resource.Layout.albums_album_layout, null );
 				convertView.Tag = new AlbumViewHolder()
 				{
-					SelectionBox = GetSelectionBox( convertView ),
 					AlbumName = convertView.FindViewById<TextView>( Resource.Id.albumName ),
 					ArtistName = convertView.FindViewById<TextView>( Resource.Id.artist ),
 					Year = convertView.FindViewById<TextView>( Resource.Id.year ),
@@ -174,35 +149,7 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition ) => 
+		protected override object GetItemAt( int groupPosition, int childPosition ) =>
 			( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : ( object )Groups[ groupPosition ].Songs[ childPosition ];
-
-		/// <summary>
-		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
-		/// All items should be selected
-		/// </summary>
-		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag ) => true;
-
-		/// <summary>
-		/// This is called by the base class when new data has been provided in order to create some of the fast scroll data.
-		/// Most of this has already been done in the AlbumsController.
-		/// All that is missing is the copying of the section names into an array of Java strings
-		/// </summary>
-		protected override void SetGroupIndex()
-		{
-			// Clear the array first in case there are none
-			javaSections = null;
-
-			if ( fastScrollSections != null )
-			{
-				// Size the section array from the fastScrollSections
-				javaSections = new Java.Lang.Object[ fastScrollSections.Count ];
-				for ( int index = 0; index < javaSections.Length; ++index )
-				{
-					javaSections[ index ] = new Java.Lang.String( fastScrollSections[ index ].Item1 );
-				}
-			}
-		}
 	}
 }

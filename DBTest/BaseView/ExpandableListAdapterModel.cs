@@ -5,11 +5,6 @@ namespace DBTest
 	public class ExpandableListAdapterModel
 	{
 		/// <summary>
-		/// Keep track of the id's of the groups that have been expanded
-		/// </summary>
-		public HashSet<int> ExpandedGroups { get; set; } = new HashSet<int>();
-
-		/// <summary>
 		/// The last group expanded
 		/// </summary>
 		public int LastGroupOpened { get; set; } = -1;
@@ -17,7 +12,7 @@ namespace DBTest
 		/// <summary>
 		/// Keep track of items that have been selected
 		/// </summary>
-		public SortedDictionary< int, object > CheckedObjects { get; } = new SortedDictionary<int, object>();
+		public SortedDictionary< int, object > CheckedObjects { get; } = [];
 
 		/// <summary>
 		/// Keep track of whether or not action mode is in effect
@@ -32,7 +27,6 @@ namespace DBTest
 			ActionMode = false;
 			CheckedObjects.Clear();
 			LastGroupOpened = -1;
-			ExpandedGroups.Clear();
 		}
 	}
 }

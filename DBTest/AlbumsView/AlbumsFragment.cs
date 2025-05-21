@@ -11,16 +11,14 @@ namespace DBTest
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
-		public AlbumsFragment() => ActionMode.ActionModeTitle = NoItemsSelectedText;
+		public AlbumsFragment() => ActionMode.ActionModeTitle = string.Empty;
 
 		/// <summary>
 		/// Get all the Song entries associated with a specified Album.
 		/// These are now read on demand in the Album, so no action is required here
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public void ProvideGroupContents( Album _ )
-		{
-		}
+		public void ProvideGroupContents( Album _ ) {}
 
 		/// <summary>
 		/// Called when the Controller has obtained the Albums data
@@ -38,7 +36,7 @@ namespace DBTest
 				case SortOrder.alphaAscending:
 				case SortOrder.alphaDescending:
 				{
-					GenerateIndex( ref fastScrollSections, ref fastScrollSectionLookup, ( album, index ) => album.Name.RemoveThe().Substring( 0, 1 ).ToUpper() );
+					GenerateIndex( ref fastScrollSections, ref fastScrollSectionLookup, ( album, index ) => album.Name.RemoveThe()[ ..1 ].ToUpper() );
 					break;
 				}
 
@@ -63,7 +61,7 @@ namespace DBTest
 			}
 
 			// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-			Adapter.SetData( AlbumsViewModel.Albums.ToList(), AlbumsViewModel.SortSelection.ActiveSortType, fastScrollSections, fastScrollSectionLookup );
+			Adapter.SetData( [ .. AlbumsViewModel.Albums ], AlbumsViewModel.SortSelection.ActiveSortType, fastScrollSections, fastScrollSectionLookup );
 
 			// Indicate whether or not a filter has been applied
 			AppendToTabTitle();
@@ -73,36 +71,6 @@ namespace DBTest
 
 			base.DataAvailable();
 		}
-
-		/// <summary>
-		/// Called when the number of selected items (songs) has changed.
-		/// Update the text to be shown in the Action Mode title
-		/// </summary>
-		protected override void SelectedItemsChanged( GroupedSelection selectedObjects )
-		{
-			if ( selectedObjects.Songs.Count == 0 )
-			{
-				ActionMode.ActionModeTitle = NoItemsSelectedText;
-			}
-			else
-			{
-				int albumsCount = selectedObjects.Albums.Count;
-				int songsCount = selectedObjects.Songs.Count;
-				string albumsText = ( albumsCount > 0 ) ? string.Format( "{0} album{1} ", albumsCount, ( albumsCount == 1 ) ? "" : "s" ) : "";
-				string songsText = ( songsCount > 0 ) ? string.Format( "{0} song{1} ", songsCount, ( songsCount == 1 ) ? "" : "s" ) : "";
-
-				ActionMode.ActionModeTitle = string.Format( ItemsSelectedText, albumsText, songsText );
-			}
-
-			ActionMode.AllSelected = ( selectedObjects.Albums.Count == AlbumsViewModel.Albums.Count );
-		}
-
-		/// <summary>
-		/// Called when the Select All checkbox has been clicked on the Action Bar.
-		/// Pass this on to the adapter
-		/// </summary>
-		/// <param name="checkedState"></param>
-		public override void AllSelected( bool checkedState ) => ( ( AlbumsAdapter )Adapter ).SelectAll( checkedState );
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -141,11 +109,11 @@ namespace DBTest
 		private static void GenerateIndex( ref List<Tuple<string, int>> fastScrollSections, ref int[] fastScrollSectionLookup, Func<Album, int, string> sectionNameProvider )
 		{
 			// Initialise the index collections
-			fastScrollSections = new List<Tuple<string, int>>();
+			fastScrollSections = [];
 			fastScrollSectionLookup = new int[ AlbumsViewModel.Albums.Count ];
 
 			// Keep track of when a section has already been added to the FastScrollSections collection
-			Dictionary<string, int> sectionLookup = new();
+			Dictionary<string, int> sectionLookup = [];
 
 			int index = 0;
 			foreach ( Album album in AlbumsViewModel.Albums )
@@ -186,11 +154,5 @@ namespace DBTest
 		protected override FilterSelector FilterSelector { get; } = new FilterSelector( MainApp.CommandInterface.FilterAlbums, AlbumsViewModel.FilterSelection );
 
 		protected override SortSelector SortSelector { get; } = new SortSelector( MainApp.CommandInterface.SortAlbums, AlbumsViewModel.SortSelection );
-
-		/// <summary>
-		/// Constant strings for the Action Mode bar text
-		/// </summary>
-		private const string NoItemsSelectedText = "Select songs";
-		private const string ItemsSelectedText = "{0}{1}selected";
 	}
 }

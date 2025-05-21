@@ -9,16 +9,16 @@ using CoreMP;
 
 namespace DBTest
 {
-	internal class NowPlayingAdapter: ExpandableListAdapter<PlaylistItem>
+	/// <summary>
+	/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
+	/// </summary>
+	/// <param name="context"></param>
+	/// <param name="parentView"></param>
+	/// <param name="provider"></param>
+	internal class NowPlayingAdapter( Context context, ExpandableListView parentView, 
+		ExpandableListAdapter<PlaylistItem>.IGroupContentsProvider<PlaylistItem> provider, NowPlayingAdapter.IActionHandler actionHandler ) : 
+		ExpandableListAdapter<PlaylistItem>( context, parentView, provider, NowPlayingAdapterModel.BaseModel, actionHandler )
 	{
-		/// <summary>
-		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parentView"></param>
-		/// <param name="provider"></param>
-		public NowPlayingAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<PlaylistItem> provider, IActionHandler actionHandler ) 
-			: base( context, parentView, provider, NowPlayingAdapterModel.BaseModel, actionHandler ) => adapterHandler = actionHandler;
 
 		/// <summary>
 		/// Number of child items of selected group
@@ -71,25 +71,6 @@ namespace DBTest
 		} );
 
 		/// <summary>
-		/// Either select or deselect all the displayed items
-		/// </summary>
-		/// <param name="select"></param>
-		public void SelectAll( bool select )
-        {
-            bool selectionChanged = false;
-            for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
-            {
-                selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
-            }
-
-            if ( selectionChanged == true )
-            {
-                stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
-                NotifyDataSetChanged();
-            }
-        }
-
-		/// <summary>
 		/// Called when a group item has been clicked
 		/// If ActionMode is in effect then add this item to the collection of selected items
 		/// If Action mode is not in effect then treat this as a song selection event. To prevent this being called
@@ -105,7 +86,7 @@ namespace DBTest
 			// If the adapter is in Action Mode then select this item.
 			if ( ActionMode == true )
 			{
-				OnChildClick( parent, clickedView, groupPosition, 0, 0 );
+				_ = OnChildClick( parent, clickedView, groupPosition, 0, 0 );
 			}
 			else
 			{
@@ -178,7 +159,6 @@ namespace DBTest
 				convertView = inflator.Inflate( Resource.Layout.playlists_song_layout, null );
 				convertView.Tag = new SongViewHolder()
 				{
-					SelectionBox = GetSelectionBox( convertView ),
 					Artist = convertView.FindViewById<TextView>( Resource.Id.artist ),
 					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
 					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
@@ -188,10 +168,28 @@ namespace DBTest
 			// Display the Title, Duration and Artist
 			( ( SongViewHolder )convertView.Tag ).DisplaySong( (SongPlaylistItem) Groups[ groupPosition ] );
 
-			// If this song is currently being played then show with a different background
-			convertView.SetBackgroundColor( ( NowPlayingAdapterModel.SongPlayingIndex == groupPosition ) ? Color.AliceBlue : Color.Transparent );
-
 			return convertView;
+		}
+
+		/// <summary>
+		/// Change the view's background if it the song currently being played
+		/// </summary>
+		protected override void RenderBackground( View convertView )
+		{
+			ExpandableListViewHolder viewHolder = ( ExpandableListViewHolder )convertView.Tag;
+
+			// The song index is encoded as a group so..
+			int songIndex = GetGroupFromTag( viewHolder.ItemTag );
+
+			// If the item is selected then or is not the current song then let the base class determine the background colour.
+			if ( ( IsItemSelected( viewHolder.ItemTag ) == true ) || ( NowPlayingAdapterModel.SongPlayingIndex != songIndex ) )
+			{
+				base.RenderBackground( convertView );
+			}
+			else
+			{
+				convertView.SetBackgroundColor( Color.AliceBlue );          
+			}
 		}
 
 		/// <summary>
@@ -201,13 +199,6 @@ namespace DBTest
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
 		protected override object GetItemAt( int groupPosition, int childPosition ) => ( childPosition == 0XFFFF ) ? Groups[ groupPosition ] : null;
-
-		/// <summary>
-		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
-		/// Always select the clicked item
-		/// </summary>
-		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag ) => true;
 
 		/// <summary>
 		/// Check if the Current Song (if there is one) is being displayed.
@@ -232,12 +223,12 @@ namespace DBTest
                             // So get focus first.
                             // Do all this on the ListView's queue
                             parentView.ClearFocus();
-                            parentView.Post( () => 
-                            {
-                                parentView.RequestFocusFromTouch();
-                                parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - ( visibleRange / 2 ), 0 ) );
-                                parentView.RequestFocus();
-                            } );
+							_ = parentView.Post( () =>
+							{
+								_ = parentView.RequestFocusFromTouch();
+								parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - ( visibleRange / 2 ), 0 ) );
+								_ = parentView.RequestFocus();
+							} );
 
 						}
 					}
@@ -253,7 +244,7 @@ namespace DBTest
 		/// <summary>
 		/// Interface used to handler adapter request and state changes
 		/// </summary>
-		private readonly IActionHandler adapterHandler = null;
+		private readonly IActionHandler adapterHandler = actionHandler;
 
 		/// <summary>
 		/// The time when the last item was clicked

@@ -19,6 +19,6 @@
 		android:layout_width="match_parent"
 		android:layout_height="0px"
 		android:layout_weight="1"
-		android:background="#ffffff" />
+		android:background="@color/colorPageBackground" />
 	<include layout="@layout/media_controller" />
 </LinearLayout>

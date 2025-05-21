@@ -6,14 +6,13 @@
     android:layout_height="fill_parent">
 	<RelativeLayout
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_weight="1">
+		android:layout_height="wrap_content">
 		<DBTest.MultiScrollListenerExpandableListView
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/artistsList"
 			android:fastScrollEnabled="true"
-			android:layout_weight="1"/>
+			android:groupIndicator="@android:color/transparent" />
 		<android.support.design.widget.FloatingActionButton
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"

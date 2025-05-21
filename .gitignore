@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 /Testing artifacts
 /New Text Document.txt
+/DBTest/Resources/Resource.designer.cs

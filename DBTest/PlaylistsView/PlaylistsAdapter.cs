@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Threading.Tasks;
 using Android.Content;
 using Android.Graphics;
 using Android.Views;
@@ -8,18 +7,16 @@ using CoreMP;
 
 namespace DBTest
 {
-	internal class PlaylistsAdapter: ExpandableListAdapter< Playlist >
+	/// <summary>
+	/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
+	/// </summary>
+	/// <param name="context"></param>
+	/// <param name="parentView"></param>
+	/// <param name="provider"></param>
+	internal class PlaylistsAdapter( Context context, ExpandableListView parentView, 
+		ExpandableListAdapter<Playlist>.IGroupContentsProvider<Playlist> provider, PlaylistsAdapter.IActionHandler actionHandler ) : 
+		ExpandableListAdapter< Playlist >( context, parentView, provider,  PlaylistsAdapterModel.BaseModel, actionHandler )
 	{
-		/// <summary>
-		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parentView"></param>
-		/// <param name="provider"></param>
-		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Playlist> provider, IActionHandler actionHandler ) :
-			base( context, parentView, provider,  PlaylistsAdapterModel.BaseModel, actionHandler )
-		{
-		}
 
 		/// <summary>
 		/// Number of child items of selected group
@@ -109,34 +106,12 @@ namespace DBTest
 				}
 
 				// Is this group expanded
-				if ( adapterModel.ExpandedGroups.Contains( groupPosition ) == true )
+				if ( adapterModel.LastGroupOpened == groupPosition )
 				{
 					NotifyDataSetChanged();
 				}
 			}
 		}
-
-		/// <summary>
-		/// Either select or deselect all the displayed items
-		/// </summary>
-		/// <param name="select"></param>
-		public void SelectAll( bool select )
-		{
-			bool selectionChanged = false;
-			for ( int groupIndex = 0; groupIndex < Groups.Count; ++groupIndex )
-			{
-				// All the playlist contents have already been read in so just select them
-				selectionChanged |= SelectGroupContents( groupIndex, select );
-				selectionChanged |= RecordItemSelection( FormGroupTag( groupIndex ), select );
-			}
-
-			if ( selectionChanged == true )
-			{
-				stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
-				NotifyDataSetChanged();
-			}
-		}
-
 
 		/// <summary>
 		/// Provide a view containing either album or song details at the specified position
@@ -158,7 +133,6 @@ namespace DBTest
 					convertView = inflator.Inflate( Resource.Layout.playlists_song_layout, null );
 					convertView.Tag = new SongViewHolder()
 					{
-						SelectionBox = GetSelectionBox( convertView ),
 						Artist = convertView.FindViewById<TextView>( Resource.Id.artist ),
 						Title = convertView.FindViewById<TextView>( Resource.Id.title ),
 						Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
@@ -179,7 +153,6 @@ namespace DBTest
 					convertView = inflator.Inflate( Resource.Layout.playlists_album_layout, null );
 					convertView.Tag = new AlbumViewHolder()
 					{
-						SelectionBox = GetSelectionBox( convertView ),
 						AlbumName = convertView.FindViewById<TextView>( Resource.Id.albumName ),
 						ArtistName = convertView.FindViewById<TextView>( Resource.Id.artist ),
 						Year = convertView.FindViewById<TextView>( Resource.Id.year ),
@@ -191,9 +164,6 @@ namespace DBTest
 				AlbumPlaylist albumPlaylist = ( AlbumPlaylist )Groups[ groupPosition ];
 				Album album = ( (AlbumPlaylistItem)albumPlaylist.PlaylistItems[ childPosition ] ).Album;
 				( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, album.Genre );
-
-				// If this album is currently being played then show it with a different background
-				convertView.SetBackgroundColor( albumPlaylist.InProgressAlbum == album ? Color.AliceBlue : Color.Transparent );
 			}
 
 			return convertView;
@@ -215,7 +185,6 @@ namespace DBTest
 				convertView = inflator.Inflate( Resource.Layout.playlists_playlist_layout, null );
 				convertView.Tag = new PlaylistViewHolder()
 				{
-					SelectionBox = GetSelectionBox( convertView ),
 					Name = convertView.FindViewById<TextView>( Resource.Id.playListName )
 				};
 			}
@@ -224,6 +193,45 @@ namespace DBTest
 			( ( PlaylistViewHolder )convertView.Tag ).DisplayPlaylist( Groups[ groupPosition ] );
 
 			return convertView;
+		}
+
+		/// <summary>
+		/// Change the view's background if it is the album that is currently being played
+		/// </summary>
+		protected override void RenderBackground( View convertView )
+		{
+			if ( convertView.Tag is AlbumViewHolder albumView )
+			{
+				AlbumPlaylist albumPlaylist = ( AlbumPlaylist )Groups[ GetGroupFromTag( albumView.ItemTag) ];
+				Album album = ( ( AlbumPlaylistItem )albumPlaylist.PlaylistItems[ GetChildFromTag( albumView.ItemTag ) ] ).Album;
+				if ( albumPlaylist.InProgressAlbum == album )
+				{
+					convertView.SetBackgroundColor( Color.AliceBlue );
+				}
+				else
+				{
+					base.RenderBackground( convertView );
+				}
+			}
+			else
+			{
+				base.RenderBackground( convertView );
+			}
+
+			ExpandableListViewHolder viewHolder = ( ExpandableListViewHolder )convertView.Tag;
+
+			// The song index is encoded as a group so..
+			int songIndex = GetGroupFromTag( viewHolder.ItemTag );
+
+			// If the item is selected then or is not the current song then let the base class determine the background colour.
+			if ( ( IsItemSelected( viewHolder.ItemTag ) == true ) || ( NowPlayingAdapterModel.SongPlayingIndex != songIndex ) )
+			{
+				base.RenderBackground( convertView );
+			}
+			else
+			{
+				convertView.SetBackgroundColor( Color.AliceBlue );
+			}
 		}
 
 		/// <summary>
@@ -260,13 +268,6 @@ namespace DBTest
 		/// <returns></returns>
 		protected override object GetItemAt( int groupPosition, int childPosition ) => 
 			( childPosition == 0XFFFF ) ? ( object )Groups[ groupPosition ] : ( ( Playlist )Groups[ groupPosition ] ).PlaylistItems[ childPosition ];
-
-		/// <summary>
-		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
-		/// All items should be selected
-		/// </summary>
-		/// <param name="tag"></param>
-		protected override bool SelectLongClickedItem( int tag ) => true;
 
 		/// <summary>
 		/// Interface used to handler adapter request and state changes

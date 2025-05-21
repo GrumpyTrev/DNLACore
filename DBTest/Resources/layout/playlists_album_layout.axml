@@ -7,24 +7,13 @@
 		android:orientation="vertical"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content">
-		<CheckBox
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:focusable="false"
-			android:focusableInTouchMode="false"
-			android:id="@+id/checkBox"
-			android:layout_marginLeft="25dp"
-			android:layout_marginBottom="-5dp"
-			android:layout_marginRight="-30dp"
-			android:layout_marginTop="-2dp" />
 		<TextView
 			android:id="@+id/albumName"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Album"
+			android:text="@string/album"
 			android:textColor="@color/colorArtistAlbum"
-			android:layout_marginLeft="30dp"
-			android:layout_toRightOf="@+id/checkBox" />
+			android:layout_marginLeft="@dimen/edge_margin" />
 	</RelativeLayout>
 	<RelativeLayout
 		android:orientation="vertical"
@@ -34,10 +23,10 @@
 			android:id="@+id/artist"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_marginLeft="30dp"
-			android:layout_marginTop="-5dp" 
-			android:text="Artist"
-			android:textColor="@color/colorAlbumArtist"
+			android:layout_marginLeft="@dimen/edge_margin"
+			android:text="@string/artist"
+			android:includeFontPadding="false"
+			android:textColor="@color/colorGreyText"
 		/>
 	</RelativeLayout>
 	<RelativeLayout
@@ -48,25 +37,22 @@
 			android:id="@+id/genre"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Genre"
-			android:textColor="@color/colorAlbumGenre"
-			android:textSize="15dp"
-			android:layout_marginTop="-5dp" 
+			android:text="@string/genre"
+			android:textColor="@color/colorGreyText"
+			android:includeFontPadding="false"
 			android:layout_alignParentLeft="true"
 			android:layout_toLeftOf="@+id/year"
-			android:layout_marginLeft="30dp"
+			android:layout_marginLeft="@dimen/edge_margin"
 		/>
 		<TextView
 			android:id="@+id/year"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Year"
-			android:textColor="@color/colorAlbumYear"
-			android:textSize="15dp"
+			android:text="@string/year"
+			android:textColor="@color/colorGreyText"
 			android:layout_alignParentRight="true"
-			android:layout_marginRight="10dp"
-			android:gravity="right"
-			android:layout_marginTop="-5dp" 
+			android:layout_marginRight="@dimen/edge_margin"
+			android:includeFontPadding="false"
 			android:maxLines="1" 
 		/>
 	</RelativeLayout>

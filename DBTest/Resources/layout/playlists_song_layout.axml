@@ -8,35 +8,23 @@
 		android:orientation="vertical"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content">
-		<CheckBox
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:focusable="false"
-			android:focusableInTouchMode="false"
-			android:id="@+id/checkBox"
-			android:layout_marginTop="-2dp"
-			android:layout_marginBottom="-5dp"
-			android:layout_marginLeft="-5dp"
-			android:layout_marginRight="-5dp" />
 		<TextView
 			android:id="@+id/title"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:layout_toLeftOf="@+id/duration"
-			android:layout_toRightOf="@+id/checkBox"
-			android:layout_marginLeft="15dp"
-			android:text="Song title"
-			android:textColor="#ff000000" 
+			android:layout_marginLeft="@dimen/edge_margin"
+			android:text="@string/songTitle"
+			android:textColor="@color/colorNormalText" 
 		/>
 		<TextView
 			android:id="@+id/duration"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Duration"
-			android:textColor="#ff9e9e9e"
+			android:text="@string/duration"
+			android:textColor="@color/colorGreyText"
 			android:layout_alignParentRight="true"
-			android:layout_marginRight="5dp"
-			android:gravity="right"
+			android:layout_marginRight="@dimen/edge_margin"
 			android:maxLines="1" 
 		/>
 	</RelativeLayout>
@@ -48,9 +36,9 @@
 			android:id="@+id/artist"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
-			android:text="Artist"
-			android:textColor="#ff9e9e9e" 
-			android:layout_marginLeft="15dp"
+			android:text="@string/artist"
+			android:textColor="@color/colorGreyText" 
+			android:layout_marginLeft="@dimen/edge_margin"
 		/>
 	</RelativeLayout>
 </LinearLayout>

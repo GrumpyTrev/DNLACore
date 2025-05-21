@@ -5,19 +5,17 @@ using Android.Support.V4.App;
 
 namespace DBTest
 {
-    /// <summary>
-    /// The ActionModeHandler handles entering and leaving ActionMode on behalf of parent fragments.
-    /// It listens for ActionBar commands and passes them back to the fragment
-    /// </summary>
-    public class ActionModeHandler : Java.Lang.Object, ActionMode.ICallback
+	/// <summary>
+	/// The ActionModeHandler handles entering and leaving ActionMode on behalf of parent fragments.
+	/// It listens for ActionBar commands and passes them back to the fragment
+	/// </summary>
+	/// <remarks>
+	/// Create an instance of the class with a callback to notify creation and deletions
+	/// </remarks>
+	/// <param name="parentFragment"></param>
+	public class ActionModeHandler( ActionModeHandler.ICallback callback ) : Java.Lang.Object, ActionMode.ICallback
     {
-        /// <summary>
-        /// Create an instance of the class with a callback to notify creation and deletions
-        /// </summary>
-        /// <param name="parentFragment"></param>
-        public ActionModeHandler( ICallback callback ) => CallbackNotification = callback;
-
-        /// <summary>
+		/// <summary>
 		/// Called to start ActionMode
 		/// If the parent fragment is not visible then record that ActionMode should be re-started.
 		/// Otherwise start action mode if not already in progress
@@ -29,7 +27,7 @@ namespace DBTest
             {
                 if ( ActionModeActive == false )
                 {
-                    Activity.StartActionMode( this );
+					_ = Activity.StartActionMode( this );
                 }
             }
             else
@@ -61,7 +59,7 @@ namespace DBTest
         {
             if ( delayedActionMode == true )
             {
-                Activity.StartActionMode( this );
+				_ = Activity.StartActionMode( this );
                 delayedActionMode = false;
             }
         }
@@ -77,7 +75,7 @@ namespace DBTest
                 // If the view has not been created yet delay showing the Action Bar until later
                 if ( delayRestoration == false )
                 {
-                    Activity.StartActionMode( this );
+					_ = Activity.StartActionMode( this );
                 }
                 else
                 {
@@ -101,18 +99,13 @@ namespace DBTest
             actionModeInstance = mode;
 
             // Set the view to our custom view
-            actionModeInstance.CustomView = LayoutInflater.FromContext( ViewContext ).Inflate( Resource.Layout.action_mode, null ); ;
+            actionModeInstance.CustomView = LayoutInflater.FromContext( ViewContext ).Inflate( Resource.Layout.action_mode, null ); 
 
-            // Save the text view and checkbox for for ease of access
+            // Save the text view for ease of access
             titleView = actionModeInstance.CustomView.FindViewById<TextView>( Resource.Id.title );
-            checkBox = actionModeInstance.CustomView.FindViewById<CheckBox>( Resource.Id.checkBox );
 
-            // Report when the checkbox is clicked
-            checkBox.Click += ( sender, args ) => CallbackNotification.AllSelected( !AllSelected );
-
-            // Refresh the title text and checkbox status
+            // Refresh the title text
             ActionModeTitle = ActionModeTitle;
-			AllSelected = AllSelected;
 
 			// Let the fragment know
 			CallbackNotification.OnActionBarCreated();
@@ -150,25 +143,7 @@ namespace DBTest
             }
         }
 
-        /// <summary>
-        /// Set or clear the all selected checkbox
-        /// </summary>
-        public bool AllSelected
-        {
-            get => allSelected;
-
-            set
-            {
-                allSelected = value;
-
-                if ( ActionModeActive == true )
-                {
-                    checkBox.Checked = allSelected;
-                }
-            }
-        }
-
-        /// <summary>
+         /// <summary>
         /// Called when a menu item on the Contextual Action Bar has been selected
         /// </summary>
         /// <param name="mode"></param>
@@ -214,12 +189,6 @@ namespace DBTest
             /// </summary>
             /// <param name="informAdapter"></param>
             void OnActionBarDestroyed( bool informAdapter );
-
-            /// <summary>
-            /// Thge check box has been clicked
-            /// </summary>
-            /// <param name="clickedState"></param>
-            void AllSelected( bool clickedState );
         }
 
         /// <summary>
@@ -242,24 +211,14 @@ namespace DBTest
         /// </summary>
         private bool retainAdapterActionMode = false;
 
-        /// <summary>
-        /// Callback to be used to notify ActionMode creation and deletion
-        /// </summary>
-        private ICallback CallbackNotification { get; set; } = null;
+		/// <summary>
+		/// Callback to be used to notify ActionMode creation and deletion
+		/// </summary>
+		private ICallback CallbackNotification { get; set; } = callback;
 
-        /// <summary>
-        /// The TextView used to display the title
-        /// </summary>
-        private TextView titleView = null;
-
-        /// <summary>
-        /// The checkbox control
-        /// </summary>
-        private CheckBox checkBox = null;
-
-        /// <summary>
-        /// Keep track of whether all the items have been selected
-        /// </summary>
-        private bool allSelected = false;
+		/// <summary>
+		/// The TextView used to display the title
+		/// </summary>
+		private TextView titleView = null;
     }
 }

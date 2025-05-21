@@ -74,7 +74,7 @@ namespace DBTest
 			ActionMode.RestoreDelayedActionMode();
 
 			// Carry out post view creation action via a Post so that any response comes back after the UI has been created
-			FragmentView.Post( () => PostViewCreateAction() );
+			_ = FragmentView.Post( PostViewCreateAction );
 
 			return FragmentView;
 		}
@@ -90,7 +90,7 @@ namespace DBTest
 			FilterSelector?.BindToMenu( null );
 
 			// Turn off the timer
-			userInteractionTimer.Change( Timeout.Infinite, Timeout.Infinite );
+			_ = userInteractionTimer.Change( Timeout.Infinite, Timeout.Infinite );
 
 			// Save the scroll position 
 			ListViewState = ListView.OnSaveInstanceState();
@@ -109,10 +109,6 @@ namespace DBTest
 		{
 			// Inflate the menu for this fragment
 			inflater.Inflate( Menu, menu );
-
-			// Show or hide the collapse icon
-			collapseItem = menu.FindItem( Resource.Id.action_collapse );
-			collapseItem?.SetVisible( expandedGroupCount > 0 );
 
 			// If there is a filter selector then bind to it
 			FilterSelector?.BindToMenu( menu.FindItem( Resource.Id.filter ) );
@@ -135,12 +131,6 @@ namespace DBTest
 			// Let the main command router have a look first
 			if ( CommandRouter.HandleCommand( id ) == true )
 			{
-				handled = true;
-			}
-			// Pass on a collapse request to the adapter
-			else if ( id == Resource.Id.action_collapse )
-			{
-				Adapter.OnCollapseRequest();
 				handled = true;
 			}
 			else if ( id == Resource.Id.filter )
@@ -206,35 +196,23 @@ namespace DBTest
         public void LeaveActionMode() => ActionMode.StopActionMode( false );
 
         /// <summary>
-        /// Called when the count of expanded groups has changed
-        /// Show or hide associated UI elements
-        /// </summary>
-        /// <param name="count"></param>
-        public virtual void ExpandedGroupCountChanged( int count )
-		{
-			expandedGroupCount = count;
-
-			collapseItem?.SetVisible( expandedGroupCount > 0 );
-		}
-
-        /// <summary>
         /// A request to enter action mode has been requested
         /// </summary>
         public void EnteredActionMode() => ActionMode.StartActionMode( ( IsVisible == true ) && ( UserVisibleHint == true ) );
 
         /// <summary>
         /// Called when the selected items have changed
-        /// Update the visibility of any command bar buttons and pass on the objects to the derived classes
+        /// Update the visibility of any command bar buttons
         /// </summary>
         /// <param name="selectedItems"></param>
         public void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
 		{
 			GroupedSelection selectedObjects = new( selectedItems.Values );
 
-			CommandBar.DetermineButtonsVisibility( selectedObjects );
-			SelectedItemsChanged( selectedObjects );
+			ActionMode.ActionModeTitle = ( SelectedItemCount( selectedObjects ) > 0 ) ? $"{SelectedItemCount( selectedObjects )} selected" : string.Empty;
 
 			// Show the command bar if any of the buttons are visible
+			CommandBar.DetermineButtonsVisibility( selectedObjects );
 			CommandBar.Visibility = ShowCommandBar();
 		}
 
@@ -267,21 +245,6 @@ namespace DBTest
 			// Treat this as user interaction
 			UserActivityDetected();
 		}
-
-        /// <summary>
-        /// Called when the Select All checkbox has been clicked on the Action Bar.
-        /// Let the derived class handle this
-        /// </summary>
-        /// <param name="checkedState"></param>
-        public virtual void AllSelected( bool checkedState )
-        {
-        }
-
-		/// <summary>
-		/// Let the derived classes process changed selected objects
-		/// </summary>
-		/// <param name="selectedObjects"></param>
-		protected abstract void SelectedItemsChanged( GroupedSelection selectedObjects );
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -343,6 +306,13 @@ namespace DBTest
 		protected void AppendToTabTitle() => FragmentTitles.AppendToTabTitle( FilterSelector?.FilterData.TabString() ?? "", this );
 
 		/// <summary>
+		/// By default the selected items count displayed is the number of songs. Allow this to be overloaded
+		/// </summary>
+		/// <param name="selectedObjects"></param>
+		/// <returns></returns>
+		protected virtual int SelectedItemCount( GroupedSelection selectedObjects ) => selectedObjects.Songs.Count;
+
+		/// <summary>
 		/// The ExpandableListAdapter used to display the data for this fragment
 		/// </summary>
 		protected ExpandableListAdapter<T> Adapter { get; set; }
@@ -362,7 +332,7 @@ namespace DBTest
 			Adapter.IsUserActive = true;
 			if ( ActionMode.ActionModeActive == false )
 			{
-				userInteractionTimer.Change( UserInteractionTimeout, Timeout.Infinite );
+				_ = userInteractionTimer.Change( UserInteractionTimeout, Timeout.Infinite );
 			}
 		}
 
@@ -403,17 +373,7 @@ namespace DBTest
 		/// <summary>
 		/// The group Tags that are currently being applied by a derived class
 		/// </summary>
-		protected virtual List<TagGroup> TagGroups { get; } = new List<TagGroup>();
-
-		/// <summary>
-		/// Th enumber of expanded groups held by the Adapter
-		/// </summary>
-		private int expandedGroupCount = 0;
-
-		/// <summary>
-		/// The collapse menu item
-		/// </summary>
-		private IMenuItem collapseItem = null;
+		protected virtual List<TagGroup> TagGroups { get; } = [];
 
 		/// <summary>
 		/// The CommandHandlerCallback containing the action to call after a command has been handled

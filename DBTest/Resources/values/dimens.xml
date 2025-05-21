@@ -1,3 +1,13 @@
 <resources>
-    <dimen name="fab_margin">16dp</dimen>
+	<dimen name="fab_margin">16dp</dimen>
+	<dimen name="edge_margin">10dp</dimen>
+	<dimen name="artistAlbumIndent">20dp</dimen>
+	<dimen name="artistSongIndent">25dp</dimen>
+	<dimen name="artistGenreMargin">20dp</dimen>
+	<dimen name="albumSongMargin">15dp</dimen>
+	<dimen name="text_size_heading">20dp</dimen>
+	<dimen name="text_size_toolbar">20dp</dimen>
+	<dimen name="toolbarButtonVerticalPadding">5dp</dimen>
+	<dimen name="toolbarButtonHorizontalPadding">-12dp</dimen>
+	<dimen name="backButtonPadding">10dp</dimen>
 </resources>

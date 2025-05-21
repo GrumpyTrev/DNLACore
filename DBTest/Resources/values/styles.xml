@@ -15,9 +15,9 @@
 		<item name="windowActionModeOverlay">true</item>
 		<item name="actionModeBackground">@color/colorPrimary</item>
       
-    <!-- Provide our own action mocde style in order to hide the close imaage -->
+    <!-- Provide our own action mode style in order to hide the close imaage -->
     <item name="actionModeStyle">@style/myActionModeStyle</item>
-      
+
 		<!-- Use our own style for the top toolbar -->
 		<item name="toolbarStyle">@style/myToolbarStyle</item>
 
@@ -35,7 +35,7 @@
 
   <!-- Use our own layout in order to hide the close icon -->
   <style name="myActionModeStyle" parent="Widget.AppCompat.ActionMode">
-		 <item name="closeItemLayout">@layout/actionmode_close_item</item>
+		<item name="closeItemLayout">@layout/actionmode_close_item</item>
 	</style>
   
 	<!-- This is only here to test how to apply application wide changes to the button style-->

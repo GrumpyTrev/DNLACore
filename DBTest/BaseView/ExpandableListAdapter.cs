@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Android.Content;
+using Android.Graphics;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
@@ -40,6 +40,7 @@ namespace DBTest
 
 		/// <summary>
 		/// The number of groups
+		/// Required by interface
 		/// </summary>
 		public override int GroupCount => Groups.Count;
 
@@ -66,29 +67,6 @@ namespace DBTest
 		public abstract override int GetChildrenCount( int groupPosition );
 
 		/// <summary>
-		/// Provide a view containing either album or song details at the specified position
-		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
-		/// </summary>
-		/// <param name="groupPosition"></param>
-		/// <param name="childPosition"></param>
-		/// <param name="isLastChild"></param>
-		/// <param name="convertView"></param>
-		/// <param name="parent"></param>
-		/// <returns></returns>
-		public override View GetChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
-		{
-			convertView = GetSpecialisedChildView( groupPosition, childPosition, isLastChild, convertView, parent );
-
-			// Save the position for this view in the view holder
-			( ( ExpandableListViewHolder )convertView.Tag ).ItemTag = FormChildTag( groupPosition, childPosition );
-
-			// Display the checkbox
-			RenderCheckbox( convertView );
-
-			return convertView;
-		}
-
-		/// <summary>
 		/// Required by the interface
 		/// </summary>
 		/// <param name="groupPosition"></param>
@@ -103,8 +81,7 @@ namespace DBTest
 		public override long GetGroupId( int groupPosition ) => groupPosition;
 
 		/// <summary>
-		/// Provide a view containing artist details at the specified position
-		/// Attempt to reuse the supplied view if it previously contained the same type of data.
+		/// Provide a view for a group item at the specified position
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="isExpanded"></param>
@@ -118,8 +95,30 @@ namespace DBTest
 			// Save the position for this view in the view holder
 			( ( ExpandableListViewHolder )convertView.Tag ).ItemTag = FormGroupTag( groupPosition );
 
-			// Display the checkbox
-			RenderCheckbox( convertView );
+			// Set the view's background. This can be overriden by specialised classes
+			RenderBackground( convertView );
+
+			return convertView;
+		}
+
+		/// <summary>
+		/// Provide a view for a child item at the specified position
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="childPosition"></param>
+		/// <param name="isLastChild"></param>
+		/// <param name="convertView"></param>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		public override View GetChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent )
+		{
+			convertView = GetSpecialisedChildView( groupPosition, childPosition, isLastChild, convertView, parent );
+
+			// Save the position for this view in the view holder
+			( ( ExpandableListViewHolder )convertView.Tag ).ItemTag = FormChildTag( groupPosition, childPosition );
+
+			// Set the view's background. This can be overriden by specialised classes
+			RenderBackground( convertView );
 
 			return convertView;
 		}
@@ -148,14 +147,11 @@ namespace DBTest
 			{
 				Groups = newData;
 
-				// Expand any groups that were previously expanded
-				foreach ( int groupId in adapterModel.ExpandedGroups )
+				// Expand any group that was previously expanded
+				if ( adapterModel.LastGroupOpened != -1 )
 				{
-					parentView.ExpandGroup( groupId );
+					_ = parentView.ExpandGroup( adapterModel.LastGroupOpened );
 				}
-
-				// Report the new expanded count
-				contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
 
 				// Report the selection count
 				stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
@@ -213,45 +209,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a group collapse has been requested
-		/// Either collapse the last group or all the groups
-		/// </summary>
-		public void OnCollapseRequest()
-		{
-			// Close either the last group opened or all groups
-			if ( adapterModel.LastGroupOpened != -1 )
-			{
-				parentView.CollapseGroup( adapterModel.LastGroupOpened );
-				parentView.SetSelection( adapterModel.LastGroupOpened );
-
-				GroupCollapseStateChanged( parentView, adapterModel.LastGroupOpened );
-
-				adapterModel.ExpandedGroups.Remove( adapterModel.LastGroupOpened );
-				adapterModel.LastGroupOpened = -1;
-			}
-			else
-			{
-				// Close all open groups
-				foreach ( int groupId in adapterModel.ExpandedGroups )
-				{
-					parentView.CollapseGroup( groupId );
-				}
-
-				adapterModel.LastGroupOpened = -1;
-				adapterModel.ExpandedGroups.Clear();
-			}
-
-			// Report the new expanded count
-			contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
-
-			// Need to reset the index whenever a group is expanded or collapsed
-			SetGroupIndex();
-
-			// Report this interaction
-			UserActivityDetected();
-		}
-
-		/// <summary>
 		/// Return the collection of selected items
 		/// </summary>
 		/// <returns></returns>
@@ -259,7 +216,7 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when an item has been long clicked
-		/// This is used to enter Action Mode.
+		/// This is used to enter Action Mode and to select the item being clicked
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="view"></param>
@@ -271,16 +228,15 @@ namespace DBTest
 			ExpandableListViewHolder holder = ( ExpandableListViewHolder )view.Tag;
 
 			// If action mode is not in effect then request it.
-			// Otherwise ignore long presses
 			if ( ActionMode == false )
 			{
 				ActionMode = true;
+			}
 
-				// Let derived classes control what happens in addition to just turning on action mode 
-				if ( SelectLongClickedItem( holder.ItemTag ) == true )
-				{
-					OnChildClick( parentView, view, GetGroupFromTag( holder.ItemTag ), GetChildFromTag( holder.ItemTag ), 0 );
-				}
+			// Let derived classes control what happens in addition to just turning on action mode 
+			if ( SelectLongClickedItem( holder.ItemTag ) == true )
+			{
+				_ = OnChildClick( parentView, view, GetGroupFromTag( holder.ItemTag ), GetChildFromTag( holder.ItemTag ), 0 );
 			}
 
 			// Report this interaction
@@ -290,8 +246,8 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when a child item has been clicked.
-		/// Toggle the selection state for the item
+		/// Called when a child item has been clicked. This is also called when a group items has been long-clicked.
+		/// If Action Mode is in effect toggle the selection state for the item
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="clickedView"></param>
@@ -304,12 +260,7 @@ namespace DBTest
 			// Only process this if Action Mode is in effect
 			if ( ActionMode == true )
 			{
-				CheckBox selectionBox = ( ( ExpandableListViewHolder )clickedView.Tag ).SelectionBox;
-
-				selectionBox.Checked = !selectionBox.Checked;
-
-				// Raise a click event to do the rest of the processing
-				SelectionBoxClick( selectionBox, new EventArgs() );
+				ItemSelected( FormChildTag( groupPosition, childPosition ) );
 			}
 
 			// Report this interaction
@@ -320,8 +271,8 @@ namespace DBTest
 
 		/// <summary>
 		/// Called when a group item has been clicked
-		/// Process the expansion or collapse request asynchronously
-		/// Return true to prevent the group expansion/collapse from occuring
+		/// Process the expansion or collapse request
+		/// Return true to prevent the group expansion/collapse from being carried out by the base class
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="clickedView"></param>
@@ -359,6 +310,23 @@ namespace DBTest
 		public virtual Java.Lang.Object[] GetSections() => null;
 
 		/// <summary>
+		/// Called when the list view has been scrolled.
+		/// This is not required for activity detection, but is part of the IOnScrollListener interface
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="firstVisibleItem"></param>
+		/// <param name="visibleItemCount"></param>
+		/// <param name="totalItemCount"></param>
+		public void OnScroll( AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount ) {}
+
+		/// <summary>
+		/// Called when the scroll has started or stopped. Report user action
+		/// </summary>
+		/// <param name="view"></param>
+		/// <param name="scrollState"></param>
+		public void OnScrollStateChanged( AbsListView view, [GeneratedEnum] ScrollState scrollState ) => UserActivityDetected();
+
+		/// <summary>
 		/// The Action to call when user activity is detected
 		/// </summary>
 		public Action UserActivityDetectedAction { get; set; } = null;
@@ -380,6 +348,18 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Interface that classes providing group details must implement.
+		/// </summary>
+		public interface IGroupContentsProvider<U>
+		{
+			/// <summary>
+			/// Provide the details for the specified group
+			/// </summary>
+			/// <param name="theGroup"></param>
+			void ProvideGroupContents( U theGroup );
+		}
+
+		/// <summary>
 		/// Called when some user activity has been detected
 		/// </summary>
 		protected void UserActivityDetected() => UserActivityDetectedAction?.Invoke();
@@ -387,9 +367,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the user activity has changed state
 		/// </summary>
-		protected virtual void UserActivityChanged()
-		{
-		}
+		protected virtual void UserActivityChanged() {}
 
 		/// <summary>
 		/// Derived classes must implement this method to provide a view for a child item
@@ -446,41 +424,6 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// The base implementation selects or deselects the containing group according to the state of its children
-		/// </summary>
-		/// <param name="groupPosition"></param>
-		/// <param name="childPosition"></param>
-		/// <param name="selected"></param>
-		protected virtual bool UpdateGroupSelectionState( int groupPosition, int childPosition, bool selected )
-		{
-			// Keep track of whether the group selection state has changed
-			bool selectionChanged = false;
-
-			// If a child is deselected then deselect the group item
-			if ( selected == false )
-			{
-				selectionChanged = RecordItemSelection( FormGroupTag( groupPosition ), false );
-			}
-			else
-			{
-				// If all of the child items are now selected then select the group as well
-				int childIndex = 0;
-				while ( ( childIndex < GetChildrenCount( groupPosition ) ) && ( IsItemSelected( FormChildTag( groupPosition, childIndex ) ) == true ) )
-				{
-					childIndex++;
-				}
-
-				// If all the children have been iterated then they must all be selected
-				if ( childIndex == GetChildrenCount( groupPosition ) )
-				{
-					selectionChanged = RecordItemSelection( FormGroupTag( groupPosition ), true );
-				}
-			}
-
-			return selectionChanged;
-		}
-
-		/// <summary>
 		/// Is the specified item selected
 		/// </summary>
 		/// <param name="tag"></param>
@@ -496,14 +439,11 @@ namespace DBTest
 		{
 			bool selectionChanged = false;
 
-			// Find the object associated with the tag
-			object item = GetItemAt( GetGroupFromTag( tag ), GetChildFromTag( tag ) );
-
 			if ( select == true )
 			{
 				if ( adapterModel.CheckedObjects.ContainsKey( tag ) == false )
 				{
-					adapterModel.CheckedObjects.Add( tag, item );
+					adapterModel.CheckedObjects.Add( tag, GetItemAt( GetGroupFromTag( tag ), GetChildFromTag( tag ) ) );
 					selectionChanged = true;
 				}
 			}
@@ -511,7 +451,7 @@ namespace DBTest
 			{
 				if ( adapterModel.CheckedObjects.ContainsKey( tag ) == true )
 				{
-					adapterModel.CheckedObjects.Remove( tag );
+					_ = adapterModel.CheckedObjects.Remove( tag );
 					selectionChanged = true;
 				}
 			}
@@ -527,7 +467,7 @@ namespace DBTest
 		{
 			// The selected items collection needs to be updated for items that have changed their positions
 			// Keep track of selected items that have changed position
-			Dictionary<int, object> newCheckedObjects = new();
+			Dictionary<int, object> newCheckedObjects = [];
 
 			// Iterate through the collection of objects and their tags
 			foreach ( (object value, int tag) in items )
@@ -540,7 +480,7 @@ namespace DBTest
 					{
 						// Remove the item from the selected items collection, but don't put it back in as it may now occupy the position of 
 						// an item yet to be processed.
-						adapterModel.CheckedObjects.Remove( selectedItem.Key );
+						_ = adapterModel.CheckedObjects.Remove( selectedItem.Key );
 						newCheckedObjects.Add( tag, value );
 					}
 				}
@@ -569,20 +509,35 @@ namespace DBTest
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="groupPosition"></param>
-		protected virtual void GroupCollapseStateChanged( ExpandableListView parent, int groupPosition )
-		{
-		}
+		protected virtual void GroupCollapseStateChanged( ExpandableListView parent, int groupPosition ) {}
 
 		/// <summary>
-		/// By default a long click just turns on Action Mode, but derived classes may wish to modify this behaviour
+		/// By default a long click turns on Action mode and selects the item clicked. 
+		/// Let specialised classes prevent the item being selected
 		/// </summary>
 		/// <param name="tag"></param>
-		protected virtual bool SelectLongClickedItem( int tag ) => false;
+		protected virtual bool SelectLongClickedItem( int tag ) => true;
 
 		/// <summary>
-		/// Overriden in derived classes to generate an index for the group
+		/// This is called when new data has been provided in order to create some of the fast scroll data.
+		/// Most of this has already been done in the controllers.
+		/// All that is missing is the copying of the section names into an array of Java strings
 		/// </summary>
-		protected virtual void SetGroupIndex() { }
+		protected void SetGroupIndex()
+		{
+			// Clear the array first in case there are none
+			javaSections = null;
+
+			if ( fastScrollSections != null )
+			{
+				// Size the section array from the ArtistsViewModel.FastScrollSections
+				javaSections = new Java.Lang.Object[ fastScrollSections.Count ];
+				for ( int index = 0; index < javaSections.Length; ++index )
+				{
+					javaSections[ index ] = new Java.Lang.String( fastScrollSections[ index ].Item1 );
+				}
+			}
+		}
 
 		/// <summary>
 		/// Form a tag for a group item
@@ -621,208 +576,85 @@ namespace DBTest
 		protected static int GetGroupFromTag( int tag ) => tag >> 16;
 
 		/// <summary>
-		/// Get the CheckBox from the supplied view and set up a click handler for it
-		/// </summary>
-		/// <param name="view"></param>
-		/// <returns></returns>
-		protected CheckBox GetSelectionBox( View view )
-		{
-			CheckBox selectionBox = view.FindViewById<CheckBox>( Resource.Id.checkBox );
-			if ( selectionBox != null )
-			{
-				selectionBox.Tag = new TagHolder();
-				selectionBox.Click += SelectionBoxClick;
-			}
-
-			return selectionBox;
-		}
-
-		/// <summary>
 		/// The FastScrollSectionLookup provided by the derived adapter
 		/// </summary>
 		/// <returns></returns>
 		protected virtual int[] FastScrollSectionLookup { get; set; } = null;
-		
-		/// <summary>
-		/// Called to perform the actual group collapse or expansion asynchronously
-		/// If a group is being expanded then get its contents if not previously displayed
-		/// Keep track of which groups have been expanded and the last group expanded
-		/// </summary>
-		/// <param name="parent"></param>
-		/// <param name="groupPosition"></param>
-		private void OnGroupClick( ExpandableListView parent, int groupPosition )
-		{
-			if ( parent.IsGroupExpanded( groupPosition ) == false )
-			{
-				// This group is expanding. Get its contents
-				// If any content is supplied and the group is selected then select the new items
-				int childCount = GetChildrenCount( groupPosition );
-
-				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
-
-				// Have any items been supplied
-				if ( GetChildrenCount( groupPosition ) != childCount )
-				{
-					// If the group is selected then select the new items
-					// N.B. This is not changing the selection state of the group so there is no need for derived classes
-					// to do any group selection processing
-					if ( IsItemSelected( FormGroupTag( groupPosition ) ) == true )
-					{
-						SelectGroupContents( groupPosition, true );
-					}
-				}
-
-				// Add this to the record of which groups are expanded
-				adapterModel.ExpandedGroups.Add( groupPosition );
-
-				adapterModel.LastGroupOpened = groupPosition;
-
-				// Now expand the group
-				parent.ExpandGroup( groupPosition );
-			}
-			else
-			{
-				adapterModel.ExpandedGroups.Remove( groupPosition );
-
-				adapterModel.LastGroupOpened = -1;
-
-				// Now collapse the group
-				parent.CollapseGroup( groupPosition );
-			}
-
-			// Let the derived classes process the group's new state
-			GroupCollapseStateChanged( parent, groupPosition );
-
-			// Report the new expanded count
-			contentsProvider.ExpandedGroupCountChanged( adapterModel.ExpandedGroups.Count );
-
-			// Need to reset the index whenever a group is expanded or collapsed
-			SetGroupIndex();
-		}
 
 		/// <summary>
-		/// Called when an item's checkbox has been selected
-		/// Update the stored state for the item contained in the tag
+		/// Change the view's background according to it's selection state
 		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void SelectionBoxClick( object sender, EventArgs e )
-		{
-			int tag = ( ( TagHolder )( ( CheckBox )sender ).Tag ).Tag;
-			int groupPosition = GetGroupFromTag( tag );
-
-			// Toggle the selection
-			RecordItemSelection( tag, !IsItemSelected( tag ) );
-
-			// Get the new selection state
-			bool selected = IsItemSelected( tag );
-
-			// Keep track of whether or not any other items are selected as this will require the NotifyDataSetChanged method to be called
-			bool selectionChanged;
-
-			// If this is a group item then select or deselect all of its children
-			if ( IsGroupTag( tag ) == true )
-			{
-				selectionChanged = SelectGroupContents( groupPosition, selected );
-
-				// Let derived classes carry out any extra processing required due to the selection or deselection of a group
-				selectionChanged |= GroupSelectionHasChanged( groupPosition, selected );
-			}
-			else
-			{
-				// Determine how the selection or deselection of a child alters the selection state of the containing group
-				selectionChanged = UpdateGroupSelectionState( groupPosition, GetChildFromTag( tag ), selected );
-
-				// If the group selection has changed then tell the derived classes
-				if ( selectionChanged == true )
-				{
-					selectionChanged |= GroupSelectionHasChanged( groupPosition, selected );
-				}
-			}
-
-			if ( selectionChanged == true )
-			{
-				NotifyDataSetChanged();
-			}
-
-			stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
-
-			// Report this interaction
-			UserActivityDetected();
-		}
-
-		/// <summary>
-		/// Show or hide the check box and sets its state from that held for the item
-		/// </summary>
-		/// <param name="convertView"></param>
-		/// <param name="tag"></param>
-		private void RenderCheckbox( View convertView )
+		protected virtual void RenderBackground( View convertView )
 		{
 			ExpandableListViewHolder viewHolder = ( ExpandableListViewHolder )convertView.Tag;
-			CheckBox selectionBox = viewHolder.SelectionBox;
 
-			if ( selectionBox != null )
+			// If the item is selected then set the background to the selected colour.
+			if ( IsItemSelected( viewHolder.ItemTag ) == true )
 			{
-				// Save the item identifier in the check box for the click event
-				( ( TagHolder )selectionBox.Tag ).Tag = viewHolder.ItemTag;
-
-				if ( ActionMode == true )
+				SetSelectedBackground( convertView );
+			}
+			else
+			{
+				// If this is a group item then check if any of it's children are selected
+				if ( IsGroupTag( viewHolder.ItemTag ) == true )
 				{
-					// Show the checkbox
-					selectionBox.Visibility = ViewStates.Visible;
-
-					// Retrieve the checked state of the item and set the checkbox state accordingly
-					selectionBox.Checked = IsItemSelected( viewHolder.ItemTag );
+					if ( AnyChildSelected( viewHolder.ItemTag ) == true )
+					{
+						// At least one child is selected
+						SetPartialBackground( convertView );
+					}
+					else
+					{
+						// No child items selected
+						SetUnselectedBackground( convertView );
+					}
 				}
 				else
 				{
-					// Hide the checkbox
-					selectionBox.Visibility = ViewStates.Gone;
+					SetUnselectedBackground( convertView );
 				}
 			}
 		}
 
 		/// <summary>
-		/// Called when the list view has been scrolled.
-		/// This is not required for activity detection, but is part of the IOnScrollListener interface
+		/// Are any of the child items associated with a group selected
 		/// </summary>
-		/// <param name="view"></param>
-		/// <param name="firstVisibleItem"></param>
-		/// <param name="visibleItemCount"></param>
-		/// <param name="totalItemCount"></param>
-		public void OnScroll( AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount )
+		/// <param name="tag">The tag of the group</param>
+		/// <returns></returns>
+		protected bool AnyChildSelected( int tag )
 		{
+			int groupPosition = GetGroupFromTag( tag );
+			int childIndex = 0;
+			while ( ( childIndex < GetChildrenCount( groupPosition ) ) && ( IsItemSelected( FormChildTag( groupPosition, childIndex ) ) == false ) )
+			{
+				childIndex++;
+			}
+
+			return ( childIndex < GetChildrenCount( groupPosition ) );
 		}
 
 		/// <summary>
-		/// Called when the scroll has started or stopped. Report user action
+		/// Set the background of the item to the standard 'selected' colour
 		/// </summary>
-		/// <param name="view"></param>
-		/// <param name="scrollState"></param>
-		public void OnScrollStateChanged( AbsListView view, [GeneratedEnum] ScrollState scrollState ) => UserActivityDetected();
+		/// <param name="itemView"></param>
+		protected void SetSelectedBackground( View itemView ) => itemView.SetBackgroundColor( Color.PeachPuff );
 
 		/// <summary>
-		/// Interface that classes providing group details must implement.
+		/// Set the background of the item to the standard 'unselected' colour
 		/// </summary>
-		public interface IGroupContentsProvider< U >
-		{
-			/// <summary>
-			/// Provide the details for the specified group
-			/// </summary>
-			/// <param name="theGroup"></param>
-			void ProvideGroupContents( U theGroup );
+		/// <param name="itemView"></param>
+		protected void SetUnselectedBackground( View itemView ) => itemView.SetBackgroundColor( Color.Transparent );
 
-			/// <summary>
-			/// The number of expanded groups has changed
-			/// </summary>
-			/// <param name="count"></param>
-			void ExpandedGroupCountChanged( int count );
-		}
+		/// <summary>
+		/// Set the background of the item to the standard 'partial' resource
+		/// </summary>
+		/// <param name="itemView"></param>
+		protected void SetPartialBackground( View itemView ) => itemView.SetBackgroundResource( Resource.Drawable.tiled_background );
 
 		/// <summary>
 		/// The set of groups items displayed by the ExpandableListView
 		/// </summary>
-		protected List<T> Groups { get; set; } = new List<T>();
+		protected List<T> Groups { get; set; } = [];
 
 		/// <summary>
 		/// The type of sorting applied to the data - used for indexing
@@ -863,6 +695,154 @@ namespace DBTest
 		/// Lookup table specifying the strings used when fast scrolling, and the index into the data collection
 		/// </summary>
 		protected List<Tuple<string, int>> fastScrollSections = null;
+
+		/// <summary>
+		/// The base implementation selects or deselects the containing group according to the state of its children
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <param name="selected"></param>
+		/// 
+		private bool UpdateGroupSelectionState( int groupPosition, bool selected )
+		{
+			// Keep track of whether the group selection state has changed
+			bool selectionChanged = false;
+
+			// If a child is deselected then deselect the group item
+			if ( selected == false )
+			{
+				selectionChanged = RecordItemSelection( FormGroupTag( groupPosition ), false );
+			}
+			else
+			{
+				// If all of the child items are now selected then select the group as well
+				int childIndex = 0;
+				while ( ( childIndex < GetChildrenCount( groupPosition ) ) && ( IsItemSelected( FormChildTag( groupPosition, childIndex ) ) == true ) )
+				{
+					childIndex++;
+				}
+
+				// If all the children have been iterated then they must all be selected
+				if ( childIndex == GetChildrenCount( groupPosition ) )
+				{
+					selectionChanged = RecordItemSelection( FormGroupTag( groupPosition ), true );
+				}
+			}
+
+			return selectionChanged;
+		}
+
+		/// <summary>
+		/// Called to perform the actual group collapse or expansion
+		/// If a group is being expanded then get its contents if not previously displayed
+		/// Keep track of which groups have been expanded and the last group expanded
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="groupPosition"></param>
+		private void OnGroupClick( ExpandableListView parent, int groupPosition )
+		{
+			if ( parent.IsGroupExpanded( groupPosition ) == false )
+			{
+				// If there is a group already expanded then collapse it now
+				if ( adapterModel.LastGroupOpened != -1 )
+				{
+					// Attempt to prevent the collapsing of a group prior to the one being expanded changing the 
+					// item at the top of the view
+					if ( adapterModel.LastGroupOpened < groupPosition )
+					{
+						// The item at the top of the view should be reduced by the number of children in the group being collapsed 
+						int requiredPosition = parent.FirstVisiblePosition - GetChildrenCount( adapterModel.LastGroupOpened );
+
+						// Collapse the group and then scroll to set the new position
+						_ = parent.CollapseGroup( adapterModel.LastGroupOpened );
+
+						parent.SmoothScrollToPositionFromTop( Math.Max( requiredPosition, 0 ), 0, 0 );
+					}
+					else
+					{
+						// If the group being collapsed is after the one being expanded then the poistion of the list will not change
+						_ = parent.CollapseGroup( adapterModel.LastGroupOpened );
+					}
+				}
+
+				// This group is expanding. Get its contents
+				// If any content is supplied and the group is selected then select the new items
+				int childCount = GetChildrenCount( groupPosition );
+
+				contentsProvider.ProvideGroupContents( Groups[ groupPosition ] );
+
+				// Have any items been supplied
+				if ( GetChildrenCount( groupPosition ) != childCount )
+				{
+					// If the group is selected then select the new items
+					// N.B. This is not changing the selection state of the group so there is no need for derived classes
+					// to do any group selection processing
+					if ( IsItemSelected( FormGroupTag( groupPosition ) ) == true )
+					{
+						_ = SelectGroupContents( groupPosition, true );
+					}
+				}
+
+				adapterModel.LastGroupOpened = groupPosition;
+
+				// Now expand the group
+				_ = parent.ExpandGroup( groupPosition );
+			}
+			else
+			{
+				adapterModel.LastGroupOpened = -1;
+
+				// Now collapse the group
+				_ = parent.CollapseGroup( groupPosition );
+			}
+
+			// Let the derived classes process the group's new state
+			GroupCollapseStateChanged( parent, groupPosition );
+
+			// Need to reset the index whenever a group is expanded or collapsed
+			SetGroupIndex();
+		}
+
+		/// <summary>
+		/// Called when an item has been selected in Action mode
+		/// </summary>
+		/// <param name="tag">Identity of the selected item</param>
+		private void ItemSelected( int tag )
+		{
+			// Toggle the selection
+			_ = RecordItemSelection( tag, !IsItemSelected( tag ) );
+
+			// Get the new selection state
+			bool selected = IsItemSelected( tag );
+
+			int groupPosition = GetGroupFromTag( tag );
+
+			// If this is a group item then select or deselect all of its children
+			if ( IsGroupTag( tag ) == true )
+			{
+				_ = SelectGroupContents( groupPosition, selected );
+
+				// Let derived classes carry out any extra processing required due to the selection or deselection of a group
+				_ = GroupSelectionHasChanged( groupPosition, selected );
+			}
+			else
+			{
+				// Determine how the selection or deselection of a child alters the selection state of the containing group
+				// If the group selection has changed then tell the derived classes
+				if ( UpdateGroupSelectionState( groupPosition, selected ) == true )
+				{
+					_ =	GroupSelectionHasChanged( groupPosition, selected );
+				}
+			}
+
+			// A selection always requires a redraw
+			NotifyDataSetChanged();
+
+			// Report any changes to the set of selected items
+			stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
+
+			// Report this interaction
+			UserActivityDetected();
+		}
 
 		/// <summary>
 		/// Data for the IsUserActive property

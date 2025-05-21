@@ -3,41 +3,12 @@
 	android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
-	<RelativeLayout 
-		android:orientation="horizontal"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content">
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:id="@+id/checkBoxLayout"
-            android:gravity="center_vertical"
-            android:paddingLeft="24dp">
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:id="@+id/checkBox"
-                android:layout_marginBottom="-10dp"
-                android:layout_marginTop="0dp" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="All"
-                android:textSize="14dp"
-                android:gravity="center_horizontal" />
-        </LinearLayout>
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:text="Selection"
-            android:layout_toRightOf="@+id/checkBoxLayout"
-            android:textSize="20dp"
-            android:gravity="center_vertical"
-            android:textStyle="bold"
-            android:paddingLeft="20dp" />
-	</RelativeLayout>
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:text="@string/selection"
+        android:textSize="@dimen/text_size_toolbar"
+        android:gravity="center_vertical"
+        android:textStyle="bold" />
 </LinearLayout>

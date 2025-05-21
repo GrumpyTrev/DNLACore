@@ -3,25 +3,13 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-	<CheckBox
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:focusable="false"
-		android:focusableInTouchMode="false"
-		android:id="@+id/checkBox"
-		android:layout_marginLeft="25dp"
-		android:layout_marginBottom="-5dp"
-		android:layout_marginRight="-30dp"
-		android:layout_marginTop="-2dp" />
 	<TextView
 		android:id="@+id/playListName"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="playlistName"
-		android:textStyle="bold"
-		android:layout_marginLeft="30dp"
-		android:layout_toRightOf="@+id/checkBox"
-		android:textSize="20dp" 
+		android:text="@string/playlist"
+		android:layout_marginLeft="@dimen/edge_margin"
+		android:textSize="@dimen/text_size_heading" 
+		android:textColor="@color/colorNormalText"
 	/>
 </RelativeLayout>

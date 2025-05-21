@@ -8,9 +8,9 @@
 	<TextView
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="Library Name"
+		android:text="@string/library"
 		android:id="@+id/toolbar_title"
-		android:textSize="20dp"
-		android:textColor="@android:color/black"
+		android:textSize="@dimen/text_size_heading"
+		android:textColor="@color/colorNormalText"
 		android:maxLines="1" />
 </android.support.v7.widget.Toolbar>

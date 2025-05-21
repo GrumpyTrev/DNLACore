@@ -6,23 +6,17 @@ namespace DBTest
 	public class NowPlayingFragment : PagedFragment<PlaylistItem>, ExpandableListAdapter<PlaylistItem>.IGroupContentsProvider<PlaylistItem>,
 		NowPlayingAdapter.IActionHandler
 	{
-        /// <summary>
-        /// Default constructor required for system view hierarchy restoration
-        /// </summary>
-        public NowPlayingFragment()
-        {
-            ActionMode.ActionModeTitle = NoItemsSelectedText;
-            ActionMode.AllSelected = false;
-        }
+		/// <summary>
+		/// Default constructor required for system view hierarchy restoration
+		/// </summary>
+		public NowPlayingFragment() => ActionMode.ActionModeTitle = string.Empty;
 
-        /// <summary>
-        /// Get all the SongPlaylistItem entries associated with the Now Playing playlist.
-        /// No group content required. Just run an empty task to prevent compiler warnings
-        /// </summary>
-        /// <param name="thePlayList"></param>
-        public void ProvideGroupContents( PlaylistItem _ )
-		{
-		}
+		/// <summary>
+		/// Get all the SongPlaylistItem entries associated with the Now Playing playlist.
+		/// No group content required. Just run an empty task to prevent compiler warnings
+		/// </summary>
+		/// <param name="thePlayList"></param>
+		public void ProvideGroupContents( PlaylistItem _ ) {}
 
 		/// <summary>
 		/// Called when the Now Playing playlist has been read or updated
@@ -45,27 +39,10 @@ namespace DBTest
 		/// <param name="itemNo"></param>
 		public void SongSelected( int itemNo ) => MainApp.CommandInterface.UserSongSelected( itemNo );
 
-        /// <summary>
-        /// Called when the Select All checkbox has been clicked on the Action Bar.
-        /// Pass this on to the adapter
-        /// </summary>
-        /// <param name="checkedState"></param>
-        public override void AllSelected( bool checkedState ) => ( ( NowPlayingAdapter )Adapter ).SelectAll( checkedState );
-
-        /// <summary>
-        /// Called when the number of selected items (songs) has changed.
-        /// Update the text to be shown in the Action Mode title
-        /// </summary>
-        protected override void SelectedItemsChanged( GroupedSelection selectedObjects )
-        {
-            ActionMode.ActionModeTitle = ( selectedObjects.PlaylistItems.Count == 0 ) ? NoItemsSelectedText : string.Format( ItemsSelectedText, selectedObjects.PlaylistItems.Count );
-            ActionMode.AllSelected = ( selectedObjects.PlaylistItems.Count == NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count );
-        }
-
-        /// <summary>
-        /// Create the Data Adapter required by this fragment
-        /// </summary>
-        protected override void CreateAdapter( ExpandableListView listView ) => Adapter = new NowPlayingAdapter( Context, listView, this, this );
+		/// <summary>
+		/// Create the Data Adapter required by this fragment
+		/// </summary>
+		protected override void CreateAdapter( ExpandableListView listView ) => Adapter = new NowPlayingAdapter( Context, listView, this, this );
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -99,11 +76,5 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_nowplaying;
-
-		/// <summary>
-		/// Constant strings for the Action Mode bar text
-		/// </summary>
-		private const string NoItemsSelectedText = "Select songs";
-		private const string ItemsSelectedText = "{0} selected";
 	}
 }

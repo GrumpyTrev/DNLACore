@@ -9,6 +9,7 @@
 		android:layout_height="wrap_content"
 		android:id="@+id/playlistsList"
 		android:fastScrollEnabled="true"
+		android:groupIndicator="@android:color/transparent"
 		android:layout_weight="1"/>
 	<android.support.v7.widget.Toolbar
 		android:id="@+id/bottomToolbar"

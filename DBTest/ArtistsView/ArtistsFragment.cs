@@ -2,7 +2,6 @@
 using CoreMP;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace DBTest
 {
@@ -11,7 +10,7 @@ namespace DBTest
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
 		/// </summary>
-		public ArtistsFragment() => ActionMode.ActionModeTitle = NoItemsSelectedText;
+		public ArtistsFragment() => ActionMode.ActionModeTitle = string.Empty;
 
 		/// <summary>
 		/// Get all the ArtistAlbum entries associated with a specified Artist.
@@ -42,11 +41,11 @@ namespace DBTest
 			// Generate the fast scroll data for alpha sorting
 			if ( ArtistsViewModel.SortSelection.CurrentSortOrder is SortOrder.alphaDescending or SortOrder.alphaAscending )
 			{
-				GenerateIndex( ref fastScrollSections, ref fastScrollSectionLookup, ( artist ) => artist.Name.RemoveThe().Substring( 0, 1 ).ToUpper() );
+				GenerateIndex( ref fastScrollSections, ref fastScrollSectionLookup, ( artist ) => artist.Name.RemoveThe()[ ..1 ].ToUpper() );
 			}
 
 			// Pass shallow copies of the data to the adapter to protect the UI from changes to the model
-			Adapter.SetData( ArtistsViewModel.ArtistsAndAlbums.ToList(), ArtistsViewModel.SortSelection.ActiveSortType, fastScrollSections, fastScrollSectionLookup );
+			Adapter.SetData( [ .. ArtistsViewModel.ArtistsAndAlbums ], ArtistsViewModel.SortSelection.ActiveSortType, fastScrollSections, fastScrollSectionLookup );
 
 			// Indicate whether or not a filter has been applied
 			AppendToTabTitle();
@@ -56,38 +55,6 @@ namespace DBTest
 
 			base.DataAvailable();
 		}
-
-		/// <summary>
-		/// Called when the number of selected items (songs) has changed.
-		/// Update the text to be shown in the Action Mode title
-		/// </summary>
-		protected override void SelectedItemsChanged( GroupedSelection selectedObjects )
-        {
-			if ( selectedObjects.Songs.Count == 0 )
-			{
-				ActionMode.ActionModeTitle = NoItemsSelectedText;
-			}
-			else
-			{
-				int artistsCount = selectedObjects.Artists.Count;
-				int albumsCount = selectedObjects.ArtistAlbums.Count;
-				int songsCount = selectedObjects.Songs.Count;
-				string albumsText = ( albumsCount > 0 ) ? string.Format( "{0} album{1} ", albumsCount, ( albumsCount == 1 ) ? "" : "s" ) : "";
-				string artistsText = ( artistsCount > 0 ) ? string.Format( "{0} artist{1} ", artistsCount, ( artistsCount == 1 ) ? "" : "s" ) : "";
-				string songsText = ( songsCount > 0 ) ? string.Format( "{0} song{1} ", songsCount, ( songsCount == 1 ) ? "" : "s" ) : "";
-
-				ActionMode.ActionModeTitle = string.Format( ItemsSelectedText, artistsText, songsText, albumsText );
-			}
-
-            ActionMode.AllSelected = ( selectedObjects.Artists.Count == ArtistsViewModel.Artists.Count );
-        }
-
-        /// <summary>
-        /// Called when the Select All checkbox has been clicked on the Action Bar.
-        /// Pass this on to the adapter
-        /// </summary>
-        /// <param name="checkedState"></param>
-        public override void AllSelected( bool checkedState ) => ( ( ArtistsAdapter )Adapter ).SelectAll( checkedState );
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -126,11 +93,11 @@ namespace DBTest
 		private void GenerateIndex( ref List<Tuple<string, int>> fastScrollSections, ref int[] fastScrollSectionLookup, Func<Artist, string> sectionNameProvider )
 		{
 			// Initialise the index collections
-			fastScrollSections = new List<Tuple<string, int>>();
+			fastScrollSections = [];
 			fastScrollSectionLookup = new int[ ArtistsViewModel.ArtistsAndAlbums.Count ];
 
 			// Keep track of when a section has already been added to the FastScrollSections collection
-			Dictionary<string, int> sectionLookup = new();
+			Dictionary<string, int> sectionLookup = [];
 
 			// Keep track of the last section index allocated or found for an Artist as it will also be used for the associated ArtistAlbum entries
 			int sectionIndex = -1;
@@ -178,11 +145,5 @@ namespace DBTest
 		protected override FilterSelector FilterSelector { get; } = new FilterSelector( MainApp.CommandInterface.FilterArtists, ArtistsViewModel.FilterSelection );
 
 		protected override SortSelector SortSelector { get; } = new SortSelector( MainApp.CommandInterface.SortArtists, ArtistsViewModel.SortSelection );
-
-		/// <summary>
-		/// Constant strings for the Action Mode bar text
-		/// </summary>
-		private const string NoItemsSelectedText = "Select songs";
-		private const string ItemsSelectedText = "{0}{1}{2} selected";
 	}
 }
