@@ -29,10 +29,7 @@ namespace DBTest
 
 		public override View GetView( int position, View convertView, ViewGroup parent )
 		{
-			if ( convertView == null )
-			{
-				convertView = inflator.Inflate( Resource.Layout.source_item_layout, null );
-			}
+			convertView ??= inflator.Inflate( Resource.Layout.source_item_layout, null );
 
 			convertView.FindViewById<TextView>( Resource.Id.sourceName ).Text = sources[ position ].Name;
 			convertView.FindViewById<TextView>( Resource.Id.sourceType ).Text = sources[ position ].AccessMethod.ToString();

@@ -63,10 +63,15 @@ namespace CoreMP
 		public static CoreMPApp Instance { get; private set; }
 
 		/// <summary>
+		/// The Port used by the HttpServer
+		/// </summary>
+		public static int HttpPort { get; } = 8080;
+
+		/// <summary>
 		/// The one and only Http server used to serve local files to remote devices
 		/// </summary>
 #pragma warning disable IDE0052 // Remove unread private members
-		private static readonly SimpleHTTPServer localServer = new SimpleHTTPServer( "", 8080 );
+		private static readonly SimpleHTTPServer localServer = new SimpleHTTPServer( "", HttpPort );
 #pragma warning restore IDE0052 // Remove unread private members
 
 		/// <summary>

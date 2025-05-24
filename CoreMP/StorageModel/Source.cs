@@ -63,11 +63,11 @@ namespace CoreMP
 		{
 			if ( AccessMethod == AccessType.Local )
 			{
-				// If the IPAddress is blank then use the local IP address
-				if ( ( IPAddress == null ) || ( IPAddress.Length == 0 ) )
-				{
-					IPAddress = LocalIPAddress;
-				}
+				// The IPAddress is always the local address
+				IPAddress = LocalIPAddress;
+
+				// And the port is always the one used by the local HttpServer
+				PortNo = CoreMPApp.HttpPort;
 
 				ScanSource = string.Format( "/{0}/", FolderName );
 				LocalAccess = string.Format( "/{0}", FolderName );
@@ -140,7 +140,7 @@ namespace CoreMP
 		/// <summary>
 		/// The IP address of the local device
 		/// </summary>
-		private static string LocalIPAddress
+		public static string LocalIPAddress
 		{
 			get
 			{

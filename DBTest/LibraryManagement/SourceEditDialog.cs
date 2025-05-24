@@ -13,7 +13,7 @@ namespace DBTest
 	/// <summary>
 	/// Tag editor dialogue based on DialogFragment to provide activity configuration support
 	/// </summary>
-	internal class SourceEditDialog : DialogFragment
+	internal class SourceEditDialog : DialogFragment, Android.Widget.RadioButton.IOnCheckedChangeListener
 	{
 		/// <summary>
 		/// Show the dialogue displaying the scan progress and start the scan
@@ -63,6 +63,16 @@ namespace DBTest
 				ftpButton.Checked = sourceToEdit.AccessMethod == Source.AccessType.FTP;
 				upnpButton.Checked = sourceToEdit.AccessMethod == Source.AccessType.UPnP;
 				ipAddress.Text = sourceToEdit.IPAddress;
+
+				// Install handlers for the access type radio buttons
+				ftpButton.SetOnCheckedChangeListener( this );
+				localButton.SetOnCheckedChangeListener( this );
+				upnpButton.SetOnCheckedChangeListener( this );
+
+				if ( localButton.Checked == true )
+				{
+					OnCheckedChanged( localButton, true );
+				}
 			}
 
 			// Create the AlertDialog with no Save handler (and no dismiss on Save)
@@ -101,6 +111,33 @@ namespace DBTest
 			};
 
 			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Neutral ).Click += ( _, _ ) => deletedCallback.Invoke( sourceToEdit, Dialog.Dismiss );
+		}
+
+		/// <summary>
+		/// Called when one of the Access Type buttons has been clicked
+		/// If the source is Local then set the ipAddress to the IP address of this device, and the port to the 
+		/// fixed Http port. Grey out the associated text boxes
+		/// </summary>
+		/// <param name="buttonView"></param>
+		/// <param name="isChecked"></param>
+		/// <exception cref="NotImplementedException"></exception>
+		public void OnCheckedChanged( CompoundButton buttonView, bool isChecked )
+		{
+			if ( isChecked == true )
+			{
+				if ( buttonView == localButton )
+				{
+					portNo.Text = CoreMPApp.HttpPort.ToString();
+					portNo.Enabled = false;
+					ipAddress.Text = sourceToEdit.IPAddress;
+					ipAddress.Enabled = false;
+				}
+				else
+				{
+					portNo.Enabled = true;
+					ipAddress.Enabled = true;
+				}
+			}
 		}
 
 		/// <summary>
