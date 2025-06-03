@@ -25,21 +25,6 @@ namespace CoreMP
 		private int libraryId = -1;
 
 		/// <summary>
-		/// Access the Playback PlaybackDeviceName
-		/// </summary>
-		public override string PlaybackDeviceName
-		{
-			get => playbackDeviceName;
-			set
-			{
-				playbackDeviceName = value;
-
-				Update();
-			}
-		}
-		private string playbackDeviceName = "";
-
-		/// <summary>
 		/// Access the Playback RepeatOn
 		/// </summary>
 		public override bool RepeatPlayOn
@@ -70,30 +55,15 @@ namespace CoreMP
 		private bool shufflePlayOn = false;
 
 		/// <summary>
-		/// Access the Playback AutoPlayOn
-		/// </summary>
-		public override bool AutoPlayOn
-		{
-			get => autoPlayOn;
-			set
-			{
-				autoPlayOn = value;
-
-				Update();
-			}
-		}
-		private bool autoPlayOn = false;
-
-		/// <summary>
 		/// Update this instances in the database if loading is not in progress
 		/// </summary>
 		private void Update()
 		{
 			if ( StorageController.Loading == false )
 			{
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				DbAccess.UpdateAsync( this );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+//#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				_ = DbAccess.UpdateAsync( this );
+//#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			}
 		}
 	}

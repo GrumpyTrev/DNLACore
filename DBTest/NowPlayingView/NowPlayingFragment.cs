@@ -63,6 +63,13 @@ namespace DBTest
 		protected override void ReleaseResources() => NotificationHandler.Deregister();
 
 		/// <summary>
+		/// Display the number of playlist items selected
+		/// </summary>
+		/// <param name="selectedObjects"></param>
+		/// <returns></returns>
+		protected override int SelectedItemCount( GroupedSelection selectedObjects ) => selectedObjects.PlaylistItems.Count;
+
+		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
 		/// </summary>
 		protected override int Layout { get; } = Resource.Layout.nowplaying_fragment;
@@ -76,5 +83,15 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_nowplaying;
+
+		/// <summary>
+		/// The menu resource for this fragment's action bar
+		/// /// </summary>
+		protected override int ActionMenu { get; } = Resource.Menu.menu_nowplaying_action;
+
+		/// <summary>
+		/// The layout resource to be used for this fragment's MediaControlsView
+		/// </summary>
+		protected override int MediaControlsLayout { get; } = Resource.Id.media_controller_playing_layout;
 	}
 }

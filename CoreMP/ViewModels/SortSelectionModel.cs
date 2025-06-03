@@ -44,7 +44,6 @@ namespace CoreMP
 			sortTypes.ForEach( item => SortPairings[ item ].Available = true );
 		}
 
-
 		/// <summary>
 		/// The collection of possible SortPairings
 		/// </summary>

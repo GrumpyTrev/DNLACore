@@ -23,7 +23,7 @@ namespace DBTest
 				// check if playback of the playlist is in progress, i.e. not at the start and not at the end. If so, prompt
 				// the user about progress and check if playback is to be resumed
 				if ( ( selectedObjects.Playlists.Count == 1 ) && ( selectedObjects.PlaylistItems.Count == selectedObjects.Playlists[ 0 ].PlaylistItems.Count ) &&
-					( selectedObjects.ParentPlaylist.InProgress == true ) && ( Playback.SingletonShufflePlayOn == false ) )
+					( selectedObjects.ParentPlaylist.InProgress == true ) && ( Playback.ShuffleOn == false ) )
 				{
 					// Keep a local reference to the parent playlist to be accessed by the confirmation callback
 					Playlist parentPlaylist = selectedObjects.ParentPlaylist;

@@ -10,18 +10,12 @@ namespace DBTest
 	/// <summary>
 	/// The sort selector class associates an array of resource ids with an enum type and allows the resource id to be selected by enum value
 	/// </summary>
-	public class SortSelector
+	/// <remarks>
+	/// Constructor.
+	/// Initialise the sort pairings. 
+	/// </remarks>
+	public class SortSelector( SortSelector.SortSelectionDelegate selectionCallback, SortSelectionModel selectionData )
 	{
-		/// <summary>
-		/// Constructor.
-		/// Initialise the sort pairings. 
-		/// </summary>
-		public SortSelector( SortSelectionDelegate selectionCallback, SortSelectionModel selectionData )
-		{
-			SortData = selectionData;
-			selectionDelegate = selectionCallback;
-		}
-
 		/// <summary>
 		/// Associate this sort selector with a menu item used to change the order and to display the currently selected order
 		/// </summary>
@@ -35,10 +29,10 @@ namespace DBTest
 			{
 				popupContext = context;
 
-				boundMenuItem.SetActionView( Resource.Layout.toolbarButton );
+				_ = boundMenuItem.SetActionView( Resource.Layout.toolbarButton );
 				imageButton = boundMenuItem.ActionView.FindViewById<AppCompatImageButton>( Resource.Id.toolbarSpecialButton );
-				boundMenuItem.ActionView.SetOnClickListener( new ClickHandler() { OnClickAction = () => SortAction() } );
-				boundMenuItem.ActionView.SetOnLongClickListener( new LongClickHandler() { OnClickAction = () => LongSortAction() } );
+				boundMenuItem.ActionView.SetOnClickListener( new ClickHandler() { OnClickAction = SortAction } );
+				boundMenuItem.ActionView.SetOnLongClickListener( new LongClickHandler() { OnClickAction = LongSortAction } );
 
 				DisplaySortIcon();
 			}
@@ -46,7 +40,6 @@ namespace DBTest
 			{
 				imageButton = null;
 			}
-
 		}
 
 		/// <summary>
@@ -75,7 +68,7 @@ namespace DBTest
 			PopupMenu playlistsMenu = new( popupContext, imageButton );
 
 			// Need some way of associating the selected menu item with the pairing type
-			Dictionary<IMenuItem, SortType> pairingTypeLookup = new();
+			Dictionary<IMenuItem, SortType> pairingTypeLookup = [];
 
 			foreach ( KeyValuePair< SortType, SortSelectionModel.SortPairing> pair in SortData.SortPairings )
 			{
@@ -89,8 +82,8 @@ namespace DBTest
 					// Put a check mark against the currently selected pairing
 					if ( pairing == SortData.ActiveSortOrder )
 					{
-						item.SetCheckable( true );
-						item.SetChecked( true );
+						_ = item.SetCheckable( true );
+						_ = item.SetChecked( true );
 					}
 				}
 			}
@@ -119,11 +112,10 @@ namespace DBTest
 		/// <summary>
 		/// The resource ids representing icons to be displayed 
 		/// </summary>
-		private readonly int[] resources = new int[] { Resource.Drawable.sort_by_alpha_ascending, Resource.Drawable.sort_by_alpha_descending,
+		private readonly int[] resources = [ Resource.Drawable.sort_by_alpha_ascending, Resource.Drawable.sort_by_alpha_descending,
 			Resource.Drawable.sort_by_id_ascending, Resource.Drawable.sort_by_id_descending, Resource.Drawable.sort_by_year_ascending,
 			Resource.Drawable.sort_by_year_descending, Resource.Drawable.sort_by_genre_ascending, Resource.Drawable.sort_by_genre_descending
-		};
-
+		];
 
 		/// <summary>
 		/// The button (icon) item that this monitor is bound to
@@ -135,7 +127,7 @@ namespace DBTest
 		/// </summary>
 		private Context popupContext = null;
 
-		public SortSelectionModel SortData { get; private set; }
+		public SortSelectionModel SortData { get; private set; } = selectionData;
 
 		/// <summary>
 		/// Delegate used to report when the sort order has been changed
@@ -145,7 +137,7 @@ namespace DBTest
 		/// <summary>
 		/// The FilterSelectionDelegate to be used for this instance
 		/// </summary>
-		private readonly SortSelectionDelegate selectionDelegate = null;
+		private readonly SortSelectionDelegate selectionDelegate = selectionCallback;
 
 		/// <summary>
 		/// Class required to implement the View.IOnLongClickListener interface

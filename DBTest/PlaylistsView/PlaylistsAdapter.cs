@@ -217,21 +217,6 @@ namespace DBTest
 			{
 				base.RenderBackground( convertView );
 			}
-
-			ExpandableListViewHolder viewHolder = ( ExpandableListViewHolder )convertView.Tag;
-
-			// The song index is encoded as a group so..
-			int songIndex = GetGroupFromTag( viewHolder.ItemTag );
-
-			// If the item is selected then or is not the current song then let the base class determine the background colour.
-			if ( ( IsItemSelected( viewHolder.ItemTag ) == true ) || ( NowPlayingAdapterModel.SongPlayingIndex != songIndex ) )
-			{
-				base.RenderBackground( convertView );
-			}
-			else
-			{
-				convertView.SetBackgroundColor( Color.AliceBlue );
-			}
 		}
 
 		/// <summary>

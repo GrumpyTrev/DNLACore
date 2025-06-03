@@ -26,7 +26,7 @@ namespace DBTest
 		/// <param name="message"></param>
 		public override void DataAvailable()
 		{
-			Adapter.SetData( [ .. PlaylistsViewModel.Playlists ], SortType.alphabetic );
+			Adapter.SetData( PlaylistsViewModel.Playlists, SortType.alphabetic );
 			base.DataAvailable();
 		}
 
@@ -74,7 +74,7 @@ namespace DBTest
 		{
 			NotificationHandler.Register( typeof( PlaylistsViewModel ), DataAvailable );
 			NotificationHandler.Register( typeof( PlaylistsViewModel ), "PlaylistUpdated",
-				( sender, message ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( ( Playlist )sender ) );
+				( sender, _ ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( ( Playlist )sender ) );
 		}
 
 		/// <summary>
@@ -103,5 +103,10 @@ namespace DBTest
 		/// The menu resource for this fragment
 		/// </summary>
 		protected override int Menu { get; } = Resource.Menu.menu_playlists;
+
+		/// <summary>
+		/// The menu resource for this fragment's action bar
+		/// /// </summary>
+		protected override int ActionMenu { get; } = Resource.Menu.menu_playlists_action;
 	}
 }

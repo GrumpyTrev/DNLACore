@@ -34,7 +34,7 @@ namespace DBTest
 			coreMPInterface.SetLocalPlayer( new LocalPlayback( this ) );
 
 			// Start monitoring the WiFi
-			new WifiMontor( this, ( wifiAvailable ) => coreMPInterface.WifiStateChanged( wifiAvailable ) );
+			_ = new WifiMontor( this, ( wifiAvailable ) => coreMPInterface.WifiStateChanged( wifiAvailable ) );
 
 			// Create a wake lock for use during playback
 			wakeLock = new KeepAwake( this );
@@ -43,7 +43,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the activity has checked or obtained the storage permission
 		/// </summary>
-		public static void StoragePermissionGranted() => Task.Run( () => instance.PostPermissionInitialisation() );
+		public static void StoragePermissionGranted() => Task.Run( instance.PostPermissionInitialisation );
 
 		/// <summary>
 		/// Log a message
@@ -76,25 +76,11 @@ namespace DBTest
 		public void PostAction( Action post ) => UiSwitchingHandler.Post( post );
 
 		/// <summary>
-		/// Bind the controls to the menu
-		/// </summary>
-		/// <param name="menu"></param>
-		public static void BindMenu( IMenu menu, Context context, View activityContent )
-		{
-			instance.playbackMonitoring.BindToMenu( menu, context, activityContent );
-			instance.playbackModeViewer.BindToMenu( menu, context, activityContent );
-		}
-
-		/// <summary>
 		/// Bind the controls to the view
 		/// </summary>
 		/// <param name="view"></param>
 		/// <param name="context"></param>
-		public static void BindView( View view, Context context )
-		{
-			instance.libraryNameDisplay.BindToView( view, context );
-			instance.mediaControllerView.BindToView( view, context );
-		}
+		public static void BindView( View view, Context context ) => instance.libraryNameDisplay.BindToView( view, context );
 
 		/// <summary>
 		/// OnCreate needs to be overwritten otherwise Android does not create the MainApp class until it wnats to - strange but true
@@ -159,24 +145,9 @@ namespace DBTest
 		private static MainApp instance = null;
 
 		/// <summary>
-		/// The PlaybackMonitor instance used to monitor the state of the playback system
-		/// </summary>
-		private readonly PlaybackMonitor playbackMonitoring = new();
-
-		/// <summary>
-		/// The PlaybackModeView instance used to display the playback mode and to allow it to be changed
-		/// </summary>
-		private readonly PlaybackModeView playbackModeViewer = new();
-
-		/// <summary>
 		/// The LibraryNameDisplay instance used to display the library name
 		/// </summary>
-		private readonly LibraryNameDisplay libraryNameDisplay = new();
-
-		/// <summary>
-		/// The MediaControllerView instance used to control playback
-		/// </summary>
-		private readonly MediaControllerView mediaControllerView = new();
+		private readonly SummaryDisplay libraryNameDisplay = new();
 
 		/// <summary>
 		/// The control used to interface to the media notification service

@@ -22,9 +22,6 @@ namespace CoreMP
 		public void FilterArtists( Tag newFilter ) => artistsController.SetNewFilter(newFilter );
 		public void SortArtists() => artistsController.SortArtists();
 
-		// AutoplayController commands
-		public void StartAutoplay( IEnumerable<Song> selectedSongs, IEnumerable<string> genres ) =>	autoplayController.StartAutoplay( selectedSongs, genres );
-
 		// FilterManagementController commands
 		public void AddAlbumToTag( Tag toTag, Album albumToAdd, bool synchronise = true ) => filterManagementController.AddAlbumToTag( toTag, albumToAdd, synchronise );
 		public void RemoveAlbumFromTag( Tag fromTag, Album albumToRemove ) => filterManagementController.RemoveAlbumFromTag( fromTag, albumToRemove );
@@ -77,7 +74,6 @@ namespace CoreMP
 
 		// PlaybackModeController commands
 
-		public void SetAuto( bool on ) => playbackModeController.AutoOn = on;
 		public void SetRepeat( bool on ) => playbackModeController.RepeatOn = on;
 		public void SetShuffle( bool on ) => playbackModeController.ShuffleOn = on;
 
@@ -86,10 +82,9 @@ namespace CoreMP
 		/// </summary>
 		private readonly AlbumsController albumsController = new AlbumsController();
 		private readonly ArtistsController artistsController = new ArtistsController();
-		private readonly AutoplayController autoplayController = new AutoplayController();
 		private readonly FilterManagementController filterManagementController = new FilterManagementController();
 		private readonly LibraryManagementController libraryManagementController = new LibraryManagementController();
-		private readonly LibraryNameDisplayController libraryNameDisplayController = new LibraryNameDisplayController();
+		private readonly SummaryDetailsDisplayController libraryNameDisplayController = new SummaryDetailsDisplayController();
 		private readonly LibraryScanController libraryScanController = new LibraryScanController();
 		private readonly MediaControllerController mediaControllerController = new MediaControllerController();
 		private readonly PlaybackSelectionController playbackSelectionController = new PlaybackSelectionController();

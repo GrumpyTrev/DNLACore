@@ -37,10 +37,7 @@ namespace CoreMP
 		{
 			get
 			{
-				if ( genreTags == null )
-				{
-					genreTags = TagGroups.Single( tg => tg.Name == "Genre" );
-				}
+				genreTags ??= TagGroups.Single( tg => tg.Name == "Genre" );
 
 				return genreTags;
 			}

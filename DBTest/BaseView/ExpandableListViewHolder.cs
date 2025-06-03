@@ -1,6 +1,4 @@
-﻿using Android.Widget;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// This is the base class for all ViewHolder classes used by the derived adapters

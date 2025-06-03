@@ -7,6 +7,11 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
+			<item name="android:windowDrawsSystemBarBackgrounds">true</item>
+			<item name="android:statusBarColor">@color/colorPrimary</item>
+			<item name="android:windowLightStatusBar">true</item>
+			<item name="android:windowTranslucentStatus">false</item>
+
 		<!-- We are using our own top toolbar, so get rid of the standard one -->
 		<item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -23,8 +28,10 @@
 
 		<!-- This is only here to test how to apply application wide changes to the button style-->
 		<item name="buttonStyle">@style/myButtonStyle</item>
-		
-	</style>
+
+			<!--		<item name="actionButtonStyle">@style/ActionButtonStyle</item> -->
+
+		</style>
 
 	<!-- When using our own icons on the toolbar we need to set a maximum size for them otherwise they are too large
 		 Set the background to use the primary colour-->
@@ -48,5 +55,9 @@
 		<item name="android:textStyle">bold</item>
 	</style>
 
-
+	<style name="ActionButtonStyle" parent="Widget.AppCompat.ActionButton">
+		<item name="android:minWidth">0dip</item>
+		<item name="android:paddingStart">0dip</item>
+		<item name="android:paddingEnd">0dip</item>
+	</style>
 </resources>

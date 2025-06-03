@@ -22,7 +22,7 @@ namespace DBTest
 		public PagedFragment()
 		{
 			userInteractionTimer = new Timer( timer => UserInteractionTimerExpired(), null, Timeout.Infinite, Timeout.Infinite );
-			ActionMode = new ActionModeHandler( this );
+			ActionMode = new ActionModeHandler( this, ActionMenu );
 		}
 
 		/// <summary>
@@ -62,16 +62,16 @@ namespace DBTest
 			Adapter.UserActivityDetectedAction = UserActivityDetected;
 
 			// Link the ListView to the GotoTopControl
-			GotoTopControl.BindControl( FragmentView, ListView );
-
-			// Create an CommandBar to encapsulate the bottom toolbar and its command buttons
-			CommandBar = new CommandBar( FragmentView, Resource.Id.bottomToolbar, HandleCommand );
+			gotoTopControl.BindControl( FragmentView, ListView );
 
 			// Link this fragement's post command action to the CommandHandlerCallback instance
 			commandCallback.Callback = LeaveActionMode;
 
 			// Check if a delayed restoration of action mode can be carried out now
 			ActionMode.RestoreDelayedActionMode();
+
+			// Create the MediaControlsView and link it in to the notification system
+			songDetails.BindToView( FragmentView, MediaControlsLayout );
 
 			// Carry out post view creation action via a Post so that any response comes back after the UI has been created
 			_ = FragmentView.Post( PostViewCreateAction );
@@ -94,6 +94,9 @@ namespace DBTest
 
 			// Save the scroll position 
 			ListViewState = ListView.OnSaveInstanceState();
+
+			// Get rid of any MediaControlsView bindings
+			songDetails.BindToView( null, -1 );
 
 			// Allow derived fragments to release their own resources
 			ReleaseResources();
@@ -210,10 +213,7 @@ namespace DBTest
 			GroupedSelection selectedObjects = new( selectedItems.Values );
 
 			ActionMode.ActionModeTitle = ( SelectedItemCount( selectedObjects ) > 0 ) ? $"{SelectedItemCount( selectedObjects )} selected" : string.Empty;
-
-			// Show the command bar if any of the buttons are visible
-			CommandBar.DetermineButtonsVisibility( selectedObjects );
-			CommandBar.Visibility = ShowCommandBar();
+			ActionMode.DetermineMenuItemsVisibility( selectedObjects );
 		}
 
 		/// <summary>
@@ -221,9 +221,6 @@ namespace DBTest
 		/// </summary>
 		public void OnActionBarCreated()
 		{
-			// Should the command bar be shown
-			CommandBar.Visibility = ShowCommandBar();
-
 			// Treat this as user interaction
 			UserActivityDetected();
 		}
@@ -239,12 +236,17 @@ namespace DBTest
 				Adapter.ActionMode = false;
 			}
 
-			// Hide the bottom toolbar as well
-			CommandBar.Visibility = false;
-
 			// Treat this as user interaction
 			UserActivityDetected();
 		}
+
+		/// <summary>
+		/// Call when a command bar command has been invoked
+		/// </summary>
+		/// <param name="button"></param>
+		/// <returns></returns>
+		public void HandleCommand( int commandId, View anchorView ) =>
+			CommandRouter.HandleCommand( commandId, Adapter.SelectedItems.Values, commandCallback, anchorView, Context );
 
 		/// <summary>
 		/// The Layout resource used to create the main view for this fragment
@@ -262,6 +264,11 @@ namespace DBTest
 		protected abstract int Menu { get; }
 
 		/// <summary>
+		/// The menu resource for this fragment's action bar
+		/// </summary>
+		protected abstract int ActionMenu { get; }
+
+		/// <summary>
 		/// Create the Data Adapter required by this fragment
 		/// </summary>
 		protected abstract void CreateAdapter( ExpandableListView listView );
@@ -277,14 +284,6 @@ namespace DBTest
 		protected virtual void ReleaseResources() { }
 
 		/// <summary>
-		/// Call when a command bar command has been invoked
-		/// </summary>
-		/// <param name="button"></param>
-		/// <returns></returns>
-		protected virtual void HandleCommand( int commandId, AppCompatImageButton button ) => 
-			CommandRouter.HandleCommand( commandId, Adapter.SelectedItems.Values, commandCallback, button );
-
-		/// <summary>
 		/// The FilterSelector object used by this fragment
 		/// </summary>
 		protected virtual FilterSelector FilterSelector { get; } = null;
@@ -293,12 +292,6 @@ namespace DBTest
 		/// Class used to select the album sort order
 		/// </summary>
 		protected virtual SortSelector SortSelector { get; } = null;
-
-		/// <summary>
-		/// Show the command bar if any of the command bar buttons are visible
-		/// </summary>
-		/// <returns></returns>
-		protected bool ShowCommandBar() => CommandBar.AnyButtonsVisible();
 
 		/// <summary>
 		/// Append the specified string to the tab title for this frasgment
@@ -321,6 +314,11 @@ namespace DBTest
 		/// The ActionModeHandler instance looking after the custom ActionBar
 		/// </summary>
 		protected ActionModeHandler ActionMode { get; } = null;
+
+		/// <summary>
+		/// The layout resource to be used for this fragment's MediaControlsView
+		/// </summary>
+		protected virtual int MediaControlsLayout { get; } = Resource.Id.media_controller_standard_layout;
 
 		/// <summary>
 		/// Called when some kind of user interaction with the view has been detected
@@ -348,11 +346,6 @@ namespace DBTest
 				Activity?.RunOnUiThread( () => Adapter.IsUserActive = false );
 			}
 		}
-
-        /// <summary>
-        /// The bottom toolbar
-        /// </summary>
-        protected CommandBar CommandBar { get; private set; } = null;
 
 		/// <summary>
 		/// The main view of the fragment used to indicate whether or not the UI has been created
@@ -388,7 +381,12 @@ namespace DBTest
 		/// <summary>
 		/// Control used to provide goto top shortcut
 		/// </summary>
-		private GotoTopControl GotoTopControl { get; } = new GotoTopControl();
+		private readonly GotoTopControl gotoTopControl = new ();
+
+		/// <summary>
+		/// Control used to display the details of the songe currentlty being played
+		/// </summary>
+		private readonly MediaControlsView songDetails = new();
 
 		/// <summary>
 		/// The scroll state of the list view

@@ -35,7 +35,7 @@ namespace CoreMP
 
 			// Update the item in the model. No need to wait for this.
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			DbAccess.UpdateAsync( this );
+			_ = DbAccess.UpdateAsync( this );
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
@@ -53,7 +53,7 @@ namespace CoreMP
 
 				// No need to wait for the update to complete
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				DbAccess.UpdateAsync( this );
+				_ = DbAccess.UpdateAsync( this );
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 				// Report this change
@@ -79,7 +79,7 @@ namespace CoreMP
 		{
 			foreach ( PlaylistItem item in items )
 			{
-				PlaylistItems.Remove( item );
+				_ = PlaylistItems.Remove( item );
 			}
 
 			DbAccess.DeleteItems( items );
@@ -131,7 +131,7 @@ namespace CoreMP
 
 					// Update the item in the model. No need to wait for this.
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-					DbAccess.UpdateAsync( itemToCheck );
+					_ = DbAccess.UpdateAsync( itemToCheck );
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}
 			}

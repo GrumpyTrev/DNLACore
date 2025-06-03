@@ -18,7 +18,7 @@
     <AndroidResgenClass>Resource</AndroidResgenClass>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
-    <TargetFrameworkVersion>v9.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v11.0</TargetFrameworkVersion>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
     <MonoAndroidAssetsPrefix>Assets</MonoAndroidAssetsPrefix>
@@ -77,7 +77,7 @@
     <Compile Include="CommandHandlers\SynchAlbumStatusCommandHandler.cs" />
     <Compile Include="CommandHandlers\NewLibraryCommandHandler.cs" />
     <Compile Include="LibraryManagement\NewLibraryNameDialog.cs" />
-    <Compile Include="MediaControllerView\MediaControllerView.cs" />
+    <Compile Include="MediaControllerView\MediaControlsView.cs" />
     <Compile Include="BaseView\AlbumViewHolder.cs" />
     <Compile Include="BaseView\BaseBoundControl.cs" />
     <Compile Include="BaseView\ExpandableListViewHolder.cs" />
@@ -87,16 +87,9 @@
     <Compile Include="BaseView\ConfirmationDialog.cs" />
     <Compile Include="MediaNotificationView\MediaNotificationServiceInterface.cs" />
     <Compile Include="PlaybackManagement\LocalPlayback.cs" />
-    <Compile Include="PlaybackMonitorView\PlaybackMonitor.cs" />
     <Compile Include="BaseView\SortSelector.cs" />
-    <Compile Include="CommandHandlers\AutoplayCommandHandler.cs" />
     <Compile Include="CommandHandlers\AddSongsToNowPlayingListCommandHandler.cs" />
     <Compile Include="CommandHandlers\DuplicatePlaylistCommandHandler.cs" />
-    <Compile Include="CommandHandlers\AutoplayOptionsCommandHandler.cs" />
-    <Compile Include="CommandHandlers\AutoModeCommandHander.cs" />
-    <Compile Include="CommandHandlers\ShuffleModeCommandHander.cs" />
-    <Compile Include="CommandHandlers\RepeatModeCommandHander.cs" />
-    <Compile Include="CommandHandlers\StartAutoPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\GroupedSelection.cs" />
     <Compile Include="CommandHandlers\RenamePlaylistCommandHandler.cs" />
@@ -109,7 +102,7 @@
     <Compile Include="CommandHandlers\ClearLibraryCommandHandler.cs" />
     <Compile Include="CommandHandlers\SelectLibraryCommandHandler.cs" />
     <Compile Include="CommandHandlers\ScanLibraryCommandHandler.cs" />
-    <Compile Include="CommonUI\CommandToolbar.cs" />
+    <Compile Include="CommonUI\MenuCommandHandler.cs" />
     <Compile Include="CommonUI\MultiSpinner.cs" />
     <Compile Include="ArtistsView\ArtistsAdapter.cs" />
     <Compile Include="BaseView\ExpandableListAdapter.cs" />
@@ -123,7 +116,6 @@
     <Compile Include="LibraryManagement\ScanProgressDialog.cs" />
     <Compile Include="LibraryManagement\SourceEditDialog.cs" />
     <Compile Include="LibraryOptionsView\LibraryNameDisplay.cs" />
-    <Compile Include="AutoplayManagement\AutoplayOptionsDialogFragment.cs" />
     <Compile Include="BaseView\IAdapterActionHandler.cs" />
     <Compile Include="BaseView\IPageVisible.cs" />
     <Compile Include="Application\MainApp.cs" />
@@ -132,7 +124,6 @@
     <Compile Include="NowPlayingView\NowPlayingFragment.cs" />
     <Compile Include="NowPlayingView\NowPlayingAdapterModel.cs" />
     <Compile Include="BaseView\PagedFragment.cs" />
-    <Compile Include="PlaybackModeView\PlaybackModeView.cs" />
     <Compile Include="PlaybackSelection\SelectDeviceDialogFragment.cs" />
     <Compile Include="PlaylistsView\NewPlaylistNameDialogFragment.cs" />
     <Compile Include="PlaylistsView\PlaylistsAdapter.cs" />
@@ -142,9 +133,9 @@
     <Compile Include="ArtistsView\ArtistsFragment.cs" />
     <Compile Include="Application\MainActivity.cs" />
     <Compile Include="PlaylistsView\SongsDisplayAdapter.cs" />
-    <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Application\TabsFragmentPagerAdapter.cs" />
+    <Compile Include="Resources\Resource.designer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -272,9 +263,6 @@
     <AndroidResource Include="Resources\drawable\filter_on.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\indeterminate.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\albums_fragment.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
@@ -390,70 +378,13 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\local_playback_no_wifi.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\local_playback_wifi.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\remote_playback_na_wifi.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\remote_playback_no_wifi.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\remote_playback_wifi.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\auto_gen.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\new_playlist_dialogue_layout.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\autoplay_options_dialogue_layout.axml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\menu\menu_library.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\menu\menu_autoplay.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\linear_play.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\repeat_shuffle.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\auto_play.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\shuffle.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\menu\menu_playback.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\menu\menu_playback_options.xml">
-      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
-      <SubType>Designer</SubType>
-    </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\playlists_album_layout.axml">
@@ -486,11 +417,6 @@
     <AndroidResource Include="Resources\drawable\goto_top.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\media_controller.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\action_mode.axml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
@@ -511,14 +437,72 @@
     <AndroidResource Include="Resources\drawable\duplicate.png" />
   </ItemGroup>
   <ItemGroup>
+    <AndroidResource Include="Resources\drawable\diagonal.png" />
+    <AndroidResource Include="Resources\drawable\tiled_background.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\launch_icon.png">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\app_icon.png">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\media_controller_standard_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\media_controller_playing_layout.axml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\repeat_on.png">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shuffle_on.png">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\CoreMP\CoreMP.csproj">
-      <Project>{b211f80e-2192-4c9b-8540-5a53597432b5}</Project>
+      <Project>{98a5facc-59fb-4034-9475-6bded77586c5}</Project>
       <Name>CoreMP</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\diagonal.png" />
-    <AndroidResource Include="Resources\drawable\tiled_background.xml">
+    <AndroidResource Include="Resources\menu\menu_artists_action.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_albums_action.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_nowplaying_action.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_playlists_action.xml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>

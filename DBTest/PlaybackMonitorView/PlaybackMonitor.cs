@@ -22,10 +22,10 @@ namespace DBTest
 			if ( menu != null )
 			{
 				// Find the playback_info menu item if it exists
-				IMenuItem boundMenuItem = menu.FindItem( Resource.Id.playback_info );
+				IMenuItem boundMenuItem = menu.FindItem( Resource.Id.select_playback_device );
 				if ( boundMenuItem != null )
 				{
-					boundMenuItem.SetActionView( Resource.Layout.toolbarButton );
+					_ = boundMenuItem.SetActionView( Resource.Layout.toolbarButton );
 					imageButton = boundMenuItem.ActionView.FindViewById<AppCompatImageButton>( Resource.Id.toolbarSpecialButton );
 
 					// Create a Popup for this button and route it's selections to the CommandRouter
@@ -107,9 +107,9 @@ namespace DBTest
 		/// <summary>
 		/// The resource ids representing icons to be displayed 
 		/// </summary>
-		private readonly int[] resources = new int[] { Resource.Drawable.local_playback_no_wifi, Resource.Drawable.local_playback_wifi,
+		private readonly int[] resources = [ Resource.Drawable.local_playback_no_wifi, Resource.Drawable.local_playback_wifi,
 			Resource.Drawable.remote_playback_na_wifi, Resource.Drawable.remote_playback_no_wifi, Resource.Drawable.remote_playback_wifi
-		};
+		];
 
 		/// <summary>
 		/// The button (icon) item that this monitor is bound to

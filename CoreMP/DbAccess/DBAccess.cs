@@ -78,7 +78,7 @@ namespace CoreMP
 					string deleteQuery = string.Format( "delete from {0} where {1} in ({2})", tableName, primaryKeyColumnName,
 						string.Join( ",", Enumerable.Repeat( "?", chunk.Count ) ) );
 
-					ConnectionDetailsModel.AsynchConnection.ExecuteAsync( deleteQuery, chunk.ToArray() );
+					_ = ConnectionDetailsModel.AsynchConnection.ExecuteAsync( deleteQuery, chunk.ToArray() );
 				}
 			}
 		}

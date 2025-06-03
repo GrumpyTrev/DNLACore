@@ -210,10 +210,8 @@ namespace DBTest
 		private bool isPreparing = false;
 	}
 
-	internal class MediaPlayerInterface : Java.Lang.Object, MediaPlayer.IOnPreparedListener, MediaPlayer.IOnErrorListener, MediaPlayer.IOnCompletionListener
+	internal class MediaPlayerInterface( LocalPlayback localPlayback ) : Java.Lang.Object, MediaPlayer.IOnPreparedListener, MediaPlayer.IOnErrorListener, MediaPlayer.IOnCompletionListener
 	{
-		public MediaPlayerInterface( LocalPlayback localPlayback ) => playbackInstance = localPlayback;
-
 		/// <summary>
 		/// Called when the MediaPlayer has finished playing the current song
 		/// </summary>
@@ -235,6 +233,6 @@ namespace DBTest
 		/// <param name="mp"></param>
 		public void OnPrepared( MediaPlayer _ ) => playbackInstance.OnPrepared();
 
-		private readonly LocalPlayback playbackInstance = null;
+		private readonly LocalPlayback playbackInstance = localPlayback;
 	}
 }

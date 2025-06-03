@@ -15,7 +15,7 @@
 			android:layout_toLeftOf="@+id/duration"
 			android:layout_marginLeft="@dimen/edge_margin"
 			android:text="@string/songTitle"
-			android:textColor="@color/colorNormalText" 
+			android:textColor="@color/colorNormalText"
 		/>
 		<TextView
 			android:id="@+id/duration"

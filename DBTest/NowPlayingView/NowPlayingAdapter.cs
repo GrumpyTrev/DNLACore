@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Android.Content;
 using Android.Graphics;
+using Android.Graphics.Drawables;
 using Android.Views;
 using Android.Widget;
 using CoreMP;
@@ -176,7 +177,7 @@ namespace DBTest
 		/// </summary>
 		protected override void RenderBackground( View convertView )
 		{
-			ExpandableListViewHolder viewHolder = ( ExpandableListViewHolder )convertView.Tag;
+			SongViewHolder viewHolder = ( SongViewHolder )convertView.Tag;
 
 			// The song index is encoded as a group so..
 			int songIndex = GetGroupFromTag( viewHolder.ItemTag );
@@ -185,10 +186,12 @@ namespace DBTest
 			if ( ( IsItemSelected( viewHolder.ItemTag ) == true ) || ( NowPlayingAdapterModel.SongPlayingIndex != songIndex ) )
 			{
 				base.RenderBackground( convertView );
+				viewHolder.UnHighlight();
 			}
 			else
 			{
-				convertView.SetBackgroundColor( Color.AliceBlue );          
+				convertView.SetBackgroundColor( Color.AliceBlue );
+				viewHolder.Highlight();
 			}
 		}
 

@@ -1,8 +1,8 @@
-﻿using Android.Support.V4.App;
-using Android.Support.V7.Widget;
+﻿using Android.Content;
+using Android.Support.V4.App;
+using Android.Views;
 using System;
 using System.Collections.Generic;
-
 
 namespace DBTest
 {
@@ -12,7 +12,7 @@ namespace DBTest
 	internal static class CommandRouter
 	{
 		/// <summary>
-		/// Bind new instances of teh command handlers to the router using their command identities
+		/// Bind new instances of the command handlers to the router using their command identities
 		/// </summary>
 		public static void BindHandlers()
 		{
@@ -25,14 +25,8 @@ namespace DBTest
 			new AddSongsToPlaylistCommandHandler().BindToRouter();
 			new MoveItemsCommandHandler().BindToRouter();
 			new DeletePlaylistItemsCommandHandler().BindToRouter();
-			new StartAutoPlaylistCommandHandler().BindToRouter();
 			new DuplicatePlaylistCommandHandler().BindToRouter();
 			new RenamePlaylistCommandHandler().BindToRouter();
-			new AutoplayCommandHandler().BindToRouter();
-			new AutoplayOptionsCommandHandler().BindToRouter();
-			new AutoModeCommandHander().BindToRouter();
-			new RepeatModeCommandHander().BindToRouter();
-			new ShuffleModeCommandHander().BindToRouter();
 			new MarkAlbumsCommandHandler().BindToRouter();
 			new NewLibraryCommandHandler().BindToRouter();
 			new SynchAlbumStatusCommandHandler().BindToRouter();
@@ -71,7 +65,7 @@ namespace DBTest
 		/// <param name="commandIdentity"></param>
 		/// <returns></returns>
 		public static bool HandleCommand( int commandIdentity, IEnumerable<object> selectedObjects, CommandRouter.CommandHandlerCallback callback,
-			AppCompatImageButton button )
+			View anchorView, Context contextForCommand )
 		{
 			bool commandHandled = false;
 
@@ -79,7 +73,7 @@ namespace DBTest
 			if ( handler != null )
 			{
 				commandHandled = true;
-				handler.HandleCommand( commandIdentity, new GroupedSelection( selectedObjects ), callback, button );
+				handler.HandleCommand( commandIdentity, new GroupedSelection( selectedObjects ), callback, anchorView, contextForCommand );
 			}
 
 			return commandHandled;
@@ -100,7 +94,7 @@ namespace DBTest
 		/// <summary>
 		/// Command identity to handler lookup
 		/// </summary>
-		private static readonly Dictionary<int, CommandHandler> router = new();
+		private static readonly Dictionary<int, CommandHandler> router = [];
 
 		/// <summary>
 		/// The CommandHandlerCallback class contains an Action to be performed once the command has been handled

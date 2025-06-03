@@ -25,7 +25,7 @@ namespace DBTest
 
 			// Create a Popup menu containing the 'mark played' and 'Mark not-played' options
 			// Could just expand a resource here?
-			PopupMenu markMenu = new( commandButton.Context, commandButton );
+			PopupMenu markMenu = new( commandContext, commandView );
 			markMenu.Menu.Add( 0, 0, 0, "Mark as played" );
 			markMenu.Menu.Add( 0, 1, 0, "Mark as not-played" );
 

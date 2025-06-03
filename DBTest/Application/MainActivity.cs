@@ -33,8 +33,11 @@ namespace DBTest
 			Android.Support.V7.Widget.Toolbar toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>( Resource.Id.toolbar );
 			SetSupportActionBar( toolbar );
 
-			// Don't display the title as this is now done by the LibraryNameDisplay class (see below )
+			// Don't display the title as this is now done by the LibraryNameDisplay class
 			SupportActionBar.SetDisplayShowTitleEnabled( false );
+
+			// Set the logo
+			SupportActionBar.SetLogo( Resource.Drawable.app_icon );
 
 			// Allow controls to bind to items on the toolbar
 			MainApp.BindView( contentView, this );
@@ -60,7 +63,7 @@ namespace DBTest
 			if ( ContextCompat.CheckSelfPermission( this, Manifest.Permission.WriteExternalStorage ) != Permission.Granted )
 			{
 				// Request the permission
-				ActivityCompat.RequestPermissions( this, new string[] { Manifest.Permission.WriteExternalStorage }, 1 );
+				ActivityCompat.RequestPermissions( this, [Manifest.Permission.WriteExternalStorage], 1 );
 			}
 			else
 			{
@@ -98,9 +101,6 @@ namespace DBTest
 		public override bool OnCreateOptionsMenu( IMenu menu )
 		{
 			MenuInflater.Inflate( Resource.Menu.menu_main, menu );
-
-			// Bind to any process wide controls using a menu item
-			MainApp.BindMenu( menu, this, contentView );
 
 			return true;
 		}
@@ -141,8 +141,7 @@ namespace DBTest
 			// Some of the managers need to remove themselves from the scene
 			FragmentTitles.ParentActivity = null;
 
-			// Unbind from any process wide command handler or monitors that require a menu item
-			MainApp.BindMenu( null, null, null );
+			// Unbind from any process wide command handler or monitors that require a view
 			MainApp.BindView( null, null );
 
 			base.OnDestroy();
@@ -155,13 +154,12 @@ namespace DBTest
 		{
 			// Create the fragments and give them titles
 			Android.Support.V4.App.Fragment[] fragments = 
-				new Android.Support.V4.App.Fragment[]
-				{
+				[
 					new ArtistsFragment(), new AlbumsFragment(), new PlaylistsFragment(), new NowPlayingFragment()
-				};
+				];
 
 			// Initialise the Fragment titles class
-			FragmentTitles.SetInitialTitles( new[] { "Artists", "Albums", "Playlists", "Now Playing" }, fragments );
+			FragmentTitles.SetInitialTitles( ["Artists", "Albums", "Playlists", "Now Playing"], fragments );
 
 			// Get the ViewPager and link it to a TabsFragmentPagerAdapter
 			ViewPager viewPager = FindViewById<ViewPager>( Resource.Id.viewPager );

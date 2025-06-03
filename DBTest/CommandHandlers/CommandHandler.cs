@@ -1,4 +1,5 @@
-﻿using Android.Support.V7.Widget;
+﻿using Android.Content;
+using Android.Views;
 
 namespace DBTest
 {
@@ -16,11 +17,13 @@ namespace DBTest
 		/// <param name="commandIdentity"></param>
 		/// <param name="selection"></param>
 		/// <param name="callback"></param>
-		public virtual void HandleCommand( int commandIdentity, GroupedSelection selection, CommandRouter.CommandHandlerCallback callback, AppCompatImageButton button )
+		public virtual void HandleCommand( int commandIdentity, GroupedSelection selection, CommandRouter.CommandHandlerCallback callback, View anchorView,
+			Context contextForCommand )
 		{
 			selectedObjects = selection;
 			commandCallback = callback;
-			commandButton = button;
+			commandView = anchorView;
+			commandContext = contextForCommand;
 			HandleCommand( commandIdentity );
 		}
 
@@ -61,8 +64,13 @@ namespace DBTest
 		protected CommandRouter.CommandHandlerCallback commandCallback = null;
 
 		/// <summary>
-		/// The button on the toolbar that generated this command
+		/// The menu item that generated this command
 		/// </summary>
-		protected AppCompatImageButton commandButton = null;
+		protected View commandView = null;
+
+		/// <summary>
+		/// The Context to use for popups etc.
+		/// </summary>
+		protected Context commandContext = null;
 	}
 }

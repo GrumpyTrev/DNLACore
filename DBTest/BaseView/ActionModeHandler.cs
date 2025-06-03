@@ -13,7 +13,7 @@ namespace DBTest
 	/// Create an instance of the class with a callback to notify creation and deletions
 	/// </remarks>
 	/// <param name="parentFragment"></param>
-	public class ActionModeHandler( ActionModeHandler.ICallback callback ) : Java.Lang.Object, ActionMode.ICallback
+	public class ActionModeHandler( ActionModeHandler.ICallback callback, int actionMenuId ) : Java.Lang.Object, ActionMode.ICallback
     {
 		/// <summary>
 		/// Called to start ActionMode
@@ -95,17 +95,23 @@ namespace DBTest
         /// <returns></returns>
         public bool OnCreateActionMode( ActionMode mode, IMenu menu )
         {
-            // Keep a record of the ActionMode instance so that it can be destroyed when the parent fragment is hidden
-            actionModeInstance = mode;
+			// Keep a record of the ActionMode instance so that it can be destroyed when the parent fragment is hidden
+			actionModeInstance = mode;
 
             // Set the view to our custom view
-            actionModeInstance.CustomView = LayoutInflater.FromContext( ViewContext ).Inflate( Resource.Layout.action_mode, null ); 
+            actionModeInstance.CustomView = LayoutInflater.FromContext( ViewContext ).Inflate( Resource.Layout.action_mode, null );
 
-            // Save the text view for ease of access
-            titleView = actionModeInstance.CustomView.FindViewById<TextView>( Resource.Id.title );
+			// Add fragment specific menu items
+			mode.MenuInflater.Inflate( ActionMenuResourceId, menu );
+
+			// Save the text view for ease of access
+			titleView = actionModeInstance.CustomView.FindViewById<TextView>( Resource.Id.title );
 
             // Refresh the title text
             ActionModeTitle = ActionModeTitle;
+
+			// Create a new MenuCommandHandler for the items in this menu
+			MenuItemHandler = new MenuCommandHandler( menu );
 
 			// Let the fragment know
 			CallbackNotification.OnActionBarCreated();
@@ -125,10 +131,16 @@ namespace DBTest
             CallbackNotification.OnActionBarDestroyed( retainAdapterActionMode == false );
         }
 
-        /// <summary>
-        /// The title to be shown on the action bar
-        /// </summary>
-        public string ActionModeTitle
+		/// <summary>
+		/// Use the command handler associated with each menu item to determine if the menu item should be shown
+		/// </summary>
+		/// <param name="selectedObjects"></param>
+		public void DetermineMenuItemsVisibility( GroupedSelection selectedObjects ) => MenuItemHandler?.DetermineMenuItemsVisibility( selectedObjects );
+
+		/// <summary>
+		/// The title to be shown on the action bar
+		/// </summary>
+		public string ActionModeTitle
         {
             get => actionModeTitle;
 
@@ -143,13 +155,17 @@ namespace DBTest
             }
         }
 
-         /// <summary>
-        /// Called when a menu item on the Contextual Action Bar has been selected
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public virtual bool OnActionItemClicked( ActionMode mode, IMenuItem item ) => false;
+		/// <summary>
+		/// Called when a menu item on the Contextual Action Bar has been selected
+		/// </summary>
+		/// <param name="mode"></param>
+		/// <param name="item"></param>
+		/// <returns></returns>
+		public virtual bool OnActionItemClicked( ActionMode mode, IMenuItem item )
+		{
+			CallbackNotification.HandleCommand( item.ItemId, actionModeInstance.CustomView );
+			return true;
+		}
 
         /// <summary>
         /// Required by the interface
@@ -189,7 +205,14 @@ namespace DBTest
             /// </summary>
             /// <param name="informAdapter"></param>
             void OnActionBarDestroyed( bool informAdapter );
-        }
+
+			/// <summary>
+			/// Called when an Action Bar menu item has been selected
+			/// </summary>
+			/// <param name="item"></param>
+			/// <returns></returns>
+			void HandleCommand( int commandId, View anchorView );
+		}
 
         /// <summary>
         /// The Action Mode instance wrapped up by this handler
@@ -220,5 +243,15 @@ namespace DBTest
 		/// The TextView used to display the title
 		/// </summary>
 		private TextView titleView = null;
-    }
+
+		/// <summary>
+		/// The menu resource for the items to be added to the Action bar
+		/// </summary>
+		private int ActionMenuResourceId { get; set; } = actionMenuId;
+
+		/// <summary>
+		/// The ActionMenu instance
+		/// </summary>
+		private MenuCommandHandler MenuItemHandler { get; set; } = null;
+	}
 }

@@ -22,6 +22,11 @@
 			SongFinishedMessage.Register( ( _ ) => MediaControllerViewModel.SongPlaying = null );
 			NotificationHandler.Register( typeof( Playlists ), () => MediaControllerViewModel.SongPlaying = NowPlayingViewModel.CurrentSong );
 			NotificationHandler.Register( typeof( StorageController ), () => MediaControllerViewModel.Available.IsSet = true );
+			NotificationHandler.Register( typeof( PlaybackModeModel ), () =>
+			{
+				MediaControllerViewModel.RepeatOn = PlaybackModeModel.RepeatOn;
+				MediaControllerViewModel.ShuffleOn = PlaybackModeModel.ShuffleOn;
+			} );
 		}
 	}
 }

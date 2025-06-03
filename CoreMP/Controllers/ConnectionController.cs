@@ -35,21 +35,19 @@ namespace CoreMP
 				if ( createTables == true )
 				{
 					// Create the tables if they don't already exist
-					ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Artist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylistItem>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<Autoplay>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<GenrePopulation>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylist>();
-					ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylistItem>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<Library>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<Source>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<Artist>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<Album>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<Song>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<ArtistAlbum>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylist>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<SongPlaylistItem>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<Playback>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<Tag>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<TaggedAlbum>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylist>();
+					_ = ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylistItem>();
 				}
 
 				// Check for a Playback record which will tell us the currently selected library

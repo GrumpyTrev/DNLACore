@@ -17,7 +17,7 @@
 			set
 			{
 				playbackDeviceAvailable = value;
-				NotificationHandler.NotifyPropertyChanged( null );
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
 			}
 		}
 
@@ -31,7 +31,7 @@
 			set
 			{
 				currentPosition = value;
-				NotificationHandler.NotifyPropertyChanged( null );
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
 			}
 		}
 
@@ -45,7 +45,7 @@
 			set
 			{
 				duration = value;
-				NotificationHandler.NotifyPropertyChanged( null );
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
 			}
 		}
 
@@ -58,7 +58,7 @@
 			get => songPlaying; set
 			{
 				songPlaying = value;
-				NotificationHandler.NotifyPropertyChanged( null );
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
 			}
 		}
 
@@ -71,7 +71,33 @@
 			get => isPlaying; set
 			{
 				isPlaying = value;
-				NotificationHandler.NotifyPropertyChanged( null );
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
+			}
+		}
+
+		/// <summary>
+		/// Is repeat mode on
+		/// </summary>
+		private static bool repeatOn = false;
+		public static bool RepeatOn
+		{
+			get => repeatOn; set
+			{
+				repeatOn = value;
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
+			}
+		}
+
+		/// <summary>
+		/// Is shuffle mode on
+		/// </summary>
+		private static bool suffleOn = false;
+		public static bool ShuffleOn
+		{
+			get => suffleOn; set
+			{
+				suffleOn = value;
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
 			}
 		}
 	}

@@ -7,68 +7,36 @@
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
+		/// Register for the main data available event.
 		/// </summary>
-		public PlaybackModeController() =>
-			// Register for the main data available event.
-			NotificationHandler.Register( typeof( StorageController ), StorageDataAvailable );
-
-		/// <summary>
-		/// Update the state of the Auto play flag
-		/// </summary>
-		public bool AutoOn
-		{
-			set
-			{
-				Playback.SingletonAutoPlayOn = value;
-
-				// If autoplay is now on, turn off repeat and shuffle
-				if ( Playback.SingletonAutoPlayOn == true )
-				{
-					Playback.SingletonRepeatPlayOn = false;
-					Playback.SingletonShufflePlayOn = false;
-				}
-
-				StorageDataAvailable();
-			}
-		}
+		public PlaybackModeController() => NotificationHandler.Register( typeof( StorageController ), StorageDataAvailable );
 
 		/// <summary>
 		/// Update the state of the Repeat play flag
+		/// Copy it to the Playback singleton so that it can be stored and update the PlaybackModeModel
 		/// </summary>
 		public bool RepeatOn
 		{
 			set
 			{
-				Playback.SingletonRepeatPlayOn = value;
-
-				// If repeat is now on, turn off auto
-				if ( Playback.SingletonRepeatPlayOn == true )
-				{
-					Playback.SingletonAutoPlayOn = false;
-				}
-
-				StorageDataAvailable();
+				Playback.RepeatOn = value;
+				PlaybackModeModel.RepeatOn = value;
 			}
 		}
 
 		/// <summary>
 		/// Update the state of the Shuffle play flag
+		/// Copy it to the Playback singleton so that it can be stored and update the PlaybackModeModel
 		/// </summary>
 		public bool ShuffleOn
 		{
 			set
 			{
-				Playback.SingletonShufflePlayOn = value;
+				Playback.ShuffleOn = value;
+				PlaybackModeModel.ShuffleOn = value;
 
-				// If shuffle is now on, turn off auto
-				if ( Playback.SingletonShufflePlayOn == true )
-				{
-					Playback.SingletonAutoPlayOn = false;
-				}
-
+				// Currently the actual shuffling is triggered by a message. This should be a data change notification
 				new ShuffleModeChangedMessage().Send();
-
-				StorageDataAvailable();
 			}
 		}
 
@@ -79,12 +47,8 @@
 		private void StorageDataAvailable()
 		{
 			// Save the current playback mode obtained from the Playback object
-			PlaybackModeModel.AutoOn = Playback.SingletonAutoPlayOn;
-			PlaybackModeModel.RepeatOn = Playback.SingletonRepeatPlayOn;
-			PlaybackModeModel.ShuffleOn = Playback.SingletonShufflePlayOn;
-
-			// Update the summary state in the model
-			PlaybackModeModel.UpdateActivePlayMode();
+			PlaybackModeModel.RepeatOn = Playback.RepeatOn;
+			PlaybackModeModel.ShuffleOn = Playback.ShuffleOn;
 		}
 	}
 }

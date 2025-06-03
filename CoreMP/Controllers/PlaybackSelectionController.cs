@@ -59,8 +59,6 @@ namespace CoreMP
 			if ( selectedDevice != null )
 			{
 				// Save in storage
-				Playback.SingletonPlaybackDeviceName = selectedDevice.FriendlyName;
-
 				PlaybackSelectionModel.SelectedDeviceName = selectedDevice.FriendlyName;
 				PlaybackSelectionModel.SelectedDevice = selectedDevice;
 
@@ -78,33 +76,11 @@ namespace CoreMP
 			// Initialise the locally held devices collection to hold the 'local' device and the currently available remote devices
 			PlaybackSelectionModel.PlaybackCapableDevices = DevicesModel.RemoteDevices.PlaybackDeviceCollection.ToList();
 
-			// If the selected device is available then report it
-			ReportLocalSelectedDevice();
-		}
+			// Select the local device
+			PlaybackSelectionModel.SelectedDeviceName = PlaybackDevices.LocalDeviceName;
+			PlaybackSelectionModel.SelectedDevice = PlaybackSelectionModel.PlaybackCapableDevices.Single( dev => dev.FriendlyName == PlaybackSelectionModel.SelectedDeviceName );
 
-		/// <summary>
-		/// Get the selected device from the database and if its available then report it
-		/// </summary>
-		private void ReportLocalSelectedDevice()
-		{
-			// Use the Playback class to retrieve the last selected device
-			PlaybackSelectionModel.SelectedDeviceName = Playback.SingletonPlaybackDeviceName;
-
-			if ( PlaybackSelectionModel.SelectedDeviceName.Length == 0 )
-			{
-				// No device selected. Select the local device
-				PlaybackSelectionModel.SelectedDeviceName = PlaybackDevices.LocalDeviceName;
-				Playback.SingletonPlaybackDeviceName = PlaybackSelectionModel.SelectedDeviceName;
-			}
-
-			// If the selected device is available then report it
-			PlaybackDevice selectedDevice = PlaybackSelectionModel.PlaybackCapableDevices.SingleOrDefault( dev => dev.FriendlyName == PlaybackSelectionModel.SelectedDeviceName );
-			if ( selectedDevice != null )
-			{
-				PlaybackSelectionModel.SelectedDevice = selectedDevice;
-			}
-
-			// Report that the Playback Selection model has changed
+			// Report that the Playback Selection modelis available
 			PlaybackSelectionModel.Available.IsSet = true;
 		}
 

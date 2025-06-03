@@ -31,7 +31,7 @@ namespace CoreMP
 		{
 			LibrarySources.Add( sourceToAdd );
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			Sources.AddSourceAsync( sourceToAdd );
+			_ = Sources.AddSourceAsync( sourceToAdd );
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 			// Initialise any source data that may not have been set in the new source
@@ -50,7 +50,7 @@ namespace CoreMP
 		/// <param name="sourceToDelete"></param>
 		public void DeleteSource( Source sourceToDelete )
 		{
-			LibrarySources.Remove( sourceToDelete );
+			_ = LibrarySources.Remove( sourceToDelete );
 			Sources.DeleteSource( sourceToDelete );
 
 			// Report the change

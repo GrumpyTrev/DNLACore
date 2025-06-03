@@ -348,6 +348,13 @@ namespace DBTest
 		}
 
 		/// <summary>
+		/// Form a tag for a group item
+		/// </summary>
+		/// <param name="groupPosition"></param>
+		/// <returns></returns>
+		public static int FormGroupTag( int groupPosition ) => ( groupPosition << 16 ) + 0xFFFF;
+
+		/// <summary>
 		/// Interface that classes providing group details must implement.
 		/// </summary>
 		public interface IGroupContentsProvider<U>
@@ -538,13 +545,6 @@ namespace DBTest
 				}
 			}
 		}
-
-		/// <summary>
-		/// Form a tag for a group item
-		/// </summary>
-		/// <param name="groupPosition"></param>
-		/// <returns></returns>
-		protected static int FormGroupTag( int groupPosition ) => ( groupPosition << 16 ) + 0xFFFF;
 
 		/// <summary>
 		/// Form a tag for a child item

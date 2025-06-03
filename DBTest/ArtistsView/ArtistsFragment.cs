@@ -140,6 +140,11 @@ namespace DBTest
 		protected override int Menu { get; } = Resource.Menu.menu_artists;
 
 		/// <summary>
+		/// The menu resource for this fragment's action bar
+		/// /// </summary>
+		protected override int ActionMenu { get; } = Resource.Menu.menu_artists_action;
+
+		/// <summary>
 		/// The FilterSelection object used by this fragment
 		/// </summary>
 		protected override FilterSelector FilterSelector { get; } = new FilterSelector( MainApp.CommandInterface.FilterArtists, ArtistsViewModel.FilterSelection );

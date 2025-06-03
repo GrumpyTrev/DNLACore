@@ -11,50 +11,50 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, NotificationDelegate callback, [CallerFilePath] string filePath = "" ) =>
-			Register( classType, new DelegateContainer( callback ), filePath );
+		public static void Register( Type classType, NotificationDelegate callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
+			Register( classType, new DelegateContainer( callback ), uniqueId, filePath );
 
 		/// <summary>
 		/// Registers interest in notifications from the specified class with no parameters
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, NotificationDelegateNoParams callback, [CallerFilePath] string filePath = "" ) =>
-			Register( classType, new DelegateContainer( callback ), filePath );
+		public static void Register( Type classType, NotificationDelegateNoParams callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
+			Register( classType, new DelegateContainer( callback ), uniqueId, filePath );
 
 		/// <summary>
 		/// Registers interest in notifications from the specified class with parameters
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, string propertyName, NotificationDelegate callback, [CallerFilePath] string filePath = "" ) =>
-			Register( classType, new DelegateContainer( callback, propertyName ), filePath );
+		public static void Register( Type classType, string propertyName, NotificationDelegate callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
+			Register( classType, new DelegateContainer( callback, propertyName ), uniqueId, filePath );
 
 		/// <summary>
 		/// Registers interest in notifications from the specified class with no parameters
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, string propertyName, NotificationDelegateNoParams callback, [CallerFilePath] string filePath = "" ) =>
-			Register( classType, new DelegateContainer( callback, propertyName ), filePath );
+		public static void Register( Type classType, string propertyName, NotificationDelegateNoParams callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
+			Register( classType, new DelegateContainer( callback, propertyName ), uniqueId, filePath );
 
 		/// <summary>
 		/// Deregister all notifications for the calling class
 		/// </summary>
 		/// <param name="filePath"></param>
-		public static void Deregister( [CallerFilePath] string filePath = "" )
+		public static void Deregister( string uniqueId = "", [ CallerFilePath] string filePath = "" )
 		{
-			// Get the file name (class name ) from the filePath
-			string callerClassName = GetFileNameWithoutExtension( filePath );
+			// Get the file name (class name ) from the filePath and unique id
+			string callerClassName = GetFileNameWithoutExtension( filePath ) + uniqueId;
 
 			// Remove the registrations recorded against this class
 			foreach( Tuple<string, DelegateContainer> registration in whoMadeRegistration[ callerClassName ] )
 			{
-				registrations.RemoveValue( registration.Item1, registration.Item2 );
+				_ = registrations.RemoveValue( registration.Item1, registration.Item2 );
 			}
 
 			// Remove the record
-			whoMadeRegistration.Remove( callerClassName );
+			_ = whoMadeRegistration.Remove( callerClassName );
 		}
 
 		/// <summary>
@@ -97,7 +97,17 @@ namespace CoreMP
 		public static void NotifyPropertyChangedPersistent( object sender, [CallerFilePath] string filePath = "", [CallerMemberName] string propertyName = "" )
 		{
 			NotifyPropertyChanged( sender, filePath, propertyName );
-			savedNotifications[ GetFileNameWithoutExtension( filePath ) ] = new Tuple<object, string>( sender, propertyName );
+
+			string className = GetFileNameWithoutExtension( filePath );
+
+			// Is this the first notification for this class
+			if ( savedNotifications.ContainsKey( className ) == false)
+			{
+				savedNotifications[ className ] = new Dictionary<string, object>();
+			}
+
+			// Add the new property change notification
+			savedNotifications[ className ][propertyName] = sender;
 		}
 
 		/// <summary>
@@ -126,7 +136,7 @@ namespace CoreMP
 				index = path.LastIndexOf( '.' );
 				if ( index != -1 )
 				{
-					path = path.Substring( 0, index );
+					path = path[ ..index ];
 				}
 			}
 
@@ -138,10 +148,10 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		private static void Register( Type classType, DelegateContainer container, string filePath )
+		private static void Register( Type classType, DelegateContainer container, string uniqueId, string filePath )
 		{
-			// Get the file name (class name ) from the filePath
-			string callerClassName = GetFileNameWithoutExtension( filePath );
+			// Get the file name (class name ) from the filePath and any unique identity
+			string callerClassName = GetFileNameWithoutExtension( filePath ) + uniqueId;
 
 			registrations.AddValue( classType.Name, container );
 
@@ -151,11 +161,14 @@ namespace CoreMP
 			// If a notification for the class have already been stored then report it now
 			if ( savedNotifications.ContainsKey( classType.Name ) == true )
 			{
-				Tuple<object, string> notification = savedNotifications[ classType.Name ];
+				Dictionary<string, object> savedItems = savedNotifications[ classType.Name ];
 
-				if ( ( container.PropertyName == null ) || ( container.PropertyName == notification.Item2 ) )
+				foreach ( KeyValuePair<string, object> item in savedItems )
 				{
-					CoreMPApp.Post( () => container.Invoke( notification.Item1, notification.Item2 ) );
+					if ( ( container.PropertyName == null ) || ( container.PropertyName == item.Key ) )
+					{
+						CoreMPApp.Post( () => container.Invoke( item.Value, item.Key ) );
+					}
 				}
 			}
 		}
@@ -171,7 +184,11 @@ namespace CoreMP
 		private static readonly MultiDictionary<string, Tuple<string, DelegateContainer>> whoMadeRegistration =
 			new MultiDictionary<string, Tuple<string, DelegateContainer>>();
 
-		private static readonly Dictionary<string, Tuple<object, string>> savedNotifications = new Dictionary<string, Tuple<object, string>>();
+		/// <summary>
+		/// Dictionary of changed properties associated with notifying classes 
+		/// </summary>
+		private static readonly Dictionary<string, Dictionary<string, object>> savedNotifications = 
+			new Dictionary<string, Dictionary<string, object>>();
 
 		/// <summary>
 		/// The DelegateContainer class is used to contain delegate with differnt signatures

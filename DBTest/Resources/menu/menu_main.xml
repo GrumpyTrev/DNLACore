@@ -1,16 +1,36 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
-	<item
-		android:id="@+id/playback_info"
-		android:icon="@drawable/local_playback_no_wifi"
-		android:orderInCategory="1"
-		app:showAsAction="always"
-		android:title="Filter"/>
-	<item
-		android:id="@+id/playback_mode"
-		android:icon="@drawable/linear_play"
-		android:orderInCategory="2"
-		app:showAsAction="always"
-		android:title="Playback mode" />
+		<item
+			android:id="@+id/select_playback_device"
+			app:showAsAction="never"
+			android:title="Select audio"/>
+		<item
+			android:id="@+id/select_library"
+			app:showAsAction="never"
+			android:title="Select library"/>
+		<item
+			app:showAsAction="never"
+			android:title="Manage libraries">
+			<menu>
+				<item
+					android:id="@+id/edit_library"
+					android:title="Edit" />
+				<item
+					android:id="@+id/scan_library"
+					android:title="Scan" />
+				<item
+					android:id="@+id/clear_library"
+					android:title="Clear" />
+				<item
+					android:id="@+id/new_library"
+					android:title="New" />
+				<item
+					android:id="@+id/delete_library"
+					android:title="Delete" />
+				<item
+					android:id="@+id/synch_album_played"
+					android:title="Synch album status" />
+			</menu>
+		</item>
 </menu>

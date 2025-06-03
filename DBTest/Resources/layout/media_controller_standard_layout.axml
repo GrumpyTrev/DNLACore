@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:id="@+id/media_controller_standard_layout"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginLeft="@dimen/edge_margin"
+	android:layout_marginRight="@dimen/edge_margin"
+	android:background="@color/colorPageBackground" >
+	<ProgressBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		style="?android:attr/progressBarStyleHorizontal"
+		android:indeterminate="false"
+		android:progress="50"
+		android:id="@+id/progressBar" />
+
+	<RelativeLayout
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/progressBar"
+		android:layout_alignParentLeft="true"
+		android:layout_toLeftOf="@+id/textCurrentPosition"
+		>
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/media_controller_song_title"
+			android:ellipsize="marquee"
+			android:marqueeRepeatLimit="marquee_forever"
+			android:singleLine="true"
+			android:id="@+id/long_text"
+			android:textSize="@dimen/text_size_heading"
+			android:textColor="@color/colorNormalText" />
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/media_controller_artist"
+			android:layout_below="@+id/long_text"
+			android:id="@id/artistName"
+			android:textColor="@color/colorNormalText" />
+	</RelativeLayout>
+	<TextView
+		android:text="@string/media_controller_position"
+		android:textColor="@color/colorNormalText"
+		android:layout_width="40dp"
+		android:layout_height="wrap_content"
+		android:id="@+id/textCurrentPosition"
+		android:layout_toLeftOf="@+id/play"
+		android:layout_below="@+id/progressBar"
+		android:layout_margin="@dimen/mediaPositionPadding" 
+		/>
+	<ImageButton
+		android:layout_width="@dimen/mediaButtonSize"
+		android:layout_height="@dimen/mediaButtonSize"
+		android:src="@drawable/play"
+		android:layout_alignParentRight="true"
+		android:layout_below="@+id/progressBar"
+		android:background="@android:color/transparent"
+		android:scaleType="centerCrop"
+		android:id="@+id/play"
+		android:layout_marginTop="@dimen/mediaButtonTopMargin" />
+</RelativeLayout>

@@ -46,9 +46,9 @@ namespace CoreMP
 		/// <summary>
 		/// Property introduced to trigger a notification when changes to a playlist have been made
 		/// </summary>
-		public static void PlaylistUpdated( Playlist updatedPlaylist )
+		public static Playlist PlaylistUpdated
 		{
-			NotificationHandler.NotifyPropertyChanged( updatedPlaylist );
+			set => NotificationHandler.NotifyPropertyChanged( value );
 		}
 	}
 }

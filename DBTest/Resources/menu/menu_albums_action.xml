@@ -1,0 +1,24 @@
+﻿<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+	<item
+		android:id="@+id/play_now"
+		android:icon="@drawable/play_now"
+		app:showAsAction="ifRoom"
+		android:title="Play now"/>
+	<item
+		android:id="@+id/add_to_queue"
+		android:icon="@drawable/add_to_queue"
+		app:showAsAction="ifRoom"
+		android:title="Queue"/>
+	<item
+		android:id="@+id/add_to_playlist"
+		android:icon="@drawable/add_to_playlist"
+		app:showAsAction="ifRoom"
+		android:title="Add to playlist" />
+	<item
+		android:id="@+id/mark"
+		android:icon="@drawable/mark"
+		app:showAsAction="ifRoom"
+		android:title="Mark album" />
+</menu>

@@ -52,8 +52,8 @@ namespace CoreMP
 			// Adjust the track numbers
 			thePlaylist.AdjustTrackNumbers();
 
-			// Report the change
-			PlaylistsViewModel.PlaylistUpdated( thePlaylist );
+			// Update the model
+			PlaylistsViewModel.PlaylistUpdated = thePlaylist;
 		}
 
 		/// <summary>
@@ -110,7 +110,7 @@ namespace CoreMP
 			playlist.AddSongs( songsToAdd );
 
 			// Report the change
-			PlaylistsViewModel.PlaylistUpdated( playlist );
+			PlaylistsViewModel.PlaylistUpdated = playlist;
 		}
 
 		/// <summary>
@@ -130,7 +130,6 @@ namespace CoreMP
 			StorageDataAvailable();
 		}
 
-
 		/// <summary>
 		/// Add a list of Albums to a specified playlist
 		/// </summary>
@@ -141,7 +140,7 @@ namespace CoreMP
 			playlist.AddAlbums( albumsToAdd );
 
 			// Report the change
-			PlaylistsViewModel.PlaylistUpdated( playlist );
+			PlaylistsViewModel.PlaylistUpdated = playlist;
 		}
 
 		/// <summary>
@@ -170,7 +169,7 @@ namespace CoreMP
 		{
 			thePlaylist.MoveItemsDown( items );
 
-			PlaylistsViewModel.PlaylistUpdated( thePlaylist );
+			PlaylistsViewModel.PlaylistUpdated = thePlaylist;
 		}
 
 		/// <summary>
@@ -182,7 +181,7 @@ namespace CoreMP
 		{
 			thePlaylist.MoveItemsUp( items );
 
-			PlaylistsViewModel.PlaylistUpdated( thePlaylist );
+			PlaylistsViewModel.PlaylistUpdated = thePlaylist;
 		}
 
 		/// <summary>
@@ -236,7 +235,7 @@ namespace CoreMP
 		{
 			// Attempt to find matching songs for each SongPlaylistItem in the SongPlaylist
 			// Need to access the songs via the Sources associated with the Library
-			List<Source> sources = Libraries.GetLibraryById( libraryId ).LibrarySources.ToList(); ;
+			List<Source> sources = Libraries.GetLibraryById( libraryId ).LibrarySources.ToList();
 
 			// Keep track of the matching songs
 			List<Song> songsToAdd = new List<Song>();
@@ -407,7 +406,7 @@ namespace CoreMP
 		/// Called when a PlaylistUpdatedMessage has been received. Pass it on to the reporter
 		/// </summary>
 		/// <param name="message"></param>
-		private static void PlaylistUpdated( Playlist updatedPlaylist ) => PlaylistsViewModel.PlaylistUpdated( updatedPlaylist );
+		private static void PlaylistUpdated( Playlist updatedPlaylist ) => PlaylistsViewModel.PlaylistUpdated = updatedPlaylist;
 
 		/// <summary>
 		/// The previous song id that has been played

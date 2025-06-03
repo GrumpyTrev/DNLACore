@@ -244,7 +244,7 @@ namespace CoreMP
 		/// <summary>
 		/// Report that the current song has finished
 		/// </summary>
-		protected void ReportSongFinished() => Reporter.SongFinished();
+		protected void ReportSongFinished() => Reporter?.SongFinished();
 
 		/// <summary>
 		/// The instance used to report back significant events

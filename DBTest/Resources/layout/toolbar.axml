@@ -4,13 +4,61 @@
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:id="@+id/toolbar"
 	android:layout_width="match_parent"
-	android:layout_height="wrap_content">
-	<TextView
+	android:layout_height="wrap_content"
+	>
+	<RelativeLayout
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="@string/library"
-		android:id="@+id/toolbar_title"
-		android:textSize="@dimen/text_size_heading"
-		android:textColor="@color/colorNormalText"
-		android:maxLines="1" />
+	>
+		<RelativeLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/library_details"
+		>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:id="@+id/library_title"
+				android:text=" Library "
+				android:textSize="10dp"
+				android:textColor="@color/colorNormalText"
+				android:layout_centerVertical="true" 
+			/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/library"
+				android:id="@+id/library_name"
+				android:textSize="@dimen/text_size_heading"
+				android:textColor="@color/colorNormalText"
+				android:maxLines="1"
+				android:layout_toRightOf="@+id/library_title"
+			/>
+		</RelativeLayout>
+		<RelativeLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@+id/library_details" 
+		>
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/playback_title"
+			android:text=" Audio   "
+			android:textSize="10dp"
+			android:textColor="@color/colorNormalText"
+			android:layout_centerVertical="true" 
+		/>
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="local"
+			android:id="@+id/playback_audio"
+			android:textSize="@dimen/text_size_heading"
+			android:textColor="@color/colorNormalText"
+			android:maxLines="1"
+			android:layout_toRightOf="@+id/playback_title"
+			/>
+	</RelativeLayout>
+	</RelativeLayout>
 </android.support.v7.widget.Toolbar>

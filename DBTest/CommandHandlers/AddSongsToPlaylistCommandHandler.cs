@@ -38,7 +38,7 @@ namespace DBTest
 			CheckForCompleteAlbums();
 
 			// Create a Popup menu containing the song and album playlist names
-			PopupMenu playlistsMenu = new( commandButton.Context, commandButton );
+			PopupMenu playlistsMenu = new( commandContext, commandView );
 
 			// Add the fixed menu items with menu ids above the range used for the actual playlists
 			int nonPlaybackIndex = PlaylistsViewModel.Playlists.Count;

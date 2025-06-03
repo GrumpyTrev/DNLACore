@@ -11,38 +11,5 @@
 		android:fastScrollEnabled="true"
 		android:groupIndicator="@android:color/transparent"
 		android:layout_weight="1"/>
-	<android.support.v7.widget.Toolbar
-		android:id="@+id/bottomToolbar"
-		android:layout_width="fill_parent"
-		android:layout_height="?attr/actionBarSize"
-		android:layout_gravity="bottom"
-		android:background="?attr/colorPrimary"
-		android:theme="@style/AppTheme"
-		android:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-	
-		<include android:id="@+id/auto_gen"
-			layout="@layout/bottom_button"/>
-
-		<include android:id="@+id/duplicate"
-			layout="@layout/bottom_button"/>
-		
-		<include android:id="@+id/delete"
-			layout="@layout/bottom_button"/>
-		
-		<include android:id="@+id/rename"
-			layout="@layout/bottom_button"/>
-		
-		<include android:id="@+id/add_to_queue"
-			layout="@layout/bottom_button"/>
-		
-		<include android:id="@+id/play_now"
-			layout="@layout/bottom_button"/>
-		
-		<include android:id="@+id/move_up"
-			layout="@layout/bottom_button"/>
-		
-		<include android:id="@+id/move_down"
-			layout="@layout/bottom_button"/>
-		
-	</android.support.v7.widget.Toolbar>
+	<include layout="@layout/media_controller_standard_layout" />
 </LinearLayout>

@@ -1,6 +1,6 @@
 ﻿namespace DBTest
 {
-	static class NowPlayingAdapterModel
+	internal static class NowPlayingAdapterModel
 	{
 		/// <summary>
 		/// The index of the song currently being played

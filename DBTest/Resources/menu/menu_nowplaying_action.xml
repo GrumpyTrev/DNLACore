@@ -1,0 +1,24 @@
+﻿<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+	<item
+		android:id="@+id/add_to_playlist"
+		android:icon="@drawable/add_to_playlist"
+		app:showAsAction="ifRoom"
+		android:title="Add to playlist" />
+	<item
+		android:id="@+id/move_up"
+		android:icon="@drawable/move_up"
+		app:showAsAction="ifRoom"
+		android:title="Move up" />
+	<item
+		android:id="@+id/move_down"
+		android:icon="@drawable/move_down"
+		app:showAsAction="ifRoom"
+		android:title="Move down" />
+	<item
+		android:id="@+id/delete"
+		android:icon="@drawable/delete"
+		app:showAsAction="ifRoom"
+		android:title="Delete" />
+</menu>

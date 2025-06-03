@@ -6,8 +6,12 @@
 	<dimen name="artistGenreMargin">20dp</dimen>
 	<dimen name="albumSongMargin">15dp</dimen>
 	<dimen name="text_size_heading">20dp</dimen>
+	<dimen name="text_size_normal">15dp</dimen>
 	<dimen name="text_size_toolbar">20dp</dimen>
 	<dimen name="toolbarButtonVerticalPadding">5dp</dimen>
 	<dimen name="toolbarButtonHorizontalPadding">-12dp</dimen>
 	<dimen name="backButtonPadding">10dp</dimen>
+	<dimen name="mediaPositionPadding">10dp</dimen>
+	<dimen name="mediaButtonSize">35dp</dimen>
+	<dimen name="mediaButtonTopMargin">4dp</dimen>
 </resources>

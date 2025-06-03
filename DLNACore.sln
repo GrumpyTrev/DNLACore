@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30717.126
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBTest", "DBTest\DBTest.csproj", "{5554DC43-0DD5-486A-B38E-A5F36C855134}"
 EndProject
@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreMP", "CoreMP\CoreMP.csproj", "{B211F80E-2192-4C9B-8540-5A53597432B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreMP", "CoreMP\CoreMP.csproj", "{98A5FACC-59FB-4034-9475-6BDED77586C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,14 +32,14 @@ Global
 		{5554DC43-0DD5-486A-B38E-A5F36C855134}.Release|x86.ActiveCfg = Release|Any CPU
 		{5554DC43-0DD5-486A-B38E-A5F36C855134}.Release|x86.Build.0 = Release|Any CPU
 		{5554DC43-0DD5-486A-B38E-A5F36C855134}.Release|x86.Deploy.0 = Release|Any CPU
-		{B211F80E-2192-4C9B-8540-5A53597432B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B211F80E-2192-4C9B-8540-5A53597432B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B211F80E-2192-4C9B-8540-5A53597432B5}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B211F80E-2192-4C9B-8540-5A53597432B5}.Debug|x86.Build.0 = Debug|Any CPU
-		{B211F80E-2192-4C9B-8540-5A53597432B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B211F80E-2192-4C9B-8540-5A53597432B5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B211F80E-2192-4C9B-8540-5A53597432B5}.Release|x86.ActiveCfg = Release|Any CPU
-		{B211F80E-2192-4C9B-8540-5A53597432B5}.Release|x86.Build.0 = Release|Any CPU
+		{98A5FACC-59FB-4034-9475-6BDED77586C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98A5FACC-59FB-4034-9475-6BDED77586C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98A5FACC-59FB-4034-9475-6BDED77586C5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{98A5FACC-59FB-4034-9475-6BDED77586C5}.Debug|x86.Build.0 = Debug|Any CPU
+		{98A5FACC-59FB-4034-9475-6BDED77586C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98A5FACC-59FB-4034-9475-6BDED77586C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98A5FACC-59FB-4034-9475-6BDED77586C5}.Release|x86.ActiveCfg = Release|Any CPU
+		{98A5FACC-59FB-4034-9475-6BDED77586C5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -28,7 +28,7 @@ namespace CoreMP
 			// Only process this if the library has changed
 			if ( selectedLibrary.Id != ConnectionDetailsModel.LibraryId )
 			{
-				Playback.SingletonLibraryId = selectedLibrary.Id;
+				Playback.LibraryIdentity = selectedLibrary.Id;
 				ConnectionDetailsModel.LibraryId = selectedLibrary.Id;
 				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary.Id }.Send();
 
@@ -134,10 +134,7 @@ namespace CoreMP
 					if ( songsInArtAlbum.Count > 0 )
 					{
 						// Make sure that this ArtistAlbum's Songs collection is populated
-						if ( artAlbum.Songs == null )
-						{
-							artAlbum.Songs = Songs.GetArtistAlbumSongs( artAlbum.Id );
-						}
+						artAlbum.Songs ??= Songs.GetArtistAlbumSongs( artAlbum.Id );
 
 						// Have all the songs in the ArtistAlbum been deleted
 						if ( songsInArtAlbum.Count == artAlbum.Songs.Count )
@@ -150,7 +147,7 @@ namespace CoreMP
 							// No, delete the individual songs from the ArtistAlbum
 							foreach ( Song songToDelete in songsInArtAlbum )
 							{
-								artAlbum.Songs.Remove( songToDelete );
+								_ = artAlbum.Songs.Remove( songToDelete );
 							}
 						}
 
@@ -166,7 +163,7 @@ namespace CoreMP
 							// Remove the songs from the associated Album
 							foreach ( Song songToDelete in songsInArtAlbum )
 							{
-								artAlbum.Album.Songs.Remove( songToDelete );
+								_ = artAlbum.Album.Songs.Remove( songToDelete );
 							}
 						}
 					}
@@ -180,7 +177,7 @@ namespace CoreMP
 					// Remove these ArtistAlbums from the Artists and delete any subsequently empty Artists
 					foreach ( ArtistAlbum artAlbum in artAlbumsToDelete )
 					{
-						artAlbum.Artist.ArtistAlbums.Remove( artAlbum );
+						_ = artAlbum.Artist.ArtistAlbums.Remove( artAlbum );
 
 						if ( artAlbum.Artist.ArtistAlbums.Count == 0 )
 						{
@@ -293,13 +290,6 @@ namespace CoreMP
 			{
 				Songs.DeleteSongs( Songs.GetSourceSongs( source.Id ) );
 				source.Songs = null;
-			}
-
-			// Delete the autoplay record associated with this library
-			Autoplay autoplayForLibrary = Autoplays.AutoplayCollection.SingleOrDefault( auto => auto.LibraryId == libId );
-			if ( autoplayForLibrary != null )
-			{
-				Autoplays.DeleteAutoplay( autoplayForLibrary );
 			}
 		}
 

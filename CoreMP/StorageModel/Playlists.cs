@@ -92,7 +92,7 @@ namespace CoreMP
 			// TEST
 			if ( playlistToDelete != null )
 			{
-				PlaylistCollection.Remove( playlistToDelete );
+				_ = PlaylistCollection.Remove( playlistToDelete );
 
 				playlistToDelete.Clear();
 

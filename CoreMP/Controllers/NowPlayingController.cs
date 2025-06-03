@@ -221,7 +221,7 @@ namespace CoreMP
 		/// <param name="message"></param>
 		private void ShuffleModeChanged()
 		{
-			if ( Playback.SingletonShufflePlayOn == true )
+			if ( Playback.ShuffleOn == true )
 			{
 				ShufflePlaylistItems();
 			}
@@ -264,10 +264,10 @@ namespace CoreMP
 				// Play the next song
 				NowPlayingViewModel.CurrentSongIndex++;
 			}
-			else if ( ( Playback.SingletonRepeatPlayOn == true ) && ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
+			else if ( ( Playback.RepeatOn == true ) && ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
 			{
 				// If shuffle mode is on then shuffle the items before playing them
-				if ( Playback.SingletonShufflePlayOn == true )
+				if ( Playback.ShuffleOn == true )
 				{
 					ShufflePlaylistItems();
 				}
@@ -295,16 +295,14 @@ namespace CoreMP
 		/// <param name="songs"></param>
 		private List<Song> ApplyShuffle( List<Song> songs )
 		{
-			if ( Playback.SingletonShufflePlayOn == true )
+			if ( Playback.ShuffleOn == true )
 			{
 				int n = songs.Count;
 				while ( n > 1 )
 				{
 					n--;
 					int k = rng.Next( n + 1 );
-					Song value = songs[ k ];
-					songs[ k ] = songs[ n ];
-					songs[ n ] = value;
+					(songs[ n ], songs[ k ]) = (songs[ k ], songs[ n ]);
 				}
 			}
 

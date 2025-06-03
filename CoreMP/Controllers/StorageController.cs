@@ -28,10 +28,8 @@ namespace CoreMP
 			Libraries.CollectionLoaded();
 			Playback.CollectionLoaded();
 			await Playlists.GetDataAsync();
-			await Autoplays.GetDataAsync();
 			await Tags.GetDataAsync();
 			await TaggedAlbums.GetDataAsync();
-			await GenrePopulations.GetDataAsync();
 
 			// Carry out some one-off data linking
 			await PopulateArtistsAsync();
