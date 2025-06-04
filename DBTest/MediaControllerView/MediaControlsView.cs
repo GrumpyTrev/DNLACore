@@ -76,15 +76,11 @@ namespace DBTest
 					shuffleButton.Click += ( _, _ ) => MainApp.CommandInterface.SetShuffle( !MediaControllerViewModel.ShuffleOn );
 				}
 
-				// Assume no playback device available at startup. Hide everything
-				DeviceAvailable();
-
 				// Display the appropriate playing/not playing icons 
 				PlayStateChanged();
 
 				// Register interest in MediaControllerViewModel changes
 				NotificationHandler.Register( typeof( MediaControllerViewModel ), "IsSet", ModelDataAvailable, InstanceId.ToString() );
-				NotificationHandler.Register( typeof( MediaControllerViewModel ), "PlaybackDeviceAvailable", DeviceAvailable, InstanceId.ToString() );
 				NotificationHandler.Register( typeof( MediaControllerViewModel ), "IsPlaying", PlayStateChanged, InstanceId.ToString() );
 				NotificationHandler.Register( typeof( MediaControllerViewModel ), "CurrentPosition", SetProgress, InstanceId.ToString() );
 				NotificationHandler.Register( typeof( MediaControllerViewModel ), "SongPlaying", SongPlaying, InstanceId.ToString() );
@@ -97,11 +93,6 @@ namespace DBTest
 				NotificationHandler.Deregister( InstanceId.ToString() );
 			}
 		}
-
-		/// <summary>
-		/// Called when the choosen playback device is either detected as either available or not available
-		/// </summary>
-		private void DeviceAvailable() => mainLayout.Visibility = MediaControllerViewModel.PlaybackDeviceAvailable == true ? ViewStates.Visible : ViewStates.Gone;
 
 		/// <summary>
 		/// Called when the play state has changed
@@ -151,7 +142,6 @@ namespace DBTest
 		{
 			SetProgress();
 			PlayStateChanged();
-			DeviceAvailable();
 		}
 
 		/// <summary>

@@ -14,43 +14,44 @@ namespace CoreMP
 		/// </summary>
 		public PlaybackSelectionController() =>	NotificationHandler.Register( typeof( StorageController ), () =>
 		{
-			StorageDataAvailable();
+			// Initialise the locally held devices collection to hold the 'local' device and the currently available remote devices
+			PlaybackSelectionModel.PlaybackCapableDevices = DevicesModel.RemoteDevices.PlaybackDeviceCollection.ToList();
+			UpdateSelectedDevice();
 
 			// Once data is available register for DevicesModel change messages
-			NotificationHandler.Register( typeof( DevicesModel ), "WifiAvailable", ( sender, propertyName ) =>
-			{
-				PlaybackSelectionModel.WifiAvailable = DevicesModel.WifiAvailable;
-
-				// Report that the Playback Selection model has changed
-				PlaybackSelectionModel.Available.IsSet = true;
-			} );
-
-			NotificationHandler.Register( typeof( DevicesModel ), "PlaybackDeviceCollectionChanged", ( sender, propertyName ) =>
+			NotificationHandler.Register( typeof( DevicesModel ), "PlaybackDeviceCollectionChanged", ( sender, _ ) =>
 			{
 				// Update the model with the DevicesModel playback devices
 				PlaybackSelectionModel.PlaybackCapableDevices = DevicesModel.RemoteDevices.PlaybackDeviceCollection.ToList();
 
 				NotifyCollectionChangedEventArgs args = ( NotifyCollectionChangedEventArgs )sender;
-				if ( args.Action == NotifyCollectionChangedAction.Add )
-				{
-					foreach ( object device in args.NewItems )
-					{
-						NewDeviceDetected( ( PlaybackDevice )device );
-					}
-				}
-				else if ( args.Action == NotifyCollectionChangedAction.Remove )
+				if ( args.Action == NotifyCollectionChangedAction.Remove )
 				{
 					foreach ( object device in args.OldItems )
 					{
-						DeviceNotAvailable( ( PlaybackDevice )device );
+						// If this device is currently selected then revert to the local device
+						if ( DevicesModel.SelectedDevice == device )
+						{
+							DevicesModel.SelectedDevice = DevicesModel.RemoteDevices.LocalDevice;
+						}
 					}
 				}
+				else if ( args.Action == NotifyCollectionChangedAction.Reset )
+				{
+					// All of the devices have been removed. revert to the local device
+					DevicesModel.SelectedDevice = DevicesModel.RemoteDevices.LocalDevice;
+				}
+
+				// Report that the model has changed
+				PlaybackSelectionModel.Available.IsSet = true;
 			} );
+
+			NotificationHandler.Register( typeof( DevicesModel ), "SelectedDevice", UpdateSelectedDevice );
 		} );
 
 		/// <summary>
 		/// Called when the user has selected a new playback device
-		/// Save it in the model and report it
+		/// Save the selection in the DevicesModel
 		/// </summary>
 		/// <param name="deviceName"></param>
 		public void SetSelectedPlayback( string deviceName )
@@ -59,60 +60,19 @@ namespace CoreMP
 			if ( selectedDevice != null )
 			{
 				// Save in storage
-				PlaybackSelectionModel.SelectedDeviceName = selectedDevice.FriendlyName;
-				PlaybackSelectionModel.SelectedDevice = selectedDevice;
-
-				// Report that the Playback Selection model has changed
-				PlaybackSelectionModel.Available.IsSet = true;
+				DevicesModel.SelectedDevice = selectedDevice;
 			}
 		}
 
 		/// <summary>
-		/// Called when the Playback details have been read in from storage
+		/// Called at startup and when the selected device has changed
 		/// </summary>
-		/// <param name="message"></param>
-		private void StorageDataAvailable()
+		private void UpdateSelectedDevice()
 		{
-			// Initialise the locally held devices collection to hold the 'local' device and the currently available remote devices
-			PlaybackSelectionModel.PlaybackCapableDevices = DevicesModel.RemoteDevices.PlaybackDeviceCollection.ToList();
+			// Save in the PlaybackSelectionModel
+			PlaybackSelectionModel.SelectedDeviceName = DevicesModel.SelectedDevice.FriendlyName;
 
-			// Select the local device
-			PlaybackSelectionModel.SelectedDeviceName = PlaybackDevices.LocalDeviceName;
-			PlaybackSelectionModel.SelectedDevice = PlaybackSelectionModel.PlaybackCapableDevices.Single( dev => dev.FriendlyName == PlaybackSelectionModel.SelectedDeviceName );
-
-			// Report that the Playback Selection modelis available
-			PlaybackSelectionModel.Available.IsSet = true;
-		}
-
-		/// <summary>
-		/// Called when a new remote media device has been detected
-		/// </summary>
-		/// <param name="device"></param>
-		private void NewDeviceDetected( PlaybackDevice device )
-		{
-			// If this device is the currently selected device then report it as available
-			if ( device.FriendlyName == PlaybackSelectionModel.SelectedDeviceName )
-			{
-				PlaybackSelectionModel.SelectedDevice = device;
-			}
-
-			// Report that the Playback Selection model has changed
-			PlaybackSelectionModel.Available.IsSet = true;
-		}
-
-		/// <summary>
-		/// Called when a previously available device is no longer available
-		/// </summary>
-		/// <param name="device"></param>
-		private void DeviceNotAvailable( PlaybackDevice device )
-		{
-			// If this device is currently selected then report that there is no selected device
-			if ( PlaybackSelectionModel.SelectedDevice == device )
-			{
-				PlaybackSelectionModel.SelectedDevice = null;
-			}
-
-			// Report that the Playback Selection model has changed
+			// Report that the PlaybackSelectionModel has changed
 			PlaybackSelectionModel.Available.IsSet = true;
 		}
 	}

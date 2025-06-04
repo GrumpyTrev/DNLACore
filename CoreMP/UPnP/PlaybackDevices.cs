@@ -13,18 +13,7 @@ namespace CoreMP
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public PlaybackDevices()
-		{
-			// Create a device for local playback and add it to the playback collection
-			localDevice = new PlaybackDevice()
-			{
-				CanPlayMedia = PlaybackDevice.CanPlayMediaType.Yes,
-				IsLocal = true,
-				FriendlyName = LocalDeviceName
-			};
-
-			PlaybackDeviceCollection.Add( localDevice );
-		}
+		public PlaybackDevices() => PlaybackDeviceCollection.Add( LocalDevice );
 
 		/// <summary>
 		/// Add a device to the collection(s) if it is unique
@@ -59,9 +48,9 @@ namespace CoreMP
 		/// <param name="device"></param>
 		public void RemoveDevice( PlaybackDevice device )
 		{
-			DeviceCollection.Remove( device );
-			PlaybackDeviceCollection.Remove( device );
-			BrowseableDeviceCollection.Remove( device );
+			_ = DeviceCollection.Remove( device );
+			_ = PlaybackDeviceCollection.Remove( device );
+			_ = BrowseableDeviceCollection.Remove( device );
 		}
 
 		/// <summary>
@@ -71,7 +60,7 @@ namespace CoreMP
 		{
 			DeviceCollection.Clear();
 			PlaybackDeviceCollection.Clear();
-			PlaybackDeviceCollection.Add( localDevice );
+			PlaybackDeviceCollection.Add( LocalDevice );
 			BrowseableDeviceCollection.Clear();
 		}
 
@@ -100,15 +89,18 @@ namespace CoreMP
 		public ObservableCollection<PlaybackDevice> BrowseableDeviceCollection { get; set; } = new ObservableCollection<PlaybackDevice>();
 
 		/// <summary>
+		/// Create and allow access to the PlaybackDevice for local playback
+		/// </summary>
+		public PlaybackDevice LocalDevice { get; } = new PlaybackDevice()
+		{
+			CanPlayMedia = PlaybackDevice.CanPlayMediaType.Yes,
+			IsLocal = true,
+			FriendlyName = "Local playback"
+		};
+
+		/// <summary>
 		/// The collection of all discovered devices
 		/// </summary>
 		private List<PlaybackDevice> DeviceCollection { get; set; } = new List<PlaybackDevice>();
-
-		private readonly PlaybackDevice localDevice = null;
-
-		/// <summary>
-		/// The name of the one and only local device
-		/// </summary>
-		public const string LocalDeviceName = "Local playback";
 	}
 }

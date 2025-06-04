@@ -27,8 +27,7 @@ namespace CoreMP
 
 			// Register for the main data available event.
 			NotificationHandler.Register( typeof( StorageController ), () => StorageDataAvailable() );
-
-			NotificationHandler.Register( typeof( PlaybackSelectionModel ), "SelectedDevice", DeviceAvailable );
+			NotificationHandler.Register( typeof( DevicesModel ), "SelectedDevice", DeviceAvailable );
 			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
 			PlaySongMessage.Register( PlaySong );
 		}
@@ -39,7 +38,10 @@ namespace CoreMP
 		private void StorageDataAvailable()
 		{
 			// Get the sources associated with the library
-			PlaybackManagerModel.Sources = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).LibrarySources.ToList();
+			PlaybackManagerModel.Sources = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).LibrarySources;
+
+			// Select a device at startup
+			PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
 
 			PlaybackManagerModel.DataValid = true;
 
@@ -80,9 +82,9 @@ namespace CoreMP
 			PlaybackDevice oldDevice = PlaybackManagerModel.AvailableDevice;
 
 			// Check for no new device
-			if ( PlaybackSelectionModel.SelectedDevice == null )
+			if ( DevicesModel.SelectedDevice == null )
 			{
-				// If there was an exisiting availabel device then repoprt this change
+				// If there was an existing available device then report this change
 				if ( oldDevice != null )
 				{
 					PlaybackManagerModel.AvailableDevice = null;
@@ -92,20 +94,20 @@ namespace CoreMP
 			// If there was no available device then save the new device and report the change
 			else if ( oldDevice == null )
 			{
-				PlaybackManagerModel.AvailableDevice = PlaybackSelectionModel.SelectedDevice;
+				PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
 				router.SelectPlaybackDevice( oldDevice );
 			}
 			// If the old and new are different type (local/remote) then report the change
-			else if ( oldDevice.IsLocal != PlaybackSelectionModel.SelectedDevice.IsLocal )
+			else if ( oldDevice.IsLocal != DevicesModel.SelectedDevice.IsLocal )
 			{
-				PlaybackManagerModel.AvailableDevice = PlaybackSelectionModel.SelectedDevice;
+				PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
 				router.SelectPlaybackDevice( oldDevice );
 			}
 			// If both devices are remote but different then report the change
-			else if ( ( oldDevice.IsLocal == false ) && ( PlaybackSelectionModel.SelectedDevice.IsLocal == false ) &&
-				( oldDevice.FriendlyName != PlaybackSelectionModel.SelectedDevice.FriendlyName ) )
+			else if ( ( oldDevice.IsLocal == false ) && ( DevicesModel.SelectedDevice.IsLocal == false ) &&
+				( oldDevice.FriendlyName != DevicesModel.SelectedDevice.FriendlyName ) )
 			{
-				PlaybackManagerModel.AvailableDevice = PlaybackSelectionModel.SelectedDevice;
+				PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
 				router.SelectPlaybackDevice( oldDevice );
 			}
 		}

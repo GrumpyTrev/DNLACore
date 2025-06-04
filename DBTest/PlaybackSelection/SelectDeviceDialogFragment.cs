@@ -18,7 +18,7 @@ namespace DBTest
 	internal class SelectDeviceDialogFragment : DialogFragment
 	{
 		/// <summary>
-		/// Save the playlist and display the dialogue
+		/// Save the callbacks and display the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
 		public static void ShowFragment( FragmentManager manager, DeviceSelected callback, BindDialog bindCallback )
@@ -33,9 +33,7 @@ namespace DBTest
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public SelectDeviceDialogFragment()
-		{
-		}
+		public SelectDeviceDialogFragment() {}
 
 		/// <summary>
 		/// Create the dialogue	
@@ -44,9 +42,7 @@ namespace DBTest
 		/// <returns></returns>
 		public override Dialog OnCreateDialog( Bundle savedInstanceState )
 		{
-			// Lookup the currently selected device in the collection of device to get its index
-			devices = PlaybackSelectionModel.PlaybackCapableDevices.Select( dev => dev.FriendlyName ).ToList();
-			initialDeviceIndex = devices.IndexOf( PlaybackSelectionModel.SelectedDeviceName );
+			InitialiseDeviceList();
 
 			return new AlertDialog.Builder( Activity )
 				.SetTitle( "Select playback device" )
@@ -65,7 +61,7 @@ namespace DBTest
 						Dismiss();
 					} ) )
 				.SetNegativeButton( "Cancel", delegate { } )
-				.Create(); ;
+				.Create();
 		}
 
 		/// <summary>
@@ -99,14 +95,14 @@ namespace DBTest
 				AlertDialog alert = ( AlertDialog )Dialog;
 				ArrayAdapter<string> adapter = ( ArrayAdapter<string> )alert.ListView.Adapter;
 
+				InitialiseDeviceList();
+
 				// Clear and then reload the data
 				adapter.Clear();
-				devices = PlaybackSelectionModel.PlaybackCapableDevices.Select( dev => dev.FriendlyName ).ToList();
 				adapter.AddAll( devices );
 				adapter.NotifyDataSetChanged();
 
-				// This may have changed the index of the currently selected device, so work it out and tell the ListView
-				initialDeviceIndex = devices.IndexOf( PlaybackSelectionModel.SelectedDeviceName );
+				// This may have changed the index of the currently selected device, so tell the ListView
 				alert.ListView.SetSelection( initialDeviceIndex );
 			}
 		}
@@ -115,6 +111,15 @@ namespace DBTest
 		/// Delegate type used to report back the selected device
 		/// </summary>
 		public delegate void DeviceSelected( string selectedDevice );
+
+		/// <summary>
+		/// Initialise the device list from the PlaybackSelectionModel
+		/// </summary>
+		private void InitialiseDeviceList()
+		{
+			devices = PlaybackSelectionModel.PlaybackCapableDevices.Select( dev => dev.FriendlyName ).ToList();
+			initialDeviceIndex = devices.IndexOf( PlaybackSelectionModel.SelectedDeviceName );
+		}
 
 		/// <summary>
 		/// The delegate to call when a playback device has been selected

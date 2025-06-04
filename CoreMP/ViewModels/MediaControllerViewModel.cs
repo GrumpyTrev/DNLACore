@@ -8,20 +8,6 @@
 		public static ModelAvailable Available { get; } = new ModelAvailable();
 
 		/// <summary>
-		/// Is there a playback device currently available
-		/// </summary>
-		private static bool playbackDeviceAvailable = false;
-		public static bool PlaybackDeviceAvailable
-		{
-			get => playbackDeviceAvailable;
-			set
-			{
-				playbackDeviceAvailable = value;
-				NotificationHandler.NotifyPropertyChangedPersistent( null );
-			}
-		}
-
-		/// <summary>
 		/// The current playback position in milliseconds
 		/// </summary>
 		private static int currentPosition = 0;

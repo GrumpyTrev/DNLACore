@@ -15,8 +15,6 @@
 				MediaControllerViewModel.CurrentPosition = currentPosition;
 				MediaControllerViewModel.Duration = duration;
 			});
-			NotificationHandler.Register( typeof( PlaybackSelectionModel ), "SelectedDevice", 
-				() => MediaControllerViewModel.PlaybackDeviceAvailable = ( PlaybackSelectionModel.SelectedDevice != null) );
 
 			MediaPlayingMessage.Register( ( isPlaying ) => MediaControllerViewModel.IsPlaying = isPlaying );
 			SongFinishedMessage.Register( ( _ ) => MediaControllerViewModel.SongPlaying = null );

@@ -8,15 +8,12 @@
 		/// <summary>
 		/// Register for the generic StorageController data available as well as specific items
 		/// </summary>
-		public SummaryDetailsDisplayController()
+		public SummaryDetailsDisplayController() => NotificationHandler.Register( typeof( StorageController ), () =>
 		{
-			NotificationHandler.Register( typeof( StorageController ), () =>
-			{
-				UpdateSummaryModel();
-				NotificationHandler.Register( typeof( Playback ), "LibraryIdentity", UpdateSummaryModel );
-				NotificationHandler.Register( typeof( PlaybackSelectionModel ), UpdateSummaryModel );
-			} );
-		}
+			UpdateSummaryModel();
+			NotificationHandler.Register( typeof( Playback ), "LibraryIdentity", UpdateSummaryModel );
+			NotificationHandler.Register( typeof( DevicesModel ), "SelectedDevice", UpdateSummaryModel );
+		} );
 
 		/// <summary>
 		/// Called during startup when the storage data is available and when specific model items have changed
@@ -24,7 +21,7 @@
 		private void UpdateSummaryModel()
 		{
 			SummaryDisplayViewModel.LibraryName = Libraries.GetLibraryById( Playback.LibraryIdentity ).Name;
-			SummaryDisplayViewModel.PlaybackName = PlaybackSelectionModel.SelectedDeviceName;
+			SummaryDisplayViewModel.PlaybackName = DevicesModel.SelectedDevice.FriendlyName.Split(' ')[0];
 		}
 	}
 }

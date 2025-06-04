@@ -37,14 +37,19 @@ namespace CoreMP
 		/// <summary>
 		/// Is the wifi network available
 		/// </summary>
-		private static bool wifiAvailable = false;
-		public static bool WifiAvailable
+		public static bool WifiAvailable { get; set; }
+
+		/// <summary>
+		/// The currently selected playback device. Initialised to the local device
+		/// </summary>
+		private static PlaybackDevice selectedDevice = RemoteDevices.LocalDevice;
+		public static PlaybackDevice SelectedDevice
 		{
-			get => wifiAvailable;
+			get => selectedDevice;
 			set
 			{
-				wifiAvailable = value;
-				NotificationHandler.NotifyPropertyChangedPersistent( null );
+				selectedDevice = value;
+				NotificationHandler.NotifyPropertyChanged( null );
 			}
 		}
 	}

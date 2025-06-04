@@ -37,12 +37,12 @@ namespace CoreMP
 
 				if ( DevicesModel.WifiAvailable == true )
 				{
-					scanTimer.Change( 0, TimerPeriod );
+					_ = scanTimer.Change( 0, TimerPeriod );
 				}
 				else
 				{
 					// Turn off the timer
-					scanTimer.Change( Timeout.Infinite, Timeout.Infinite );
+					_ = scanTimer.Change( Timeout.Infinite, Timeout.Infinite );
 
 					// Clear all the available devices
 					DevicesModel.RemoteDevices.Clear();
