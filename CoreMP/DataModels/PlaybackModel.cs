@@ -1,12 +1,10 @@
 ﻿namespace CoreMP
 {
 	/// <summary>
-	/// The MediaControllerViewModel holds the status information for the Media Controller View
+	/// The PlaybackModel holds details of the song being played. This includes the playback position.
 	/// </summary>
-	public static class MediaControllerViewModel
+	public static class PlaybackModel
 	{
-		public static ModelAvailable Available { get; } = new ModelAvailable();
-
 		/// <summary>
 		/// The current playback position in milliseconds
 		/// </summary>
@@ -36,13 +34,12 @@
 		}
 
 		/// <summary>
-		/// The current song being played
+		/// The current song being played (null indicates no song is currently being played)
 		/// </summary>
 		private static Song songPlaying = null;
 		public static Song SongPlaying
 		{
-			get => songPlaying; 
-			set
+			get => songPlaying; set
 			{
 				songPlaying = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );
@@ -55,38 +52,9 @@
 		private static bool isPlaying = false;
 		public static bool IsPlaying
 		{
-			get => isPlaying; 
-			set
+			get => isPlaying; set
 			{
 				isPlaying = value;
-				NotificationHandler.NotifyPropertyChangedPersistent( null );
-			}
-		}
-
-		/// <summary>
-		/// Is repeat mode on
-		/// </summary>
-		private static bool repeatOn = false;
-		public static bool RepeatOn
-		{
-			get => repeatOn; 
-			set
-			{
-				repeatOn = value;
-				NotificationHandler.NotifyPropertyChangedPersistent( null );
-			}
-		}
-
-		/// <summary>
-		/// Is shuffle mode on
-		/// </summary>
-		private static bool suffleOn = false;
-		public static bool ShuffleOn
-		{
-			get => suffleOn; 
-			set
-			{
-				suffleOn = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );
 			}
 		}

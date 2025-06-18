@@ -6,6 +6,8 @@
 
 	<ItemGroup>
 	  <Compile Remove="Controllers\AutoplayController.cs" />
+	  <Compile Remove="Messages\MediaPlayingMessage.cs" />
+	  <Compile Remove="Messages\MediaProgressMessage.cs" />
 	  <Compile Remove="StorageModel\Autoplay.cs" />
 	  <Compile Remove="StorageModel\Autoplays.cs" />
 	  <Compile Remove="StorageModel\GenrePopulation.cs" />

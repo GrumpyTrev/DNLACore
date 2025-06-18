@@ -10,43 +10,45 @@
 		/// </summary>
 		public static ModelAvailable Available { get; } = new ModelAvailable();
 
+		/// <summary>
 		/// The Now Playing playlist that has been obtained from the database
 		/// </summary>
-		public static SongPlaylist NowPlayingPlaylist { get; set; } = null;
+		public static SongPlaylist NowPlayingPlaylist { get; internal set; } = null;
 
 		/// <summary>
 		/// Property introduced to trigger a notification when changes to the playlist have been made (and completed)
 		/// </summary>
-		public static bool PlaylistUpdated
+		internal static bool PlaylistUpdated
 		{
 			set => NotificationHandler.NotifyPropertyChanged( null );
 		}
 
 		/// <summary>
-		/// The index of the song currently being played
+		///  The index of the song currently being played
 		/// </summary>
+		private static int currentSongIndex = -1;
 		public static int CurrentSongIndex
 		{
-			get => Playlists.CurrentSongIndex;
-			set
+			get => currentSongIndex;
+			internal set
 			{
-				Playlists.CurrentSongIndex = value;
-
-				CurrentSong = ( ( Playlists.CurrentSongIndex == -1 ) || ( NowPlayingPlaylist == null ) ) ? null :
-					( ( SongPlaylistItem )NowPlayingPlaylist.PlaylistItems[ Playlists.CurrentSongIndex ] ).Song;
-
-				NotificationHandler.NotifyPropertyChanged( null );
+				currentSongIndex = value;
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
 			}
 		}
 
 		/// <summary>
-		/// The current song being played
+		/// Is the song currently being played
 		/// </summary>
-		public static Song CurrentSong { get; set; } = null;
-
-		/// <summary>
-		/// The id of the library for which a list of artists have been obtained
-		/// </summary>
-		public static int LibraryId { get; set; } = -1;
+		private static bool isPlaying = false;
+		public static bool IsPlaying
+		{
+			get => isPlaying;
+			internal set
+			{
+				isPlaying = value;
+				NotificationHandler.NotifyPropertyChangedPersistent( null );
+			}
+		}
 	}
 }

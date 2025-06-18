@@ -10,21 +10,22 @@
 		/// </summary>
 		public MediaControllerController()
 		{
-			MediaProgressMessage.Register( ( currentPosition, duration ) =>
+			NotificationHandler.Register( typeof( PlaybackModel ), () =>
 			{
-				MediaControllerViewModel.CurrentPosition = currentPosition;
-				MediaControllerViewModel.Duration = duration;
-			});
-
-			MediaPlayingMessage.Register( ( isPlaying ) => MediaControllerViewModel.IsPlaying = isPlaying );
-			SongFinishedMessage.Register( ( _ ) => MediaControllerViewModel.SongPlaying = null );
-			NotificationHandler.Register( typeof( Playlists ), () => MediaControllerViewModel.SongPlaying = NowPlayingViewModel.CurrentSong );
-			NotificationHandler.Register( typeof( StorageController ), () => MediaControllerViewModel.Available.IsSet = true );
-			NotificationHandler.Register( typeof( PlaybackModeModel ), () =>
-			{
-				MediaControllerViewModel.RepeatOn = PlaybackModeModel.RepeatOn;
-				MediaControllerViewModel.ShuffleOn = PlaybackModeModel.ShuffleOn;
+				MediaControllerViewModel.CurrentPosition = PlaybackModel.CurrentPosition;
+				MediaControllerViewModel.Duration = PlaybackModel.Duration;
+				MediaControllerViewModel.SongPlaying = PlaybackModel.SongPlaying;
 			} );
+
+			NotificationHandler.Register( typeof( Playback ), () =>
+			{
+				MediaControllerViewModel.RepeatOn = Playback.RepeatOn;
+				MediaControllerViewModel.ShuffleOn = Playback.ShuffleOn;
+			} );
+
+			NotificationHandler.Register( typeof( PlaybackModel ), "IsPlaying", ()=> MediaControllerViewModel.IsPlaying = PlaybackModel.IsPlaying );
+			SongFinishedMessage.Register( ( _ ) => MediaControllerViewModel.SongPlaying = null );
+			NotificationHandler.Register( typeof( StorageController ), () => MediaControllerViewModel.Available.IsSet = true );
 		}
 	}
 }

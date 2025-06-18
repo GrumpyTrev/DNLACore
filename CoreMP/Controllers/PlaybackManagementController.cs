@@ -27,9 +27,8 @@ namespace CoreMP
 
 			// Register for the main data available event.
 			NotificationHandler.Register( typeof( StorageController ), () => StorageDataAvailable() );
-			NotificationHandler.Register( typeof( DevicesModel ), "SelectedDevice", DeviceAvailable );
+			NotificationHandler.Register( typeof( DevicesModel ), "SelectedDevice", DeviceSelected );
 			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
-			PlaySongMessage.Register( PlaySong );
 		}
 
 		/// <summary>
@@ -37,16 +36,17 @@ namespace CoreMP
 		/// </summary>
 		private void StorageDataAvailable()
 		{
+			// Register for any post start-up song index changes
+			NotificationHandler.Register( typeof( Playlists ), "CurrentSongIndex", () => SongIndexChanged() );
+
 			// Get the sources associated with the library
 			PlaybackManagerModel.Sources = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).LibrarySources;
 
-			// Select a device at startup
-			PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
+			// Use the device currently selected in the DevicesModel
+			DeviceSelected();
 
-			PlaybackManagerModel.DataValid = true;
-
-			// Let the views know that playback data is available
-			router.DataAvailable();
+			// Update the model with the current song (but don't actually play it)
+			SongIndexChanged( true );
 		}
 
 		/// <summary>
@@ -77,39 +77,14 @@ namespace CoreMP
 		/// If this is a change then report it
 		/// </summary>
 		/// <param name="message"></param>
-		private void DeviceAvailable()
+		private void DeviceSelected()
 		{
+			// Get the old device and store the new
 			PlaybackDevice oldDevice = PlaybackManagerModel.AvailableDevice;
+			PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
 
-			// Check for no new device
-			if ( DevicesModel.SelectedDevice == null )
-			{
-				// If there was an existing available device then report this change
-				if ( oldDevice != null )
-				{
-					PlaybackManagerModel.AvailableDevice = null;
-					router.SelectPlaybackDevice( oldDevice );
-				}
-			}
-			// If there was no available device then save the new device and report the change
-			else if ( oldDevice == null )
-			{
-				PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
-				router.SelectPlaybackDevice( oldDevice );
-			}
-			// If the old and new are different type (local/remote) then report the change
-			else if ( oldDevice.IsLocal != DevicesModel.SelectedDevice.IsLocal )
-			{
-				PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
-				router.SelectPlaybackDevice( oldDevice );
-			}
-			// If both devices are remote but different then report the change
-			else if ( ( oldDevice.IsLocal == false ) && ( DevicesModel.SelectedDevice.IsLocal == false ) &&
-				( oldDevice.FriendlyName != DevicesModel.SelectedDevice.FriendlyName ) )
-			{
-				PlaybackManagerModel.AvailableDevice = DevicesModel.SelectedDevice;
-				router.SelectPlaybackDevice( oldDevice );
-			}
+			// Tell the router
+			router.SelectPlaybackDevice( oldDevice );
 		}
 
 		/// <summary>
@@ -124,19 +99,29 @@ namespace CoreMP
 		}
 
 		/// <summary>
-		/// Called in response to the receipt of a PlaySongMessage
+		/// Called when the index of the currently playing song has changed
+		/// Update the Song stored in the PlaybackModel and initiate it's playing
 		/// </summary>
-		private void PlaySong( Song songToPlay, bool dontPlay )
+		private void SongIndexChanged( bool dontPlay = false )
 		{
-			PlaybackManagerModel.CurrentSong = songToPlay;
+			// Determine the song and save it in the PlaybackModel 
+			PlaybackModel.SongPlaying = ( Playlists.CurrentSongIndex == -1 ) ? null :
+				( ( SongPlaylistItem )Playlists.GetNowPlayingPlaylist().PlaylistItems[ Playlists.CurrentSongIndex ] ).Song;
 
-			if ( ( PlaybackManagerModel.CurrentSong != null ) && ( dontPlay == false ) )
+			// Store it for the PlaybackRouter to use as well
+			PlaybackManagerModel.CurrentSong = PlaybackModel.SongPlaying;
+
+			// Play the song unless requested not to
+			if ( dontPlay == false )
 			{
-				router.PlayCurrentSong();
-			}
-			else
-			{
-				router.Stop();
+				if ( PlaybackManagerModel.CurrentSong != null )
+				{
+					router.PlayCurrentSong();
+				}
+				else
+				{
+					router.Stop();
+				}
 			}
 		}
 

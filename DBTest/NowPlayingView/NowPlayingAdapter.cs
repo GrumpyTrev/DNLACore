@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Android.Content;
-using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.Views;
 using Android.Widget;
@@ -55,7 +54,7 @@ namespace DBTest
 
 		/// <summary>
 		/// Notification that a particular song is being played.
-		/// Highlight the item
+		/// Highlight the item by forcing a redraw
 		/// This can sometimes be called before the ListView has sorted itself out. So Post the highlighting action on the ListView's queue
 		/// </summary>
 		public void SongBeingPlayed( int index ) => parentView.Post( () =>
@@ -157,12 +156,13 @@ namespace DBTest
 		{
 			if ( convertView == null )
 			{
-				convertView = inflator.Inflate( Resource.Layout.playlists_song_layout, null );
+				convertView = inflator.Inflate( Resource.Layout.nowplaying_song_layout, null );
 				convertView.Tag = new SongViewHolder()
 				{
 					Artist = convertView.FindViewById<TextView>( Resource.Id.artist ),
 					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
-					Duration = convertView.FindViewById<TextView>( Resource.Id.duration )
+					Duration = convertView.FindViewById<TextView>( Resource.Id.duration ),
+					Animation = convertView.FindViewById<ImageView>( Resource.Id.animation )
 				};
 			}
 
@@ -182,21 +182,22 @@ namespace DBTest
 			// The song index is encoded as a group so..
 			int songIndex = GetGroupFromTag( viewHolder.ItemTag );
 
-			// If the item is selected then or is not the current song then let the base class determine the background colour.
+			// If the item is selected or is not the current song then display it without any highlight.
+			// Otehrwise highlight the item to indicate that it is the one being played
 			if ( ( IsItemSelected( viewHolder.ItemTag ) == true ) || ( NowPlayingAdapterModel.SongPlayingIndex != songIndex ) )
 			{
-				base.RenderBackground( convertView );
 				viewHolder.UnHighlight();
 			}
 			else
 			{
-				convertView.SetBackgroundColor( Color.AliceBlue );
-				viewHolder.Highlight();
+				viewHolder.Highlight( NowPlayingAdapterModel.IsPlaying );
 			}
+
+			base.RenderBackground( convertView );
 		}
 
 		/// <summary>
-		/// Get the data item at teh specified position. If the childPosition is -1 then the group item is required
+		/// Get the data item at the specified position. If the childPosition is -1 then the group item is required
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
@@ -270,6 +271,69 @@ namespace DBTest
 		public interface IActionHandler: IAdapterEventHandler
 		{
 			void SongSelected( int itemNo );
+		}
+
+		/// <summary>
+		/// View holder for the playlist Song items
+		/// </summary>
+		private class SongViewHolder : ExpandableListViewHolder
+		{
+			public void DisplaySong( SongPlaylistItem playlistItem )
+			{
+				Title.Text = playlistItem.Song.Title;
+				Duration.Text = TimeSpan.FromSeconds( playlistItem.Song.Length ).ToString( @"mm\:ss" );
+				Artist.Text = string.Format( "{0} : {1}", playlistItem.Artist.Name, playlistItem.Song.Album.Name );
+			}
+
+			/// <summary>
+			/// Highlight this item by showing the animation
+			/// </summary>
+			/// <param name="isPlaying"></param>
+			public void Highlight( bool isPlaying)
+			{
+				// Show the animation image. Only animate it if the the song is being played
+				Animation.Visibility = ViewStates.Visible;
+
+				AnimationDrawable animationFrame = ( AnimationDrawable )Animation.Drawable;
+				if ( isPlaying == true )
+				{
+					// Set the animation going if not already running
+					if ( animationFrame.IsRunning == false )
+					{
+						animationFrame.Start();
+					}
+				}
+				else
+				{
+					animationFrame.Stop();
+				}
+
+				// Show the title in large text
+				Title.TextSize = Title.Context.Resources.GetDimensionPixelOffset( Resource.Dimension.text_size_heading ) / Title.Context.Resources.DisplayMetrics.Density;
+			}
+
+			/// <summary>
+			/// Unhightlight this item by hiding the animation and displaying the song title in normal size texst
+			/// </summary>
+			public void UnHighlight()
+			{
+				// Alway hide the animation image. Stop the animation if it is running
+				Animation.Visibility = ViewStates.Gone;
+
+				AnimationDrawable animationFrame = ( AnimationDrawable )Animation.Drawable;
+				if ( animationFrame.IsRunning == true )
+				{
+					animationFrame.Stop();
+				}
+
+				// Show the song title in normal size text
+				Title.TextSize = Title.Context.Resources.GetDimensionPixelOffset( Resource.Dimension.text_size_normal ) / Title.Context.Resources.DisplayMetrics.Density;
+			}
+
+			public TextView Artist { get; set; }
+			public TextView Title { get; set; }
+			public TextView Duration { get; set; }
+			public ImageView Animation { get; set; }
 		}
 	}
 }

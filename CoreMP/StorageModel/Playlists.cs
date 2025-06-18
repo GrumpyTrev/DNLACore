@@ -72,7 +72,15 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
-		public static Playlist GetNowPlayingPlaylist( int libraryId ) => GetPlaylist( Playlist.NowPlayingPlaylistName, libraryId );
+		public static Playlist GetNowPlayingPlaylist( int libraryId = -1 )
+		{
+			if ( libraryId == -1 )
+			{
+				libraryId = ConnectionDetailsModel.LibraryId;
+			}
+
+			return GetPlaylist( Playlist.NowPlayingPlaylistName, libraryId );
+		}
 
 		/// <summary>
 		/// Get a playlist given its name and library
@@ -133,11 +141,11 @@ namespace CoreMP
 		/// </summary>
 		public static int CurrentSongIndex
 		{
-			get => GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId ).SongIndex;
+			get => GetNowPlayingPlaylist().SongIndex;
 
 			set
 			{
-				Playlist nowPlayingList = GetNowPlayingPlaylist( ConnectionDetailsModel.LibraryId );
+				Playlist nowPlayingList = GetNowPlayingPlaylist();
 
 				// Normalise the value being set
 				nowPlayingList.SongIndex = ( value >= nowPlayingList.PlaylistItems.Count ) ? -1 : value ;

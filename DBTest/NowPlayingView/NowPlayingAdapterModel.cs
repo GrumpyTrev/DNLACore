@@ -7,16 +7,14 @@
 		/// </summary>
 		public static int SongPlayingIndex { get; set; } = -1;
 
-		public static ExpandableListAdapterModel BaseModel { get; } = new ExpandableListAdapterModel();
+		/// <summary>
+		/// Is the selected song currently being played
+		/// </summary>
+		public static bool IsPlaying { get; set; } = false;
 
 		/// <summary>
-		/// Clear the states held by this model
+		/// The common model components
 		/// </summary>
-		public static void OnClear()
-		{
-			BaseModel.OnClear();
-
-			SongPlayingIndex = -1;
-		}
+		public static ExpandableListAdapterModel BaseModel { get; } = new ExpandableListAdapterModel();
 	}
 }

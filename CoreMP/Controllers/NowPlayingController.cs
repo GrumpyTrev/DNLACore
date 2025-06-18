@@ -11,30 +11,35 @@ namespace CoreMP
 	internal class NowPlayingController
 	{
 		/// <summary>
-		/// Register for external Now Playing list change messages
+		/// Register for all data to be loaded.
 		/// </summary>
 		public NowPlayingController() => NotificationHandler.Register( typeof( StorageController ), () =>
-										 {
-											 StorageDataAvailable();
+		{
+			// Initialise the model
+			StorageDataAvailable();
 
-											 SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
-											 ShuffleModeChangedMessage.Register( ShuffleModeChanged );
-											 SongFinishedMessage.Register( SongFinished );
-										 } );
+			// Register for selected library changes
+			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+
+			// Register for shuffle mode changes
+			ShuffleModeChangedMessage.Register( ShuffleModeChanged );
+
+			// Register for the SongFinished message
+			SongFinishedMessage.Register( SongFinished );
+
+			// When the current song index changes update the model
+			NotificationHandler.Register( typeof( Playlists ), "CurrentSongIndex",
+				() => NowPlayingViewModel.CurrentSongIndex = Playlists.CurrentSongIndex );
+
+			// When the song is started or stopped update the model
+			NotificationHandler.Register( typeof( PlaybackModel ), "IsPlaying",
+				() => NowPlayingViewModel.IsPlaying = PlaybackModel.IsPlaying );
+		} );
 
 		/// <summary>
-		/// Set the selected song in the database and play it
+		/// Set the selected song in the database
 		/// </summary>
-		public void UserSongSelected( int songIndex, bool playSong = true )
-		{
-			NowPlayingViewModel.CurrentSongIndex = songIndex;
-
-			// Make sure the new song is played if requested
-			if ( playSong == true )
-			{
-				new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
-			}
-		}
+		public void UserSongSelected( int songIndex ) => Playlists.CurrentSongIndex = songIndex;
 
 		/// <summary>
 		/// Add the songs from the playlist to the Now Playing list
@@ -63,17 +68,17 @@ namespace CoreMP
 			{
 				if ( clearFirst == true )
 				{
-					NowPlayingViewModel.NowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( false ) );
+					nowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( false ) );
 					newCurrentIndex = playlistToAdd.InProgressIndex;
 				}
 				else
 				{
-					NowPlayingViewModel.NowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( true ) );
+					nowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( true ) );
 				}
 			}
 			else
 			{
-				NowPlayingViewModel.NowPlayingPlaylist.AddSongs( ApplyShuffle( playlistToAdd.GetSongsForPlayback( false ) ) );
+				nowPlayingPlaylist.AddSongs( ApplyShuffle( playlistToAdd.GetSongsForPlayback( false ) ) );
 				playlistToAdd.SongIndex = 0;
 			}
 
@@ -98,7 +103,7 @@ namespace CoreMP
 			}
 
 			// Add the songs to the playlist. Shuffled if necessary
-			NowPlayingViewModel.NowPlayingPlaylist.AddSongs( ApplyShuffle( songsToAdd.ToList() ) );
+			nowPlayingPlaylist.AddSongs( ApplyShuffle( songsToAdd.ToList() ) );
 
 			// If the Now Playing list was cleared then play the first song
 			SetStartingPointForNewList( clearFirst, 0 );
@@ -120,27 +125,26 @@ namespace CoreMP
 
 			// If the currently selected song is going to be deleted then invalidate it now
 			// Only carry out these checks if a song has been selected
-			if ( NowPlayingViewModel.CurrentSongIndex != -1 )
+			if ( Playlists.CurrentSongIndex != -1 )
 			{
 				// Check if the items to delete contains the currently selected song
-				if ( items.Any( item => ( item.Index == NowPlayingViewModel.CurrentSongIndex ) ) == true )
+				if ( items.Any( item => ( item.Index == Playlists.CurrentSongIndex ) ) == true )
 				{
 					// The currently selected song is going to be deleted. Set it to invalid
-					NowPlayingViewModel.CurrentSongIndex = -1;
-					new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
+					Playlists.CurrentSongIndex = -1;
 				}
 				else
 				{
 					// Save the current item
-					currentPlaylistItem = NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.CurrentSongIndex ];
+					currentPlaylistItem = nowPlayingPlaylist.PlaylistItems[ Playlists.CurrentSongIndex ];
 				}
 			}
 
 			// Delete the entries and report that the list has been updated
-			NowPlayingViewModel.NowPlayingPlaylist.DeletePlaylistItems( items.ToList() );
+			nowPlayingPlaylist.DeletePlaylistItems( items.ToList() );
 
 			// Adjust the track numbers
-			NowPlayingViewModel.NowPlayingPlaylist.AdjustTrackNumbers();
+			nowPlayingPlaylist.AdjustTrackNumbers();
 
 			// Determine the index of the currently selected song from it's possibly new track number
 			AdjustSelectedSongIndex( currentPlaylistItem );
@@ -169,16 +173,15 @@ namespace CoreMP
 		private void MoveItems( IEnumerable<PlaylistItem> items, bool moveUp )
 		{
 			// Record the currently selected song so its track number can be checked after the move
-			PlaylistItem currentPlaylistItem = ( NowPlayingViewModel.CurrentSongIndex == -1 ) ? null
-				: NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems[ NowPlayingViewModel.CurrentSongIndex ];
+			PlaylistItem currentPlaylistItem = ( Playlists.CurrentSongIndex == -1 ) ? null : nowPlayingPlaylist.PlaylistItems[ Playlists.CurrentSongIndex ];
 
 			if ( moveUp == true )
 			{
-				NowPlayingViewModel.NowPlayingPlaylist.MoveItemsUp( items );
+				nowPlayingPlaylist.MoveItemsUp( items );
 			}
 			else
 			{
-				NowPlayingViewModel.NowPlayingPlaylist.MoveItemsDown( items );
+				nowPlayingPlaylist.MoveItemsDown( items );
 			}
 
 			// Now adjust the index of the selected song
@@ -193,15 +196,12 @@ namespace CoreMP
 		/// </summary>
 		private void StorageDataAvailable()
 		{
-			// Save the libray being used locally to detect changes
-			NowPlayingViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
+			// Get the NowPlaying playlist. Save it in the model and locally in the controller
+			nowPlayingPlaylist = ( SongPlaylist )Playlists.GetNowPlayingPlaylist();
+			NowPlayingViewModel.NowPlayingPlaylist = nowPlayingPlaylist;
 
-			// Get the NowPlaying playlist.
-			NowPlayingViewModel.NowPlayingPlaylist = ( SongPlaylist )Playlists.GetNowPlayingPlaylist( NowPlayingViewModel.LibraryId );
-
-			// Let the playback manager know the current song but don't play it yet
+			// Initialise the model with the index of the currently selected song
 			NowPlayingViewModel.CurrentSongIndex = Playlists.CurrentSongIndex;
-			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong, DontPlay = true }.Send();
 
 			NowPlayingViewModel.Available.IsSet = true;
 		}
@@ -228,28 +228,17 @@ namespace CoreMP
 		}
 
 		/// <summary>
-		/// Play the next song in the playlist
+		/// Select the next song in the playlist
 		/// </summary>
-		/// <param name="_message"></param>
-		public void MediaControlPlayNext()
-		{
-			NowPlayingViewModel.CurrentSongIndex = ( NowPlayingViewModel.CurrentSongIndex == ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) ) ?
-				0 : NowPlayingViewModel.CurrentSongIndex + 1;
-
-			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
-		}
+		public void MediaControlPlayNext() => Playlists.CurrentSongIndex = 
+			( Playlists.CurrentSongIndex == nowPlayingPlaylist.PlaylistItems.Count - 1 ) ? 0 : Playlists.CurrentSongIndex + 1;
 
 		/// <summary>
-		/// Play the previous song in the playlist
+		/// Select the previous song in the playlist
 		/// </summary>
 		/// <param name="_message"></param>
-		public void MediaControlPlayPrevious()
-		{
-			NowPlayingViewModel.CurrentSongIndex = ( NowPlayingViewModel.CurrentSongIndex > 0 ) ? NowPlayingViewModel.CurrentSongIndex - 1 :
-				NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1;
-
-			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
-		}
+		public void MediaControlPlayPrevious() => Playlists.CurrentSongIndex = 
+			( Playlists.CurrentSongIndex > 0 ) ? Playlists.CurrentSongIndex - 1 : nowPlayingPlaylist.PlaylistItems.Count - 1;
 
 		/// <summary>
 		/// Called when a SongFinishedMessage has been received.
@@ -259,12 +248,12 @@ namespace CoreMP
 		/// <param name="_"></param>
 		private void SongFinished( Song _ )
 		{
-			if ( NowPlayingViewModel.CurrentSongIndex < ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count - 1 ) )
+			if ( Playlists.CurrentSongIndex < ( nowPlayingPlaylist.PlaylistItems.Count - 1 ) )
 			{
 				// Play the next song
-				NowPlayingViewModel.CurrentSongIndex++;
+				Playlists.CurrentSongIndex++;
 			}
-			else if ( ( Playback.RepeatOn == true ) && ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > 0 ) )
+			else if ( ( Playback.RepeatOn == true ) && ( nowPlayingPlaylist.PlaylistItems.Count > 0 ) )
 			{
 				// If shuffle mode is on then shuffle the items before playing them
 				if ( Playback.ShuffleOn == true )
@@ -272,22 +261,19 @@ namespace CoreMP
 					ShufflePlaylistItems();
 				}
 
-				NowPlayingViewModel.CurrentSongIndex = 0;
+				Playlists.CurrentSongIndex = 0;
 			}
 			else
 			{
-				NowPlayingViewModel.CurrentSongIndex = -1;
+				Playlists.CurrentSongIndex = -1;
 			}
-
-			// Play the song
-			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
 		}
 
 		/// <summary>
 		/// Shuffle the current playlist items
 		/// Extract the songs from the playlist and add them back to it. The AddSongsToNowPlayingList method will appply the shuffle
 		/// </summary>
-		private void ShufflePlaylistItems() => AddSongsToNowPlayingList( NowPlayingViewModel.NowPlayingPlaylist.GetSongs(), true );
+		private void ShufflePlaylistItems() => AddSongsToNowPlayingList( ( ( SongPlaylist )Playlists.GetNowPlayingPlaylist() ).GetSongs(), true );
 
 		/// <summary>
 		/// Shuffle the list of specified songs if Shuffle is on
@@ -319,9 +305,9 @@ namespace CoreMP
 			{
 				int newSelectedIndex = selectedSong.Index;
 
-				if ( newSelectedIndex != NowPlayingViewModel.CurrentSongIndex )
+				if ( newSelectedIndex != Playlists.CurrentSongIndex )
 				{
-					NowPlayingViewModel.CurrentSongIndex = newSelectedIndex;
+					Playlists.CurrentSongIndex = newSelectedIndex;
 				}
 			}
 		}
@@ -332,11 +318,10 @@ namespace CoreMP
 		private void ClearNowPlayingList()
 		{
 			// Before clearing the list reset the selected song to stop it being played
-			NowPlayingViewModel.CurrentSongIndex = -1;
-			new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
+			Playlists.CurrentSongIndex = -1;
 
 			// Now clear the Now Playing list 
-			NowPlayingViewModel.NowPlayingPlaylist.Clear();
+			nowPlayingPlaylist.Clear();
 		}
 
 		/// <summary>
@@ -347,10 +332,9 @@ namespace CoreMP
 		private void SetStartingPointForNewList( bool isNew, int startingIndex )
 		{
 			// If the list was cleared and there are now some items in the list select the song to play and play it
-			if ( ( isNew == true ) & ( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems.Count > startingIndex ) )
+			if ( ( isNew == true ) & ( nowPlayingPlaylist.PlaylistItems.Count > startingIndex ) )
 			{
-				NowPlayingViewModel.CurrentSongIndex = startingIndex;
-				new PlaySongMessage() { SongToPlay = NowPlayingViewModel.CurrentSong }.Send();
+				Playlists.CurrentSongIndex = startingIndex;
 			}
 		}
 
@@ -358,5 +342,10 @@ namespace CoreMP
 		/// The random number generator used to shuffle the list
 		/// </summary>
 		private readonly Random rng = new Random();
+
+		/// <summary>
+		/// The curently selected NowPlaying playlist. 
+		/// </summary>
+		private SongPlaylist nowPlayingPlaylist = null;
 	}
 }

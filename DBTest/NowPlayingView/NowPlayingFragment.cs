@@ -55,6 +55,12 @@ namespace DBTest
 				() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex ) );
 			NotificationHandler.Register( typeof( NowPlayingViewModel ), "PlaylistUpdated",
 				() => ( ( NowPlayingAdapter )Adapter ).PlaylistUpdated( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems ) );
+			NotificationHandler.Register( typeof( NowPlayingViewModel ), "IsPlaying",
+				() =>
+				{
+					NowPlayingAdapterModel.IsPlaying = NowPlayingViewModel.IsPlaying;
+					( ( NowPlayingAdapter )Adapter ).NotifyDataSetChanged();
+				} );
 		}
 
 		/// <summary>

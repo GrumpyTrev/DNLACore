@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+
+	<ImageView
+		android:id="@+id/animation"
+		android:layout_width="@dimen/mediaButtonSize"
+		android:layout_height="@dimen/mediaButtonSize"
+		android:src="@anim/animate_song"
+		android:scaleType="centerCrop"
+		android:layout_marginLeft="@dimen/edge_margin"
+		android:layout_centerVertical="true"
+		/>
+		<TextView
+			android:id="@+id/title"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_toRightOf="@+id/animation"
+			android:layout_marginLeft="@dimen/edge_margin"
+			android:text="@string/songTitle"
+			android:textColor="@color/colorNormalText"
+		/>
+		<TextView
+			android:id="@+id/duration"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/duration"
+			android:textColor="@color/colorGreyText"
+			android:layout_alignParentRight="true"
+			android:layout_marginRight="@dimen/edge_margin"
+			android:maxLines="1" 
+		/>
+		<TextView
+			android:id="@+id/artist"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/artist"
+			android:textColor="@color/colorGreyText" 
+			android:layout_marginLeft="@dimen/edge_margin"
+			android:layout_below="@id/title"
+			android:layout_toRightOf="@+id/animation"
+		/>
+
+</RelativeLayout>

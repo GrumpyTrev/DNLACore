@@ -43,7 +43,7 @@ namespace CoreMP
 		public void Start() => playbackManagementController.MediaControlStart();
 
 		// NowPlayingController commands
-		public void UserSongSelected( int songIndex, bool playSong = true ) => nowPlayingController.UserSongSelected( songIndex, playSong );
+		public void UserSongSelected( int songIndex ) => nowPlayingController.UserSongSelected( songIndex );
 		public void AddSongsToNowPlayingList( IEnumerable<Song> songsToAdd, bool clearFirst ) => 
 			nowPlayingController.AddSongsToNowPlayingList( songsToAdd, clearFirst );
 		public void DeleteNowPlayingItems( IEnumerable<PlaylistItem> items ) => nowPlayingController.DeleteNowPlayingItems( items );

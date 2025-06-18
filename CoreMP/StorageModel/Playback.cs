@@ -39,7 +39,11 @@
 		public static bool RepeatOn
 		{
 			get => PlaybackInstance.RepeatPlayOn;
-			set => PlaybackInstance.RepeatPlayOn = value;
+			set
+			{
+				PlaybackInstance.RepeatPlayOn = value;
+				NotificationHandler.NotifyPropertyChanged( null );
+			}
 		}
 
 		/// <summary>
@@ -48,7 +52,11 @@
 		public static bool ShuffleOn
 		{
 			get => PlaybackInstance.ShufflePlayOn;
-			set => PlaybackInstance.ShufflePlayOn = value;
+			set
+			{
+				PlaybackInstance.ShufflePlayOn = value;
+				NotificationHandler.NotifyPropertyChanged( null );
+			}
 		}
 
 		/// <summary>

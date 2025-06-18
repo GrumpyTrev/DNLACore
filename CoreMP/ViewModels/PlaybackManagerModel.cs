@@ -21,10 +21,5 @@ namespace CoreMP
 		/// The details of the selected available playback device
 		/// </summary>
 		public static PlaybackDevice AvailableDevice { get; set; } = null;
-
-		/// <summary>
-		/// Indicates whether or not the data held by the class is valid
-		/// </summary>
-		public static bool DataValid { get; set; } = false;
 	}
 }

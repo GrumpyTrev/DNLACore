@@ -11,7 +11,7 @@
 		/// </summary>
 		static MediaNotificationController()
 		{
-			MediaPlayingMessage.Register( ( isPlaying ) => MediaNotificationViewModel.IsPlaying( isPlaying ) );
+			NotificationHandler.Register( typeof( PlaybackModel ), "IsPlaying", () => MediaNotificationViewModel.IsPlaying( PlaybackModel.IsPlaying ) );
 			SongStartedMessage.Register( ( songStarted ) => MediaNotificationViewModel.SongStarted( songStarted ) );
 			SongFinishedMessage.Register( ( _ ) => MediaNotificationViewModel.SongFinished() );
 		}
