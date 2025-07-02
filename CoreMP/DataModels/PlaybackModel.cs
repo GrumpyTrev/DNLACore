@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The PlaybackModel holds details of the song being played. This includes the playback position.
 	/// </summary>
-	public static class PlaybackModel
+	internal class PlaybackModel
 	{
 		/// <summary>
 		/// The current playback position in milliseconds
@@ -39,10 +39,11 @@
 		private static Song songPlaying = null;
 		public static Song SongPlaying
 		{
-			get => songPlaying; set
+			get => songPlaying; 
+			set
 			{
 				songPlaying = value;
-				NotificationHandler.NotifyPropertyChangedPersistent( null );
+				NotificationHandler.NotifyPropertyChangedPersistent( songPlaying );
 			}
 		}
 
@@ -52,11 +53,20 @@
 		private static bool isPlaying = false;
 		public static bool IsPlaying
 		{
-			get => isPlaying; set
+			get => isPlaying; 
+			set
 			{
 				isPlaying = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );
 			}
+		}
+
+		/// <summary>
+		/// Property introduced to trigger a notification when a song has started or finished playing
+		/// </summary>
+		public static bool SongStarted
+		{
+			set => NotificationHandler.NotifyPropertyChanged( value );
 		}
 	}
 }

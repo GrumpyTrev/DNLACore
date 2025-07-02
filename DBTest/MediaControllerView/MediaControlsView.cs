@@ -80,12 +80,12 @@ namespace DBTest
 				PlayStateChanged();
 
 				// Register interest in MediaControllerViewModel changes
-				NotificationHandler.Register( typeof( MediaControllerViewModel ), "IsSet", ModelDataAvailable, InstanceId.ToString() );
-				NotificationHandler.Register( typeof( MediaControllerViewModel ), "IsPlaying", PlayStateChanged, InstanceId.ToString() );
-				NotificationHandler.Register( typeof( MediaControllerViewModel ), "CurrentPosition", SetProgress, InstanceId.ToString() );
-				NotificationHandler.Register( typeof( MediaControllerViewModel ), "SongPlaying", SongPlaying, InstanceId.ToString() );
-				NotificationHandler.Register( typeof( MediaControllerViewModel ), "RepeatOn", RepeatChanged, InstanceId.ToString() );
-				NotificationHandler.Register( typeof( MediaControllerViewModel ), "ShuffleOn", ShuffleChanged, InstanceId.ToString() );
+				NotificationHandler.Register<MediaControllerViewModel>( ModelDataAvailable, InstanceId.ToString() );
+				NotificationHandler.Register<MediaControllerViewModel>( nameof( MediaControllerViewModel.IsPlaying ), PlayStateChanged, InstanceId.ToString() );
+				NotificationHandler.Register<MediaControllerViewModel>( nameof( MediaControllerViewModel.CurrentPosition), SetProgress, InstanceId.ToString() );
+				NotificationHandler.Register<MediaControllerViewModel>( nameof( MediaControllerViewModel.SongPlaying ), SongPlaying, InstanceId.ToString() );
+				NotificationHandler.Register<MediaControllerViewModel>( nameof( MediaControllerViewModel.RepeatOn ), RepeatChanged, InstanceId.ToString() );
+				NotificationHandler.Register<MediaControllerViewModel>( nameof( MediaControllerViewModel.ShuffleOn ), ShuffleChanged, InstanceId.ToString() );
 			}
 			else
 			{
@@ -112,7 +112,7 @@ namespace DBTest
 		/// </summary>
 		private void SetProgress()
 		{
-			songProgress.Progress = ( MediaControllerViewModel.Duration > 0 ) ? ( 100 * MediaControllerViewModel.CurrentPosition ) / MediaControllerViewModel.Duration : 0;
+			songProgress.Progress = ( MediaControllerViewModel.Duration > 0 ) ? 100 * MediaControllerViewModel.CurrentPosition / MediaControllerViewModel.Duration : 0;
 			position.Text = TimeSpan.FromMilliseconds( MediaControllerViewModel.CurrentPosition ).ToString( @"mm\:ss" );
 			duration?.SetText( TimeSpan.FromMilliseconds( MediaControllerViewModel.Duration ).ToString( @"mm\:ss" ), null );
 		}

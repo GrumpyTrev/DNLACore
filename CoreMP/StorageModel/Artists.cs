@@ -41,8 +41,8 @@ namespace CoreMP
 		/// <returns></returns>
 		public static void DeleteArtist( Artist artistToDelete )
 		{
-			ArtistCollection.Remove( artistToDelete );
-			IdLookup.Remove( artistToDelete.Id );
+			_ = ArtistCollection.Remove( artistToDelete );
+			_ = IdLookup.Remove( artistToDelete.Id );
 		}
 
 		/// <summary>
@@ -53,8 +53,7 @@ namespace CoreMP
 		{
 			foreach ( Artist artistToDelete in artistsToDelete )
 			{
-				ArtistCollection.Remove( artistToDelete );
-				IdLookup.Remove( artistToDelete.Id );
+				DeleteArtist(artistToDelete);
 			}
 		}
 

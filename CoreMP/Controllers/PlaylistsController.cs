@@ -11,20 +11,23 @@ namespace CoreMP
 	internal class PlaylistsController
 	{
 		/// <summary>
-		/// Public constructor providing the Database path and the interface instance used to report results
+		/// Public constructor
+		/// Register for the main data read notification
+		/// Register for when the storage model has been read
 		/// </summary>
-		public PlaylistsController()
+		public PlaylistsController() => NotificationHandler.Register<StorageController>( () =>
 		{
-			NotificationHandler.Register( typeof( StorageController ), () =>
-			{
-				StorageDataAvailable();
+			// Carry out the main start-up actions
+			StorageDataAvailable();
 
-				SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
-				SongStartedMessage.Register( SongStarted );
-				PlaylistUpdatedMessage.Register( PlaylistUpdated );
-				SongFinishedMessage.Register( SongFinished );
-			} );
-		}
+			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), () => SelectedLibraryChanged( Playback.LibraryIdentity ) );
+
+			// Register for the PlaybackModel SongStarted changes
+			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.SongStarted ), ( started ) => SongStarted( ( bool )started ) );
+
+			// Update the PlaylistsViewModel when a playlist has been updated
+			NotificationHandler.Register<Playlist>( nameof( Playlist.SongIndex ), ( playlist ) => PlaylistsViewModel.PlaylistUpdated = ( Playlist )playlist );
+		} );
 
 		/// <summary>
 		/// Delete the specified playlist and its contents
@@ -333,7 +336,7 @@ namespace CoreMP
 		private async void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
-			PlaylistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
+			PlaylistsViewModel.LibraryId = Playback.LibraryIdentity;
 
 			// Get the Playlists and playlist names. Make sure a copy of the list is used as we're going to sort it 
 			PlaylistsViewModel.Playlists = Playlists.GetPlaylistsForLibrary( PlaylistsViewModel.LibraryId ).ToList();
@@ -385,28 +388,24 @@ namespace CoreMP
 		}
 
 		/// <summary>
-		/// Called when the SongStartedMessage has been received
+		/// Called when a song has either started or finished playing
 		/// </summary>
-		/// <param name="message"></param>
-		private void SongStarted( Song songStarted )
+		/// <param name="started"></param>
+		private void SongStarted( bool started )
 		{
-			// Update the song index for any playlists for which the previous song and the current song are adjacent 
-			Playlists.CheckForAdjacentSongEntries( previousSongIdentity, songStarted.Id );
+			Song songBeingPlayed = PlaybackModel.SongPlaying;
+			if ( started == true )
+			{
+				// Update the song index for any playlists for which the previous song and the current song are adjacent 
+				Playlists.CheckForAdjacentSongEntries( previousSongIdentity, songBeingPlayed.Id );
 
-			previousSongIdentity = songStarted.Id;
+				previousSongIdentity = songBeingPlayed.Id;
+			}
+			else
+			{
+				Playlists.SongFinished( songBeingPlayed.Id );
+			}
 		}
-
-		/// <summary>
-		/// Called when the SongFinishedMessage has been received
-		/// </summary>
-		/// <param name="songPlayed"></param>
-		private void SongFinished( Song songPlayed ) => Playlists.SongFinished( songPlayed.Id );
-
-		/// <summary>
-		/// Called when a PlaylistUpdatedMessage has been received. Pass it on to the reporter
-		/// </summary>
-		/// <param name="message"></param>
-		private static void PlaylistUpdated( Playlist updatedPlaylist ) => PlaylistsViewModel.PlaylistUpdated = updatedPlaylist;
 
 		/// <summary>
 		/// The previous song id that has been played

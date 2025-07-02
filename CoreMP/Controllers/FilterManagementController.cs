@@ -11,13 +11,23 @@ namespace CoreMP
 	{
 		/// <summary>
 		/// Register for external filter change messages
+		/// Register for the main data available event.
 		/// </summary>
-		public FilterManagementController()
+		public FilterManagementController() => NotificationHandler.Register<StorageController>( () =>
 		{
-			SongStartedMessage.Register( SongStarted );
-			AlbumsDeletedMessage.Register( AlbumsDeleted );
-			NotificationHandler.Register( typeof( StorageController ), StorageDataAvailable );
-		}
+			// Once the storage data is available, process it and register for other data changes
+			StorageDataAvailable();
+
+			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.SongStarted ), ( songStarted ) =>
+			{
+				if ( ( bool )songStarted == true )
+				{
+					SongStarted( PlaybackModel.SongPlaying );
+				}
+			} );
+
+			NotificationHandler.Register<Albums>( nameof( Albums.DeleteAlbum ), ( albumDeleted ) => AlbumDeleted( ( Album )albumDeleted ) );
+		} );
 
 		/// <summary>
 		/// Form Tags and associated TaggedAlbum entries for each genre
@@ -147,10 +157,10 @@ namespace CoreMP
 				}
 			}
 
-			// Report this tag change. Only report on the firest call, not on synchonisation
+			// Report this tag change. Only report on the first call, not on synchonisation
 			if ( synchronise == true )
 			{
-				new TagMembershipChangedMessage() { ChangedTags = new List<string>() { toTag.Name } }.Send();
+				TagModel.ChangedTag = toTag.Name;
 			}
 		}
 
@@ -184,7 +194,7 @@ namespace CoreMP
 					AddAlbumToTag( FilterManagementModel.NotPlayedTag, albumToRemove );
 				}
 
-				new TagMembershipChangedMessage() { ChangedTags = new List<string>() { fromTag.Name } }.Send();
+				TagModel.ChangedTag = fromTag.Name;
 			}
 		}
 
@@ -222,7 +232,6 @@ namespace CoreMP
 					}
 				}
 			}
-
 		}
 
 		/// <summary>
@@ -273,7 +282,7 @@ namespace CoreMP
 						lostTags.Add( taggedAlbum );
 					}
 				}
-			};
+			}
 
 			// Delete the lost TaggedAlbum entries
 			foreach ( TaggedAlbum taggedAlbum in lostTags )
@@ -307,7 +316,7 @@ namespace CoreMP
 		} );
 
 		/// <summary>
-		/// Called when the SongStartedMessage is received
+		/// Called when a song has just started being played
 		/// Add the associated album to the Just Played tag 
 		/// </summary>
 		/// <param name="message"></param>
@@ -357,34 +366,33 @@ namespace CoreMP
 		/// Do not synchronise as this is due to a library scan and not the user removing albums from a tag
 		/// </summary>
 		/// <param name="message"></param>
-		private void AlbumsDeleted( List<int> deletedAlbums )
+		private void AlbumDeleted( Album deletedAlbum )
 		{
-			// Get the list of deleted albums and apply to each tag
-			HashSet<int> deletedAlbumIds = deletedAlbums.ToHashSet();
-
 			foreach ( Tag tag in Tags.TagsCollection )
 			{
-				// Get the TaggedAlbum entries that have album ids in the deleted set.
-				// Don't use a lazy enumerator here as we'll be deleting entries from the collection being enumerated
-				List<TaggedAlbum> taggedAlbums = tag.TaggedAlbums.Where( ta => ( deletedAlbumIds.Contains( ta.AlbumId ) ) ).ToList();
+				// Get the TaggedAlbum entry associated with this album
+				TaggedAlbum taggedAlbum = tag.TaggedAlbums.SingleOrDefault( ta => deletedAlbum.Id == ta.AlbumId );
 
-				// Delete all these
-				if ( taggedAlbums.Count() > 0 )
+				// Delete this album from the tag
+				if ( taggedAlbum != null )
 				{
-					tag.DeleteTaggedAlbums( taggedAlbums );
-					new TagMembershipChangedMessage() { ChangedTags = new List<string>() { tag.Name } }.Send();
+					tag.DeleteTaggedAlbum( taggedAlbum );
+					TagModel.ChangedTag = tag.Name;
 				}
 			}
 
-			// Now remove these Albums from the group tags
+			// Now remove this Album from the group tags
 			foreach ( TagGroup group in FilterManagementModel.TagGroups )
 			{
 				List<Tag> removedTags = new List<Tag>();
 
 				foreach ( Tag tag in group.Tags )
 				{
-					// Get the set of TaggedAlbum entries in this tag that refer to any deleted album and delete them from the tag
-					tag.TaggedAlbums.Where( ta => deletedAlbumIds.Contains( ta.AlbumId ) == true ).ToList().ForEach( ta => tag.TaggedAlbums.Remove( ta ) );
+					TaggedAlbum taggedAlbum = tag.TaggedAlbums.SingleOrDefault( ta => deletedAlbum.Id == ta.AlbumId );
+					if ( taggedAlbum != null )
+					{
+						_ = tag.TaggedAlbums.Remove( taggedAlbum );
+					}
 
 					if ( tag.TaggedAlbums.Count == 0 )
 					{
@@ -396,7 +404,7 @@ namespace CoreMP
 				{
 					removedTags.ForEach( tag => group.Tags.Remove( tag ) );
 
-					new TagMembershipChangedMessage() { ChangedTags = new List<string>() { group.Name } }.Send();
+					TagModel.ChangedTag = group.Name;
 				}
 			}
 		}

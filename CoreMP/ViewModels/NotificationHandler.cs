@@ -11,32 +11,32 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, NotificationDelegate callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
-			Register( classType, new DelegateContainer( callback ), uniqueId, filePath );
+		public static void Register<T>( NotificationDelegate callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
+			Register( typeof( T ), new DelegateContainer( callback ), uniqueId, filePath );
 
 		/// <summary>
 		/// Registers interest in notifications from the specified class with no parameters
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, NotificationDelegateNoParams callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
-			Register( classType, new DelegateContainer( callback ), uniqueId, filePath );
+		public static void Register<T>( NotificationDelegateNoParams callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
+			Register( typeof( T ), new DelegateContainer( callback ), uniqueId, filePath );
 
 		/// <summary>
 		/// Registers interest in notifications from the specified class with parameters
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, string propertyName, NotificationDelegate callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
-			Register( classType, new DelegateContainer( callback, propertyName ), uniqueId, filePath );
+		public static void Register<T>( string propertyName, NotificationDelegate callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
+			Register( typeof(T), new DelegateContainer( callback, propertyName ), uniqueId, filePath );
 
 		/// <summary>
 		/// Registers interest in notifications from the specified class with no parameters
 		/// </summary>
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
-		public static void Register( Type classType, string propertyName, NotificationDelegateNoParams callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
-			Register( classType, new DelegateContainer( callback, propertyName ), uniqueId, filePath );
+		public static void Register<T>( string propertyName, NotificationDelegateNoParams callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
+			Register( typeof(T), new DelegateContainer( callback, propertyName ), uniqueId, filePath );
 
 		/// <summary>
 		/// Deregister all notifications for the calling class
@@ -80,7 +80,7 @@ namespace CoreMP
 					{
 						if ( ( callback.PropertyName == null ) || ( callback.PropertyName == propertyName ) )
 						{
-							callback.Invoke( sender, propertyName );
+							callback.Invoke( sender );
 						}
 					}
 				} );
@@ -113,8 +113,8 @@ namespace CoreMP
 		/// <summary>
 		/// The delegate type used to report back property change notifications
 		/// </summary>
-		/// <param name="message"></param>
-		public delegate void NotificationDelegate( object sender, string message );
+		/// <param name="sender"></param>
+		public delegate void NotificationDelegate( object sender );
 
 		/// <summary>
 		/// The delegate type used to report back property change notifications with no parameters
@@ -167,7 +167,7 @@ namespace CoreMP
 				{
 					if ( ( container.PropertyName == null ) || ( container.PropertyName == item.Key ) )
 					{
-						CoreMPApp.Post( () => container.Invoke( item.Value, item.Key ) );
+						CoreMPApp.Post( () => container.Invoke( item.Value ) );
 					}
 				}
 			}
@@ -207,11 +207,11 @@ namespace CoreMP
 				PropertyName = property;
 			}
 
-			public void Invoke( object sender, string message )
+			public void Invoke( object sender )
 			{
 				if ( notificationDelegate != null )
 				{
-					notificationDelegate.Invoke( sender, message );
+					notificationDelegate.Invoke( sender );
 				}
 				else
 				{

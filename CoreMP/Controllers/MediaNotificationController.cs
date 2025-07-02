@@ -1,19 +1,18 @@
 ﻿namespace CoreMP
 {
 	/// <summary>
-	/// The MediaNotificationController is used to maintain the model for the MediaNotificationView and to process any commands from the view
-	/// The MediaNotificationModel data is mostly transient so the reading of storage is provided just for consistency with other controllers
+	/// The MediaNotificationController is used to maintain the model for the MediaNotificationView.
 	/// </summary>
-	public class MediaNotificationController
+	internal class MediaNotificationController
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
 		/// </summary>
-		static MediaNotificationController()
+		public MediaNotificationController()
 		{
-			NotificationHandler.Register( typeof( PlaybackModel ), "IsPlaying", () => MediaNotificationViewModel.IsPlaying( PlaybackModel.IsPlaying ) );
-			SongStartedMessage.Register( ( songStarted ) => MediaNotificationViewModel.SongStarted( songStarted ) );
-			SongFinishedMessage.Register( ( _ ) => MediaNotificationViewModel.SongFinished() );
+			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.IsPlaying ), () => MediaNotificationViewModel.IsPlaying = PlaybackModel.IsPlaying );
+			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.SongStarted ),  
+				( songStarted ) => MediaNotificationViewModel.SongStarted = ( ( bool )songStarted == true ) ? PlaybackModel.SongPlaying : null );
 		}
 	}
 }

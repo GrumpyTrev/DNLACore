@@ -18,17 +18,17 @@ namespace CoreMP
 		/// <summary>
 		/// The not played tag
 		/// </summary>
-		public static Tag NotPlayedTag { get; set; } = null;
+		public static Tag NotPlayedTag { get; internal set; } = null;
 
 		/// <summary>
 		/// The identity of the album whose song was just played
 		/// </summary>
-		public static int JustPlayedAlbumId { get; set; } = -1;
+		public static int JustPlayedAlbumId { get; internal set; } = -1;
 
 		/// <summary>
 		/// The number of times a song from the same album have been played consequtively
 		/// </summary>
-		public static int JustPlayedCount { get; set; } = 0;
+		public static int JustPlayedCount { get; internal set; } = 0;
 
 		/// <summary>
 		/// The Genre tags
@@ -62,17 +62,17 @@ namespace CoreMP
 		/// <summary>
 		/// The source tag
 		/// </summary>
-		public Tag SourceTag { get; set; } = null;
+		public Tag SourceTag { get; internal set; } = null;
 
 		/// <summary>
 		/// How fully has this tag been applied
 		/// </summary>
-		public AppliedType Applied { get; set; } = AppliedType.None;
+		public AppliedType Applied { get; internal set; } = AppliedType.None;
 
 		/// <summary>
 		/// The original value against which changes can be determined
 		/// </summary>
-		public AppliedType OriginalApplied { get; set; } = AppliedType.None;
+		public AppliedType OriginalApplied { get; internal set; } = AppliedType.None;
 
 		/// <summary>
 		/// Application level

@@ -12,27 +12,26 @@ namespace CoreMP
 	{
 		/// <summary>
 		/// Public constructor to allow message registrations
+		/// Register for the main data available event.
 		/// </summary>
-		public AlbumsController()
+		public AlbumsController() => NotificationHandler.Register<StorageController>( () =>
 		{
-			TagMembershipChangedMessage.Register( TagMembershipChanged );
+			// Once the data has been loaded initialise the view model and register for other model changes
+			StorageDataAvailable();
 
-			// Register for the main data available event.
-			NotificationHandler.Register( typeof( StorageController ), () => 
-			{ 
+			// Once data is available register for library change messages
+			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), () =>
+			{
+				// Clear the displayed data and filter
+				AlbumsViewModel.ClearModel();
+
+				// Reload the library specific album data
 				StorageDataAvailable();
-
-				// Once data is available register for library change messages
-				NotificationHandler.Register( typeof( ConnectionDetailsModel ), () =>
-				{
-					// Clear the displayed data and filter
-					AlbumsViewModel.ClearModel();
-
-					// Reload the library specific album data
-					StorageDataAvailable();
-				} );
 			} );
-		}
+
+			// Register for tag changes
+			NotificationHandler.Register<TagModel>( ( tagName ) => TagMembershipChanged( ( string )tagName ) );
+		} );
 
 		/// <summary>
 		/// Apply the specified filter to the data being displayed
@@ -64,11 +63,8 @@ namespace CoreMP
 		/// <param name="message"></param>
 		private void StorageDataAvailable()
 		{
-			// Save the libray being used locally to detect changes
-			AlbumsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
-
 			// Get all the albums associated with the library
-			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == AlbumsViewModel.LibraryId ).ToList();
+			AlbumsViewModel.UnfilteredAlbums = Albums.AlbumCollection.Where( alb => alb.LibraryId == Playback.LibraryIdentity ).ToList();
 
 			// Apply the current filter and sort selections
 			ApplyFilterAndSortSelections();
@@ -227,15 +223,15 @@ namespace CoreMP
 		}
 
 		/// <summary>
-		/// Called when a TagMembershipChangedMessage has been received.
+		/// Called when a tag has changed.
 		/// If the CurrentFilter has been changed or if the TagGroups contains this tag then the data must be refreshed
 		/// If there is no filtering of if the tag being filtered on has not changed then no action is required.
 		/// Otherwise the data must be refreshed
 		/// </summary>
 		/// <param name="changedTags"></param>
-		private void TagMembershipChanged( List< string > changedTags )
+		private void TagMembershipChanged( string changedTag )
 		{
-			if ( AlbumsViewModel.FilterSelection.FilterContainsTags( changedTags ) == true )
+			if ( AlbumsViewModel.FilterSelection.FilterContainsTag( changedTag ) == true )
 			{
 				// Reapply the filter and sort selections
 				ApplyFilterAndSortSelections();

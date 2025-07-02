@@ -121,6 +121,7 @@ namespace DBTest
 					.SetSmallIcon( Android.Resource.Drawable.StatSysHeadset )
 					.SetContentTitle( songBeingPlayed.Title )
 					.SetContentText( ( songBeingPlayed.Artist != null ) ? songBeingPlayed.Artist.Name : "" )
+					.SetOngoing( true )
 					.AddAction( ( SongPlaying == false ) ? playAction : pauseAction );
 
                 NotificationManagerCompat.From( this ).Notify( NotificationId, builder.Build() );
@@ -167,18 +168,17 @@ namespace DBTest
 		/// <summary>
 		/// The Binder class for this service defining the interface betweeen the service and the appication
 		/// </summary>
-		public class MediaNotificationServiceBinder: Binder
+		/// <remarks>
+		/// Create the binder and save the service instance
+		/// </remarks>
+		/// <param name="theService"></param>
+		public class MediaNotificationServiceBinder( MediaNotificationService theService ) : Binder
 		{
-			/// <summary>
-			/// Create the binder and save the service instance
-			/// </summary>
-			/// <param name="theService"></param>
-			public MediaNotificationServiceBinder( MediaNotificationService theService ) => Service = theService;
 
 			/// <summary>
 			/// The service instance passed back to the application
 			/// </summary>
-			public MediaNotificationService Service { get; } = null;
+			public MediaNotificationService Service { get; } = theService;
 		}
 
 		/// <summary>

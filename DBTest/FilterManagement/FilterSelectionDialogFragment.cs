@@ -71,14 +71,13 @@ namespace DBTest
 		private void InitialiseTagSpinner( Spinner tagSpinner )
 		{
 			// Form a list of the tag choices including None
-			List<string> tagNames = new() { "None" };
-			tagNames.AddRange( TagNames );
+			List<string> tagNames = ["None", .. TagNames];
 
 			// Which one of these is currently selected
 			int currentTagIndex = ( CurrentlySelectedFilter != null ) ? tagNames.IndexOf( CurrentlySelectedFilter.Name ) : 0;
 
 			// Create an adapter for the spinner to display the tag names
-			ArrayAdapter<string> spinnerAdapter = new( Context, Resource.Layout.select_dialog_item_material, tagNames.ToArray() );
+			ArrayAdapter<string> spinnerAdapter = new( Context, Resource.Layout.select_dialog_item_material, [ .. tagNames ] );
 			spinnerAdapter.SetDropDownViewResource( Resource.Layout.support_simple_spinner_dropdown_item );
 
 			// Associate the adapter with the spinner and preselect the current entry
@@ -118,7 +117,7 @@ namespace DBTest
 		private void OnOk( MultiSpinner genreSpinner, Spinner tagSpinner )
 		{
 			// Get the selected record from the Genre spinner. If not all of the items are selected then add an entry for each selected item to a new TagGroup
-			List<TagGroup> selectedGroups = new();
+			List<TagGroup> selectedGroups = [];
 
 			if ( genreSpinner.SelectionRecord.All( genre => genre ) == false )
 			{
@@ -135,7 +134,7 @@ namespace DBTest
 
 			// Check for simple or group tag changes
 			if ( ( newTag != CurrentlySelectedFilter ) || ( selectedGroups.Count != CurrentlySelectedTagGroups.Count ) || 
-				 ( selectedGroups.Any( group => GroupChanged( group ) ) == true ) )
+				 ( selectedGroups.Any( GroupChanged ) == true ) )
 			{
 				// Update the FilterManagementModel TagGroups with the possibly updated data from the Adapter
 				CurrentlySelectedTagGroups.Clear();

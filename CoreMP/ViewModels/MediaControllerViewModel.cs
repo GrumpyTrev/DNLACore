@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The MediaControllerViewModel holds the status information for the Media Controller View
 	/// </summary>
-	public static class MediaControllerViewModel
+	public class MediaControllerViewModel
 	{
 		public static ModelAvailable Available { get; } = new ModelAvailable();
 
@@ -14,7 +14,7 @@
 		public static int CurrentPosition
 		{
 			get => currentPosition;
-			set
+			internal set
 			{
 				currentPosition = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );
@@ -28,7 +28,7 @@
 		public static int Duration
 		{
 			get => duration;
-			set
+			internal set
 			{
 				duration = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );
@@ -41,8 +41,8 @@
 		private static Song songPlaying = null;
 		public static Song SongPlaying
 		{
-			get => songPlaying; 
-			set
+			get => songPlaying;
+			internal set
 			{
 				songPlaying = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );
@@ -56,7 +56,7 @@
 		public static bool IsPlaying
 		{
 			get => isPlaying; 
-			set
+			internal set
 			{
 				isPlaying = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );
@@ -70,7 +70,7 @@
 		public static bool RepeatOn
 		{
 			get => repeatOn; 
-			set
+			internal set
 			{
 				repeatOn = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );
@@ -84,7 +84,7 @@
 		public static bool ShuffleOn
 		{
 			get => suffleOn; 
-			set
+			internal set
 			{
 				suffleOn = value;
 				NotificationHandler.NotifyPropertyChangedPersistent( null );

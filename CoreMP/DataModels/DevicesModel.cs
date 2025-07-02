@@ -6,7 +6,7 @@ namespace CoreMP
 	/// The DevicesModel class contains a collection of all the remote (DLNA based) devices that can either be used for playback
 	/// or as a media server
 	/// </summary>
-	internal static class DevicesModel
+	internal class DevicesModel
 	{
 		static DevicesModel()
 		{
@@ -20,7 +20,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private static void PlaybackDeviceCollectionChanged( object sender, NotifyCollectionChangedEventArgs e ) => NotificationHandler.NotifyPropertyChanged( e );
+		internal static void PlaybackDeviceCollectionChanged( object sender, NotifyCollectionChangedEventArgs e ) => NotificationHandler.NotifyPropertyChanged( e );
 
 		/// <summary>
 		/// Pass on changes to the server devices

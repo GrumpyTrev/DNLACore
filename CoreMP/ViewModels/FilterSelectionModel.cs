@@ -20,7 +20,7 @@ namespace CoreMP
 			{
 				StringBuilder tabStringBuilder = new StringBuilder();
 
-				tabStringBuilder.Append( ( CurrentFilter == null ) ? "\r\n" : $"\r\n[{CurrentFilter.ShortName}]" );
+				_ = tabStringBuilder.Append( ( CurrentFilter == null ) ? "\r\n" : $"\r\n[{CurrentFilter.ShortName}]" );
 				TagGroups.ForEach( tg => tabStringBuilder.Append( $"[{tg.Name}]" ) );
 
 				tabString = tabStringBuilder.ToString();
@@ -86,7 +86,7 @@ namespace CoreMP
 		/// <summary>
 		/// The current tag being used to filter
 		/// </summary>
-		public Tag CurrentFilter { get; set; } = null;
+		public Tag CurrentFilter { get; internal set; } = null;
 
 		/// <summary>
 		/// Return the name of the current filter
@@ -105,25 +105,25 @@ namespace CoreMP
 		public bool TagOrderFlag => CurrentFilter?.TagOrder ?? false;
 
 		/// <summary>
-		/// Does the current filter contain any of the specified tag names
+		/// Does the current filter contain the specified tag name
 		/// </summary>
-		/// <param name="tagNames"></param>
+		/// <param name="tagName"></param>
 		/// <returns></returns>
-		public bool FilterContainsTags( IEnumerable<string> tagNames )
+		public bool FilterContainsTag( string tagName )
 		{
 			// Check for the simple tag filter first
-			bool containsTags = ( CurrentFilter != null ) && ( tagNames.Contains( CurrentFilter.Name ) == true );
+			bool containsTag = ( CurrentFilter != null ) && ( tagName == CurrentFilter.Name );
 
-			if ( containsTags == false )
+			if ( containsTag == false )
 			{
 				// Now check all the tags in the groups by first forming a list of all the tags in all the groups 
 				IEnumerable<string> bigList = TagGroups.SelectMany( tg => tg.Tags, ( tg, ta ) => ta.Name );
 
 				// And then checking for an intersection
-				containsTags = ( bigList.Intersect( tagNames ).Count() != 0 );
+				containsTag = bigList.Contains( tagName );
 			}
 
-			return containsTags;
+			return containsTag;
 		}
 
 		/// <summary>
@@ -135,6 +135,6 @@ namespace CoreMP
 		/// List of TagGroups containing currently selected Tags.
 		/// A TagGroup only needs to be stored here if some and not all of the tags are selected.
 		/// </summary>
-		public List<TagGroup> TagGroups { get; set; } = new List<TagGroup>();
+		public List<TagGroup> TagGroups { get; internal set; } = new List<TagGroup>();
 	}
 }

@@ -8,11 +8,11 @@
 		/// <summary>
 		/// Register for the generic StorageController data available as well as specific items
 		/// </summary>
-		public SummaryDetailsDisplayController() => NotificationHandler.Register( typeof( StorageController ), () =>
+		public SummaryDetailsDisplayController() => NotificationHandler.Register<StorageController>( () =>
 		{
 			UpdateSummaryModel();
-			NotificationHandler.Register( typeof( Playback ), "LibraryIdentity", UpdateSummaryModel );
-			NotificationHandler.Register( typeof( DevicesModel ), "SelectedDevice", UpdateSummaryModel );
+			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), UpdateSummaryModel );
+			NotificationHandler.Register<DevicesModel>( nameof( DevicesModel.SelectedDevice ), UpdateSummaryModel );
 		} );
 
 		/// <summary>

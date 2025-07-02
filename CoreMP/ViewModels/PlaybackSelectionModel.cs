@@ -5,7 +5,7 @@ namespace CoreMP
 	/// <summary>
 	/// The PlaybackSelectionModel holds the remote devices and associated data obtained by the PlaybackSelectionController
 	/// </summary>
-	public static class PlaybackSelectionModel
+	public class PlaybackSelectionModel
 	{
 		/// <summary>
 		/// Used to notify changes to the model
@@ -15,11 +15,11 @@ namespace CoreMP
 		/// <summary>
 		/// The remote devices capable of playback that have been have been discovered
 		/// </summary>
-		public static List<PlaybackDevice> PlaybackCapableDevices { get; set; } = new List<PlaybackDevice>();
+		public static List<PlaybackDevice> PlaybackCapableDevices { get; internal set; } = new List<PlaybackDevice>();
 
 		/// <summary>
 		/// The name of the currently selected device.
 		/// </summary>
-		public static string SelectedDeviceName { get; set; } = "";
+		public static string SelectedDeviceName { get; internal set; } = "";
 	}
 }

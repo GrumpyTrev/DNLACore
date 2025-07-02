@@ -8,7 +8,7 @@ namespace CoreMP
 	/// The Albums class holds a collection of all the Albums entries read from storage.
 	/// It allows access to Albums entries by Id and automatically persists changes back to storage
 	/// </summary>	
-	internal static class Albums
+	internal class Albums
 	{
 		/// <summary>
 		/// Called when the Albums have been read from storage
@@ -40,8 +40,11 @@ namespace CoreMP
 		/// <returns></returns>
 		public static void DeleteAlbum( Album albumToDelete )
 		{
-			AlbumCollection.Remove( albumToDelete );
-			IdLookup.Remove( albumToDelete.Id );
+			_ = AlbumCollection.Remove( albumToDelete );
+			_ = IdLookup.Remove( albumToDelete.Id );
+
+			// Notify the rest of the system about this deletion
+			NotificationHandler.NotifyPropertyChanged( albumToDelete );
 		}
 
 		/// <summary>
@@ -53,8 +56,7 @@ namespace CoreMP
 		{
 			foreach ( Album albumToDelete in albumsToDelete )
 			{
-				AlbumCollection.Remove( albumToDelete );
-				IdLookup.Remove( albumToDelete.Id );
+				DeleteAlbum( albumToDelete );
 			}
 		}
 

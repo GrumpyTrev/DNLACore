@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The NowPlayingViewModel holds the song data obtained from the NowPlayingController
 	/// </summary>
-	public static class NowPlayingViewModel
+	public class NowPlayingViewModel
 	{
 		/// <summary>
 		/// Allow changes to this model to be monitored
@@ -18,7 +18,7 @@
 		/// <summary>
 		/// Property introduced to trigger a notification when changes to the playlist have been made (and completed)
 		/// </summary>
-		internal static bool PlaylistUpdated
+		public static bool PlaylistUpdated
 		{
 			set => NotificationHandler.NotifyPropertyChanged( null );
 		}

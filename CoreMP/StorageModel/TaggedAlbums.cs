@@ -12,14 +12,7 @@ namespace CoreMP
 		/// Get the TaggedAlbum collection from storage
 		/// </summary>
 		/// <returns></returns>
-		public static async Task GetDataAsync()
-		{
-			if ( TaggedAlbumCollection == null )
-			{
-				// Get the current set of albums and form the lookup tables
-				TaggedAlbumCollection = await DbAccess.LoadAsync<TaggedAlbum>();
-			}
-		}
+		public static async Task GetDataAsync() => TaggedAlbumCollection ??= await DbAccess.LoadAsync<TaggedAlbum>();
 
 		/// <summary>
 		/// Delete the specified TaggedAlbum from the storage and the collection
@@ -30,7 +23,7 @@ namespace CoreMP
 		{
 			// No need to wait for the TaggedAlbum to be deleted from storage
 			DbAccess.DeleteAsync( taggedAlbumToDelete );
-			TaggedAlbumCollection.Remove( taggedAlbumToDelete );
+			_ = TaggedAlbumCollection.Remove( taggedAlbumToDelete );
 		}
 
 		/// <summary>

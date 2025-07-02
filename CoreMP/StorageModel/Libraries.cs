@@ -57,7 +57,7 @@ namespace CoreMP
 		/// <param name="libraryToDelete"></param>
 		public static void DeleteLibrary( Library libraryToDelete )
 		{
-			LibraryCollection.Remove( libraryToDelete );
+			_ = LibraryCollection.Remove( libraryToDelete );
 
 			// Reform the library names collection
 			LibraryNames = LibraryCollection.Select( lib => lib.Name ).ToList();

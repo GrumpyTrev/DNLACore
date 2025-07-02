@@ -3,23 +3,24 @@
 namespace CoreMP
 {
 	/// <summary>
-	/// The MediaNotificationViewModel allows the MediaNotificationController to pass media status to the Media Notification View 
+	/// The MediaNotificationViewModel allows the MediaNotificationController to pass media status to the MediaNotificationServiceInterface 
 	/// </summary>
-	public static class MediaNotificationViewModel
+	public class MediaNotificationViewModel
 	{
 		/// <summary>
-		/// Method introduced to trigger a notification when changes are made to the song being played
+		/// A song has either started or stopped playing - value is null for song finishing
 		/// </summary>
-		public static void SongStarted( Song songStarted ) => NotificationHandler.NotifyPropertyChanged( songStarted );
-		
-		/// <summary>
-		/// Method introduced to trigger a notification when a song has finished playing
-		/// </summary>
-		public static void SongFinished() => NotificationHandler.NotifyPropertyChanged( null );
+		public static Song SongStarted
+		{
+			set => NotificationHandler.NotifyPropertyChanged( value );
+		}
 
 		/// <summary>
 		/// Method introduced to trigger a notification when the play state of the song changes
 		/// </summary>
-		public static void IsPlaying( bool isPlaying ) => NotificationHandler.NotifyPropertyChanged( isPlaying );
+		public static bool IsPlaying
+		{
+			set => NotificationHandler.NotifyPropertyChanged( value );
+		}
 	}
 }

@@ -50,17 +50,16 @@ namespace DBTest
 		/// </summary>
 		protected override void PostViewCreateAction()
 		{
-			NotificationHandler.Register( typeof( NowPlayingViewModel ), DataAvailable );
-			NotificationHandler.Register( typeof( NowPlayingViewModel ), "CurrentSongIndex",
+			NotificationHandler.Register<NowPlayingViewModel>( DataAvailable );
+			NotificationHandler.Register<NowPlayingViewModel>( nameof( NowPlayingViewModel.CurrentSongIndex ),
 				() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex ) );
-			NotificationHandler.Register( typeof( NowPlayingViewModel ), "PlaylistUpdated",
+			NotificationHandler.Register<NowPlayingViewModel>( nameof( NowPlayingViewModel.PlaylistUpdated ),
 				() => ( ( NowPlayingAdapter )Adapter ).PlaylistUpdated( NowPlayingViewModel.NowPlayingPlaylist.PlaylistItems ) );
-			NotificationHandler.Register( typeof( NowPlayingViewModel ), "IsPlaying",
-				() =>
-				{
-					NowPlayingAdapterModel.IsPlaying = NowPlayingViewModel.IsPlaying;
-					( ( NowPlayingAdapter )Adapter ).NotifyDataSetChanged();
-				} );
+			NotificationHandler.Register<NowPlayingViewModel>( nameof( NowPlayingViewModel.IsPlaying ), () =>
+			{
+				NowPlayingAdapterModel.IsPlaying = NowPlayingViewModel.IsPlaying;
+				( ( NowPlayingAdapter )Adapter ).NotifyDataSetChanged();
+			} );
 		}
 
 		/// <summary>

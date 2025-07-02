@@ -7,7 +7,7 @@ namespace CoreMP
 	/// The StorageController class is responsible for coordinating the reading from storage collections of data that are not library specific
 	/// and are not therefore re-read whenever the library changes. Other controllers can make use of library specific subsets of this data
 	/// </summary>
-	public static class StorageController
+	internal class StorageController
 	{
 		/// <summary>
 		/// Read all the managed collections and then tell any registered listeners
@@ -17,7 +17,7 @@ namespace CoreMP
 			provider = storageProvider;
 
 			Loading = true;
-			await storageProvider.LoadCollectionsAsync();
+			await storageProvider.LoadStorageAsync();
 			Loading = false;
 
 			Songs.CollectionLoaded();

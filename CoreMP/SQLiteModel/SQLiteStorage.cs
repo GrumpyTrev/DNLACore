@@ -5,7 +5,7 @@ namespace CoreMP
 {
 	public class SQLiteStorage : IStorageProvider
 	{
-		public async Task LoadCollectionsAsync()
+		public async Task LoadStorageAsync()
 		{
 			Songs.SongCollection = new SQLiteCollection<Song>( ( await DbAccess.LoadAsync<SQLiteSong>() ).Cast<Song>().ToList() );
 			Albums.AlbumCollection = new SQLiteCollection<Album>( ( await DbAccess.LoadAsync<SQLiteAlbum>() ).Cast<Album>().ToList() );

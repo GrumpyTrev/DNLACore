@@ -2,9 +2,9 @@
 
 namespace CoreMP
 {
-	public interface IStorageProvider
+	internal interface IStorageProvider
 	{
-		public Task LoadCollectionsAsync();
+		public Task LoadStorageAsync();
 
 		public Artist CreateArtist();
 

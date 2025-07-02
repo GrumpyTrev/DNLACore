@@ -74,16 +74,17 @@ namespace DBTest
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
-		/// Initialise the AlbumsController
 		/// </summary>
 		protected override void PostViewCreateAction()
 		{
-			NotificationHandler.Register( typeof( AlbumsViewModel ), DataAvailable );
-			NotificationHandler.Register( typeof( Album ), ( sender, _ ) =>
+			// Check for when the AlbumsViewModel has been initialised
+			NotificationHandler.Register<AlbumsViewModel>( DataAvailable );
+
+			// Register interest in the Album Played property.
+			// If the Album is being displayed then invalidate the view
+			NotificationHandler.Register<Album>( nameof( Album.Played ), ( sender ) =>
 			{
-				// Is this album being displayed
-				int albumId = ( ( Album )sender ).Id;
-				if ( AlbumsViewModel.Albums.Any( album => album.Id == albumId ) == true )
+				if ( AlbumsViewModel.Albums.Any( album => album.Id == ( ( Album )sender ).Id ) == true )
 				{
 					Adapter.NotifyDataSetInvalidated();
 				}

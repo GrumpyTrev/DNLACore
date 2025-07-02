@@ -72,9 +72,9 @@ namespace DBTest
 		/// </summary>
 		protected override void PostViewCreateAction()
 		{
-			NotificationHandler.Register( typeof( PlaylistsViewModel ), DataAvailable );
-			NotificationHandler.Register( typeof( PlaylistsViewModel ), "PlaylistUpdated",
-				( sender, _ ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( ( Playlist )sender ) );
+			NotificationHandler.Register<PlaylistsViewModel>( DataAvailable );
+			NotificationHandler.Register<PlaylistsViewModel>( nameof( PlaylistsViewModel.PlaylistUpdated ), 
+				( sender ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( ( Playlist )sender ) );
 		}
 
 		/// <summary>

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace CoreMP
+﻿namespace CoreMP
 {
 	/// <summary>
 	/// The PlaybackManagementController is the Controller for the MediaControl. It responds to MediaControl commands and maintains media player data in the
@@ -11,24 +9,18 @@ namespace CoreMP
 		/// <summary>
 		/// Register for external playing list change messages
 		/// </summary>
-		public PlaybackManagementController()
+		public PlaybackManagementController() 
 		{
-			router = new PlaybackRouter( ( playing ) =>
-			{
-				if ( playing == true )
-				{
-					new SongStartedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
-				}
-				else
-				{
-					new SongFinishedMessage() { SongPlayed = PlaybackManagerModel.CurrentSong }.Send();
-				}
-			} );
+			router = new PlaybackRouter( ( playing ) => PlaybackModel.SongStarted = playing );
 
-			// Register for the main data available event.
-			NotificationHandler.Register( typeof( StorageController ), () => StorageDataAvailable() );
-			NotificationHandler.Register( typeof( DevicesModel ), "SelectedDevice", DeviceSelected );
-			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+			NotificationHandler.Register<StorageController>( () =>
+			{
+				StorageDataAvailable();
+
+				NotificationHandler.Register<DevicesModel>( nameof( DevicesModel.SelectedDevice ), DeviceSelected );
+				NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), SelectedLibraryChanged );
+				NotificationHandler.Register<Playlists>( nameof( Playlists.CurrentSongIndex ), () => SongIndexChanged() );
+			} );
 		}
 
 		/// <summary>
@@ -36,11 +28,8 @@ namespace CoreMP
 		/// </summary>
 		private void StorageDataAvailable()
 		{
-			// Register for any post start-up song index changes
-			NotificationHandler.Register( typeof( Playlists ), "CurrentSongIndex", () => SongIndexChanged() );
-
 			// Get the sources associated with the library
-			PlaybackManagerModel.Sources = Libraries.GetLibraryById( ConnectionDetailsModel.LibraryId ).LibrarySources;
+			PlaybackManagerModel.Sources = Libraries.GetLibraryById( Playback.LibraryIdentity ).LibrarySources;
 
 			// Use the device currently selected in the DevicesModel
 			DeviceSelected();
@@ -91,8 +80,7 @@ namespace CoreMP
 		/// Called when a SelectedLibraryChangedMessage has been received
 		/// Inform the reporter and reload the playback data
 		/// </summary>
-		/// <param name="_"></param>
-		private void SelectedLibraryChanged( int _ )
+		private void SelectedLibraryChanged()
 		{
 			router.LibraryChanged();
 			StorageDataAvailable();

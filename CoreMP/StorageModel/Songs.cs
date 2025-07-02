@@ -89,10 +89,10 @@ namespace CoreMP
 		/// <param name="songToDelete"></param>
 		public static void DeleteSong( Song songToDelete )
 		{
-			SongCollection.Remove( songToDelete );
-			IdLookup.Remove( songToDelete.Id );
-			artistAlbumLookup[ songToDelete.ArtistAlbumId ].Remove( songToDelete );
-			albumLookup[ songToDelete.AlbumId ].Remove( songToDelete );
+			_ = SongCollection.Remove( songToDelete );
+			_ = IdLookup.Remove( songToDelete.Id );
+			_ = artistAlbumLookup[ songToDelete.ArtistAlbumId ].Remove( songToDelete );
+			_ = albumLookup[ songToDelete.AlbumId ].Remove( songToDelete );
 		}
 
 		/// <summary>

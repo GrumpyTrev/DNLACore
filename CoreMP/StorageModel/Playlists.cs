@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,7 +8,7 @@ namespace CoreMP
 	/// The Playlists class holds a collection of all the SongPlaylist and AlbumPlaylist entries read from storage.
 	/// It allows access to these entries and automatically persists changes back to storage
 	/// </summary>	
-	internal static class Playlists
+	internal class Playlists
 	{
 		/// <summary>
 		/// Get the Playlists collection from storage
@@ -76,7 +75,7 @@ namespace CoreMP
 		{
 			if ( libraryId == -1 )
 			{
-				libraryId = ConnectionDetailsModel.LibraryId;
+				libraryId = Playback.LibraryIdentity;
 			}
 
 			return GetPlaylist( Playlist.NowPlayingPlaylistName, libraryId );

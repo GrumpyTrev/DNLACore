@@ -18,13 +18,7 @@
 		/// </summary>
 		public bool ShuffleOn
 		{
-			set
-			{
-				Playback.ShuffleOn = value;
-
-				// Currently the actual shuffling is triggered by a message. This should be a data change notification
-				new ShuffleModeChangedMessage().Send();
-			}
+			set => Playback.ShuffleOn = value;
 		}
 	}
 }

@@ -55,18 +55,18 @@ namespace CoreMP
 		public SortOrder CurrentSortOrder
 		{
 			get => ActiveSortOrder.CurrentSortOrder;
-			set => ActiveSortOrder.CurrentSortOrder = value;
+			internal set => ActiveSortOrder.CurrentSortOrder = value;
 		}
 
 		/// <summary>
 		/// The ActiveSortOrder property.
 		/// </summary>
-		public SortPairing ActiveSortOrder { get; set; }
+		public SortPairing ActiveSortOrder { get; internal set; }
 
 		/// <summary>
 		/// The currently active sort type
 		/// </summary>
-		public SortType ActiveSortType { get; set; }
+		public SortType ActiveSortType { get; internal set; }
 
 		/// <summary>
 		/// The SortPairing class encapsulates a pair of related sort orders that toggled between by the user

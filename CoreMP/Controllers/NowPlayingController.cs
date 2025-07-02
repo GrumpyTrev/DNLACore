@@ -13,26 +13,32 @@ namespace CoreMP
 		/// <summary>
 		/// Register for all data to be loaded.
 		/// </summary>
-		public NowPlayingController() => NotificationHandler.Register( typeof( StorageController ), () =>
+		public NowPlayingController() => NotificationHandler.Register< StorageController>( () =>
 		{
 			// Initialise the model
 			StorageDataAvailable();
 
 			// Register for selected library changes
-			SelectedLibraryChangedMessage.Register( SelectedLibraryChanged );
+			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), () => SelectedLibraryChanged( Playback.LibraryIdentity ) );
 
 			// Register for shuffle mode changes
-			ShuffleModeChangedMessage.Register( ShuffleModeChanged );
+			NotificationHandler.Register<Playback>( nameof( Playback.ShuffleOn), ShuffleModeChanged );
 
-			// Register for the SongFinished message
-			SongFinishedMessage.Register( SongFinished );
+			// Register interest in when the current song finished
+			NotificationHandler.Register< PlaybackModel>( nameof( PlaybackModel.SongStarted ), ( started ) =>
+			{
+				if ( ( bool )started == false )
+				{
+					SongFinished();
+				}
+			} );
 
 			// When the current song index changes update the model
-			NotificationHandler.Register( typeof( Playlists ), "CurrentSongIndex",
+			NotificationHandler.Register< Playlists>( nameof( Playlists.CurrentSongIndex ),
 				() => NowPlayingViewModel.CurrentSongIndex = Playlists.CurrentSongIndex );
 
 			// When the song is started or stopped update the model
-			NotificationHandler.Register( typeof( PlaybackModel ), "IsPlaying",
+			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.IsPlaying ), 
 				() => NowPlayingViewModel.IsPlaying = PlaybackModel.IsPlaying );
 		} );
 
@@ -214,7 +220,7 @@ namespace CoreMP
 		private void SelectedLibraryChanged( int _ ) => StorageDataAvailable();
 
 		/// <summary>
-		/// Called when a ShuffleModeChangedMessage is received.
+		/// Called when the shuffle mode has changed.
 		/// Get the new mode and update the model.
 		/// If Shuffle mode has been turned on then shuffle the current playlist
 		/// </summary>
@@ -241,12 +247,12 @@ namespace CoreMP
 			( Playlists.CurrentSongIndex > 0 ) ? Playlists.CurrentSongIndex - 1 : nowPlayingPlaylist.PlaylistItems.Count - 1;
 
 		/// <summary>
-		/// Called when a SongFinishedMessage has been received.
+		/// Called when the current song has finished playing
 		/// Play the next song. If the end of the playlist has been reached and repeat is on then go back to the first song.
 		/// If shuffle mode is on then shuffle the songs before playimng the first one
 		/// </summary>
 		/// <param name="_"></param>
-		private void SongFinished( Song _ )
+		private void SongFinished()
 		{
 			if ( Playlists.CurrentSongIndex < ( nowPlayingPlaylist.PlaylistItems.Count - 1 ) )
 			{

@@ -60,8 +60,8 @@ namespace CoreMP
 				CoreMP.TaggedAlbums.DeleteTaggedAlbum( album );
 			}
 
-			TaggedAlbums.Remove( album );
-			AlbumToTagLookup.Remove( album.AlbumId );
+			_ = TaggedAlbums.Remove( album );
+			_ = AlbumToTagLookup.Remove( album.AlbumId );
 		}
 
 		/// <summary>

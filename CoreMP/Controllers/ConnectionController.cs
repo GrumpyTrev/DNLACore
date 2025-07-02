@@ -17,17 +17,15 @@ namespace CoreMP
 				Trace = true
 			};
 
-			// Initialise the rest of the ConnectionDetailsModel if required
-			ConnectionDetailsModel.LibraryId = InitialiseDatabase();
+			// Initialise the rest of the database if required
+			InitialiseDatabase();
 		}
 
 		/// <summary>
-		/// Make sure that the database exists and extract the current library
+		/// Make sure that the database exists
 		/// </summary>
-		private int InitialiseDatabase()
+		private void InitialiseDatabase()
 		{
-			int currentLibraryId = -1;
-
 			bool createTables = false;
 
 			try
@@ -49,15 +47,10 @@ namespace CoreMP
 					_ = ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylist>();
 					_ = ConnectionDetailsModel.SynchConnection.CreateTable<AlbumPlaylistItem>();
 				}
-
-				// Check for a Playback record which will tell us the currently selected library
-				currentLibraryId = ConnectionDetailsModel.SynchConnection.Table<SQLitePlayback>().FirstOrDefault().LibraryId;
 			}
 			catch ( SQLite.SQLiteException )
 			{
 			}
-
-			return currentLibraryId;
 		}
 	}
 }

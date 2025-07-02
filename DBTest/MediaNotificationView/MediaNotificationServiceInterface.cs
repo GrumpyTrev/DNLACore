@@ -5,22 +5,36 @@ using CoreMP;
 namespace DBTest
 {
 	/// <summary>
-	/// The MediaNotificationServiceInterface class provides an interface to the MediaNotificationService for the rest of the system
+	/// The MediaNotificationServiceInterface class provides an interface to the MediaNotificationService service
 	/// </summary>
 	internal class MediaNotificationServiceInterface : Java.Lang.Object, IServiceConnection, MediaNotificationService.IServiceCallbacks
 	{
+		/// <summary>
+		/// Public constructor.
+		/// Start the MediaNotificationService service and bind to it
+		/// </summary>
+		/// <param name="context"></param>
 		public MediaNotificationServiceInterface( Context context )
 		{
 			// Start the media control service
-			context.StartService( new Intent( context, typeof( MediaNotificationService ) ) );
+			_ = context.StartService( new Intent( context, typeof( MediaNotificationService ) ) );
 
 			// Bind to the service
-			context.BindService( new Intent( context, typeof( MediaNotificationService ) ), this, Bind.None );
+			_ = context.BindService( new Intent( context, typeof( MediaNotificationService ) ), this, Bind.None );
 
-			// Register interest in notification provided via the MediaNotificationViewModel
-			NotificationHandler.Register( typeof( MediaNotificationViewModel ), "SongStarted", ( sender, _ ) => controlService.SongStarted( ( Song )sender ) );
-			NotificationHandler.Register( typeof( MediaNotificationViewModel ), "SongFinished", ( _, _ ) => controlService.SongFinished());
-			NotificationHandler.Register( typeof( MediaNotificationViewModel ), "IsPlaying", ( sender, _ ) => controlService.IsPlaying( ( bool )sender ) );
+			// Register interest in notification provided via the MediaNotificationViewModel. Pass on model changes to the MediaNotificationService
+			NotificationHandler.Register<MediaNotificationViewModel>( nameof( MediaNotificationViewModel.SongStarted ), ( sender ) =>
+			{
+				if ( sender != null )
+				{
+					controlService?.SongStarted( ( Song )sender );
+				}
+				else
+				{
+					controlService?.SongFinished();
+				}
+			} );
+			NotificationHandler.Register<MediaNotificationViewModel>( nameof( MediaNotificationViewModel.IsPlaying ), ( sender ) => controlService?.IsPlaying( ( bool )sender ) );
 		}
 
 		/// <summary>

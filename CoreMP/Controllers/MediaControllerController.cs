@@ -8,24 +8,39 @@
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
 		/// </summary>
-		public MediaControllerController()
+		public MediaControllerController() => NotificationHandler.Register<StorageController>( () =>
 		{
-			NotificationHandler.Register( typeof( PlaybackModel ), () =>
+			InitialiseViewModel();
+
+			NotificationHandler.Register<PlaybackModel>( () =>
 			{
 				MediaControllerViewModel.CurrentPosition = PlaybackModel.CurrentPosition;
 				MediaControllerViewModel.Duration = PlaybackModel.Duration;
 				MediaControllerViewModel.SongPlaying = PlaybackModel.SongPlaying;
+				MediaControllerViewModel.IsPlaying = PlaybackModel.IsPlaying;
 			} );
 
-			NotificationHandler.Register( typeof( Playback ), () =>
+			NotificationHandler.Register<Playback>( () =>
 			{
 				MediaControllerViewModel.RepeatOn = Playback.RepeatOn;
 				MediaControllerViewModel.ShuffleOn = Playback.ShuffleOn;
 			} );
+		} );
 
-			NotificationHandler.Register( typeof( PlaybackModel ), "IsPlaying", ()=> MediaControllerViewModel.IsPlaying = PlaybackModel.IsPlaying );
-			SongFinishedMessage.Register( ( _ ) => MediaControllerViewModel.SongPlaying = null );
-			NotificationHandler.Register( typeof( StorageController ), () => MediaControllerViewModel.Available.IsSet = true );
+		/// <summary>
+		/// Called when storage data is available to initialise the view model
+		/// </summary>
+		private void InitialiseViewModel()
+		{
+			MediaControllerViewModel.CurrentPosition = PlaybackModel.CurrentPosition;
+			MediaControllerViewModel.Duration = PlaybackModel.Duration;
+			MediaControllerViewModel.SongPlaying = PlaybackModel.SongPlaying;
+			MediaControllerViewModel.RepeatOn = Playback.RepeatOn;
+			MediaControllerViewModel.ShuffleOn = Playback.ShuffleOn;
+			MediaControllerViewModel.IsPlaying = PlaybackModel.IsPlaying;
+
+			// Let the view know
+			MediaControllerViewModel.Available.IsSet = true;
 		}
 	}
 }

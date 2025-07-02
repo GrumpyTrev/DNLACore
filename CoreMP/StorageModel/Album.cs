@@ -22,11 +22,6 @@ namespace CoreMP
 		public int Year { get; set; } = 0;
 
 		/// <summary>
-		/// The rating is from 0 (bad) to 4 (bril)
-		/// </summary>
-		public int Rating { get; set; } = 2;
-
-		/// <summary>
 		/// The full genre string that could include several genres is included in the database
 		/// </summary>
 		public string Genre { get; set; } = "";
@@ -37,7 +32,7 @@ namespace CoreMP
 		public virtual bool Played
 		{
 			get => played;
-			set
+			internal set
 			{
 				played = value;
 

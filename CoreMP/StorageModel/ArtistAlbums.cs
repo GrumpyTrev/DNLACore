@@ -40,8 +40,8 @@ namespace CoreMP
 		/// <returns></returns>
 		public static void DeleteArtistAlbum( ArtistAlbum artistAlbumToDelete )
 		{
-			ArtistAlbumCollection.Remove( artistAlbumToDelete );
-			IdLookup.Remove( artistAlbumToDelete.Id );
+			_ = ArtistAlbumCollection.Remove( artistAlbumToDelete );
+			_ = IdLookup.Remove( artistAlbumToDelete.Id );
 		}
 
 		/// <summary>

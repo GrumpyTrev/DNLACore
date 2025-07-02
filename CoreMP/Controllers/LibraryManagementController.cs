@@ -13,10 +13,9 @@ namespace CoreMP
 	{
 		/// <summary>
 		/// Public constructor to allow message registrations
+		/// Register for the main data available event.
 		/// </summary>
-		public LibraryManagementController() =>
-			// Register for the main data available event.
-			NotificationHandler.Register( typeof( StorageController ), StorageDataAvailable );
+		public LibraryManagementController() => NotificationHandler.Register<StorageController>( StorageDataAvailable );
 
 		/// <summary>
 		/// Update the selected libary in the database and the ConnectionDetailsModel.
@@ -26,14 +25,12 @@ namespace CoreMP
 		public void SelectLibrary( Library selectedLibrary )
 		{
 			// Only process this if the library has changed
-			if ( selectedLibrary.Id != ConnectionDetailsModel.LibraryId )
+			if ( selectedLibrary.Id != Playback.LibraryIdentity )
 			{
 				Playback.LibraryIdentity = selectedLibrary.Id;
-				ConnectionDetailsModel.LibraryId = selectedLibrary.Id;
-				new SelectedLibraryChangedMessage() { SelectedLibrary = selectedLibrary.Id }.Send();
 
 				// Update the model
-				LibraryManagementViewModel.SelectedLibraryIndex = Libraries.Index( ConnectionDetailsModel.LibraryId );
+				LibraryManagementViewModel.SelectedLibraryIndex = Libraries.Index( Playback.LibraryIdentity );
 			}
 		}
 
@@ -222,12 +219,6 @@ namespace CoreMP
 					}
 				}
 
-				// Tag management is carried out via a message to the controller
-				if ( albumIds.Count > 0 )
-				{
-					new AlbumsDeletedMessage() { DeletedAlbumIds = albumIds.ToList() }.Send();
-				}
-
 				// Delete all the Songs
 				Songs.DeleteSongs( sourceToDelete.Songs );
 			}
@@ -248,7 +239,7 @@ namespace CoreMP
 		{
 			LibraryManagementViewModel.AvailableLibraries = Libraries.LibraryCollection.ToList();
 			LibraryManagementViewModel.LibraryNames = Libraries.LibraryNames.ToList();
-			LibraryManagementViewModel.SelectedLibraryIndex = Libraries.Index( ConnectionDetailsModel.LibraryId );
+			LibraryManagementViewModel.SelectedLibraryIndex = Libraries.Index( Playback.LibraryIdentity );
 		}
 
 		/// <summary>
@@ -270,9 +261,6 @@ namespace CoreMP
 			// Delete all the albums in the library and any tags associated with them
 			List<Album> albums = Albums.AlbumCollection.Where( alb => alb.LibraryId == libId ).ToList();
 			Albums.DeleteAlbums( albums );
-
-			// We can use the FilterManagementController to carry out the Tag deletions.
-			new AlbumsDeletedMessage() { DeletedAlbumIds = albums.Select( alb => alb.Id ).ToList() }.Send();
 
 			// Delete all the user playlists and thier contents
 			Playlists.GetPlaylistsForLibrary( libId ).ForEach( play => Playlists.DeletePlaylist( play ) );

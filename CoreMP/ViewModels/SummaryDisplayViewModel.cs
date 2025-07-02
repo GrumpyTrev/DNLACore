@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The SummaryDisplayViewModel holds summary details to be displayed to the user
 	/// </summary>
-	public static class SummaryDisplayViewModel
+	public class SummaryDisplayViewModel
 	{
 		/// <summary>
 		/// The name of the currently selected library
@@ -12,7 +12,7 @@
 		public static string LibraryName
 		{
 			get => libraryName;
-			set
+			internal set
 			{
 				libraryName = value;
 				NotificationHandler.NotifyPropertyChanged( null );
@@ -26,7 +26,7 @@
 		public static string PlaybackName
 		{
 			get => playbackName;
-			set
+			internal set
 			{
 				playbackName = value;
 				NotificationHandler.NotifyPropertyChanged( null );

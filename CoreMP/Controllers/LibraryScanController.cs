@@ -118,9 +118,10 @@ namespace CoreMP
 
 				// If there have been any changes to the library, and it is the library currently being displayed then force a refresh
 				if ( ( ( songsWithChangedAlbumNames.Count > 0 ) || ( newAlbums.Count > 0 ) || ( unmatchedSongs.Count > 0 ) ) && 
-					( libraryToScan.Id == ConnectionDetailsModel.LibraryId ) )
+					( libraryToScan.Id == Playback.LibraryIdentity ) )
 				{
-					new SelectedLibraryChangedMessage() { SelectedLibrary = libraryToScan.Id }.Send();
+					// This should force a library change notification
+					Playback.LibraryIdentity = Playback.LibraryIdentity;
 				}
 
 				scanInProgress = false;
@@ -136,9 +137,6 @@ namespace CoreMP
 		/// <param name="songsToDelete"></param>
 		private void DeleteSongs( List<Song> songsToDelete )
 		{
-			// Keep track of any albums that are deleted so that other controllers can be notified
-			List<int> deletedAlbumIds = new List<int>();
-
 			// Delete all the Songs.
 			Songs.DeleteSongs( songsToDelete );
 
@@ -151,17 +149,7 @@ namespace CoreMP
 			// Check if any of these ArtistAlbum items are now empty and need deleting
 			foreach ( int id in artistAlbumIds )
 			{
-				int deletedAlbumId = CheckForAlbumDeletion( id );
-
-				if ( deletedAlbumId != -1 )
-				{
-					deletedAlbumIds.Add( deletedAlbumId );
-				}
-			}
-
-			if ( deletedAlbumIds.Count > 0 )
-			{
-				new AlbumsDeletedMessage() { DeletedAlbumIds = deletedAlbumIds }.Send();
+				CheckForAlbumDeletion( id );
 			}
 		}
 
@@ -187,10 +175,7 @@ namespace CoreMP
 				if ( ( songArtist == null ) || ( songArtist.Name != songScanned.ArtistName ) )
 				{
 					// As this is a new Artist the ArtistAlbum needs to be re-initialised.
-					if ( songArtistAlbum != null )
-					{
-						songArtistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
-					}
+					songArtistAlbum?.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 
 					songArtistAlbum = null;
 
@@ -199,11 +184,8 @@ namespace CoreMP
 				}
 
 				// If there is an existing ArtistAlbum then use it as it will be for the correct Artist, i.e. not cleared above
-				if ( songArtistAlbum == null )
-				{
-					// Find an existing or create a new ArtistAlbum entry
-					songArtistAlbum = await GetArtistAlbumToHoldSongsAsync( songArtist, songAlbum );
-				}
+				// Find an existing or create a new ArtistAlbum entry
+				songArtistAlbum ??= await GetArtistAlbumToHoldSongsAsync( songArtist, songAlbum );
 
 				// Add the song to the database, the album and the album artist
 				Song songToAdd = StorageController.CreateSong();
@@ -274,10 +256,7 @@ namespace CoreMP
 				songArtistAlbum.Songs.Add( songToAdd );
 			}
 
-			if ( songArtistAlbum != null )
-			{
-				songArtistAlbum.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
-			}
+			songArtistAlbum?.Songs.Sort( ( a, b ) => a.Track.CompareTo( b.Track ) );
 		}
 
 		/// <summary>
@@ -402,10 +381,7 @@ namespace CoreMP
 				Logger.Log( string.Format( "ArtistAlbum: {0} found with Id: {1}", songArtistAlbum.Name, songArtistAlbum.Id ) );
 
 				// Get the children of the existing ArtistAlbum
-				if ( songArtistAlbum.Songs == null )
-				{
-					songArtistAlbum.Songs = Songs.GetArtistAlbumSongs( songArtistAlbum.Id );
-				}
+				songArtistAlbum.Songs ??= Songs.GetArtistAlbumSongs( songArtistAlbum.Id );
 			}
 
 			return songArtistAlbum;
@@ -416,11 +392,8 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="artistAlbumId"></param>
 		/// <returns></returns>
-		private int CheckForAlbumDeletion( int artistAlbumId )
+		private void CheckForAlbumDeletion( int artistAlbumId )
 		{
-			// Keep track in the Tuple of any albums or artists deleted
-			int deletedAlbumId = -1;
-
 			// Refresh the contents of the ArtistAlbum
 			ArtistAlbum artistAlbum = ArtistAlbums.GetArtistAlbumById( artistAlbumId );
 			artistAlbum.Songs = Songs.GetArtistAlbumSongs( artistAlbum.Id );
@@ -433,7 +406,7 @@ namespace CoreMP
 
 				// Remove this ArtistAlbum from the Artist
 				Artist artist = Artists.GetArtistById( artistAlbum.ArtistId );
-				artist.ArtistAlbums.Remove( artistAlbum );
+				_ = artist.ArtistAlbums.Remove( artistAlbum );
 
 				// Does the associated Artist have any other Albums
 				if ( artist.ArtistAlbums.Count == 0 )
@@ -447,11 +420,8 @@ namespace CoreMP
 				{
 					// Not referenced by any ArtistAlbum. so delete it
 					Albums.DeleteAlbum( artistAlbum.Album );
-					deletedAlbumId = artistAlbum.AlbumId;
 				}
 			}
-
-			return deletedAlbumId;
 		}
 
 		/// <summary>

@@ -13,28 +13,24 @@ namespace CoreMP
 	{
 		/// <summary>
 		/// Public constructor to allow permanent message registrations
+		/// Register for the main data available event.
 		/// </summary>
-		public ArtistsController()
+		public ArtistsController() => NotificationHandler.Register<StorageController>( () =>
 		{
-			TagMembershipChangedMessage.Register( TagMembershipChanged );
+			StorageDataAvailable();
 
-			// Register for the main data available event.
-			NotificationHandler.Register( typeof( StorageController ), () =>
+			// Once data is available register for library change messages
+			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), () =>
 			{
+				// Clear the displayed data and filter
+				ArtistsViewModel.ClearModel();
+
+				// Reload the library specific album data
 				StorageDataAvailable();
-
-				// Once data is available register for library change messages
-				NotificationHandler.Register( typeof( ConnectionDetailsModel ), () =>
-				{
-					// Clear the displayed data and filter
-					ArtistsViewModel.ClearModel();
-
-					// Reload the library specific album data
-					StorageDataAvailable();
-				} );
 			} );
 
-		}
+			NotificationHandler.Register<TagModel>( ( tagName ) => TagMembershipChanged( ( string )tagName ) );
+		} );
 
 		/// <summary>
 		/// Apply the specified filter to the data being displayed
@@ -124,10 +120,10 @@ namespace CoreMP
 		private void StorageDataAvailable()
 		{
 			// Save the libray being used locally to detect changes
-			ArtistsViewModel.LibraryId = ConnectionDetailsModel.LibraryId;
+			ArtistsViewModel.LibraryId = Playback.LibraryIdentity;
 
 			// Get the Artists we are interested in
-			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == ArtistsViewModel.LibraryId ).ToList();
+			ArtistsViewModel.UnfilteredArtists = Artists.ArtistCollection.Where( art => art.LibraryId == Playback.LibraryIdentity ).ToList();
 
 			// Do the sorting of ArtistAlbum entries off the UI thread
 			SortArtistAlbums();
@@ -197,14 +193,14 @@ namespace CoreMP
 		}
 
 		/// <summary>
-		/// Called when a TagMembershipChangedMessage has been received
+		/// Called when a tag has changed.
 		/// If there is no filtering or if the tag being filtered on has not changed then no action is required.
 		/// Otherwise the data must be refreshed
 		/// </summary>
 		/// <param name="message"></param>
-		private void TagMembershipChanged( List< string > changedTags )
+		private void TagMembershipChanged( string changedTag )
 		{
-			if ( ArtistsViewModel.FilterSelection.FilterContainsTags( changedTags ) == true )
+			if ( ArtistsViewModel.FilterSelection.FilterContainsTag( changedTag ) == true )
 			{
 				// Reapply the filter and sort selections
 				ApplyFilterAndSortSelections();
