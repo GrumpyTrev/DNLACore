@@ -19,10 +19,10 @@ namespace CoreMP
 			StorageDataAvailable();
 
 			// Register for selected library changes
-			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), () => SelectedLibraryChanged( Playback.LibraryIdentity ) );
+			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), StorageDataAvailable );
 
 			// Register for shuffle mode changes
-			NotificationHandler.Register<Playback>( nameof( Playback.ShuffleOn), ShuffleModeChanged );
+			NotificationHandler.Register<Playback>( nameof( Playback.ShuffleOn), () => InitialiseShuffleIfOn() );
 
 			// Register interest in when the current song finished
 			NotificationHandler.Register< PlaybackModel>( nameof( PlaybackModel.SongStarted ), ( started ) =>
@@ -45,7 +45,13 @@ namespace CoreMP
 		/// <summary>
 		/// Set the selected song in the database
 		/// </summary>
-		public void UserSongSelected( int songIndex ) => Playlists.CurrentSongIndex = songIndex;
+		public void UserSongSelected( int songIndex )
+		{
+			Playlists.CurrentSongIndex = songIndex;
+
+			// Re-initialise the shuffle lists
+			InitialiseShuffleIfOn();
+		}
 
 		/// <summary>
 		/// Add the songs from the playlist to the Now Playing list
@@ -65,31 +71,47 @@ namespace CoreMP
 			if ( clearFirst == true )
 			{
 				ClearNowPlayingList();
-			}
 
-			// Assume we're going to play a new list from the start
-			int newCurrentIndex = 0;
+				// Add all the entries from the playlistToAdd
+				nowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( false ) );
 
-			if ( resume == true )
-			{
-				if ( clearFirst == true )
+				// If shuffle mode is off then the song to play depends on whether or not resume was selected
+				if ( Playback.ShuffleOn == false )
 				{
-					nowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( false ) );
-					newCurrentIndex = playlistToAdd.InProgressIndex;
+					Playlists.CurrentSongIndex = ( resume == true ) ? playlistToAdd.InProgressIndex : 0;
 				}
 				else
 				{
-					nowPlayingPlaylist.AddSongs( playlistToAdd.GetSongsForPlayback( true ) );
+					// Initialise shuffle mode
+					InitialiseShuffleIfOn( false );
+
+					// If this playlist is being resumed then remove all played items from the songsLeftToShuffle list
+					if ( resume == true )
+					{
+						songsLeftToShuffle.RemoveRange( 0, playlistToAdd.InProgressIndex );
+					}
+
+					Playlists.CurrentSongIndex = SelectShuffleItem();
 				}
 			}
 			else
 			{
-				nowPlayingPlaylist.AddSongs( ApplyShuffle( playlistToAdd.GetSongsForPlayback( false ) ) );
-				playlistToAdd.SongIndex = 0;
+				// Items from the playlist are being added to the existing set
+				List<Song> songsToAdd = playlistToAdd.GetSongsForPlayback( resume );
+				nowPlayingPlaylist.AddSongs( songsToAdd );
+
+				// If shuffle mode is on then copy the new items to the songsLeftToShuffle list
+				if ( Playback.ShuffleOn == true )
+				{
+					songsLeftToShuffle.AddRange( nowPlayingPlaylist.PlaylistItems.TakeLast( songsToAdd.Count ).Cast<SongPlaylistItem>() );
+				}
 			}
 
-			// If the Now Playing list was cleared then play the specified song
-			SetStartingPointForNewList( clearFirst, newCurrentIndex );
+			// If not resuming a playlist then reset it's song index
+			if ( resume == false )
+			{
+				playlistToAdd.SongIndex = 0;
+			}
 
 			// Report change to UI
 			NowPlayingViewModel.Available.IsSet = true;
@@ -105,14 +127,35 @@ namespace CoreMP
 			// Should the Now Playing playlist be cleared first
 			if ( clearFirst == true )
 			{
+				// Clear it
 				ClearNowPlayingList();
+
+				// Add the songs to the playlist.
+				nowPlayingPlaylist.AddSongs( songsToAdd );
+
+				// If shuffle mode is on then re-initialise it and select an item to play
+				if ( Playback.ShuffleOn == true )
+				{
+					InitialiseShuffleIfOn( false );
+					Playlists.CurrentSongIndex = SelectShuffleItem();
+				}
+				else
+				{
+					// Just play the first item
+					Playlists.CurrentSongIndex = 0;
+				}
 			}
+			else
+			{
+				// Add the songs to the playlist.
+				nowPlayingPlaylist.AddSongs( songsToAdd );
 
-			// Add the songs to the playlist. Shuffled if necessary
-			nowPlayingPlaylist.AddSongs( ApplyShuffle( songsToAdd.ToList() ) );
-
-			// If the Now Playing list was cleared then play the first song
-			SetStartingPointForNewList( clearFirst, 0 );
+				// If shuffle mode is on then add the new items to the songsLeftToShuffle list
+				if ( Playback.ShuffleOn == true )
+				{
+					songsLeftToShuffle.AddRange( nowPlayingPlaylist.PlaylistItems.TakeLast( songsToAdd.Count() ).Cast<SongPlaylistItem>() );
+				}
+			} 
 
 			// Report change to UI
 			NowPlayingViewModel.Available.IsSet = true;
@@ -146,8 +189,18 @@ namespace CoreMP
 				}
 			}
 
-			// Delete the entries and report that the list has been updated
+			// Delete the entries.
 			nowPlayingPlaylist.DeletePlaylistItems( items.ToList() );
+
+			// Delete these entries from the songsLeftToShuffle and shuffledSongs lists
+			if ( Playback.ShuffleOn == true )
+			{
+				songsLeftToShuffle.Where( shuffleSong => items.Any( item => ( item.Index == shuffleSong.Index ) ) ).ToList()
+					.ForEach( item => songsLeftToShuffle.Remove( item ) );
+
+				shuffledSongs.Where( shuffleSong => items.Any( item => ( item.Index == shuffleSong.Index ) ) ).ToList()
+					.ForEach( item => shuffledSongs.Remove( item ) );
+			}
 
 			// Adjust the track numbers
 			nowPlayingPlaylist.AdjustTrackNumbers();
@@ -209,96 +262,153 @@ namespace CoreMP
 			// Initialise the model with the index of the currently selected song
 			NowPlayingViewModel.CurrentSongIndex = Playlists.CurrentSongIndex;
 
+			// If shuffle mode is on then initialise it
+			InitialiseShuffleIfOn();
+
 			NowPlayingViewModel.Available.IsSet = true;
-		}
-
-		/// <summary>
-		/// Called when a SelectedLibraryChangedMessage has been received
-		/// Reload the data
-		/// </summary>
-		/// <param name="message"></param>
-		private void SelectedLibraryChanged( int _ ) => StorageDataAvailable();
-
-		/// <summary>
-		/// Called when the shuffle mode has changed.
-		/// Get the new mode and update the model.
-		/// If Shuffle mode has been turned on then shuffle the current playlist
-		/// </summary>
-		/// <param name="message"></param>
-		private void ShuffleModeChanged()
-		{
-			if ( Playback.ShuffleOn == true )
-			{
-				ShufflePlaylistItems();
-			}
 		}
 
 		/// <summary>
 		/// Select the next song in the playlist
 		/// </summary>
-		public void MediaControlPlayNext() => Playlists.CurrentSongIndex = 
-			( Playlists.CurrentSongIndex == nowPlayingPlaylist.PlaylistItems.Count - 1 ) ? 0 : Playlists.CurrentSongIndex + 1;
+		public void MediaControlPlayNext()
+		{
+			// If shuffle mode is off then select the next song, cycling back to the start when the end if reached
+			if ( Playback.ShuffleOn == false )
+			{
+				Playlists.CurrentSongIndex = ( Playlists.CurrentSongIndex == nowPlayingPlaylist.PlaylistItems.Count - 1 ) ? 0 
+					: Playlists.CurrentSongIndex + 1;
+			}
+			else
+			{
+				// If there are no more items to play in shuffle mode then re-initialise
+				if ( songsLeftToShuffle.Count == 0 )
+				{
+					InitialiseShuffleIfOn( false );
+				}
+
+				Playlists.CurrentSongIndex = SelectShuffleItem();
+			}
+		}
 
 		/// <summary>
 		/// Select the previous song in the playlist
 		/// </summary>
 		/// <param name="_message"></param>
-		public void MediaControlPlayPrevious() => Playlists.CurrentSongIndex = 
-			( Playlists.CurrentSongIndex > 0 ) ? Playlists.CurrentSongIndex - 1 : nowPlayingPlaylist.PlaylistItems.Count - 1;
-
-		/// <summary>
-		/// Called when the current song has finished playing
-		/// Play the next song. If the end of the playlist has been reached and repeat is on then go back to the first song.
-		/// If shuffle mode is on then shuffle the songs before playimng the first one
-		/// </summary>
-		/// <param name="_"></param>
-		private void SongFinished()
+		public void MediaControlPlayPrevious()
 		{
-			if ( Playlists.CurrentSongIndex < ( nowPlayingPlaylist.PlaylistItems.Count - 1 ) )
+			// If shuffle mode is off then select the previous song, cycling back to the end when the start if reached
+			if ( Playback.ShuffleOn == false )
 			{
-				// Play the next song
-				Playlists.CurrentSongIndex++;
-			}
-			else if ( ( Playback.RepeatOn == true ) && ( nowPlayingPlaylist.PlaylistItems.Count > 0 ) )
-			{
-				// If shuffle mode is on then shuffle the items before playing them
-				if ( Playback.ShuffleOn == true )
-				{
-					ShufflePlaylistItems();
-				}
-
-				Playlists.CurrentSongIndex = 0;
+				Playlists.CurrentSongIndex = ( Playlists.CurrentSongIndex > 0 ) ? Playlists.CurrentSongIndex - 1 
+					: nowPlayingPlaylist.PlaylistItems.Count - 1;
 			}
 			else
 			{
-				Playlists.CurrentSongIndex = -1;
+				// The current song being played is the last item in the shuffledSongs list.
+				// Take that entry and put it back on the songsLeftToShuffle list.
+				// Select the last item in the shuffledSongs list to play.
+				// If there are no items in the shuffledSongs list then clear the CurrentSongIndex.
+				if ( shuffledSongs.Count > 0 )
+				{
+					songsLeftToShuffle.Add( shuffledSongs.Last() );
+					_ = shuffledSongs.Remove( shuffledSongs.Last() );
+				}
+
+				Playlists.CurrentSongIndex = ( shuffledSongs.Count > 0 ) ? shuffledSongs.Last().Index : -1;
 			}
 		}
 
 		/// <summary>
-		/// Shuffle the current playlist items
-		/// Extract the songs from the playlist and add them back to it. The AddSongsToNowPlayingList method will appply the shuffle
+		/// Called when the current song has finished playing
+		/// Play the next song. If the end of the playlist has been reached and repeat is on then go back to the first song.
+		/// If shuffle mode is on then randomly select the next song to play
 		/// </summary>
-		private void ShufflePlaylistItems() => AddSongsToNowPlayingList( ( ( SongPlaylist )Playlists.GetNowPlayingPlaylist() ).GetSongs(), true );
+		/// <param name="_"></param>
+		private void SongFinished()
+		{
+			if ( Playback.ShuffleOn == false )
+			{
+				// Shuffle mode is not active, standard selection rules
+
+				// If the last song has not been played then simply move on to the next song
+				if ( Playlists.CurrentSongIndex < ( nowPlayingPlaylist.PlaylistItems.Count - 1 ) )
+				{
+					Playlists.CurrentSongIndex++;
+				}
+				// The end of the list has been reached. If repeat is on then start from the begining. Otherwise stop playing
+				else
+				{
+					Playlists.CurrentSongIndex = ( Playback.RepeatOn == true ) ? 0 : -1;
+				}
+			}
+			else
+			{
+				// Shuffle mode is on.
+				// Are there any items left to play
+				if ( songsLeftToShuffle.Count > 0 )
+				{
+					// Select one of these at random
+					Playlists.CurrentSongIndex = SelectShuffleItem();
+				}
+				// If repeat is on then re-initialise shuffle mode and select an item to play. Otherwise stop playing
+				else if ( Playback.RepeatOn == true )
+				{
+					InitialiseShuffleIfOn( false );
+					Playlists.CurrentSongIndex = SelectShuffleItem();
+				}
+				else
+				{
+					Playlists.CurrentSongIndex = -1;
+				}
+			}
+		}
 
 		/// <summary>
-		/// Shuffle the list of specified songs if Shuffle is on
+		/// Initialise shuffle mode.
+		/// Copy all the SongPlaylistItem items in the playlist to the songsLeftToShuffle list and clear the shuffledSongs list.
+		/// Optionally remove the song currently selected from the songsLeftToShuffle and add it to the shuffledSongs list
 		/// </summary>
-		/// <param name="songs"></param>
-		private List<Song> ApplyShuffle( List<Song> songs )
+		private void InitialiseShuffleIfOn( bool removeCurrentSong = true )
 		{
 			if ( Playback.ShuffleOn == true )
 			{
-				int n = songs.Count;
-				while ( n > 1 )
-				{
-					n--;
-					int k = rng.Next( n + 1 );
-					(songs[ n ], songs[ k ]) = (songs[ k ], songs[ n ]);
+				songsLeftToShuffle = nowPlayingPlaylist.PlaylistItems.Cast<SongPlaylistItem>().ToList();
+				shuffledSongs.Clear();
+
+				if ( ( removeCurrentSong == true ) && ( Playlists.CurrentSongIndex != -1)) 
+				{ 
+					// Remove the currently playing song
+					SongPlaylistItem itemPlaying = ( SongPlaylistItem )nowPlayingPlaylist.PlaylistItems[ Playlists.CurrentSongIndex ];
+					_ = songsLeftToShuffle.Remove( itemPlaying );
+					shuffledSongs.Add( itemPlaying );
 				}
 			}
+		}
 
-			return songs;
+		/// <summary>
+		/// Select an item from the songsLeftToShuffle list and return it's index 
+		/// </summary>
+		/// <returns></returns>
+		private int SelectShuffleItem()
+		{
+			int selectedSongItem = -1;
+
+			// Make sure there is something to select
+			if ( songsLeftToShuffle.Count > 0 )
+			{
+				// Select an item from the songs left
+				int shuffleItemIndex = rng.Next( songsLeftToShuffle.Count );
+
+				// Remove this item from the list and add to the shuffledSongs list
+				SongPlaylistItem itemToPlay = songsLeftToShuffle[ shuffleItemIndex ];
+				songsLeftToShuffle.RemoveAt( shuffleItemIndex );
+				shuffledSongs.Add( itemToPlay );
+
+				selectedSongItem = itemToPlay.Index;
+			}
+
+			return selectedSongItem;
 		}
 
 		/// <summary>
@@ -331,21 +441,7 @@ namespace CoreMP
 		}
 
 		/// <summary>
-		/// If this is a newly cleared list then set the index of the song to play
-		/// </summary>
-		/// <param name="isNew"></param>
-		/// <param name="startingIndex"></param>
-		private void SetStartingPointForNewList( bool isNew, int startingIndex )
-		{
-			// If the list was cleared and there are now some items in the list select the song to play and play it
-			if ( ( isNew == true ) & ( nowPlayingPlaylist.PlaylistItems.Count > startingIndex ) )
-			{
-				Playlists.CurrentSongIndex = startingIndex;
-			}
-		}
-
-		/// <summary>
-		/// The random number generator used to shuffle the list
+		/// The random number generator used to p;ick a song in shuffle mode
 		/// </summary>
 		private readonly Random rng = new Random();
 
@@ -353,5 +449,15 @@ namespace CoreMP
 		/// The curently selected NowPlaying playlist. 
 		/// </summary>
 		private SongPlaylist nowPlayingPlaylist = null;
+
+		/// <summary>
+		/// In shuffle mode, the songs that have not been played yet
+		/// </summary>
+		private List<SongPlaylistItem> songsLeftToShuffle;
+
+		/// <summary>
+		/// In shuffle mode, the songs that have been played
+		/// </summary>
+		private readonly List<SongPlaylistItem> shuffledSongs = new List<SongPlaylistItem>();
 	}
 }
