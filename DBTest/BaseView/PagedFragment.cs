@@ -217,13 +217,10 @@ namespace DBTest
 		}
 
 		/// <summary>
-		/// Called when the ActionBar has been created
+		/// Called when the ActionBar has been created.
+		/// Treat this as user interaction
 		/// </summary>
-		public void OnActionBarCreated()
-		{
-			// Treat this as user interaction
-			UserActivityDetected();
-		}
+		public void OnActionBarCreated() => UserActivityDetected();
 
 		/// <summary>
 		/// Called when the ActionBar has been destroyed

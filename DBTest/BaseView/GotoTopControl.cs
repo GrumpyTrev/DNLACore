@@ -36,6 +36,7 @@ namespace DBTest
 						{
 							listView.SetSelection( 20 );
 						}
+
 						listView.SmoothScrollToPosition( 0 );
 					};
 				}
@@ -85,11 +86,7 @@ namespace DBTest
 			{
 				if ( scrollState == ScrollState.Idle )
 				{
-					handler.PostDelayed( () =>
-					{
-						fab.Visibility = ViewStates.Gone;
-					},
-					2000 );
+					_ = handler.PostDelayed( () => fab.Visibility = ViewStates.Gone, 2000 );
 				}
 
 				currentScrollState = scrollState;
@@ -109,6 +106,6 @@ namespace DBTest
 		/// <summary>
 		/// Handler used to post delayed FAB visibility changes
 		/// </summary>
-		private Handler handler = new Handler();
+		private readonly Handler handler = new();
 	}
 }

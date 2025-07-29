@@ -7,7 +7,7 @@ namespace DBTest
 	/// <summary>
 	/// View holder for the group Album items
 	/// </summary>
-	internal class AlbumViewHolder : ExpandableListViewHolder
+	internal class AlbumViewHolder : ExpandableListViewHolder, DragHelper.IDragHolder
 	{
 		public void DisplayAlbum( Album album, bool actionMode, string genreText )
 		{
@@ -33,6 +33,8 @@ namespace DBTest
 		public TextView ArtistName { get; set; }
 		public TextView Year { get; set; }
 		public TextView Genre { get; set; }
+		public ImageView DragHandle { get; set; }
+		public long ItemPosition { get; set; }
 
 		/// <summary>
 		/// The Colour used to display the name of an album. Initialised to a colour we're never going to use

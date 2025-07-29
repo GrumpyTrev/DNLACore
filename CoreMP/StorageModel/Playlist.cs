@@ -88,12 +88,21 @@ namespace CoreMP
 		public void MoveItemsDown( IEnumerable<PlaylistItem> items )
 		{
 			// There must be at least one PlayListItem entry beyond those that are selected. That entry needs to be moved to above the start of the selection
-			PlaylistItem itemToMove = PlaylistItems[ items.Last().Index + 1 ];
-			PlaylistItems.RemoveAt( items.Last().Index + 1 );
-			PlaylistItems.Insert( items.First().Index, itemToMove );
+			// Make sure that the index of the last item is valid
+			int lastItemIndex = items.Last().Index;
+			if ( lastItemIndex < PlaylistItems.Count - 1)
+			{ 
+				PlaylistItem itemToMove = PlaylistItems[ lastItemIndex + 1 ];
+				PlaylistItems.RemoveAt( lastItemIndex + 1 );
+				PlaylistItems.Insert( items.First().Index, itemToMove );
 
-			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			AdjustTrackNumbers();
+				// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
+				AdjustTrackNumbers();
+			}
+			else
+			{
+
+			}
 		}
 
 		/// <summary>
@@ -103,12 +112,20 @@ namespace CoreMP
 		public void MoveItemsUp( IEnumerable<PlaylistItem> items )
 		{
 			// There must be at least one PlayListItem entry above those that are selected. That entry needs to be moved to below the end of the selection
-			PlaylistItem itemToMove = PlaylistItems[ items.First().Index - 1 ];
-			PlaylistItems.RemoveAt( items.First().Index - 1 );
-			PlaylistItems.Insert( items.Last().Index, itemToMove );
+			// Make sure that the index of the first item is valid
+			int firstItemIndex = items.First().Index;
+			if ( firstItemIndex > 0 )
+			{
+				PlaylistItem itemToMove = PlaylistItems[ firstItemIndex - 1 ];
+				PlaylistItems.RemoveAt( firstItemIndex - 1 );
+				PlaylistItems.Insert( items.Last().Index, itemToMove );
 
-			// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
-			AdjustTrackNumbers();
+				// Now the track numbers in the PlaylistItems must be updated to match their index in the collection
+				AdjustTrackNumbers();
+			}
+			else
+			{
+			}
 		}
 
 		/// <summary>

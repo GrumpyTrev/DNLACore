@@ -39,10 +39,21 @@ namespace DBTest
 		/// <param name="itemNo"></param>
 		public void SongSelected( int itemNo ) => MainApp.CommandInterface.UserSongSelected( itemNo );
 
+		public void MoveSongUp( PlaylistItem item ) => MainApp.CommandInterface.MoveItemsUp( [ item ] );
+
+		public void MoveSongDown( PlaylistItem item ) => MainApp.CommandInterface.MoveItemsDown( [ item ] );
+
 		/// <summary>
 		/// Create the Data Adapter required by this fragment
 		/// </summary>
-		protected override void CreateAdapter( ExpandableListView listView ) => Adapter = new NowPlayingAdapter( Context, listView, this, this );
+		protected override void CreateAdapter( ExpandableListView listView )
+		{
+			// Create the adapter
+			Adapter = new NowPlayingAdapter( Context, listView, this, this );
+
+			// Create a DragHelper for the main drag functionality and bind it to the adapter
+			_ = new DragHelper( listView, FragmentView, (DragHelper.IAdapterInterface)Adapter );
+		}
 
 		/// <summary>
 		/// Action to be performed after the main view has been created
@@ -50,7 +61,7 @@ namespace DBTest
 		/// </summary>
 		protected override void PostViewCreateAction()
 		{
-			NotificationHandler.Register<NowPlayingViewModel>( DataAvailable );
+			NotificationHandler.Register<NowPlayingViewModel>( nameof(ModelAvailable.IsSet), DataAvailable );
 			NotificationHandler.Register<NowPlayingViewModel>( nameof( NowPlayingViewModel.CurrentSongIndex ),
 				() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex ) );
 			NotificationHandler.Register<NowPlayingViewModel>( nameof( NowPlayingViewModel.PlaylistUpdated ),

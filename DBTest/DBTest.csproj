@@ -70,9 +70,8 @@
     <Compile Include="Application\KeepAwake.cs" />
     <Compile Include="Application\WifiMontor.cs" />
     <Compile Include="BaseView\ActionModeHandler.cs" />
+    <Compile Include="BaseView\DragHelper.cs" />
     <Compile Include="BaseView\GotoTopControl.cs" />
-    <Compile Include="BaseView\MultiScrollListenerExpandableListView.cs" />
-    <Compile Include="BaseView\SongViewHolder.cs" />
     <Compile Include="CommandHandlers\DeleteLibraryCommandHandler.cs" />
     <Compile Include="CommandHandlers\SynchAlbumStatusCommandHandler.cs" />
     <Compile Include="CommandHandlers\NewLibraryCommandHandler.cs" />
@@ -94,7 +93,6 @@
     <Compile Include="CommandHandlers\AddSongsToPlaylistCommandHandler.cs" />
     <Compile Include="CommandHandlers\GroupedSelection.cs" />
     <Compile Include="CommandHandlers\RenamePlaylistCommandHandler.cs" />
-    <Compile Include="CommandHandlers\MoveItemsCommandHandler.cs" />
     <Compile Include="CommandHandlers\DeletePlaylistItemsCommandHandler.cs" />
     <Compile Include="CommandHandlers\SelectDeviceCommandHandler.cs" />
     <Compile Include="CommandHandlers\EditLibraryCommandHandler.cs" />
@@ -249,12 +247,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\rename.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\move_down.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\move_up.png" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\filter_off.png" />
@@ -577,6 +569,11 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\anim\animate_song.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\drag_handle.png">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
     </AndroidResource>
   </ItemGroup>

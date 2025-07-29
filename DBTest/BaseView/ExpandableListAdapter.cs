@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Android.Content;
 using Android.Graphics;
 using Android.Runtime;
@@ -464,43 +463,6 @@ namespace DBTest
 			}
 
 			return selectionChanged;
-		}
-
-		/// <summary>
-		/// Update the selected items dictionary to reflect any items that have changed their positions
-		/// </summary>
-		/// <param name="items"></param>
-		protected void UpdateSelectionTags( IEnumerable<(object value, int tag)> items )
-		{
-			// The selected items collection needs to be updated for items that have changed their positions
-			// Keep track of selected items that have changed position
-			Dictionary<int, object> newCheckedObjects = [];
-
-			// Iterate through the collection of objects and their tags
-			foreach ( (object value, int tag) in items )
-			{
-				// If this item is selected then check if its position has changed
-				KeyValuePair<int, object> selectedItem = adapterModel.CheckedObjects.SingleOrDefault( pair => ( pair.Value == value ) );
-				if ( selectedItem.Value != null )
-				{
-					if ( tag != selectedItem.Key )
-					{
-						// Remove the item from the selected items collection, but don't put it back in as it may now occupy the position of 
-						// an item yet to be processed.
-						_ = adapterModel.CheckedObjects.Remove( selectedItem.Key );
-						newCheckedObjects.Add( tag, value );
-					}
-				}
-			}
-
-			// Now put all the selected items that have changed position into the selected collection
-			foreach ( KeyValuePair<int, object> newItem in newCheckedObjects )
-			{
-				adapterModel.CheckedObjects.Add( newItem.Key, newItem.Value );
-			}
-
-			// The change in selected item order may change what commands are available so report that the selection has changed
-			stateChangeReporter.SelectedItemsChanged( adapterModel.CheckedObjects );
 		}
 
 		/// <summary>

@@ -88,27 +88,33 @@
 
 		/// <summary>
 		/// Called when the index of the currently playing song has changed
-		/// Update the Song stored in the PlaybackModel and initiate it's playing
+		/// If the Song itself has changed then update the Song stored in the PlaybackModel and initiate it's playing
 		/// </summary>
 		private void SongIndexChanged( bool dontPlay = false )
 		{
-			// Determine the song and save it in the PlaybackModel 
-			PlaybackModel.SongPlaying = ( Playlists.CurrentSongIndex == -1 ) ? null :
+			// Determine the song and save it in the PlaybackModel
+			Song songPlaying = ( Playlists.CurrentSongIndex == -1 ) ? null :
 				( ( SongPlaylistItem )Playlists.GetNowPlayingPlaylist().PlaylistItems[ Playlists.CurrentSongIndex ] ).Song;
 
-			// Store it for the PlaybackRouter to use as well
-			PlaybackManagerModel.CurrentSong = PlaybackModel.SongPlaying;
-
-			// Play the song unless requested not to
-			if ( dontPlay == false )
+			// Has the song changed
+			if ( songPlaying != PlaybackModel.SongPlaying )
 			{
-				if ( PlaybackManagerModel.CurrentSong != null )
+				PlaybackModel.SongPlaying = songPlaying;
+
+				// Store it for the PlaybackRouter to use as well
+				PlaybackManagerModel.CurrentSong = PlaybackModel.SongPlaying;
+
+				// Play the song unless requested not to
+				if ( dontPlay == false )
 				{
-					router.PlayCurrentSong();
-				}
-				else
-				{
-					router.Stop();
+					if ( PlaybackManagerModel.CurrentSong != null )
+					{
+						router.PlayCurrentSong();
+					}
+					else
+					{
+						router.Stop();
+					}
 				}
 			}
 		}

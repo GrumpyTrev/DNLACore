@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Android.Content;
 using Android.Graphics.Drawables;
 using Android.Views;
@@ -9,16 +8,17 @@ using CoreMP;
 
 namespace DBTest
 {
-	/// <summary>
-	/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="parentView"></param>
-	/// <param name="provider"></param>
-	internal class NowPlayingAdapter( Context context, ExpandableListView parentView, 
-		ExpandableListAdapter<PlaylistItem>.IGroupContentsProvider<PlaylistItem> provider, NowPlayingAdapter.IActionHandler actionHandler ) : 
-		ExpandableListAdapter<PlaylistItem>( context, parentView, provider, NowPlayingAdapterModel.BaseModel, actionHandler )
+	internal class NowPlayingAdapter : ExpandableListAdapter<PlaylistItem>, DragHelper.IAdapterInterface
 	{
+		/// <summary>
+		/// PlaylistsAdapter constructor. Set up a long click listener and the group expander helper class
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parentView"></param>
+		/// <param name="provider"></param>
+		public NowPlayingAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<PlaylistItem> provider,
+			IActionHandler actionHandler )
+			: base( context, parentView, provider, NowPlayingAdapterModel.BaseModel, actionHandler ) => adapterHandler = actionHandler;
 
 		/// <summary>
 		/// Number of child items of selected group
@@ -118,23 +118,71 @@ namespace DBTest
 		{
 			Groups = newData;
 
-			// Make sure that this is a reordering, i.e. if action mode is still active.
-			if ( ActionMode == true )
-			{
-				// Only update the selection tags if this playlist still has any children
-				if ( Groups.Count > 0 )
-				{
-					// Form a collection of the playlist items and their tags and use it to update the selection tags
-					UpdateSelectionTags( Groups.Select( ( object value, int i ) => (value, FormGroupTag( i )) ) );
-				}
-			}
-
 			NotifyDataSetChanged();
 		}
 
-        /// <summary>
-		/// Provide a view containing either album or song details at the specified position
-		/// Attempt to reuse the supplied view if it previously contained the same type of detail.
+		// DragHelper.IAdapterInterface methods
+
+		/// <summary>
+		/// Save the DragHelper instance
+		/// </summary>
+		/// <param name="helperToBind"></param>
+		public void BindDragHelper( DragHelper helperToBind ) => dragHelper = helperToBind;
+
+		/// <summary>
+		/// Keep the interaction timer going when dragging is in effect
+		/// </summary>
+		public void UserInteraction() => UserActivityDetected();
+
+		/// <summary>
+		/// Allow the DragHelper access to the ActionMode
+		/// </summary>
+		public bool ActionModeInEffect => ActionMode;
+
+		/// <summary>
+		/// Pass on a DragHelper redraw request
+		/// </summary>
+		public void RedrawRequired() => NotifyDataSetChanged();
+
+		/// <summary>
+		/// Called by the DragHelper to actually carry out a move
+		/// </summary>
+		/// <param name="itemPosition"></param>
+		/// <param name="moveUp"></param>
+		public void MoveItem( long itemPosition, bool moveUp )
+		{
+			if ( moveUp == true )
+			{
+				adapterHandler.MoveSongUp( Groups[ ExpandableListView.GetPackedPositionGroup( itemPosition )] );
+			}
+			else
+			{
+				adapterHandler.MoveSongDown( Groups[ ExpandableListView.GetPackedPositionGroup( itemPosition ) ] );
+			}
+		}
+
+		/// <summary>
+		/// Return the drag feedback view and item position limits
+		/// </summary>
+		/// <param name="minDrag"></param>
+		/// <param name="maxDrag"></param>
+		/// <param name="minIndex"></param>
+		/// <param name="maxIndex"></param>
+		/// <param name="dragItemPosition"></param>
+		public void GetLimits( out int minDrag, out int maxDrag, out long minIndex, out long maxIndex, long dragItemPosition )
+		{
+			// The DragShadow can be shown anywhere within the parent view
+			minDrag = 0;
+			maxDrag = parentView.Height - 1;
+
+			// The item position can be any of the group value
+			minIndex = ExpandableListView.GetPackedPositionForGroup( 0 );
+			maxIndex = ExpandableListView.GetPackedPositionForGroup( Groups.Count - 1 );
+		}
+
+		/// <summary>
+		/// Provide a view for a child at the specified position
+		/// The Now Playing view contains Group items only
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
@@ -145,7 +193,7 @@ namespace DBTest
 		protected override View GetSpecialisedChildView( int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent ) => null;
 
 		/// <summary>
-		/// Derived classes must implement this method to provide a view for a child item
+		/// Provide a view for the specified group
 		/// </summary>
 		/// <param name="groupPosition"></param>
 		/// <param name="isExpanded"></param>
@@ -154,20 +202,40 @@ namespace DBTest
 		/// <returns></returns>
 		protected override View GetSpecialisedGroupView( int groupPosition, bool isExpanded, View convertView, ViewGroup parent )
 		{
+			SongViewHolder viewHolder = null;
+
 			if ( convertView == null )
 			{
 				convertView = inflator.Inflate( Resource.Layout.nowplaying_song_layout, null );
-				convertView.Tag = new SongViewHolder()
+
+				// Create a SongViewHolder to hold the controls required to render this song
+				viewHolder = new()
 				{
 					Artist = convertView.FindViewById<TextView>( Resource.Id.artist ),
 					Title = convertView.FindViewById<TextView>( Resource.Id.title ),
 					Duration = convertView.FindViewById<TextView>( Resource.Id.duration ),
-					Animation = convertView.FindViewById<ImageView>( Resource.Id.animation )
+					Animation = convertView.FindViewById<ImageView>( Resource.Id.animation ),
+					DragHandle = convertView.FindViewById<ImageView>( Resource.Id.dragHandle ),
 				};
+
+				// Save the song holder in the view so it can be accessed via the view
+				convertView.Tag = viewHolder;
+
+				// Attach a handler to the song view's drag handler, and link the drag handle back to the parent view
+				viewHolder.DragHandle.Touch += dragHelper.DragHandleTouch;
+				viewHolder.DragHandle.Tag = convertView;
 			}
 
 			// Display the Title, Duration and Artist
-			( ( SongViewHolder )convertView.Tag ).DisplaySong( (SongPlaylistItem) Groups[ groupPosition ] );
+			viewHolder = ( SongViewHolder )convertView.Tag;
+			viewHolder.DisplaySong( (SongPlaylistItem) Groups[ groupPosition ] );
+
+			// Keep track of which item the SongViewHolder is displaying
+			viewHolder.ItemPosition = ExpandableListView.GetPackedPositionForGroup( groupPosition );
+
+			// If this item is being dragged then hide it and record it's position.
+			// Otherwise make sure it is visible
+			dragHelper.HideViewIfBeingDragged( convertView );
 
 			return convertView;
 		}
@@ -183,7 +251,7 @@ namespace DBTest
 			int songIndex = GetGroupFromTag( viewHolder.ItemTag );
 
 			// If the item is selected or is not the current song then display it without any highlight.
-			// Otehrwise highlight the item to indicate that it is the one being played
+			// Otherwise highlight the item to indicate that it is the one being played
 			if ( ( IsItemSelected( viewHolder.ItemTag ) == true ) || ( NowPlayingAdapterModel.SongPlayingIndex != songIndex ) )
 			{
 				viewHolder.UnHighlight();
@@ -223,23 +291,13 @@ namespace DBTest
 							// Attempt to display this somewhere in the middle
 							int visibleRange = parentView.LastVisiblePosition - parentView.FirstVisiblePosition;
 
-                            // If this is called when the ListView does not have focus it does not always actually do the scroll.
-                            // So get focus first.
-                            // Do all this on the ListView's queue
-                            parentView.ClearFocus();
-							_ = parentView.Post( () =>
-							{
-								_ = parentView.RequestFocusFromTouch();
-								parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - ( visibleRange / 2 ), 0 ) );
-								_ = parentView.RequestFocus();
-							} );
-
+							_ = parentView.Post( () => parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - ( visibleRange / 2 ), 0 ) ) );
 						}
 					}
 					else
 					{
 						// Display the current song just a couple of items down (if possible) to indicate that it is not the first item
-						parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - 2, 0 ) );
+						_ = parentView.Post( () => parentView.SetSelection( Math.Max( NowPlayingAdapterModel.SongPlayingIndex - 2, 0 ) ) );
 					}
 				}
 			}
@@ -248,7 +306,12 @@ namespace DBTest
 		/// <summary>
 		/// Interface used to handler adapter request and state changes
 		/// </summary>
-		private readonly IActionHandler adapterHandler = actionHandler;
+		private readonly IActionHandler adapterHandler = null;
+
+		/// <summary>
+		/// The DragHelper instance provided by the frgament
+		/// </summary>
+		private DragHelper dragHelper = null;
 
 		/// <summary>
 		/// The time when the last item was clicked
@@ -271,12 +334,16 @@ namespace DBTest
 		public interface IActionHandler: IAdapterEventHandler
 		{
 			void SongSelected( int itemNo );
+
+			void MoveSongUp( PlaylistItem item );
+
+			void MoveSongDown( PlaylistItem item );
 		}
 
 		/// <summary>
 		/// View holder for the playlist Song items
 		/// </summary>
-		private class SongViewHolder : ExpandableListViewHolder
+		private class SongViewHolder : ExpandableListViewHolder, DragHelper.IDragHolder
 		{
 			public void DisplaySong( SongPlaylistItem playlistItem )
 			{
@@ -334,6 +401,9 @@ namespace DBTest
 			public TextView Title { get; set; }
 			public TextView Duration { get; set; }
 			public ImageView Animation { get; set; }
+			public ImageView DragHandle { get; set; }
+
+			public long ItemPosition { get; set; }
 		}
 	}
 }

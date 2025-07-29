@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
  	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-	<DBTest.MultiScrollListenerExpandableListView
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:orientation="vertical">
+	<ExpandableListView
+		android:layout_width="match_parent"
+		android:layout_height="fill_parent"
 		android:id="@+id/playlistsList"
 		android:fastScrollEnabled="true"
 		android:groupIndicator="@android:color/transparent"
 		android:layout_weight="1"/>
 	<include layout="@layout/media_controller_standard_layout" />
-</LinearLayout>
+	</LinearLayout>
+	<ImageView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/dragView"
+		android:src="@drawable/drag_handle"/>
+</RelativeLayout>

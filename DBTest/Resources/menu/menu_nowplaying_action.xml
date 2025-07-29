@@ -7,16 +7,6 @@
 		app:showAsAction="ifRoom"
 		android:title="Add to playlist" />
 	<item
-		android:id="@+id/move_up"
-		android:icon="@drawable/move_up"
-		app:showAsAction="ifRoom"
-		android:title="Move up" />
-	<item
-		android:id="@+id/move_down"
-		android:icon="@drawable/move_down"
-		app:showAsAction="ifRoom"
-		android:title="Move down" />
-	<item
 		android:id="@+id/delete"
 		android:icon="@drawable/delete"
 		app:showAsAction="ifRoom"
