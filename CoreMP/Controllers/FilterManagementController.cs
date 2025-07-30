@@ -13,7 +13,7 @@ namespace CoreMP
 		/// Register for external filter change messages
 		/// Register for the main data available event.
 		/// </summary>
-		public FilterManagementController() => NotificationHandler.Register<StorageController>( () =>
+		public FilterManagementController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), () =>
 		{
 			// Once the storage data is available, process it and register for other data changes
 			StorageDataAvailable();

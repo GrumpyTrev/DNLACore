@@ -23,7 +23,8 @@ namespace DBTest
 				playbackNameTextView = view.FindViewById<TextView>( Resource.Id.playback_audio );
 
 				// Register for changes to the SummaryDisplayViewModel and update the displayed library name and playback names
-				NotificationHandler.Register<SummaryDisplayViewModel>( () => 
+				NotificationHandler.Register<SummaryDisplayViewModel>(
+					[ nameof( SummaryDisplayViewModel.LibraryName ), nameof( SummaryDisplayViewModel.PlaybackName ) ], () =>
 				{ 
 					libraryNameTextView.Text = SummaryDisplayViewModel.LibraryName;
 					playbackNameTextView.Text = SummaryDisplayViewModel.PlaybackName;

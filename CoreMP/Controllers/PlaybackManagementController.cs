@@ -13,7 +13,7 @@
 		{
 			router = new PlaybackRouter( ( playing ) => PlaybackModel.SongStarted = playing );
 
-			NotificationHandler.Register<StorageController>( () =>
+			NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), () =>
 			{
 				StorageDataAvailable();
 

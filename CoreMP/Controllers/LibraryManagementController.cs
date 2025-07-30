@@ -15,7 +15,7 @@ namespace CoreMP
 		/// Public constructor to allow message registrations
 		/// Register for the main data available event.
 		/// </summary>
-		public LibraryManagementController() => NotificationHandler.Register<StorageController>( StorageDataAvailable );
+		public LibraryManagementController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), StorageDataAvailable );
 
 		/// <summary>
 		/// Update the selected libary in the database and the ConnectionDetailsModel.

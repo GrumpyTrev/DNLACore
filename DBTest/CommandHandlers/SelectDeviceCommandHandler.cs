@@ -10,7 +10,8 @@ namespace DBTest
 		/// <summary>
 		/// Constructor - register interest in Playback Device changes
 		/// </summary>
-		public SelectDeviceCommandHandler() => NotificationHandler.Register<PlaybackSelectionModel>( () => deviceSelectionDialog?.PlaybackDevicesChanged() );
+		public SelectDeviceCommandHandler() => NotificationHandler.Register<PlaybackSelectionModel>( nameof( ModelAvailable.IsSet ),
+			() => deviceSelectionDialog?.PlaybackDevicesChanged() );
 
 		/// <summary>
 		/// Called to handle the command. Show the device selection dialogue

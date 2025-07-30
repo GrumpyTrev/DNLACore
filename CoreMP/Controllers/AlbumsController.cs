@@ -14,7 +14,7 @@ namespace CoreMP
 		/// Public constructor to allow message registrations
 		/// Register for the main data available event.
 		/// </summary>
-		public AlbumsController() => NotificationHandler.Register<StorageController>( () =>
+		public AlbumsController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet), () =>
 		{
 			// Once the data has been loaded initialise the view model and register for other model changes
 			StorageDataAvailable();
@@ -30,7 +30,7 @@ namespace CoreMP
 			} );
 
 			// Register for tag changes
-			NotificationHandler.Register<TagModel>( ( tagName ) => TagMembershipChanged( ( string )tagName ) );
+			NotificationHandler.Register<TagModel>( nameof( TagModel.ChangedTag), ( tagName ) => TagMembershipChanged( ( string )tagName ) );
 		} );
 
 		/// <summary>

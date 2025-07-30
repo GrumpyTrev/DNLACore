@@ -9,26 +9,13 @@ namespace CoreMP
 		/// <summary>
 		/// Registers interest in notifications from the specified class with parameters
 		/// </summary>
-		/// <param name="callback">The callback to use when a notification is made</param>
-		/// <param name="classType">The class to register</param>
-		public static void Register<T>( NotificationDelegate callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
-			Register( typeof( T ), new DelegateContainer( callback ), uniqueId, filePath );
-
-		/// <summary>
-		/// Registers interest in notifications from the specified class with no parameters
-		/// </summary>
-		/// <param name="callback">The callback to use when a notification is made</param>
-		/// <param name="classType">The class to register</param>
-		public static void Register<T>( NotificationDelegateNoParams callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
-			Register( typeof( T ), new DelegateContainer( callback ), uniqueId, filePath );
-
-		/// <summary>
-		/// Registers interest in notifications from the specified class with parameters
-		/// </summary>
-		/// <param name="callback">The callback to use when a notification is made</param>
-		/// <param name="classType">The class to register</param>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="propertyName"></param>
+		/// <param name="callback"></param>
+		/// <param name="uniqueId"></param>
+		/// <param name="filePath"></param>
 		public static void Register<T>( string propertyName, NotificationDelegate callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
-			Register( typeof(T), new DelegateContainer( callback, propertyName ), uniqueId, filePath );
+			Register<T>( new string[] { propertyName }, callback, uniqueId, filePath );
 
 		/// <summary>
 		/// Registers interest in notifications from the specified class with no parameters
@@ -36,7 +23,41 @@ namespace CoreMP
 		/// <param name="callback">The callback to use when a notification is made</param>
 		/// <param name="classType">The class to register</param>
 		public static void Register<T>( string propertyName, NotificationDelegateNoParams callback, string uniqueId = "", [CallerFilePath] string filePath = "" ) =>
-			Register( typeof(T), new DelegateContainer( callback, propertyName ), uniqueId, filePath );
+			Register<T>( new string[] { propertyName }, callback, uniqueId, filePath );
+
+		/// <summary>
+		/// Register interest in a number of properties with the same callback
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="propertyNames"></param>
+		/// <param name="callback"></param>
+		/// <param name="uniqueId"></param>
+		/// <param name="filePath"></param>
+		public static void Register<T>( string[] propertyNames, NotificationDelegate callback, string uniqueId = "", 
+			[CallerFilePath] string filePath = "" )
+		{
+			foreach ( string propertyName in propertyNames )
+			{
+				Register( typeof( T ), new DelegateContainer( callback, propertyName ), uniqueId, filePath );
+			}
+		}
+
+		/// <summary>
+		/// Register interest in a number of properties with the same callback. Callback has no parameters
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="propertyNames"></param>
+		/// <param name="callback"></param>
+		/// <param name="uniqueId"></param>
+		/// <param name="filePath"></param>
+		public static void Register<T>( string[] propertyNames, NotificationDelegateNoParams callback, string uniqueId = "",
+			[CallerFilePath] string filePath = "" )
+		{
+			foreach ( string propertyName in propertyNames )
+			{
+				Register( typeof( T ), new DelegateContainer( callback, propertyName ), uniqueId, filePath );
+			}
+		}
 
 		/// <summary>
 		/// Deregister all notifications for the calling class

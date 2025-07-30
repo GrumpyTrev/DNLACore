@@ -8,7 +8,7 @@
 		/// <summary>
 		/// Register for the generic StorageController data available as well as specific items
 		/// </summary>
-		public SummaryDetailsDisplayController() => NotificationHandler.Register<StorageController>( () =>
+		public SummaryDetailsDisplayController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), () =>
 		{
 			UpdateSummaryModel();
 			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), UpdateSummaryModel );

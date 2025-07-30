@@ -15,7 +15,7 @@ namespace CoreMP
 		/// Register for the main data read notification
 		/// Register for when the storage model has been read
 		/// </summary>
-		public PlaylistsController() => NotificationHandler.Register<StorageController>( () =>
+		public PlaylistsController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), () =>
 		{
 			// Carry out the main start-up actions
 			StorageDataAvailable();

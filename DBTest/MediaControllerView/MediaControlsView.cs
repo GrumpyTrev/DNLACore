@@ -80,7 +80,7 @@ namespace DBTest
 				PlayStateChanged();
 
 				// Register interest in MediaControllerViewModel changes
-				NotificationHandler.Register<MediaControllerViewModel>( ModelDataAvailable, InstanceId.ToString() );
+				NotificationHandler.Register<MediaControllerViewModel>( nameof( ModelAvailable.IsSet), ModelDataAvailable, InstanceId.ToString() );
 				NotificationHandler.Register<MediaControllerViewModel>( nameof( MediaControllerViewModel.IsPlaying ), PlayStateChanged, InstanceId.ToString() );
 				NotificationHandler.Register<MediaControllerViewModel>( nameof( MediaControllerViewModel.CurrentPosition), SetProgress, InstanceId.ToString() );
 				NotificationHandler.Register<MediaControllerViewModel>( nameof( MediaControllerViewModel.SongPlaying ), SongPlaying, InstanceId.ToString() );

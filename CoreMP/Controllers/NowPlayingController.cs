@@ -13,7 +13,7 @@ namespace CoreMP
 		/// <summary>
 		/// Register for all data to be loaded.
 		/// </summary>
-		public NowPlayingController() => NotificationHandler.Register< StorageController>( () =>
+		public NowPlayingController() => NotificationHandler.Register< StorageController>( nameof( StorageController.IsSet ), () =>
 		{
 			// Initialise the model
 			StorageDataAvailable();

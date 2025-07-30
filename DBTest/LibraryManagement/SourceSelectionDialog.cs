@@ -54,7 +54,7 @@ namespace DBTest
 			sourceView.Adapter = sourceAdapter;
 
 			// Register interest in the Library's sources
-			NotificationHandler.Register<Library>( ( sender ) =>
+			NotificationHandler.Register<Library>( [nameof(Library.AddSource), nameof(Library.DeleteSource)], ( sender ) =>
 			{
 				if ( sender == libraryToDisplay )
 				{

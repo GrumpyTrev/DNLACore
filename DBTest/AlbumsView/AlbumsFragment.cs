@@ -78,7 +78,7 @@ namespace DBTest
 		protected override void PostViewCreateAction()
 		{
 			// Check for when the AlbumsViewModel has been initialised
-			NotificationHandler.Register<AlbumsViewModel>( DataAvailable );
+			NotificationHandler.Register<AlbumsViewModel>( nameof( ModelAvailable.IsSet ), DataAvailable );
 
 			// Register interest in the Album Played property.
 			// If the Album is being displayed then invalidate the view

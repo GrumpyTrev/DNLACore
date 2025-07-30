@@ -40,7 +40,7 @@ namespace CoreMP
 			await CheckEmptyArtists();
 			await CheckAlbumsWithNoArtists();
 
-			NotificationHandler.NotifyPropertyChangedPersistent( null );
+			IsSet = true;
 		}
 
 		/// <summary>
@@ -83,6 +83,14 @@ namespace CoreMP
 		/// Keep track of when the model is being loaded
 		/// </summary>
 		public static bool Loading { get; set; } = false;
+
+		/// <summary>
+		/// Property used to allow completion of data access to be notified
+		/// </summary>
+		public static bool IsSet
+		{
+			set => NotificationHandler.NotifyPropertyChangedPersistent( null );
+		}
 
 		/// <summary>
 		/// Once the Artists have been read in their associated ArtistAlbums can be read as well and linked to them

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SQLite;
 
 namespace CoreMP
 {
@@ -30,9 +29,7 @@ namespace CoreMP
 		public void AddSource( Source sourceToAdd )
 		{
 			LibrarySources.Add( sourceToAdd );
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			_ = Sources.AddSourceAsync( sourceToAdd );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 			// Initialise any source data that may not have been set in the new source
 			sourceToAdd.InitialiseAccess();
