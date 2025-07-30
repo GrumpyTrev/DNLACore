@@ -19,12 +19,12 @@ namespace DBTest
 		/// Called to handle the command. Show the library selection dialogue and pass on any selected librray to the ClearConfirmationDialogFragment
 		/// </summary>
 		/// <param name="commandIdentity"></param>
-		public override void HandleCommand( int _ ) => 
-			LibrarySelectionDialog.Show( "Select library to clear", -1, LibraryManagementViewModel.AvailableLibraries, 
+		public override void HandleCommand( int _ ) =>
+			LibrarySelectionDialog.Show( "Select library to clear", -1, LibraryManagementViewModel.AvailableLibraries,
 				selectionCallback: ( selectedLibrary ) =>
 
 				// When a library has been selected, confirm the clearance
-				ConfirmationDialog.Show( $"Are you sure you want to clear the {selectedLibrary.Name} library", 
+				ConfirmationDialog.Show( $"Are you sure you want to clear the {selectedLibrary.Name} library",
 					positiveCallback: () =>
 					{
 						// When clearance is confirmed start the clearance operation and display the progress dialogue
@@ -49,7 +49,7 @@ namespace DBTest
 								progressDialogFragment.UpdateDialogueState( clearFinished );
 							} );
 
-				} ) );
+					} ) );
 
 		/// <summary>
 		/// The command identity associated with this handler

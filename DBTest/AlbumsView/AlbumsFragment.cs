@@ -1,12 +1,12 @@
-﻿using Android.Widget;
-using CoreMP;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Android.Widget;
+using CoreMP;
 
 namespace DBTest
 {
-	public class AlbumsFragment: PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>
+	public class AlbumsFragment : PagedFragment<Album>, ExpandableListAdapter<Album>.IGroupContentsProvider<Album>
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -18,7 +18,7 @@ namespace DBTest
 		/// These are now read on demand in the Album, so no action is required here
 		/// </summary>
 		/// <param name="theArtist"></param>
-		public void ProvideGroupContents( Album _ ) {}
+		public void ProvideGroupContents( Album _ ) { }
 
 		/// <summary>
 		/// Called when the Controller has obtained the Albums data

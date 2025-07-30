@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace CoreMP
+﻿namespace CoreMP
 {
 	/// <summary>
 	/// The MediaNotificationViewModel allows the MediaNotificationController to pass media status to the MediaNotificationServiceInterface 

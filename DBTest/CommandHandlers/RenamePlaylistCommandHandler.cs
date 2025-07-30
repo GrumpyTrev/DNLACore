@@ -14,7 +14,7 @@ namespace DBTest
 		/// Called to handle the command. Show the NewPlaylistNameDialogFragment.
 		/// </summary>
 		/// <param name="commandIdentity"></param>
-		public override void HandleCommand( int commandIdentity ) => 
+		public override void HandleCommand( int commandIdentity ) =>
 			NewPlaylistNameDialogFragment.ShowFragment( CommandRouter.Manager, NameEntered, "Rename playlist", selectedObjects.Playlists[ 0 ].Name );
 
 		/// <summary>

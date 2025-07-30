@@ -49,11 +49,11 @@ namespace CoreMP
 		/// Delete the specified Artists from the storage and the collections
 		/// </summary>
 		/// <param name="artistsToDelete"></param>
-		public static void DeleteArtists( IEnumerable< Artist> artistsToDelete )
+		public static void DeleteArtists( IEnumerable<Artist> artistsToDelete )
 		{
 			foreach ( Artist artistToDelete in artistsToDelete )
 			{
-				DeleteArtist(artistToDelete);
+				DeleteArtist( artistToDelete );
 			}
 		}
 
@@ -65,6 +65,6 @@ namespace CoreMP
 		/// <summary>
 		/// Lookup tables indexed by id
 		/// </summary>
-		private static Dictionary<int, Artist> IdLookup { get; set; } = null; 
+		private static Dictionary<int, Artist> IdLookup { get; set; } = null;
 	}
 }

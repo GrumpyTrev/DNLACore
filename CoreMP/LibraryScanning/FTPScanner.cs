@@ -58,19 +58,20 @@ namespace CoreMP
 				DateTime dateTime = DateTime.MinValue;
 				try
 				{
-					dateTime = DateTime.ParseExact( line.Substring( 0, 17 ), "MM-dd-yy  hh:mmtt", CultureInfo.InvariantCulture );
+					dateTime = DateTime.ParseExact( line[ ..17 ], "MM-dd-yy  hh:mmtt", CultureInfo.InvariantCulture );
 				}
 				catch ( FormatException )
 				{
 				}
 
 				// Add to list
-				items.Add( new DirectoryItem {
+				items.Add( new DirectoryItem
+				{
 					Created = dateTime,
 					IsDirectory = ( line.Substring( 24, 5 ).ToUpper() == "<DIR>" ),
 					Name = line[ 39.. ],
 					Base = directoryName
-				} ); 
+				} );
 			}
 
 			// Use a list to collect all the songs in this folder
@@ -228,7 +229,7 @@ namespace CoreMP
 	/// <summary>
 	/// The FTPStream is derived from the generic Stream class to enable incremental reads from the FTP server to be possible
 	/// </summary>
-	internal class FTPStream: Stream
+	internal class FTPStream : Stream
 	{
 		public FTPStream( Stream sourceStream, long streamLength )
 		{

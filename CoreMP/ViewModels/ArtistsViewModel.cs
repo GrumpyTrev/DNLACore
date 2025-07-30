@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace CoreMP
 {
@@ -47,7 +46,7 @@ namespace CoreMP
 		/// The set of filtered Albums formed fromthe current filter (including TagGroups)
 		/// </summary>
 		public static HashSet<int> FilteredAlbumsIds { get; internal set; } = new HashSet<int>();
-		
+
 		public static FilterSelectionModel FilterSelection { get; } = new FilterSelectionModel();
 
 		public static SortSelectionModel SortSelection { get; } = new SortSelectionModel();

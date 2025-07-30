@@ -1,7 +1,7 @@
-﻿using Android.Widget;
-using System;
-using Android.Views;
+﻿using System;
 using System.Linq;
+using Android.Views;
+using Android.Widget;
 using CoreMP;
 
 namespace DBTest
@@ -26,8 +26,8 @@ namespace DBTest
 			// Create a Popup menu containing the 'mark played' and 'Mark not-played' options
 			// Could just expand a resource here?
 			PopupMenu markMenu = new( commandContext, commandView );
-			markMenu.Menu.Add( 0, 0, 0, "Mark as played" );
-			markMenu.Menu.Add( 0, 1, 0, "Mark as not-played" );
+			_ = markMenu.Menu.Add( 0, 0, 0, "Mark as played" );
+			_ = markMenu.Menu.Add( 0, 1, 0, "Mark as not-played" );
 
 			// When a menu item is clicked pass albums to the appropriate controller
 			markMenu.MenuItemClick += MenuItemClicked;
@@ -41,7 +41,7 @@ namespace DBTest
 		/// <param name="selectedObjects"></param>
 		/// <returns></returns>
 		protected override bool IsSelectionValidForCommand( int _ ) => ( selectedObjects.Albums.Count > 0 ) ||
-			( ( selectedObjects.ArtistAlbums.Count > 0 ) && 
+			( ( selectedObjects.ArtistAlbums.Count > 0 ) &&
 			  ( selectedObjects.ArtistAlbums.SelectMany( album => album.Songs ).Count() == selectedObjects.Songs.Count ) );
 
 		/// <summary>

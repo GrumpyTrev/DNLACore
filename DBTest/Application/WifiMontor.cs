@@ -1,6 +1,6 @@
-﻿using Android.Content;
+﻿using System;
+using Android.Content;
 using Android.Net;
-using System;
 using static Android.Net.ConnectivityManager;
 
 namespace DBTest
@@ -14,7 +14,7 @@ namespace DBTest
 		/// Register this class to receive ConnectivityManager callbacks
 		/// </summary>
 		/// <param name="appContext"></param>
-		public WifiMontor( Context appContext, Action< bool > callback )
+		public WifiMontor( Context appContext, Action<bool> callback )
 		{
 			// Register for network state changes
 			FromContext( appContext ).RegisterDefaultNetworkCallback( this );

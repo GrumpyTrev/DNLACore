@@ -8,7 +8,7 @@ namespace CoreMP
 	/// </summary>
 	/// <typeparam name="T">The type of the key</typeparam>
 	/// <typeparam name="K">The type of the list contents</typeparam>
-	public class MultiDictionary<T, K>: Dictionary<T, List<K>>
+	public class MultiDictionary<T, K> : Dictionary<T, List<K>>
 	{
 		/// <summary>
 		/// Adds a new value to the list associated with the specified key
@@ -47,11 +47,11 @@ namespace CoreMP
 			{
 				found = true;
 
-				this[ key ].Remove( value );
+				_ = this[ key ].Remove( value );
 
 				if ( this[ key ].Count == 0 )
 				{
-					Remove( key );
+					_ = Remove( key );
 				}
 			}
 
@@ -73,11 +73,11 @@ namespace CoreMP
 			{
 				found = true;
 
-				this[ key ].RemoveAll( match );
+				_ = this[ key ].RemoveAll( match );
 
 				if ( this[ key ].Count == 0 )
 				{
-					Remove( key );
+					_ = Remove( key );
 				}
 			}
 
@@ -92,13 +92,13 @@ namespace CoreMP
 		{
 			if ( ContainsKey( key ) == false )
 			{
-				this[ key ] = new List< K >( 1 );
+				this[ key ] = new List<K>( 1 );
 			}
 			else
 			{
 				if ( this[ key ] == null )
 				{
-					this[ key ] = new List< K >( 1 );
+					this[ key ] = new List<K>( 1 );
 				}
 			}
 		}

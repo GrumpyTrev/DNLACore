@@ -10,7 +10,7 @@ namespace DBTest
 	/// <summary>
 	/// The DragHelper class provides common drag functionality to ExpandableListAdapter derived classes
 	/// </summary>
-	internal class DragHelper 
+	internal class DragHelper
 	{
 		/// <summary>
 		/// Create a DragHelper for the specified ExpandableListView
@@ -183,7 +183,7 @@ namespace DBTest
 							// view then scroll down by one item
 							else if ( ( movementSinceLastReorder > 0 ) && ( itemBeingDragged < maxItemPosition ) &&
 								( listView.LastVisiblePosition < listView.GetFlatListPosition( maxItemPosition ) ) &&
-								( dragView.GetY() > ( listView.Height * 9 ) / 10 ) )
+								( dragView.GetY() > listView.Height * 9  / 10 ) )
 							{
 								scrollState = ScrollState.TouchScroll;
 								_ = listView.Post( () => listView.SmoothScrollByOffset( 1 ) );
@@ -293,7 +293,7 @@ namespace DBTest
 			// Force the limits to be requested next time any drag operation is carried out
 			limitsSet = false;
 		}
-		
+
 		private void AdjustDraggedItemPositionBy( int amount )
 		{
 			if ( GetPackedPositionType( itemBeingDragged ) == PackedPositionType.Group )

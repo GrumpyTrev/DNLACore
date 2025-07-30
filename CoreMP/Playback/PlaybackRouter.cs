@@ -6,7 +6,7 @@ namespace CoreMP
 	/// The PlaybackRouter is responsible for routing playback instruction to a particular playback device according to the 
 	/// current selection. 
 	/// </summary>
-	internal class PlaybackRouter: BasePlayback.IPlaybackCallbacks
+	internal class PlaybackRouter : BasePlayback.IPlaybackCallbacks
 	{
 		/// <summary>
 		/// PlaybackRouter constructor

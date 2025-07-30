@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using CoreMP;
-
-namespace DBTest
+﻿namespace DBTest
 {
 	/// <summary>
 	/// The SynchAlbumStatusCommandHandler class is used to synchronise the 'played' status of albums across all libraries.
@@ -13,9 +10,9 @@ namespace DBTest
 		/// Confirm this command to make sure it is intended
 		/// </summary>
 		/// <param name="_"></param>
-		public override void HandleCommand( int _ ) => 
+		public override void HandleCommand( int _ ) =>
 			ConfirmationDialog.Show( "Do you want to synchronise the albums played state across all libraries?",
-				() => MainApp.CommandInterface.SynchroniseAlbumPlayedStatus() );
+				MainApp.CommandInterface.SynchroniseAlbumPlayedStatus );
 
 		/// <summary>
 		/// The command identity associated with this handler

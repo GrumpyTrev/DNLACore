@@ -1,8 +1,8 @@
-﻿using Android.Content;
+﻿using System;
+using System.Collections.Generic;
+using Android.Content;
 using Android.Support.V4.App;
 using Android.Views;
-using System;
-using System.Collections.Generic;
 
 namespace DBTest
 {

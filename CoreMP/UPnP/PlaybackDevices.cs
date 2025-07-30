@@ -68,7 +68,7 @@ namespace CoreMP
 		/// Which devices have exceeded their communication failure limit
 		/// </summary>
 		/// <returns></returns>
-		public List<PlaybackDevice> MissingDevices() => 
+		public List<PlaybackDevice> MissingDevices() =>
 			DeviceCollection.Where( dev => ( ++dev.CommunicationFailureCount > PlaybackDevice.CommunicationFailureLimit ) ).ToList();
 
 		/// <summary>

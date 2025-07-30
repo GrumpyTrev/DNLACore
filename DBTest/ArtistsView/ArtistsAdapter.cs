@@ -13,8 +13,8 @@ namespace DBTest
 	/// <param name="context"></param>
 	/// <param name="parentView"></param>
 	/// <param name="provider"></param>
-	internal class ArtistsAdapter( Context context, ExpandableListView parentView, 
-		ExpandableListAdapter<object>.IGroupContentsProvider<object> provider, IAdapterEventHandler actionHandler ) : 
+	internal class ArtistsAdapter( Context context, ExpandableListView parentView,
+		ExpandableListAdapter<object>.IGroupContentsProvider<object> provider, IAdapterEventHandler actionHandler ) :
 		ExpandableListAdapter<object>( context, parentView, provider, ArtistsAdapterModel.BaseModel, actionHandler )
 	{
 
@@ -82,7 +82,7 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public override bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id ) => 
+		public override bool OnGroupClick( ExpandableListView parent, View clickedView, int groupPosition, long id ) =>
 			( Groups[ groupPosition ] is Artist ) != false || base.OnGroupClick( parent, clickedView, groupPosition, id );
 
 		/// <summary>

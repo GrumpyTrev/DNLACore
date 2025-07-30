@@ -19,7 +19,7 @@ namespace DBTest
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void Show( Library displayLibrary, Action< Source > sourceSelectedAction, Action newSourceAction )
+		public static void Show( Library displayLibrary, Action<Source> sourceSelectedAction, Action newSourceAction )
 		{
 			// Save the parameters so that they are available after a configuration change
 			libraryToDisplay = displayLibrary;
@@ -50,11 +50,11 @@ namespace DBTest
 			// Keep a reference to the adapter so that we can refresh the data if a source is changed
 			ListView sourceView = layout.FindViewById<ListView>( Resource.Id.sourceList );
 			SourceDisplayAdapter sourceAdapter = new( Context, libraryToDisplay.LibrarySources, sourceView, sourceSelectedCallback.Invoke );
-			
+
 			sourceView.Adapter = sourceAdapter;
 
 			// Register interest in the Library's sources
-			NotificationHandler.Register<Library>( [nameof(Library.AddSource), nameof(Library.DeleteSource)], ( sender ) =>
+			NotificationHandler.Register<Library>( [ nameof( Library.AddSource ), nameof( Library.DeleteSource ) ], ( sender ) =>
 			{
 				if ( sender == libraryToDisplay )
 				{

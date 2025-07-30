@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 
 namespace CoreMP
 {
-    internal static class Songs
-    {
-        /// <summary>
-        /// Get the Songs collection from storage
-        /// </summary>
-        /// <returns></returns>
-        public static void CollectionLoaded()
-        {
+	internal static class Songs
+	{
+		/// <summary>
+		/// Get the Songs collection from storage
+		/// </summary>
+		/// <returns></returns>
+		public static void CollectionLoaded()
+		{
 			// Form the lookups
 			foreach ( Song song in SongCollection )
 			{
@@ -40,7 +40,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="artistAlbumId"></param>
 		/// <returns></returns>
-		public static List<Song> GetArtistAlbumSongs( int artistAlbumId ) => artistAlbumLookup.ContainsKey( artistAlbumId ) == true ? 
+		public static List<Song> GetArtistAlbumSongs( int artistAlbumId ) => artistAlbumLookup.ContainsKey( artistAlbumId ) == true ?
 			artistAlbumLookup[ artistAlbumId ] : new List<Song>();
 
 		/// <summary>
@@ -50,13 +50,13 @@ namespace CoreMP
 		/// <returns></returns>
 		public static List<Song> GetSourceSongs( int sourceId ) => SongCollection.Where( song => song.SourceId == sourceId ).ToList();
 
-        /// <summary>
-        /// Return all the songs associated with the specified Source
-        /// </summary>
-        /// <param name="sourceId"></param>
-        /// <returns></returns>
-        public static List<Song> GetSourceSongsWithName( int sourceId, string name ) => 
-            SongCollection.Where( song => ( song.SourceId == sourceId ) && ( song.Title == name ) ).ToList();
+		/// <summary>
+		/// Return all the songs associated with the specified Source
+		/// </summary>
+		/// <param name="sourceId"></param>
+		/// <returns></returns>
+		public static List<Song> GetSourceSongsWithName( int sourceId, string name ) =>
+			SongCollection.Where( song => ( song.SourceId == sourceId ) && ( song.Title == name ) ).ToList();
 
 		/// <summary>
 		/// Add the specified Song to the local collections and persistent storage
@@ -100,10 +100,10 @@ namespace CoreMP
 		/// </summary>
 		public static ModelCollection<Song> SongCollection { get; set; } = null;
 
-        /// <summary>
-        /// Lookup table indexed by song id
-        /// </summary>
-        private static Dictionary<int, Song> IdLookup { get; set; } = new Dictionary<int, Song>();
+		/// <summary>
+		/// Lookup table indexed by song id
+		/// </summary>
+		private static Dictionary<int, Song> IdLookup { get; set; } = new Dictionary<int, Song>();
 
 		/// <summary>
 		/// Lookup table indexed by ArtistAlbum id
@@ -114,5 +114,5 @@ namespace CoreMP
 		/// Lookup table indexed by Album id
 		/// </summary>
 		private static readonly MultiDictionary<int, Song> albumLookup = new MultiDictionary<int, Song>();
-    }
+	}
 }

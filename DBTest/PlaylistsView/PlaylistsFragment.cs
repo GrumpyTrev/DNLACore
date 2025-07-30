@@ -5,7 +5,7 @@ using CoreMP;
 
 namespace DBTest
 {
-	public class PlaylistsFragment: PagedFragment<Playlist>, ExpandableListAdapter<Playlist>.IGroupContentsProvider<Playlist>, PlaylistsAdapter.IActionHandler
+	public class PlaylistsFragment : PagedFragment<Playlist>, ExpandableListAdapter<Playlist>.IGroupContentsProvider<Playlist>, PlaylistsAdapter.IActionHandler
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -17,7 +17,7 @@ namespace DBTest
 		/// Both SongPlaylist and AlbumPlaylist items are now read at startup. So this is no longer required for them
 		/// </summary>
 		/// <param name="selectedGroup_"></param>
-		public void ProvideGroupContents( Playlist _ ) {}
+		public void ProvideGroupContents( Playlist _ ) { }
 
 		/// <summary>
 		/// Called when the PlaylistsController has obtained or updated the playlists held in the model is received
@@ -84,7 +84,7 @@ namespace DBTest
 		protected override void PostViewCreateAction()
 		{
 			NotificationHandler.Register<PlaylistsViewModel>( nameof( ModelAvailable.IsSet ), DataAvailable );
-			NotificationHandler.Register<PlaylistsViewModel>( nameof( PlaylistsViewModel.PlaylistUpdated ), 
+			NotificationHandler.Register<PlaylistsViewModel>( nameof( PlaylistsViewModel.PlaylistUpdated ),
 				( sender ) => ( ( PlaylistsAdapter )Adapter ).PlaylistUpdated( ( Playlist )sender ) );
 		}
 

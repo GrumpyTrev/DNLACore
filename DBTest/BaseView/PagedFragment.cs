@@ -1,10 +1,9 @@
-﻿using Android.OS;
-using Android.Support.V4.App;
-using Android.Widget;
-using System.Collections.Generic;
-using Android.Support.V7.Widget;
+﻿using System.Collections.Generic;
 using System.Threading;
+using Android.OS;
+using Android.Support.V4.App;
 using Android.Views;
+using Android.Widget;
 using CoreMP;
 
 namespace DBTest
@@ -13,7 +12,7 @@ namespace DBTest
 	/// Base class for all the fragments showing the database contents
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class PagedFragment<T>: Fragment, IAdapterEventHandler, ActionModeHandler.ICallback
+	public abstract class PagedFragment<T> : Fragment, IAdapterEventHandler, ActionModeHandler.ICallback
 	{
 		/// <summary>
 		/// Default constructor.
@@ -193,22 +192,22 @@ namespace DBTest
 			}
 		}
 
-        /// <summary>
-        /// Called when the user has exited action mode
-        /// </summary>
-        public void LeaveActionMode() => ActionMode.StopActionMode( false );
+		/// <summary>
+		/// Called when the user has exited action mode
+		/// </summary>
+		public void LeaveActionMode() => ActionMode.StopActionMode( false );
 
-        /// <summary>
-        /// A request to enter action mode has been requested
-        /// </summary>
-        public void EnteredActionMode() => ActionMode.StartActionMode( ( IsVisible == true ) && ( UserVisibleHint == true ) );
+		/// <summary>
+		/// A request to enter action mode has been requested
+		/// </summary>
+		public void EnteredActionMode() => ActionMode.StartActionMode( ( IsVisible == true ) && ( UserVisibleHint == true ) );
 
-        /// <summary>
-        /// Called when the selected items have changed
-        /// Update the visibility of any command bar buttons
-        /// </summary>
-        /// <param name="selectedItems"></param>
-        public void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
+		/// <summary>
+		/// Called when the selected items have changed
+		/// Update the visibility of any command bar buttons
+		/// </summary>
+		/// <param name="selectedItems"></param>
+		public void SelectedItemsChanged( SortedDictionary<int, object> selectedItems )
 		{
 			GroupedSelection selectedObjects = new( selectedItems.Values );
 
@@ -378,7 +377,7 @@ namespace DBTest
 		/// <summary>
 		/// Control used to provide goto top shortcut
 		/// </summary>
-		private readonly GotoTopControl gotoTopControl = new ();
+		private readonly GotoTopControl gotoTopControl = new();
 
 		/// <summary>
 		/// Control used to display the details of the songe currentlty being played

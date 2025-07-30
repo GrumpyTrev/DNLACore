@@ -40,7 +40,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="libraryToDelete"></param>
 		private void DeleteLibrary( Library libraryToDelete )
-		{                               
+		{
 			// The ClearProgressDialog instance though which the completion of the clearance is indicated
 			ClearProgressDialog progressDialogFragment = null;
 

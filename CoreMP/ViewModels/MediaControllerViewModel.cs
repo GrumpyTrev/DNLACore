@@ -55,7 +55,7 @@
 		private static bool isPlaying = false;
 		public static bool IsPlaying
 		{
-			get => isPlaying; 
+			get => isPlaying;
 			internal set
 			{
 				isPlaying = value;
@@ -69,7 +69,7 @@
 		private static bool repeatOn = false;
 		public static bool RepeatOn
 		{
-			get => repeatOn; 
+			get => repeatOn;
 			internal set
 			{
 				repeatOn = value;
@@ -83,7 +83,7 @@
 		private static bool suffleOn = false;
 		public static bool ShuffleOn
 		{
-			get => suffleOn; 
+			get => suffleOn;
 			internal set
 			{
 				suffleOn = value;

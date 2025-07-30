@@ -9,7 +9,7 @@ namespace DBTest
 	/// </summary>
 	internal class AlbumViewHolder : ExpandableListViewHolder, DragHelper.IDragHolder
 	{
-		public void DisplayAlbum( Album album, bool actionMode, string genreText )
+		public void DisplayAlbum( Album album, string genreText )
 		{
 			// Save the default colour if not already done so
 			if ( albumNameColour == Color.Fuchsia )
@@ -39,6 +39,6 @@ namespace DBTest
 		/// <summary>
 		/// The Colour used to display the name of an album. Initialised to a colour we're never going to use
 		/// </summary>
-		private static Color albumNameColour = new Color( Color.Fuchsia );
+		private static Color albumNameColour = new( Color.Fuchsia );
 	}
 }

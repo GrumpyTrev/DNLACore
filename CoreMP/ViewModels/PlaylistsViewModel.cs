@@ -41,7 +41,7 @@ namespace CoreMP
 		/// <summary>
 		/// The id of the library for which a list of artists have been obtained
 		/// </summary>
-		public static int LibraryId { get; internal	set; } = -1;
+		public static int LibraryId { get; internal set; } = -1;
 
 		/// <summary>
 		/// Property introduced to trigger a notification when changes to a playlist have been made

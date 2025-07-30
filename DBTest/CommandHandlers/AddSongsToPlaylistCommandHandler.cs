@@ -1,8 +1,8 @@
-﻿using Android.Widget;
-using System;
-using Android.Views;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Android.Views;
+using Android.Widget;
 using CoreMP;
 
 namespace DBTest
@@ -42,7 +42,7 @@ namespace DBTest
 
 			// Add the fixed menu items with menu ids above the range used for the actual playlists
 			int nonPlaybackIndex = PlaylistsViewModel.Playlists.Count;
-			playlistsMenu.Menu.Add( 0, nonPlaybackIndex++, 0, "New playlist..." );
+			_ = playlistsMenu.Menu.Add( 0, nonPlaybackIndex++, 0, "New playlist..." );
 
 			// If both the song and album playlist names are going to be displayed then submenus need to be added
 			int itemId = 0;
@@ -200,7 +200,7 @@ namespace DBTest
 				{
 					foreach ( Song song in album.Songs )
 					{
-						selectedSongs.Remove( song.Id );
+						_ = selectedSongs.Remove( song.Id );
 					}
 				}
 

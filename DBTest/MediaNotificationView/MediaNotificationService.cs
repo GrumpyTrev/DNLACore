@@ -9,10 +9,10 @@ using static Android.Support.V4.Media.App.NotificationCompat;
 
 namespace DBTest
 {
-    /// <summary>
-    /// The MediaNotificationService is used to display notifications of the currently playing song and to respond to controls from the notification
-    /// </summary>
-    [Service]
+	/// <summary>
+	/// The MediaNotificationService is used to display notifications of the currently playing song and to respond to controls from the notification
+	/// </summary>
+	[Service]
 	internal class MediaNotificationService : Service
 	{
 		/// <summary>
@@ -91,17 +91,17 @@ namespace DBTest
 			// The mediaButtonReceiver parameter is required for pre-Lollipop SDK
 			ComponentName mediaButtonReceiver = new( this, Java.Lang.Class.FromType( typeof( MediaButtonReceiver ) ) );
 
-            MediaSessionCompat mediaSession = new( this, AudioPlayerId, mediaButtonReceiver, null ) { Active = true };
-            mediaStyle = new MediaStyle().SetMediaSession( mediaSession.SessionToken ).SetShowActionsInCompactView( 0 );
+			MediaSessionCompat mediaSession = new( this, AudioPlayerId, mediaButtonReceiver, null ) { Active = true };
+			mediaStyle = new MediaStyle().SetMediaSession( mediaSession.SessionToken ).SetShowActionsInCompactView( 0 );
 
-            // The play and pause actions to be triggered when the icon is clicked
-            playAction = new NotificationCompat.Action( Android.Resource.Drawable.IcMediaPlay, "play", PlaybackAction( PlayActionName ) );
-            pauseAction = new NotificationCompat.Action( Android.Resource.Drawable.IcMediaPause, "pause", PlaybackAction( PauseActionName ) );
+			// The play and pause actions to be triggered when the icon is clicked
+			playAction = new NotificationCompat.Action( Android.Resource.Drawable.IcMediaPlay, "play", PlaybackAction( PlayActionName ) );
+			pauseAction = new NotificationCompat.Action( Android.Resource.Drawable.IcMediaPause, "pause", PlaybackAction( PauseActionName ) );
 
-            if ( Build.VERSION.SdkInt >= BuildVersionCodes.O )
+			if ( Build.VERSION.SdkInt >= BuildVersionCodes.O )
 			{
 				NotificationChannel channel = new( AudioPlayerId, ChannelName, NotificationImportance.Low ) { Description = ChannelDescription };
-                NotificationManager.FromContext( this ).CreateNotificationChannel( channel );
+				NotificationManager.FromContext( this ).CreateNotificationChannel( channel );
 			}
 		}
 
@@ -113,8 +113,8 @@ namespace DBTest
 			if ( songBeingPlayed != null )
 			{
 				// Build and display the notification
-                // This notification causes the emittion of a warning by the android system. This is due to a problem with the 
-                // support library that cannot be circumvented.
+				// This notification causes the emittion of a warning by the android system. This is due to a problem with the 
+				// support library that cannot be circumvented.
 				NotificationCompat.Builder builder = new NotificationCompat.Builder( this, AudioPlayerId )
 					.SetShowWhen( false )
 					.SetStyle( mediaStyle )
@@ -124,7 +124,7 @@ namespace DBTest
 					.SetOngoing( true )
 					.AddAction( ( SongPlaying == false ) ? playAction : pauseAction );
 
-                NotificationManagerCompat.From( this ).Notify( NotificationId, builder.Build() );
+				NotificationManagerCompat.From( this ).Notify( NotificationId, builder.Build() );
 			}
 		}
 
@@ -143,11 +143,11 @@ namespace DBTest
 			{
 				if ( playBackAction.Action == PlayActionName )
 				{
-                    Reporter?.MediaPlay();
+					Reporter?.MediaPlay();
 				}
 				else if ( playBackAction.Action == PauseActionName )
 				{
-                    Reporter?.MediaPause();
+					Reporter?.MediaPause();
 				}
 			}
 		}
@@ -157,7 +157,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="actionName"></param>
 		/// <returns></returns>
-		private PendingIntent PlaybackAction( string actionName ) => 
+		private PendingIntent PlaybackAction( string actionName ) =>
 			PendingIntent.GetService( this, 0, new Intent( this, typeof( MediaNotificationService ) ).SetAction( actionName ), 0 );
 
 		/// <summary>
@@ -190,21 +190,21 @@ namespace DBTest
 			void MediaPause();
 		}
 
-        /// <summary>
-        /// The MediaStyle to be supplied to the notification
-        /// </summary>
-        private MediaStyle mediaStyle = null;
+		/// <summary>
+		/// The MediaStyle to be supplied to the notification
+		/// </summary>
+		private MediaStyle mediaStyle = null;
 
-        /// <summary>
-        /// The Notification actions
-        /// </summary>
-        private NotificationCompat.Action playAction = null;
-        private NotificationCompat.Action pauseAction = null;
+		/// <summary>
+		/// The Notification actions
+		/// </summary>
+		private NotificationCompat.Action playAction = null;
+		private NotificationCompat.Action pauseAction = null;
 
-        /// <summary>
-        /// The current song being played
-        /// </summary>
-        private Song songBeingPlayed = null;
+		/// <summary>
+		/// The current song being played
+		/// </summary>
+		private Song songBeingPlayed = null;
 
 		/// <summary>
 		/// Is the song being played or is currently paused

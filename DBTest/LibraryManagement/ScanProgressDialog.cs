@@ -1,7 +1,7 @@
-﻿using Android.App;
+﻿using System;
+using Android.App;
 using Android.Content;
 using Android.OS;
-using System;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 

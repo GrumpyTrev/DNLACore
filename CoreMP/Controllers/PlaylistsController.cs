@@ -47,7 +47,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="thePlaylist"></param>
 		/// <param name="items"></param>
-		public void DeletePlaylistItems( Playlist thePlaylist, IEnumerable< PlaylistItem > items )
+		public void DeletePlaylistItems( Playlist thePlaylist, IEnumerable<PlaylistItem> items )
 		{
 			// Delete the items from the playlist
 			thePlaylist.DeletePlaylistItems( items.ToList() );
@@ -243,7 +243,7 @@ namespace CoreMP
 			// Keep track of the matching songs
 			List<Song> songsToAdd = new List<Song>();
 
-			foreach ( SongPlaylistItem item in playlistToDuplicate.PlaylistItems )
+			foreach ( SongPlaylistItem item in playlistToDuplicate.PlaylistItems.Cast<SongPlaylistItem>() )
 			{
 				Song matchingSong = null;
 				int sourceIndex = 0;
@@ -301,10 +301,10 @@ namespace CoreMP
 		private async void DuplicateAlbumPlaylistAsync( AlbumPlaylist playlistToDuplicate, int libraryId )
 		{
 			List<Album> albumsToAdd = new List<Album>();
-			foreach ( AlbumPlaylistItem item in playlistToDuplicate.PlaylistItems )
+			foreach ( AlbumPlaylistItem item in playlistToDuplicate.PlaylistItems.Cast<AlbumPlaylistItem>() )
 			{
 				// Find a matching Album name with the same Artist name
-				Album matchingAlbum = Albums.AlbumCollection.Where( album => ( album.LibraryId == libraryId ) && 
+				Album matchingAlbum = Albums.AlbumCollection.Where( album => ( album.LibraryId == libraryId ) &&
 					( album.Name.ToUpper() == item.Album.Name.ToUpper() ) && ( album.ArtistName.ToUpper() == item.Album.ArtistName.ToUpper() ) ).FirstOrDefault();
 				if ( matchingAlbum != null )
 				{

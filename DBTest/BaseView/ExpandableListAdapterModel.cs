@@ -12,7 +12,7 @@ namespace DBTest
 		/// <summary>
 		/// Keep track of items that have been selected
 		/// </summary>
-		public SortedDictionary< int, object > CheckedObjects { get; } = [];
+		public SortedDictionary<int, object> CheckedObjects { get; } = [];
 
 		/// <summary>
 		/// Keep track of whether or not action mode is in effect

@@ -16,7 +16,7 @@ namespace DBTest
 		/// No group content required. Just run an empty task to prevent compiler warnings
 		/// </summary>
 		/// <param name="thePlayList"></param>
-		public void ProvideGroupContents( PlaylistItem _ ) {}
+		public void ProvideGroupContents( PlaylistItem _ ) { }
 
 		/// <summary>
 		/// Called when the Now Playing playlist has been read or updated
@@ -52,7 +52,7 @@ namespace DBTest
 			Adapter = new NowPlayingAdapter( Context, listView, this, this );
 
 			// Create a DragHelper for the main drag functionality and bind it to the adapter
-			_ = new DragHelper( listView, FragmentView, (DragHelper.IAdapterInterface)Adapter );
+			_ = new DragHelper( listView, FragmentView, ( DragHelper.IAdapterInterface )Adapter );
 		}
 
 		/// <summary>
@@ -61,7 +61,7 @@ namespace DBTest
 		/// </summary>
 		protected override void PostViewCreateAction()
 		{
-			NotificationHandler.Register<NowPlayingViewModel>( nameof(ModelAvailable.IsSet), DataAvailable );
+			NotificationHandler.Register<NowPlayingViewModel>( nameof( ModelAvailable.IsSet ), DataAvailable );
 			NotificationHandler.Register<NowPlayingViewModel>( nameof( NowPlayingViewModel.CurrentSongIndex ),
 				() => ( ( NowPlayingAdapter )Adapter ).SongBeingPlayed( NowPlayingViewModel.CurrentSongIndex ) );
 			NotificationHandler.Register<NowPlayingViewModel>( nameof( NowPlayingViewModel.PlaylistUpdated ),

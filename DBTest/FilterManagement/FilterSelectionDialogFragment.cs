@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Android.App;
 using Android.OS;
 using Android.Views;
@@ -22,7 +21,7 @@ namespace DBTest
 		/// Show the dialogue displaying the specified list of tags and the current tag
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, Tag currentFilter, List<TagGroup> tagGroups, List< string > tagNames, 
+		public static void ShowFragment( FragmentManager manager, Tag currentFilter, List<TagGroup> tagGroups, List<string> tagNames,
 			FilterSelector.FilterSelectionDelegate selectionDelegate )
 		{
 			// Save the currently selected filter and delegate to survive a rotation.
@@ -71,7 +70,7 @@ namespace DBTest
 		private void InitialiseTagSpinner( Spinner tagSpinner )
 		{
 			// Form a list of the tag choices including None
-			List<string> tagNames = ["None", .. TagNames];
+			List<string> tagNames = [ "None", .. TagNames ];
 
 			// Which one of these is currently selected
 			int currentTagIndex = ( CurrentlySelectedFilter != null ) ? tagNames.IndexOf( CurrentlySelectedFilter.Name ) : 0;
@@ -133,7 +132,7 @@ namespace DBTest
 			Tag newTag = ( tagSpinner.SelectedItemPosition == 0 ) ? null : Tags.GetTagByName( tagSpinner.SelectedItem.ToString() );
 
 			// Check for simple or group tag changes
-			if ( ( newTag != CurrentlySelectedFilter ) || ( selectedGroups.Count != CurrentlySelectedTagGroups.Count ) || 
+			if ( ( newTag != CurrentlySelectedFilter ) || ( selectedGroups.Count != CurrentlySelectedTagGroups.Count ) ||
 				 ( selectedGroups.Any( GroupChanged ) == true ) )
 			{
 				// Update the FilterManagementModel TagGroups with the possibly updated data from the Adapter

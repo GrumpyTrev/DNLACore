@@ -1,7 +1,6 @@
-﻿using SQLite;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using SQLite;
 
 namespace CoreMP
 {
@@ -90,8 +89,8 @@ namespace CoreMP
 			// There must be at least one PlayListItem entry beyond those that are selected. That entry needs to be moved to above the start of the selection
 			// Make sure that the index of the last item is valid
 			int lastItemIndex = items.Last().Index;
-			if ( lastItemIndex < PlaylistItems.Count - 1)
-			{ 
+			if ( lastItemIndex < PlaylistItems.Count - 1 )
+			{
 				PlaylistItem itemToMove = PlaylistItems[ lastItemIndex + 1 ];
 				PlaylistItems.RemoveAt( lastItemIndex + 1 );
 				PlaylistItems.Insert( items.First().Index, itemToMove );

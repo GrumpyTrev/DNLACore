@@ -13,7 +13,7 @@ namespace CoreMP
 		/// <summary>
 		/// Register for all data to be loaded.
 		/// </summary>
-		public NowPlayingController() => NotificationHandler.Register< StorageController>( nameof( StorageController.IsSet ), () =>
+		public NowPlayingController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), () =>
 		{
 			// Initialise the model
 			StorageDataAvailable();
@@ -22,10 +22,10 @@ namespace CoreMP
 			NotificationHandler.Register<Playback>( nameof( Playback.LibraryIdentity ), StorageDataAvailable );
 
 			// Register for shuffle mode changes
-			NotificationHandler.Register<Playback>( nameof( Playback.ShuffleOn), () => InitialiseShuffleIfOn() );
+			NotificationHandler.Register<Playback>( nameof( Playback.ShuffleOn ), () => InitialiseShuffleIfOn() );
 
 			// Register interest in when the current song finished
-			NotificationHandler.Register< PlaybackModel>( nameof( PlaybackModel.SongStarted ), ( started ) =>
+			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.SongStarted ), ( started ) =>
 			{
 				if ( ( bool )started == false )
 				{
@@ -34,11 +34,11 @@ namespace CoreMP
 			} );
 
 			// When the current song index changes update the model
-			NotificationHandler.Register< Playlists>( nameof( Playlists.CurrentSongIndex ),
+			NotificationHandler.Register<Playlists>( nameof( Playlists.CurrentSongIndex ),
 				() => NowPlayingViewModel.CurrentSongIndex = Playlists.CurrentSongIndex );
 
 			// When the song is started or stopped update the model
-			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.IsPlaying ), 
+			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.IsPlaying ),
 				() => NowPlayingViewModel.IsPlaying = PlaybackModel.IsPlaying );
 		} );
 
@@ -155,7 +155,7 @@ namespace CoreMP
 				{
 					songsLeftToShuffle.AddRange( nowPlayingPlaylist.PlaylistItems.TakeLast( songsToAdd.Count() ).Cast<SongPlaylistItem>() );
 				}
-			} 
+			}
 
 			// Report change to UI
 			NowPlayingViewModel.Available.IsSet = true;
@@ -276,7 +276,7 @@ namespace CoreMP
 			// If shuffle mode is off then select the next song, cycling back to the start when the end if reached
 			if ( Playback.ShuffleOn == false )
 			{
-				Playlists.CurrentSongIndex = ( Playlists.CurrentSongIndex == nowPlayingPlaylist.PlaylistItems.Count - 1 ) ? 0 
+				Playlists.CurrentSongIndex = ( Playlists.CurrentSongIndex == nowPlayingPlaylist.PlaylistItems.Count - 1 ) ? 0
 					: Playlists.CurrentSongIndex + 1;
 			}
 			else
@@ -300,7 +300,7 @@ namespace CoreMP
 			// If shuffle mode is off then select the previous song, cycling back to the end when the start if reached
 			if ( Playback.ShuffleOn == false )
 			{
-				Playlists.CurrentSongIndex = ( Playlists.CurrentSongIndex > 0 ) ? Playlists.CurrentSongIndex - 1 
+				Playlists.CurrentSongIndex = ( Playlists.CurrentSongIndex > 0 ) ? Playlists.CurrentSongIndex - 1
 					: nowPlayingPlaylist.PlaylistItems.Count - 1;
 			}
 			else
@@ -376,8 +376,8 @@ namespace CoreMP
 				songsLeftToShuffle = nowPlayingPlaylist.PlaylistItems.Cast<SongPlaylistItem>().ToList();
 				shuffledSongs.Clear();
 
-				if ( ( removeCurrentSong == true ) && ( Playlists.CurrentSongIndex != -1)) 
-				{ 
+				if ( ( removeCurrentSong == true ) && ( Playlists.CurrentSongIndex != -1 ) )
+				{
 					// Remove the currently playing song
 					SongPlaylistItem itemPlaying = ( SongPlaylistItem )nowPlayingPlaylist.PlaylistItems[ Playlists.CurrentSongIndex ];
 					_ = songsLeftToShuffle.Remove( itemPlaying );

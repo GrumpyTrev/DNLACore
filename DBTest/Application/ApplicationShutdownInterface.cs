@@ -15,10 +15,10 @@ namespace DBTest
 		public ApplicationShutdownInterface( Context context )
 		{
 			// Start the media control service
-			context.StartService( new Intent( context, typeof( ApplicationShutdownService ) ) );
+			_ = context.StartService( new Intent( context, typeof( ApplicationShutdownService ) ) );
 
 			// Bind to the service
-			context.BindService( new Intent( context, typeof( ApplicationShutdownService ) ), this, Bind.None );
+			_ = context.BindService( new Intent( context, typeof( ApplicationShutdownService ) ), this, Bind.None );
 		}
 
 		/// <summary>

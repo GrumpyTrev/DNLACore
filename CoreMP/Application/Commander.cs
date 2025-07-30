@@ -19,7 +19,7 @@ namespace CoreMP
 		public void SortAlbums() => albumsController.SortData();
 
 		// ArtistsController commands
-		public void FilterArtists( Tag newFilter ) => artistsController.SetNewFilter(newFilter );
+		public void FilterArtists( Tag newFilter ) => artistsController.SetNewFilter( newFilter );
 		public void SortArtists() => artistsController.SortArtists();
 
 		// FilterManagementController commands
@@ -44,7 +44,7 @@ namespace CoreMP
 
 		// NowPlayingController commands
 		public void UserSongSelected( int songIndex ) => nowPlayingController.UserSongSelected( songIndex );
-		public void AddSongsToNowPlayingList( IEnumerable<Song> songsToAdd, bool clearFirst ) => 
+		public void AddSongsToNowPlayingList( IEnumerable<Song> songsToAdd, bool clearFirst ) =>
 			nowPlayingController.AddSongsToNowPlayingList( songsToAdd, clearFirst );
 		public void DeleteNowPlayingItems( IEnumerable<PlaylistItem> items ) => nowPlayingController.DeleteNowPlayingItems( items );
 		public void AddPlaylistToNowPlayingList( Playlist playlistToAdd, bool clearFirst, bool resume ) =>
@@ -55,7 +55,7 @@ namespace CoreMP
 		public void PlayPrevious() => nowPlayingController.MediaControlPlayPrevious();
 
 		// PlaylistsController commands
-		public void AddSongsToPlaylist( IEnumerable<Song> songsToAdd, SongPlaylist playlist ) => 
+		public void AddSongsToPlaylist( IEnumerable<Song> songsToAdd, SongPlaylist playlist ) =>
 			playlistsController.AddSongsToPlaylist( songsToAdd, playlist );
 		public void AddAlbumsToPlaylist( IEnumerable<Album> albumsToAdd, AlbumPlaylist playlist ) =>
 			playlistsController.AddAlbumsToPlaylist( albumsToAdd, playlist );

@@ -27,7 +27,7 @@ namespace CoreMP
 		{
 			new ConnectionController().InitialiseConnection( coreInterface.StoragePath );
 			await StorageController.ReadManagedCollections( new SQLiteStorage() );
-			
+
 			// Trigger the device discovery
 			deviceDiscoverer.OnWiFiStateChanged( true );
 		}

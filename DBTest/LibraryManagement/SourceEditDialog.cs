@@ -19,7 +19,7 @@ namespace DBTest
 		/// Show the dialogue displaying the scan progress and start the scan
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void Show( Source sourceToEdit, Action<Source, Source, Action> changedAction, Action<Source, Action > deletedAction )
+		public static void Show( Source sourceToEdit, Action<Source, Source, Action> changedAction, Action<Source, Action> deletedAction )
 		{
 			// Save the parameters so that they are available after a configuration change
 			SourceEditDialog.sourceToEdit = sourceToEdit;
@@ -93,10 +93,11 @@ namespace DBTest
 		{
 			base.OnResume();
 
-			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Click += ( _, _ ) => {
+			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Click += ( _, _ ) =>
+			{
 
 #pragma warning disable CS0618 // Type or member is obsolete. Allowed as this Source is only used to hold edited values and is not itseld added to the model
-				Source newSource = new ()
+				Source newSource = new()
 				{
 					Name = sourceName.Text,
 					FolderName = folderName.Text,

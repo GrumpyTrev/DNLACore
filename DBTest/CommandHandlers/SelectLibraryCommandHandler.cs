@@ -11,9 +11,9 @@ namespace DBTest
 		/// Called to handle the command. Show the library selection dialogue and pass on any selected librray to the LibraryManagementController
 		/// </summary>
 		/// <param name="commandIdentity"></param>
-		public override void HandleCommand( int commandIdentity ) => 
-			LibrarySelectionDialog.Show( "Select library to display", LibraryManagementViewModel.SelectedLibraryIndex, 
-				LibraryManagementViewModel.AvailableLibraries, ( Library selectedLibrary ) => MainApp.CommandInterface.SelectLibrary( selectedLibrary ) );
+		public override void HandleCommand( int commandIdentity ) =>
+			LibrarySelectionDialog.Show( "Select library to display", LibraryManagementViewModel.SelectedLibraryIndex,
+				LibraryManagementViewModel.AvailableLibraries, MainApp.CommandInterface.SelectLibrary );
 
 		/// <summary>
 		/// The command identity associated with this handler

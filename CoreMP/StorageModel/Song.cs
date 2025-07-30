@@ -3,7 +3,7 @@
 namespace CoreMP
 {
 	public class Song
-    {
+	{
 		[Obsolete( "Do not create model instances directly", false )]
 		public Song() { }
 
@@ -28,12 +28,12 @@ namespace CoreMP
 
 		public int ArtistAlbumId { get; set; }
 
-        public ScanActionType ScanAction { get; set; }
+		public ScanActionType ScanAction { get; set; }
 
-        /// <summary>
-        /// This entry is not in the database but is set for songs that are being played
-        /// </summary>
-        public virtual Artist Artist { get; set; } = null;
+		/// <summary>
+		/// This entry is not in the database but is set for songs that are being played
+		/// </summary>
+		public virtual Artist Artist { get; set; } = null;
 
 		/// <summary>
 		/// The Album that this song is on.
@@ -44,10 +44,7 @@ namespace CoreMP
 		{
 			get
 			{
-				if ( album == null )
-				{
-					album = Albums.GetAlbumById( AlbumId );
-				}
+				album ??= Albums.GetAlbumById( AlbumId );
 
 				return album;
 			}
@@ -55,5 +52,5 @@ namespace CoreMP
 		private Album album = null;
 
 		public enum ScanActionType { NotMatched, Matched, Differ, New };
-    }
+	}
 }

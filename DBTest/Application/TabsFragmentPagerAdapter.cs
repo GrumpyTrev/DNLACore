@@ -6,7 +6,7 @@ namespace DBTest
 	/// <summary>
 	/// The TabsFragmentPagerAdapter class subclasses the FragmentPagerAdapter in order to allow the fragments and title to be set externally
 	/// </summary>
-	class TabsFragmentPagerAdapter: FragmentPagerAdapter
+	internal class TabsFragmentPagerAdapter : FragmentPagerAdapter
 	{
 		/// <summary>
 		/// Initialise the TabsFragmentPagerAdapter with the specified fragemnts and titles
@@ -37,33 +37,21 @@ namespace DBTest
 		/// <summary>
 		/// Return the number of fragments in the adapter
 		/// </summary>
-		public override int Count
-		{
-			get
-			{
-				return fragments.Length;
-			}
-		}
+		public override int Count => fragments.Length;
 
 		/// <summary>
 		/// Get the fragement at the specified position
 		/// </summary>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		public override Fragment GetItem( int position )
-		{
-			return fragments[ position ];
-		}
+		public override Fragment GetItem( int position ) => fragments[ position ];
 
 		/// <summary>
 		/// Get the title from the specified position
 		/// </summary>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		public override ICharSequence GetPageTitleFormatted( int position )
-		{
-			return titles[ position ];
-		}
+		public override ICharSequence GetPageTitleFormatted( int position ) => titles[ position ];
 
 		/// <summary>
 		/// The fragments collection

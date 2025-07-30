@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Interface allowing a fragment to be notified when its visibility changes
 	/// </summary>
-	interface IPageVisible
+	internal interface IPageVisible
 	{
 		/// <summary>
 		/// Called when the fragment is shown or hidden

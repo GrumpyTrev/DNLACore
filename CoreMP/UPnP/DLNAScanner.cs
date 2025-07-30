@@ -35,13 +35,13 @@ namespace CoreMP
 				// Has a discovery client already been initialised
 				if ( discoveryClient == null )
 				{
-					discoveryClient = new UdpClient( new IPEndPoint( IPAddress.Any, 0 ) ); 
-					discoveryClient.BeginReceive( new AsyncCallback( OnDiscoveryResponse ), discoveryClient );
+					discoveryClient = new UdpClient( new IPEndPoint( IPAddress.Any, 0 ) );
+					_ = discoveryClient.BeginReceive( new AsyncCallback( OnDiscoveryResponse ), discoveryClient );
 				}
 
 				// Send the discovery request (twice)
-				discoveryClient.Send( discoveryBytes, discoveryBytes.Length, discoveryEndPoint );
-				discoveryClient.Send( discoveryBytes, discoveryBytes.Length, discoveryEndPoint );
+				_ = discoveryClient.Send( discoveryBytes, discoveryBytes.Length, discoveryEndPoint );
+				_ = discoveryClient.Send( discoveryBytes, discoveryBytes.Length, discoveryEndPoint );
 			}
 			catch ( SocketException exception )
 			{
@@ -79,7 +79,7 @@ namespace CoreMP
 							// If this device supports the transport service then report it
 							if ( existingDevice.CanPlayMedia == PlaybackDevice.CanPlayMediaType.Yes )
 							{
-								activeDevices.AddDevice( existingDevice );
+								_ = activeDevices.AddDevice( existingDevice );
 							}
 						}
 						else
@@ -92,7 +92,7 @@ namespace CoreMP
 						}
 					}
 
-					receiveClient.BeginReceive( new AsyncCallback( OnDiscoveryResponse ), receiveClient );
+					_ = receiveClient.BeginReceive( new AsyncCallback( OnDiscoveryResponse ), receiveClient );
 				}
 				else
 				{
@@ -192,7 +192,7 @@ namespace CoreMP
 				// Only report this device if it can playback or supports the content service
 				if ( ( targetDevice.CanPlayMedia == PlaybackDevice.CanPlayMediaType.Yes ) || ( targetDevice.ContentUrl.Length > 0 ) )
 				{
-					activeDevices.AddDevice( targetDevice );
+					_ =	activeDevices.AddDevice( targetDevice );
 				}
 			}
 		}

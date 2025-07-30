@@ -9,7 +9,7 @@
 		/// <summary>
 		/// Register for external playing list change messages
 		/// </summary>
-		public PlaybackManagementController() 
+		public PlaybackManagementController()
 		{
 			router = new PlaybackRouter( ( playing ) => PlaybackModel.SongStarted = playing );
 

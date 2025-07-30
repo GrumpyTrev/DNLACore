@@ -37,7 +37,7 @@ namespace DBTest
 		/// <param name="savedInstanceState"></param>
 		/// <returns></returns>
 		public override Dialog OnCreateDialog( Bundle savedInstanceState ) => new AlertDialog.Builder( Activity )
-				.SetTitle( $"{ ( isClearance ? "Clearing" : "Deleting" )} library: {libraryToClear}" )
+				.SetTitle( $"{( isClearance ? "Clearing" : "Deleting" )} library: {libraryToClear}" )
 				.SetPositiveButton( "Ok", delegate { } )
 				.Create();
 
@@ -68,7 +68,7 @@ namespace DBTest
 			( ( AlertDialog )Dialog ).GetButton( ( int )DialogButtonType.Positive ).Enabled = clearFinished;
 			if ( clearFinished == true )
 			{
-				Dialog.SetTitle( $"Library: {libraryToClear} { ( isClearance ? "cleared" : "deleted" ) }" );
+				Dialog.SetTitle( $"Library: {libraryToClear} {( isClearance ? "cleared" : "deleted" )}" );
 			}
 		}
 

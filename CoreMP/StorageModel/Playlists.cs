@@ -147,7 +147,7 @@ namespace CoreMP
 				Playlist nowPlayingList = GetNowPlayingPlaylist();
 
 				// Normalise the value being set
-				nowPlayingList.SongIndex = ( value >= nowPlayingList.PlaylistItems.Count ) ? -1 : value ;
+				nowPlayingList.SongIndex = ( value >= nowPlayingList.PlaylistItems.Count ) ? -1 : value;
 
 				// Publish this change
 				NotificationHandler.NotifyPropertyChanged( null );

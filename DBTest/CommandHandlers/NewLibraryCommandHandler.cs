@@ -14,7 +14,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="commandIdentity"></param>
 		public override void HandleCommand( int commandIdentity ) => NewLibraryNameDialog.Show( "New library name", "",
-			newNameAction: (string libraryName, Action dismissAction) =>
+			newNameAction: ( string libraryName, Action dismissAction ) =>
 			{
 				string alertText = "";
 

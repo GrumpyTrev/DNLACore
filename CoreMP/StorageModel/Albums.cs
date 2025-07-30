@@ -67,7 +67,7 @@ namespace CoreMP
 		/// <param name="artistName"></param>
 		/// <param name="libraryId"></param>
 		/// <returns></returns>
-		public static Album GetAlbumInLibrary( string albumName, string artistName, int libraryId ) => 
+		public static Album GetAlbumInLibrary( string albumName, string artistName, int libraryId ) =>
 			AlbumCollection.Where( album => ( album.LibraryId == libraryId ) && ( album.Name == albumName ) && ( album.ArtistName == artistName ) ).FirstOrDefault();
 
 		/// <summary>
@@ -78,6 +78,6 @@ namespace CoreMP
 		/// <summary>
 		/// Lookup tables indexed by album id
 		/// </summary>
-		private static Dictionary<int, Album> IdLookup { get; set; } = null; 
+		private static Dictionary<int, Album> IdLookup { get; set; } = null;
 	}
 }

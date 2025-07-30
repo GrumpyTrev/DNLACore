@@ -70,7 +70,7 @@ namespace DBTest
 			// Need some way of associating the selected menu item with the pairing type
 			Dictionary<IMenuItem, SortType> pairingTypeLookup = [];
 
-			foreach ( KeyValuePair< SortType, SortSelectionModel.SortPairing> pair in SortData.SortPairings )
+			foreach ( KeyValuePair<SortType, SortSelectionModel.SortPairing> pair in SortData.SortPairings )
 			{
 				SortSelectionModel.SortPairing pairing = pair.Value;
 

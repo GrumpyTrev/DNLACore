@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CoreMP
 {
@@ -66,10 +66,10 @@ namespace CoreMP
 
 						// Add a TaggedAlbum for this album
 						genreTag.AddTaggedAlbum( new TaggedAlbum()
-                        {
-                            Album = album,
-                            AlbumId = album.Id
-                        } );
+						{
+							Album = album,
+							AlbumId = album.Id
+						} );
 					}
 				}
 			}
@@ -204,7 +204,7 @@ namespace CoreMP
 		public void SynchroniseAlbumPlayedStatus()
 		{
 			// Find all the unique Album/Artist name combinations associated with the JustPlayedTag
-			List<(string Name, string ArtistName)> distinctAlbums = 
+			List<(string Name, string ArtistName)> distinctAlbums =
 				FilterManagementModel.JustPlayedTag.TaggedAlbums.Select( tagged => (tagged.Album.Name, tagged.Album.ArtistName) ).Distinct().ToList();
 
 			// Now check that each distinct album is tagged in each library, if present in the library

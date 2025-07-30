@@ -14,7 +14,7 @@ namespace DBTest
 	/// <param name="context"></param>
 	/// <param name="parentView"></param>
 	/// <param name="provider"></param>
-	internal class PlaylistsAdapter : ExpandableListAdapter< Playlist >, DragHelper.IAdapterInterface
+	internal class PlaylistsAdapter : ExpandableListAdapter<Playlist>, DragHelper.IAdapterInterface
 	{
 		public PlaylistsAdapter( Context context, ExpandableListView parentView, IGroupContentsProvider<Playlist> provider, IActionHandler actionHandler ) :
 			base( context, parentView, provider, PlaylistsAdapterModel.BaseModel, actionHandler ) => adapterHandler = actionHandler;
@@ -171,7 +171,7 @@ namespace DBTest
 			{
 				// The first child is visible. Get its view
 				View firstChildView = parentView.GetChildAt( firstChildFlatPosition - parentView.FirstVisiblePosition );
-				minDrag = ( firstChildView != null ) ? (int)firstChildView.GetY() : 0;
+				minDrag = ( firstChildView != null ) ? ( int )firstChildView.GetY() : 0;
 			}
 
 			// Is the last child of the group visible
@@ -268,8 +268,8 @@ namespace DBTest
 				// Display the album
 				viewHolder = ( AlbumViewHolder )convertView.Tag;
 				AlbumPlaylist albumPlaylist = ( AlbumPlaylist )Groups[ groupPosition ];
-				Album album = ( (AlbumPlaylistItem)albumPlaylist.PlaylistItems[ childPosition ] ).Album;
-				viewHolder.DisplayAlbum( album, ActionMode, album.Genre );
+				Album album = ( ( AlbumPlaylistItem )albumPlaylist.PlaylistItems[ childPosition ] ).Album;
+				viewHolder.DisplayAlbum( album, album.Genre );
 
 				// Keep track of which item the AlbumViewHolder is displaying
 				viewHolder.ItemPosition = ExpandableListView.GetPackedPositionForChild( groupPosition, childPosition );
@@ -315,7 +315,7 @@ namespace DBTest
 		{
 			if ( convertView.Tag is AlbumViewHolder albumView )
 			{
-				AlbumPlaylist albumPlaylist = ( AlbumPlaylist )Groups[ GetGroupFromTag( albumView.ItemTag) ];
+				AlbumPlaylist albumPlaylist = ( AlbumPlaylist )Groups[ GetGroupFromTag( albumView.ItemTag ) ];
 				Album album = ( ( AlbumPlaylistItem )albumPlaylist.PlaylistItems[ GetChildFromTag( albumView.ItemTag ) ] ).Album;
 				if ( albumPlaylist.InProgressAlbum == album )
 				{
@@ -383,7 +383,7 @@ namespace DBTest
 		/// <param name="groupPosition"></param>
 		/// <param name="childPosition"></param>
 		/// <returns></returns>
-		protected override object GetItemAt( int groupPosition, int childPosition ) => 
+		protected override object GetItemAt( int groupPosition, int childPosition ) =>
 			( childPosition == 0XFFFF ) ? ( object )Groups[ groupPosition ] : ( ( Playlist )Groups[ groupPosition ] ).PlaylistItems[ childPosition ];
 
 		/// <summary>

@@ -61,7 +61,7 @@ namespace DBTest
 				if ( MainApp.CommandInterface.CheckForOtherPlaylists( nextPlaylist.Name, PlaylistsViewModel.LibraryId ) == true )
 				{
 					ConfirmationDialog.Show( $"Playlist [{nextPlaylist.Name}] already exists in other libraries. Are you sure you want to duplicate it?",
-						() => DuplicationConfirmed( true), () => DuplicationConfirmed( false ) );
+						() => DuplicationConfirmed( true ), () => DuplicationConfirmed( false ) );
 				}
 				else
 				{

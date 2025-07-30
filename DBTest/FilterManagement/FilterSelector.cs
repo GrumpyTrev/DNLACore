@@ -34,7 +34,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="currentFilter"></param>
 		/// <returns></returns>
-		public void SelectFilter() => 
+		public void SelectFilter() =>
 			FilterSelectionDialogFragment.ShowFragment( CommandRouter.Manager, FilterData.CurrentFilter, FilterData.TagGroups, FilterData.GetTagNames(), selectionDelegate );
 
 		/// <summary>

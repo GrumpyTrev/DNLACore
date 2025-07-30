@@ -18,7 +18,7 @@ namespace DBTest
 		/// Show the dialogue with the specified title and initially selected library
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void Show( string title, int initialSelection, List<Library> libraries, Action< Library > selectionCallback )
+		public static void Show( string title, int initialSelection, List<Library> libraries, Action<Library> selectionCallback )
 		{
 			// Save the parameters statically so that they survive a configuration change
 			dialogueTitle = title;

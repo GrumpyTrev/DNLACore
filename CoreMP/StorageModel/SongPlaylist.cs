@@ -19,7 +19,7 @@ namespace CoreMP
 			// Get all the SongPlaylistItem entries associated with this SongPlaylist and then the Song entries for each of them
 			PlaylistItems.AddRange( playlistItems.Where( item => item.PlaylistId == Id ) );
 
-			foreach ( SongPlaylistItem playlistItem in PlaylistItems )
+			foreach ( SongPlaylistItem playlistItem in PlaylistItems.Cast<SongPlaylistItem>() )
 			{
 				playlistItem.Song = Songs.GetSongById( playlistItem.SongId );
 				playlistItem.Artist = Artists.GetArtistById( ArtistAlbums.GetArtistAlbumById( playlistItem.Song.ArtistAlbumId ).ArtistId );

@@ -117,7 +117,7 @@ namespace CoreMP
 				} );
 
 				// If there have been any changes to the library, and it is the library currently being displayed then force a refresh
-				if ( ( ( songsWithChangedAlbumNames.Count > 0 ) || ( newAlbums.Count > 0 ) || ( unmatchedSongs.Count > 0 ) ) && 
+				if ( ( ( songsWithChangedAlbumNames.Count > 0 ) || ( newAlbums.Count > 0 ) || ( unmatchedSongs.Count > 0 ) ) &&
 					( libraryToScan.Id == Playback.LibraryIdentity ) )
 				{
 					// This should force a library change notification

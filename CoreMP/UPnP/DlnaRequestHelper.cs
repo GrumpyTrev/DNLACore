@@ -23,7 +23,7 @@ namespace CoreMP
 		/// <returns></returns>
 		public static string MakeRequest( string method, string Url, string SOAPAction, string ipAddress, int port, string content )
 		{
-			string request = $"{method.ToUpper()} /{Url} HTTP/1.1\r\nCache-Control: no-cache\r\nConnection: Close\r\nPragma: no-cache\r\n" + 
+			string request = $"{method.ToUpper()} /{Url} HTTP/1.1\r\nCache-Control: no-cache\r\nConnection: Close\r\nPragma: no-cache\r\n" +
 				$"Host: {ipAddress}:{port}\r\nUser-Agent: Microsoft-Windows/6.3 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50\r\n" +
 				$"FriendlyName.DLNA.ORG: {System.Environment.MachineName}\r\n";
 
@@ -70,7 +70,7 @@ namespace CoreMP
 				"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
 				"SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\r\n" +
 				"<SOAP-ENV:Body>\r\n" +
-			    $"{body}\r\n" +
+				$"{body}\r\n" +
 				"</SOAP-ENV:Body>\r\n" +
 				"</SOAP-ENV:Envelope>\r\n";
 
@@ -137,7 +137,7 @@ namespace CoreMP
 			}
 			finally
 			{
-				socketLock.Release();
+				_ = socketLock.Release();
 			}
 
 			return response;

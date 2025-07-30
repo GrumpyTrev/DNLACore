@@ -12,14 +12,14 @@ namespace CoreMP
 		/// Constructor
 		/// Register for the main data available event.
 		/// </summary>
-		public PlaybackSelectionController() =>	NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), () =>
+		public PlaybackSelectionController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), () =>
 		{
 			// Initialise the locally held devices collection to hold the 'local' device and the currently available remote devices
 			PlaybackSelectionModel.PlaybackCapableDevices = DevicesModel.RemoteDevices.PlaybackDeviceCollection.ToList();
 			UpdateSelectedDevice();
 
 			// Once data is available register for DevicesModel change messages
-			NotificationHandler.Register<DevicesModel>( nameof(DevicesModel.PlaybackDeviceCollectionChanged ), ( sender ) =>
+			NotificationHandler.Register<DevicesModel>( nameof( DevicesModel.PlaybackDeviceCollectionChanged ), ( sender ) =>
 			{
 				// Update the model with the DevicesModel playback devices
 				PlaybackSelectionModel.PlaybackCapableDevices = DevicesModel.RemoteDevices.PlaybackDeviceCollection.ToList();

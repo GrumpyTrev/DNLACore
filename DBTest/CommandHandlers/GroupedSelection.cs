@@ -60,37 +60,37 @@ namespace DBTest
 		/// <summary>
 		/// The set of songs in the selected objects
 		/// </summary>
-		public List<Song> Songs { get; } = new List<Song>();
+		public List<Song> Songs { get; } = [];
 
 		/// <summary>
 		/// The set of playlistitems in the selected objects
 		/// </summary>
-		public List<PlaylistItem> PlaylistItems { get; } = new List<PlaylistItem>();
+		public List<PlaylistItem> PlaylistItems { get; } = [];
 
 		/// <summary>
 		/// The set of playlists in the selected objects
 		/// </summary>
-		public List<Playlist> Playlists { get; } = new List<Playlist>();
+		public List<Playlist> Playlists { get; } = [];
 
 		/// <summary>
 		/// The set of artists in the selected objects
 		/// </summary>
-		public List<Artist> Artists { get; } = new List<Artist>();
+		public List<Artist> Artists { get; } = [];
 
 		/// <summary>
 		/// The set of artistalbums in the selected objects
 		/// </summary>
-		public List<ArtistAlbum> ArtistAlbums { get; } = new List<ArtistAlbum>();
+		public List<ArtistAlbum> ArtistAlbums { get; } = [];
 
 		/// <summary>
 		/// The set of albums in the selected objects
 		/// </summary>
-		public List<Album> Albums { get; } = new List<Album>();
+		public List<Album> Albums { get; } = [];
 
 		/// <summary>
 		/// The set of genres in the selected objects
 		/// </summary>
-		public List<string> Genres { get; } = new List<string>();
+		public List<string> Genres { get; } = [];
 
 		/// <summary>
 		/// The parent playlist of selected playlistitems, if there is one

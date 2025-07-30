@@ -57,7 +57,7 @@ namespace CoreMP
 				PlaybackDevice.IPAddress, PlaybackDevice.Port, DlnaRequestHelper.MakeSoapRequest( "Stop" ) );
 
 			// Run off the calling thread
-			string response = await Task.Run( () =>	DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
+			string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice, request ) );
 		}
 
 		/// <summary>
@@ -185,7 +185,7 @@ namespace CoreMP
 				// Run off the calling thread
 				string response = await Task.Run( () => DlnaRequestHelper.SendRequest( PlaybackDevice,
 					DlnaRequestHelper.MakeRequest( "POST", PlaybackDevice.PlayUrl, "urn:schemas-upnp-org:service:AVTransport:1#GetPositionInfo",
-						PlaybackDevice.IPAddress, PlaybackDevice.Port, 
+						PlaybackDevice.IPAddress, PlaybackDevice.Port,
 						DlnaRequestHelper.MakeSoapRequest( "GetPositionInfo" ) ) ) );
 
 				if ( DlnaRequestHelper.GetResponseCode( response ) == 200 )
@@ -269,7 +269,6 @@ namespace CoreMP
 			TimeSpan ts = TimeSpan.ParseExact( timeString, @"hh\:mm\:ss", CultureInfo.InvariantCulture );
 			return ( int )ts.TotalMilliseconds;
 		}
-
 
 		/// <summary>
 		/// Aquire the wakelock if not already held

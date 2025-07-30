@@ -14,7 +14,7 @@ namespace CoreMP
 		/// Public constructor to allow message registrations
 		/// Register for the main data available event.
 		/// </summary>
-		public AlbumsController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet), () =>
+		public AlbumsController() => NotificationHandler.Register<StorageController>( nameof( StorageController.IsSet ), () =>
 		{
 			// Once the data has been loaded initialise the view model and register for other model changes
 			StorageDataAvailable();
@@ -30,7 +30,7 @@ namespace CoreMP
 			} );
 
 			// Register for tag changes
-			NotificationHandler.Register<TagModel>( nameof( TagModel.ChangedTag), ( tagName ) => TagMembershipChanged( ( string )tagName ) );
+			NotificationHandler.Register<TagModel>( nameof( TagModel.ChangedTag ), ( tagName ) => TagMembershipChanged( ( string )tagName ) );
 		} );
 
 		/// <summary>
@@ -257,7 +257,7 @@ namespace CoreMP
 			TagGroup genreTags = AlbumsViewModel.FilterSelection.TagGroups.SingleOrDefault( ta => ta.Name == "Genre" ) ?? FilterManagementModel.GenreTags;
 
 			// Get the Genre GroupTag and order the Tags by name. Copy the list so that we don't change it
-			List <Tag> sortedTags = genreTags.Tags.ToList();
+			List<Tag> sortedTags = genreTags.Tags.ToList();
 			sortedTags.Sort( ( a, b ) => a.Name.CompareTo( b.Name ) );
 
 			// Use the Genre GroupTag to order the Album entries

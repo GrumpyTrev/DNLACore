@@ -19,7 +19,7 @@ namespace DBTest
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void Show( string dialogTitle, string libraryName, Action< string, Action> newNameAction )
+		public static void Show( string dialogTitle, string libraryName, Action<string, Action> newNameAction )
 		{
 			newNameCallback = newNameAction;
 			title = dialogTitle;
@@ -60,11 +60,12 @@ namespace DBTest
 				.SetTitle( title )
 				.SetView( editView )
 				.SetPositiveButton( "Ok", ( EventHandler<DialogClickEventArgs> )null )
-				.SetNegativeButton( "Cancel", delegate {
+				.SetNegativeButton( "Cancel", delegate
+				{
 					// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
-					InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( libraryName.WindowToken, HideSoftInputFlags.None );
+					_ = ( InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( libraryName.WindowToken, HideSoftInputFlags.None ) );
 				} )
-				.Create(); ;
+				.Create();
 		}
 
 		/// <summary>
@@ -86,7 +87,7 @@ namespace DBTest
 		public override void Dismiss()
 		{
 			// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
-			InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( libraryName.WindowToken, HideSoftInputFlags.None );
+			_ = ( InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( libraryName.WindowToken, HideSoftInputFlags.None ) );
 
 			base.Dismiss();
 		}

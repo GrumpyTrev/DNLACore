@@ -47,7 +47,7 @@ namespace DBTest
 		/// <summary>
 		/// The Binder class for this service defining the interface betweeen the service and the appication
 		/// </summary>
-		public class ApplicationShutdownServiceBinder: Binder
+		public class ApplicationShutdownServiceBinder : Binder
 		{
 			/// <summary>
 			/// Create the binder and save the service instance

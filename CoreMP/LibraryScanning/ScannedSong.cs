@@ -17,7 +17,7 @@ namespace CoreMP
 		public int Track { get; set; } = 0;
 		public int Length { get; set; } = 0;
 		public int Year { get; set; } = 0;
-		
+
 		/// <summary>
 		/// Replace zero length tag files with standard replacements, parse the track number and the length
 		/// </summary>
@@ -83,7 +83,7 @@ namespace CoreMP
 			// The genre tag may consist of multiple parts divided by a ';'. We need to keep all of them but remove any whitespace around them
 			List<string> genres = Tags.Genre.Split( ';' ).ToList();
 			genres.ForEach( gen => gen = gen.Trim() );
-			
+
 			Tags.Genre = string.Join( ';', genres );
 		}
 	}

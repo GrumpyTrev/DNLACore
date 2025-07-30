@@ -20,7 +20,7 @@ namespace DBTest
 		/// Show the dialogue
 		/// </summary>
 		/// <param name="manager"></param>
-		public static void ShowFragment( FragmentManager manager, NameEntered nameCallback, string dialogTitle, string playlistName, 
+		public static void ShowFragment( FragmentManager manager, NameEntered nameCallback, string dialogTitle, string playlistName,
 			bool albumPlaylistChoice = false, bool initialAlbum = true )
 		{
 			reporter = nameCallback;
@@ -76,11 +76,12 @@ namespace DBTest
 				.SetTitle( title )
 				.SetView( editView )
 				.SetPositiveButton( "Ok", ( EventHandler<DialogClickEventArgs> )null )
-				.SetNegativeButton( "Cancel", delegate {
+				.SetNegativeButton( "Cancel", delegate
+				{
 					// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
-					InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( playListName.WindowToken, HideSoftInputFlags.None );
+					_ = ( InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( playListName.WindowToken, HideSoftInputFlags.None ) );
 				} )
-				.Create(); ;
+				.Create();
 		}
 
 		/// <summary>
@@ -93,10 +94,8 @@ namespace DBTest
 			AlertDialog alert = ( AlertDialog )Dialog;
 
 			// Install a handler for the Ok button that performs the validation and playlist creation
-			alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) =>
-			{
-				reporter?.Invoke( playListName.Text, this, allowAlbumPlaylistCreationChoice ? albumCheckbox.Checked : false );
-			};
+			alert.GetButton( ( int )DialogButtonType.Positive ).Click += ( sender, args ) => 
+				reporter?.Invoke( playListName.Text, this, allowAlbumPlaylistCreationChoice && albumCheckbox.Checked );
 		}
 
 		/// <summary>
@@ -105,7 +104,7 @@ namespace DBTest
 		public override void Dismiss()
 		{
 			// If the media playback control is displayed the keyboard will remain visible, so explicitly get rid of it
-			InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( playListName.WindowToken, HideSoftInputFlags.None );
+			_ = ( InputMethodManager.FromContext( Context )?.HideSoftInputFromWindow( playListName.WindowToken, HideSoftInputFlags.None ) );
 
 			base.Dismiss();
 		}

@@ -198,24 +198,24 @@ namespace CoreMP
 				switch ( songSource.AccessMethod )
 				{
 					case Source.AccessType.Local:
-						{
-							sourceName = Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) );
-							break;
-						}
-					case Source.AccessType.FTP:
-						{
-							sourceName = Path.Combine( songSource.LocalAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
-							break;
-						}
-					case Source.AccessType.UPnP:
-						{
-							// Find the device assoicated with the source
-							PlaybackDevice sourceDevice = DevicesModel.RemoteDevices.FindServer( songSource.Name );
-							sourceName = $"http://{sourceDevice.IPAddress}:{sourceDevice.Port}/{songPath}";
-							break;
-						}
-					default:
+					{
+						sourceName = Path.Combine( songSource.LocalAccess, songPath.TrimStart( '/' ) );
 						break;
+					}
+					case Source.AccessType.FTP:
+					{
+						sourceName = Path.Combine( songSource.LocalAccess, Uri.EscapeDataString( songPath.TrimStart( '/' ) ) );
+						break;
+					}
+					case Source.AccessType.UPnP:
+					{
+						// Find the device assoicated with the source
+						PlaybackDevice sourceDevice = DevicesModel.RemoteDevices.FindServer( songSource.Name );
+						sourceName = $"http://{sourceDevice.IPAddress}:{sourceDevice.Port}/{songPath}";
+						break;
+					}
+					default:
+					break;
 				}
 			}
 			else

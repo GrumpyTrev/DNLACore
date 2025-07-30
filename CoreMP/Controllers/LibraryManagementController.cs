@@ -229,7 +229,7 @@ namespace CoreMP
 		/// </summary>
 		/// <param name="libraryToCheck"></param>
 		/// <returns></returns>
-		public  bool CheckLibraryEmpty( Library libraryToCheck ) => ( Artists.ArtistCollection.Any( art => art.LibraryId == libraryToCheck.Id ) == false );
+		public bool CheckLibraryEmpty( Library libraryToCheck ) => ( Artists.ArtistCollection.Any( art => art.LibraryId == libraryToCheck.Id ) == false );
 
 		/// <summary>
 		/// Called during startup when the storage data is available

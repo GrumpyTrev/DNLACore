@@ -10,13 +10,13 @@ namespace CoreMP
 		/// <summary>
 		/// Convert encoded Layer value
 		/// </summary>
-		private static readonly int [] layerLookup = new int[] { 0, 3, 2, 1 };
+		private static readonly int[] layerLookup = new int[] { 0, 3, 2, 1 };
 		private static int Layer( byte rawLayer ) => layerLookup[ rawLayer ];
 
 		/// <summary>
 		/// Determine bit rate from encoded Version, encoded Layer and encoded bit rate
 		/// </summary>
-		private static readonly int [ , , ] rateLookup = new int [, , ]
+		private static readonly int[,,] rateLookup = new int[,,]
 		{
 			{ // Version 2.5
 				{ 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 0 }, // Reserved
@@ -48,7 +48,7 @@ namespace CoreMP
 		/// <summary>
 		/// Determine sample rate from encoded Version and encoded sample rate
 		/// </summary>
-		private static readonly int [ , ] sampleLookup = new int [ , ]
+		private static readonly int[,] sampleLookup = new int[,]
 		{
 			{ 11025, 12000,  8000, 0 }, // MPEG 2.5
 			{     0,     0,     0, 0 }, // Reserved
@@ -60,7 +60,7 @@ namespace CoreMP
 		/// <summary>
 		/// Determine samples per frame from encoded Version and encoded Level
 		/// </summary>
-		private static readonly int [ , ] samplesPerFrameLookup = new [ , ]
+		private static readonly int[,] samplesPerFrameLookup = new[ , ]
 		{
 			{      0,  576, 1152,  384 }, // 2.5
 			{      0,    0,    0,    0 }, // Reserved
@@ -109,10 +109,10 @@ namespace CoreMP
 							byte majorVersion = reader.ReadByte();
 
 							// Skip the minor version
-							reader.ReadByte();
+							_ = reader.ReadByte();
 
 							// Skip next 'flags' byte
-							reader.ReadByte();
+							_ = reader.ReadByte();
 
 							// The size of the ID3 header
 							ulong headerSize = ReadEncodedSize( reader, 4 );
@@ -125,7 +125,7 @@ namespace CoreMP
 								// Step on past the ID3 frames and attempt to read the first MP3 frame
 								if ( ( reader.BaseStream.Position < id3EndPosition ) && ( reader.BaseStream.Length >= id3EndPosition ) )
 								{
-									reader.ReadBytes( id3EndPosition - ( int )reader.BaseStream.Position );
+									_ = reader.ReadBytes( id3EndPosition - ( int )reader.BaseStream.Position );
 
 									// The first MP3 frame does not always follow the end of the ID3 header, so go searching for the
 									// MP3 synch pattern
@@ -145,7 +145,7 @@ namespace CoreMP
 											mp3HeaderFound = true;
 
 											// Get the last byte of the header
-											mp3Header[ 2] = reader.ReadByte();
+											mp3Header[ 2 ] = reader.ReadByte();
 
 											// Parse the MP3 frame and determine the duration of the file
 											tags.Length = ParseMp3Frame( reader, mp3Header );
@@ -158,7 +158,7 @@ namespace CoreMP
 
 									if ( mp3HeaderFound == false )
 									{
-										Logger.Log(	string.Format( "MP3 frame not found between {0} and {1}", searchStart, reader.BaseStream.Position ) );
+										Logger.Log( string.Format( "MP3 frame not found between {0} and {1}", searchStart, reader.BaseStream.Position ) );
 									}
 								}
 								else
@@ -217,16 +217,16 @@ namespace CoreMP
 			{
 				if ( Layer( rawLayer ) == 1 )
 				{
-					dataLength = ( ( ( 12 * BitRate( rawVersion, rawLayer, rawRate ) ) / sampleRate ) + padding ) * 4;
+					dataLength = ( ( 12 * BitRate( rawVersion, rawLayer, rawRate ) / sampleRate ) + padding ) * 4;
 				}
 				else
 				{
-					dataLength = ( ( 144 * BitRate( rawVersion, rawLayer, rawRate ) ) / sampleRate ) + padding;
+					dataLength = ( 144 * BitRate( rawVersion, rawLayer, rawRate ) / sampleRate ) + padding;
 				}
 			}
 			else
 			{
-				Logger.Log(	string.Format( "Invalid sample rate for Version {0} and raw sample rate {1}", rawVersion, rawSampleRate ) );
+				Logger.Log( string.Format( "Invalid sample rate for Version {0} and raw sample rate {1}", rawVersion, rawSampleRate ) );
 			}
 
 			string bitRateEncoding = "None";
@@ -246,7 +246,7 @@ namespace CoreMP
 					bool vbrTagFound = false;
 					int offset = 0;
 
-					while ( ( vbrTagFound ==  false) && ( offset < bufferSize - 3) )
+					while ( ( vbrTagFound == false ) && ( offset < bufferSize - 3 ) )
 					{
 						if ( ( mp3DataBuffer[ offset ] == 'X' ) || ( mp3DataBuffer[ offset ] == 'I' ) || ( mp3DataBuffer[ offset ] == 'V' ) )
 						{
@@ -294,7 +294,7 @@ namespace CoreMP
 					int bitRate = BitRate( rawVersion, rawLayer, rawRate );
 					if ( bitRate > 0 )
 					{
-						duration = ( ( ( int )reader.BaseStream.Length - startOfMP3Data ) * 8 ) / bitRate;
+						duration =  ( ( int )reader.BaseStream.Length - startOfMP3Data ) * 8  / bitRate;
 					}
 					else
 					{
@@ -308,7 +308,7 @@ namespace CoreMP
 					// VBR
 					if ( sampleRate > 0 )
 					{
-						duration = ( ( ( ( int )noFrames + 1 ) * SamplesPerFrame( rawVersion, rawLayer ) ) / sampleRate );
+						duration = (  ( ( int )noFrames + 1 ) * SamplesPerFrame( rawVersion, rawLayer )  / sampleRate );
 					}
 				}
 			}
@@ -332,7 +332,7 @@ namespace CoreMP
 		private static void ReadFrames( BinaryReader reader, int majorVersion, int maxPosition, MP3Tags tags )
 		{
 			// These are the tags that are currently being searched for
-			HashSet<string> requiredTags = ( majorVersion == 2 ) ? new HashSet<string>() { "TP1", "TP2", "TT2", "TAL", "TRK", "TYE", "TCO" } 
+			HashSet<string> requiredTags = ( majorVersion == 2 ) ? new HashSet<string>() { "TP1", "TP2", "TT2", "TAL", "TRK", "TYE", "TCO" }
 					: new HashSet<string>() { "TPE1", "TPE2", "TIT2", "TALB", "TRCK", "TYER", "TCON" };
 
 			int nameSize = ( majorVersion == 2 ) ? 3 : 4;
@@ -361,14 +361,14 @@ namespace CoreMP
 					Logger.Log( string.Format( "Frame {0}, size {1}", frameName, frameSize ) );
 
 					// Skip a couple of bytes and then read the frame contents
-					reader.ReadByte();
-					reader.ReadByte();
+					_ = reader.ReadByte();
+					_ = reader.ReadByte();
 
 					// Only store if it is one of the required tags
 					if ( requiredTags.Contains( frameName ) == true )
 					{
 						frames[ frameName ] = ( frameSize > 0 ) ? reader.ReadBytes( ( int )frameSize ) : new byte[ 0 ];
-						requiredTags.Remove( frameName );
+						_ = requiredTags.Remove( frameName );
 						endOfTags = ( requiredTags.Count == 0 );
 					}
 					else
@@ -377,7 +377,7 @@ namespace CoreMP
 						if ( frameSize > 0 )
 						{
 							Logger.Log( string.Format( "Position before skipping {0} bytes is {1}", frameSize, reader.BaseStream.Position ) );
-							reader.ReadBytes( ( int )frameSize );
+							_ =	reader.ReadBytes( ( int )frameSize );
 							Logger.Log( string.Format( "Position after skipping bytes {0}", reader.BaseStream.Position ) );
 						}
 					}
@@ -418,7 +418,7 @@ namespace CoreMP
 		/// <returns></returns>
 		private static ulong ReadEncodedSize( BinaryReader reader, int noBytes )
 		{
-			ulong size = 0;
+			ulong size;
 
 			byte[] tagSize = reader.ReadBytes( noBytes );
 			byte[] bytes = new byte[ noBytes ];
@@ -452,7 +452,7 @@ namespace CoreMP
 		/// <returns></returns>
 		private static ulong ReadFrameSize( BinaryReader reader, int noBytes, int majorVersion )
 		{
-			ulong size = 0;
+			ulong size;
 
 			byte[] tagSize = reader.ReadBytes( noBytes );
 

@@ -6,7 +6,7 @@ namespace DBTest
 	/// <summary>
 	/// The BaseBoundControl class provides a couple of binding interfaces, one of whioch derived types can override
 	/// </summary>
-	class BaseBoundControl : Java.Lang.Object
+	internal class BaseBoundControl : Java.Lang.Object
 	{
 		/// <summary>
 		/// Allow derived classes to bind to the menu

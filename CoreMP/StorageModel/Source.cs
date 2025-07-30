@@ -104,13 +104,7 @@ namespace CoreMP
 		/// <summary>
 		/// Get all of the songs associated with this source
 		/// </summary>
-		public void GetSongs()
-		{
-			if ( Songs == null )
-			{
-				Songs = CoreMP.Songs.GetSourceSongs( Id );
-			}
-		}
+		public void GetSongs() => Songs ??= CoreMP.Songs.GetSourceSongs( Id );
 
 		/// <summary>
 		/// The source used when scanning - derived from above
@@ -144,10 +138,7 @@ namespace CoreMP
 		{
 			get
 			{
-				if ( localIPAddress == null )
-				{
-					localIPAddress = GetLocalIPv4();
-				}
+				localIPAddress ??= GetLocalIPv4();
 
 				return localIPAddress;
 			}
@@ -173,6 +164,7 @@ namespace CoreMP
 					}
 				}
 			}
+
 			return output;
 		}
 

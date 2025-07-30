@@ -23,7 +23,7 @@ namespace DBTest
 					cancelHasBeenRequested = false;
 					commandState = CommandStateType.Scanning;
 
-					MainApp.CommandInterface.ScanLibrary( libraryBeingScanned, 
+					MainApp.CommandInterface.ScanLibrary( libraryBeingScanned,
 						scanFinished: () =>
 						{
 							// If the ScanProgressDialog is being displayed then dismiss it and tell the user the process has finisished
@@ -36,7 +36,7 @@ namespace DBTest
 							{
 								commandState = CommandStateType.ScanComplete;
 							}
-						}, 
+						},
 						scanCancelledCheck: () => cancelHasBeenRequested );
 
 					ScanProgressDialog.Show( libraryBeingScanned.Name, cancelAction: () => cancelHasBeenRequested = true, BindDialog );

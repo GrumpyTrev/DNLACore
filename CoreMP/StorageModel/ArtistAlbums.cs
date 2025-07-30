@@ -51,7 +51,7 @@ namespace CoreMP
 		/// <returns></returns>
 		public static void DeleteArtistAlbums( IEnumerable<ArtistAlbum> artistAlbumsToDelete )
 		{
-			foreach( ArtistAlbum artAlbum in artistAlbumsToDelete )
+			foreach ( ArtistAlbum artAlbum in artistAlbumsToDelete )
 			{
 				DeleteArtistAlbum( artAlbum );
 			}

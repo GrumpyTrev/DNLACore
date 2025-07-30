@@ -1,6 +1,6 @@
-﻿using Android.Views;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Android.Views;
 
 namespace DBTest
 {
@@ -44,7 +44,7 @@ namespace DBTest
 				CommandHandler handler = CommandRouter.GetHandlerForCommand( menuPair.Key );
 				if ( handler != null )
 				{
-					menuPair.Value.SetVisible( handler.IsSelectionValidForCommand( selectedObjects, menuPair.Key ) == true );
+					_ = menuPair.Value.SetVisible( handler.IsSelectionValidForCommand( selectedObjects, menuPair.Key ) == true );
 				}
 			}
 		}
@@ -52,6 +52,6 @@ namespace DBTest
 		/// <summary>
 		/// Collection of menu items indexed by id
 		/// </summary>
-		private readonly Dictionary< int, IMenuItem > MenuItems = new();
+		private readonly Dictionary<int, IMenuItem> MenuItems = [];
 	}
 }

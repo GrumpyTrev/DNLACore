@@ -15,7 +15,7 @@ using Android.Views;
 namespace DBTest
 {
 	[Activity( Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true )]
-	public class MainActivity: AppCompatActivity
+	public class MainActivity : AppCompatActivity
 	{
 		/// <summary>
 		/// Called to create the UI components of the activity
@@ -63,7 +63,7 @@ namespace DBTest
 			if ( ContextCompat.CheckSelfPermission( this, Manifest.Permission.WriteExternalStorage ) != Permission.Granted )
 			{
 				// Request the permission
-				ActivityCompat.RequestPermissions( this, [Manifest.Permission.WriteExternalStorage], 1 );
+				ActivityCompat.RequestPermissions( this, [ Manifest.Permission.WriteExternalStorage ], 1 );
 			}
 			else
 			{
@@ -85,7 +85,7 @@ namespace DBTest
 				if ( ( grantResults.Length == 1 ) && ( grantResults[ 0 ] == Permission.Granted ) )
 				{
 					MainApp.StoragePermissionGranted();
-				}	
+				}
 			}
 			else
 			{
@@ -153,13 +153,13 @@ namespace DBTest
 		private void InitialiseFragments()
 		{
 			// Create the fragments and give them titles
-			Android.Support.V4.App.Fragment[] fragments = 
+			Android.Support.V4.App.Fragment[] fragments =
 				[
 					new ArtistsFragment(), new AlbumsFragment(), new PlaylistsFragment(), new NowPlayingFragment()
 				];
 
 			// Initialise the Fragment titles class
-			FragmentTitles.SetInitialTitles( ["Artists", "Albums", "Playlists", "Now Playing"], fragments );
+			FragmentTitles.SetInitialTitles( [ "Artists", "Albums", "Playlists", "Now Playing" ], fragments );
 
 			// Get the ViewPager and link it to a TabsFragmentPagerAdapter
 			ViewPager viewPager = FindViewById<ViewPager>( Resource.Id.viewPager );

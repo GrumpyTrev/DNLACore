@@ -34,7 +34,7 @@ namespace CoreMP
 		/// </summary>
 		/// <exception cref="NotImplementedException"></exception>
 		public override void Clear() => throw new NotImplementedException();
-	
+
 		/// <summary>
 		/// Delete an item from the database and the collection.
 		/// Don't wait for the deletion

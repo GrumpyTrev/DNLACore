@@ -39,7 +39,7 @@
 		private static Song songPlaying = null;
 		public static Song SongPlaying
 		{
-			get => songPlaying; 
+			get => songPlaying;
 			set
 			{
 				songPlaying = value;
@@ -53,7 +53,7 @@
 		private static bool isPlaying = false;
 		public static bool IsPlaying
 		{
-			get => isPlaying; 
+			get => isPlaying;
 			set
 			{
 				isPlaying = value;

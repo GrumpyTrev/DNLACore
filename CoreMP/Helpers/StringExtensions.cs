@@ -1,5 +1,4 @@
 ﻿namespace CoreMP
-
 {
 	public static class StringExtensions
 	{
@@ -16,12 +15,11 @@
 			int index = stringToTrim.ToUpper().IndexOf( stringToFind.ToUpper() );
 			if ( index != -1 )
 			{
-				trimmedString = stringToTrim.Substring( index + stringToFind.Length );
+				trimmedString = stringToTrim[ ( index + stringToFind.Length ).. ];
 			}
 
 			return trimmedString;
 		}
-
 
 		/// <summary>
 		/// Extension method to trim a string after and including a target string
@@ -36,7 +34,7 @@
 			int index = stringToTrim.ToUpper().IndexOf( stringToFind.ToUpper() );
 			if ( index != -1 )
 			{
-				trimmedString = stringToTrim.Substring( 0, index );
+				trimmedString = stringToTrim[ ..index ];
 			}
 
 			return trimmedString;
@@ -47,8 +45,8 @@
 		/// </summary>
 		/// <param name="subject"></param>
 		/// <returns></returns>
-		public static string RemoveThe( this string subject ) => 
-			( subject.ToUpper().StartsWith( "THE " ) == true ) ? subject.Substring( 4 ) : subject;
+		public static string RemoveThe( this string subject ) =>
+			( subject.ToUpper().StartsWith( "THE " ) == true ) ? subject[ 4.. ] : subject;
 
 		/// <summary>
 		/// Remove a leading 'Alt. ' from the string
@@ -56,6 +54,6 @@
 		/// <param name="subject"></param>
 		/// <returns></returns>
 		public static string RemoveAlt( this string subject ) =>
-			( subject.ToUpper().StartsWith( "ALT. " ) == true ) ? subject.Substring( 5 ) : subject;
+			( subject.ToUpper().StartsWith( "ALT. " ) == true ) ? subject[ 5.. ] : subject;
 	}
 }

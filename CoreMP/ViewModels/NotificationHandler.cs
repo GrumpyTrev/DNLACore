@@ -33,7 +33,7 @@ namespace CoreMP
 		/// <param name="callback"></param>
 		/// <param name="uniqueId"></param>
 		/// <param name="filePath"></param>
-		public static void Register<T>( string[] propertyNames, NotificationDelegate callback, string uniqueId = "", 
+		public static void Register<T>( string[] propertyNames, NotificationDelegate callback, string uniqueId = "",
 			[CallerFilePath] string filePath = "" )
 		{
 			foreach ( string propertyName in propertyNames )
@@ -63,13 +63,13 @@ namespace CoreMP
 		/// Deregister all notifications for the calling class
 		/// </summary>
 		/// <param name="filePath"></param>
-		public static void Deregister( string uniqueId = "", [ CallerFilePath] string filePath = "" )
+		public static void Deregister( string uniqueId = "", [CallerFilePath] string filePath = "" )
 		{
 			// Get the file name (class name ) from the filePath and unique id
 			string callerClassName = GetFileNameWithoutExtension( filePath ) + uniqueId;
 
 			// Remove the registrations recorded against this class
-			foreach( Tuple<string, DelegateContainer> registration in whoMadeRegistration[ callerClassName ] )
+			foreach ( Tuple<string, DelegateContainer> registration in whoMadeRegistration[ callerClassName ] )
 			{
 				_ = registrations.RemoveValue( registration.Item1, registration.Item2 );
 			}
@@ -122,13 +122,13 @@ namespace CoreMP
 			string className = GetFileNameWithoutExtension( filePath );
 
 			// Is this the first notification for this class
-			if ( savedNotifications.ContainsKey( className ) == false)
+			if ( savedNotifications.ContainsKey( className ) == false )
 			{
 				savedNotifications[ className ] = new Dictionary<string, object>();
 			}
 
 			// Add the new property change notification
-			savedNotifications[ className ][propertyName] = sender;
+			savedNotifications[ className ][ propertyName ] = sender;
 		}
 
 		/// <summary>
@@ -208,7 +208,7 @@ namespace CoreMP
 		/// <summary>
 		/// Dictionary of changed properties associated with notifying classes 
 		/// </summary>
-		private static readonly Dictionary<string, Dictionary<string, object>> savedNotifications = 
+		private static readonly Dictionary<string, Dictionary<string, object>> savedNotifications =
 			new Dictionary<string, Dictionary<string, object>>();
 
 		/// <summary>

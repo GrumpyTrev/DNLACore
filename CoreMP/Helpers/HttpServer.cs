@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CoreMP
@@ -14,7 +14,7 @@ namespace CoreMP
 		/// <summary>
 		/// Dictionary of mime mappings
 		/// </summary>
-		private static readonly IDictionary<string, string> _mimeTypeMappings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
+		private static readonly IDictionary<string, string> _mimeTypeMappings = new Dictionary<string, string>( StringComparer.InvariantCultureIgnoreCase ) {
 			{".asf", "video/x-ms-asf"},
 			{".asx", "video/x-ms-asf"},
 			{".avi", "video/x-msvideo"},
@@ -114,9 +114,7 @@ namespace CoreMP
 				{
 					HttpListenerContext context = await listener.GetContextAsync();
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-					Task.Factory.StartNew( () => Process( context ) );
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+					_ = Task.Factory.StartNew( () => Process( context ) );
 				}
 			}
 			catch ( ObjectDisposedException )

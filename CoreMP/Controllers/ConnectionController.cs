@@ -4,7 +4,7 @@ namespace CoreMP
 {
 	internal class ConnectionController
 	{
-		public void InitialiseConnection(string storageName )
+		public void InitialiseConnection( string storageName )
 		{
 			// The synchronous and aynchronous connectionn
 			ConnectionDetailsModel.SynchConnection = new SQLiteConnection( storageName );

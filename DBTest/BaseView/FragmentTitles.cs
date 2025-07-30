@@ -1,10 +1,10 @@
-﻿using Android.Runtime;
+﻿using System;
+using System.Collections.Generic;
+using Android.Runtime;
 using Android.Support.Design.Widget;
 using Android.Support.V4.App;
 using Android.Support.V4.View;
 using Android.Support.V7.App;
-using System;
-using System.Collections.Generic;
 
 namespace DBTest
 {
@@ -59,7 +59,7 @@ namespace DBTest
 					FragmentTitlesModel.Titles[ position ] = ( append.Length == 0 ) ? FragmentTitlesModel.InitialTitles[ position ] :
 						string.Format( "{0}{1}", FragmentTitlesModel.InitialTitles[ position ], append );
 
-					layout.GetTabAt( position ).SetText( FragmentTitlesModel.Titles[ position ] );
+					_ = layout.GetTabAt( position ).SetText( FragmentTitlesModel.Titles[ position ] );
 				}
 			}
 		}
@@ -72,11 +72,10 @@ namespace DBTest
 			private get => parentActivity;
 			set
 			{
-				// If the activity is being set now save the page adapter and tab layout controls for later
+				// If the activity is being set now save the tab layout control for later
 				if ( value != null )
 				{
 					parentActivity = value;
-					pageAdapter = ( TabsFragmentPagerAdapter )parentActivity.FindViewById<ViewPager>( Resource.Id.viewPager ).Adapter;
 					layout = parentActivity.FindViewById<TabLayout>( Resource.Id.sliding_tabs );
 				}
 			}
@@ -86,11 +85,6 @@ namespace DBTest
 		/// The Activity used to access the controls necessary to set the titles dynamically
 		/// </summary>
 		private static AppCompatActivity parentActivity = null;
-
-		/// <summary>
-		/// The Adapter holding the current tabbed fragments
-		/// </summary>
-		private static TabsFragmentPagerAdapter pageAdapter = null;
 
 		/// <summary>
 		/// The TabLayout control holding the titles
@@ -116,6 +110,6 @@ namespace DBTest
 		/// <summary>
 		/// Lookup table to associate a fragment class type with its tab position
 		/// </summary>
-		internal static Dictionary<Type, int> FragmentLookup { get; } = new Dictionary<Type, int>();
+		internal static Dictionary<Type, int> FragmentLookup { get; } = [];
 	}
 }

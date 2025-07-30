@@ -22,7 +22,7 @@ namespace CoreMP
 			// Keep track of any PlaylistItems with no contents
 			List<PlaylistItem> orphanPlaylistItems = new List<PlaylistItem>();
 
-			foreach ( AlbumPlaylistItem playlistItem in possiblePlaylistItems )
+			foreach ( AlbumPlaylistItem playlistItem in possiblePlaylistItems.Cast<AlbumPlaylistItem>() )
 			{
 				playlistItem.Album = Albums.GetAlbumById( playlistItem.AlbumId );
 
@@ -95,7 +95,7 @@ namespace CoreMP
 
 				// Reindex the existing items and reset the index
 				int itemIndex = 0;
-				foreach ( AlbumPlaylistItem playlistItem in PlaylistItems )
+				foreach ( AlbumPlaylistItem playlistItem in PlaylistItems.Cast<AlbumPlaylistItem>() )
 				{
 					if ( playlistItem.Index != itemIndex )
 					{
@@ -160,7 +160,7 @@ namespace CoreMP
 			int startingIndex = ( resume == true ) ? SongIndex : 0;
 
 			int albumIndex = 0;
-			foreach ( AlbumPlaylistItem albumPlaylistItem in PlaylistItems )
+			foreach ( AlbumPlaylistItem albumPlaylistItem in PlaylistItems.Cast<AlbumPlaylistItem>() )
 			{
 				// Only add songs to the list if the correct album has been reached
 				if ( albumIndex >= GetGroupFromTag( startingIndex ) )

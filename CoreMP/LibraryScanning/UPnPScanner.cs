@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -58,7 +57,7 @@ namespace CoreMP
 							// Only go down into containers if their type is 'object.container.storageFolder', or its the top level
 							if ( ( item.@class == "object.container.storageFolder" ) || ( directoryLevel == 0 ) )
 							{
-								await ScanDirectory( item.id, directoryLevel + 1, ( item.@class == "object.container.storageFolder" ), 
+								await ScanDirectory( item.id, directoryLevel + 1, ( item.@class == "object.container.storageFolder" ),
 									int.Parse( item.childCountContainer ) );
 							}
 						}
@@ -129,7 +128,7 @@ namespace CoreMP
 								{
 									// The path associated with the song may have changed
 									Song songToCheck = storageInterface.GetSongFromPath( songKey );
-									if ( (songToCheck != null ) && ( songToCheck.Path != filePath ) )
+									if ( ( songToCheck != null ) && ( songToCheck.Path != filePath ) )
 									{
 										songToCheck.Path = filePath;
 									}

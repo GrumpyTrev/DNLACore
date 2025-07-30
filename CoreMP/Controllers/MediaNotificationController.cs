@@ -11,7 +11,7 @@
 		public MediaNotificationController()
 		{
 			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.IsPlaying ), () => MediaNotificationViewModel.IsPlaying = PlaybackModel.IsPlaying );
-			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.SongStarted ),  
+			NotificationHandler.Register<PlaybackModel>( nameof( PlaybackModel.SongStarted ),
 				( songStarted ) => MediaNotificationViewModel.SongStarted = ( ( bool )songStarted == true ) ? PlaybackModel.SongPlaying : null );
 		}
 	}

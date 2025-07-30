@@ -33,7 +33,7 @@ namespace DBTest
 		/// <summary>
 		/// Empty constructor required for DialogFragment
 		/// </summary>
-		public SelectDeviceDialogFragment() {}
+		public SelectDeviceDialogFragment() { }
 
 		/// <summary>
 		/// Create the dialogue	
@@ -49,7 +49,7 @@ namespace DBTest
 				.SetSingleChoiceItems(
 					new ArrayAdapter<string>( Context, Resource.Layout.select_dialog_singlechoice_material, Android.Resource.Id.Text1, devices ),
 					initialDeviceIndex,
-					new EventHandler<DialogClickEventArgs>( delegate ( object sender, DialogClickEventArgs e ) 
+					new EventHandler<DialogClickEventArgs>( delegate ( object sender, DialogClickEventArgs e )
 					{
 						// Only select the device if it has changed
 						if ( e.Which != initialDeviceIndex )

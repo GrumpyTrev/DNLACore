@@ -316,7 +316,7 @@ namespace DBTest
 		/// <param name="firstVisibleItem"></param>
 		/// <param name="visibleItemCount"></param>
 		/// <param name="totalItemCount"></param>
-		public void OnScroll( AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount ) {}
+		public void OnScroll( AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount ) { }
 
 		/// <summary>
 		/// Called when the scroll has started or stopped. Report user action
@@ -373,7 +373,7 @@ namespace DBTest
 		/// <summary>
 		/// Called when the user activity has changed state
 		/// </summary>
-		protected virtual void UserActivityChanged() {}
+		protected virtual void UserActivityChanged() { }
 
 		/// <summary>
 		/// Derived classes must implement this method to provide a view for a child item
@@ -478,7 +478,7 @@ namespace DBTest
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <param name="groupPosition"></param>
-		protected virtual void GroupCollapseStateChanged( ExpandableListView parent, int groupPosition ) {}
+		protected virtual void GroupCollapseStateChanged( ExpandableListView parent, int groupPosition ) { }
 
 		/// <summary>
 		/// By default a long click turns on Action mode and selects the item clicked. 
@@ -792,7 +792,7 @@ namespace DBTest
 				// If the group selection has changed then tell the derived classes
 				if ( UpdateGroupSelectionState( groupPosition, selected ) == true )
 				{
-					_ =	GroupSelectionHasChanged( groupPosition, selected );
+					_ = GroupSelectionHasChanged( groupPosition, selected );
 				}
 			}
 

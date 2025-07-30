@@ -63,7 +63,7 @@ namespace DBTest
 			UpdateButtonStates();
 
 			// Install a handler for the cancel button so that a cancel can be scheduled rather than acted upon immediately
-			setStatesButton.Click += ( sender, args ) => 
+			setStatesButton.Click += ( sender, args ) =>
 			{
 				bool allSelected = SelectionRecord.All( sel => sel );
 
@@ -104,15 +104,15 @@ namespace DBTest
 			SelectionRecord = selected;
 
 			// The spinner actually only contains a single value. When it is clicked on the dialogue is shown over it.
-			Adapter = new ArrayAdapter<string>( viewContext, Resource.Layout.select_dialog_item_material, new string[] { ClosedSpinnerText() } );
+			Adapter = new ArrayAdapter<string>( viewContext, Resource.Layout.select_dialog_item_material, [ClosedSpinnerText()] );
 		}
 
 		/// <summary>
 		/// Called when the user has pressed OK.
 		/// Form a string from all the selected items and display that in the spinner
 		/// </summary>
-		private void ProcessSelections() => 
-			Adapter = new ArrayAdapter<String>( viewContext, Resource.Layout.select_dialog_item_material, new string[] { ClosedSpinnerText() } );
+		private void ProcessSelections() =>
+			Adapter = new ArrayAdapter<String>( viewContext, Resource.Layout.select_dialog_item_material, [ClosedSpinnerText()] );
 
 		/// <summary>
 		/// Determine the text to display when the spinner is closed
@@ -127,18 +127,18 @@ namespace DBTest
 			if ( SelectionRecord.All( sel => sel ) == false )
 			{
 				// Not all items are selected. Form a string from all the selected items
-				StringBuilder spinnerBuffer = new StringBuilder();
+				StringBuilder spinnerBuffer = new();
 				for ( int itemIndex = 0; itemIndex < items.Count; itemIndex++ )
 				{
 					if ( SelectionRecord[ itemIndex ] == true )
 					{
-						spinnerBuffer.Append( items[ itemIndex ] );
-						spinnerBuffer.Append( ", " );
+						_ = spinnerBuffer.Append( items[ itemIndex ] );
+						_ = spinnerBuffer.Append( ", " );
 					}
 				}
 
 				spinnerText = spinnerBuffer.ToString();
-				spinnerText = spinnerText.Substring( 0, spinnerText.Length - 2 );
+				spinnerText = spinnerText[ ..^2 ];
 			}
 
 			return spinnerText;

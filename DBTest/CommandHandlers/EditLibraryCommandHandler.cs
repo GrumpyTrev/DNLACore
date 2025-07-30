@@ -16,8 +16,8 @@ namespace DBTest
 		/// Called to handle the command. Show the library selection dialogue and pass on any selected librray to the SourceSelectionDialog
 		/// </summary>
 		/// <param name="commandIdentity"></param>
-		public override void HandleCommand( int _ ) => 
-			LibrarySelectionDialog.Show( "Select library to edit", -1, LibraryManagementViewModel.AvailableLibraries, 
+		public override void HandleCommand( int _ ) =>
+			LibrarySelectionDialog.Show( "Select library to edit", -1, LibraryManagementViewModel.AvailableLibraries,
 				selectionCallback: ( selectedLibrary ) =>
 
 					// Show a dialog so that a source can be selected for editing or a new source can be requested 
@@ -61,7 +61,7 @@ namespace DBTest
 		/// Confirm the deletion and 
 		/// </summary>
 		/// <param name="sourceToDelete"></param>
-		private void SourceDeleted( Source sourceToDelete, Action dismissDialogAction ) => 
+		private void SourceDeleted( Source sourceToDelete, Action dismissDialogAction ) =>
 			ConfirmationDialog.Show( "Are you sure you want to delete this source", () =>
 				{
 					// Delete the source

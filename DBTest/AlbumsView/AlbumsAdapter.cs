@@ -138,7 +138,7 @@ namespace DBTest
 			Album album = Groups[ groupPosition ];
 			string genreText = ( SortType != SortType.genre ) ? album.Genre : fastScrollSections[ FastScrollSectionLookup[ groupPosition ] ].Item1;
 
-			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, ActionMode, genreText );
+			( ( AlbumViewHolder )convertView.Tag ).DisplayAlbum( album, genreText );
 
 			return convertView;
 		}

@@ -9,7 +9,7 @@ namespace DBTest
 {
 	internal class SourceDisplayAdapter : BaseAdapter, AdapterView.IOnItemClickListener
 	{
-		public SourceDisplayAdapter( Context context, List< Source > sources, ListView parent, Action<Source> selectedAction )
+		public SourceDisplayAdapter( Context context, List<Source> sources, ListView parent, Action<Source> selectedAction )
 		{
 			inflator = ( LayoutInflater )context.GetSystemService( Context.LayoutInflaterService );
 			this.sources = sources;

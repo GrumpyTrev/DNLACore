@@ -21,7 +21,7 @@
 		private void UpdateSummaryModel()
 		{
 			SummaryDisplayViewModel.LibraryName = Libraries.GetLibraryById( Playback.LibraryIdentity ).Name;
-			SummaryDisplayViewModel.PlaybackName = DevicesModel.SelectedDevice.FriendlyName.Split(' ')[0];
+			SummaryDisplayViewModel.PlaybackName = DevicesModel.SelectedDevice.FriendlyName.Split( ' ' )[ 0 ];
 		}
 	}
 }

@@ -13,7 +13,7 @@ namespace CoreMP
 		/// <returns></returns>
 		public static void CollectionLoaded()
 		{
-			foreach( Source source in SourceCollection )
+			foreach ( Source source in SourceCollection )
 			{
 				source.InitialiseAccess();
 			}

@@ -31,7 +31,7 @@ namespace DBTest
 					Song currentSong = parentPlaylist.InProgressSong;
 					string artistName = ( parentPlaylist as AlbumPlaylist )?.InProgressAlbum.ArtistName ?? currentSong.Artist.Name;
 
-					ConfirmationDialog.Show( 
+					ConfirmationDialog.Show(
 						$"This playlist is currently playing '{currentSong.Title}' by '{artistName}'. Do you want to continue or start from the beginning?",
 						() => MainApp.CommandInterface.AddPlaylistToNowPlayingList( parentPlaylist, commandIdentity == Resource.Id.play_now, true ),
 						() => MainApp.CommandInterface.AddPlaylistToNowPlayingList( parentPlaylist, commandIdentity == Resource.Id.play_now, false ),
@@ -40,7 +40,7 @@ namespace DBTest
 				else
 				{
 					// This includes both SongPlaylistItem and AlbumPlaylistItem entries.
-					List<Song> selectedSongs = new();
+					List<Song> selectedSongs = [];
 					foreach ( PlaylistItem basePlaylistItem in selectedObjects.PlaylistItems )
 					{
 						if ( basePlaylistItem is AlbumPlaylistItem albumPlaylistItem )

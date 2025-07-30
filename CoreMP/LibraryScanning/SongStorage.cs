@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CoreMP
@@ -152,7 +151,7 @@ namespace CoreMP
 					matchedSong.ModifiedTime = song.Modified;
 					matchedSong.Title = song.Tags.Title;
 					matchedSong.Track = song.Track;
-					await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedSong );
+					_ = await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedSong );
 
 					// Check if the year or genre fields on the album needs updating
 					// Don't update the Album if it is a 'various artists' album as the these fields is not applicable
@@ -167,7 +166,7 @@ namespace CoreMP
 							if ( song.Year != 0 )
 							{
 								matchedAlbum.Year = song.Year;
-								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
+								_ = await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
 							}
 						}
 
@@ -177,7 +176,7 @@ namespace CoreMP
 							if ( ( matchedAlbum.Genre == null ) || ( matchedAlbum.Genre != song.Tags.Genre ) )
 							{
 								matchedAlbum.Genre = song.Tags.Genre;
-								await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
+								_ = await ConnectionDetailsModel.AsynchConnection.UpdateAsync( matchedAlbum );
 							}
 						}
 					}

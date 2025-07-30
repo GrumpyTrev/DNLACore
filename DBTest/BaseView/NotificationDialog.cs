@@ -1,6 +1,5 @@
 ﻿using Android.App;
 using Android.OS;
-
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = Android.Support.V4.App.DialogFragment;
 
@@ -18,7 +17,7 @@ namespace DBTest
 		/// <param name="title"></param>
 		public static void Show( string title )
 		{
-			NotificationDialog dialog = new () { Arguments = new Bundle() };
+			NotificationDialog dialog = new() { Arguments = new Bundle() };
 			dialog.Arguments.PutString( "title", title );
 			dialog.Show( CommandRouter.Manager, "fragment_notification_tag" );
 		}

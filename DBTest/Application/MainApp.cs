@@ -137,7 +137,7 @@ namespace DBTest
 		/// <summary>
 		/// Context to use for switching to the UI thread
 		/// </summary>
-		private static Handler UiSwitchingHandler { get; } = new( Looper.MainLooper ); 
+		private static Handler UiSwitchingHandler { get; } = new( Looper.MainLooper );
 
 		/// <summary>
 		/// THe one and only MainApp

@@ -1,8 +1,8 @@
-﻿using Android.Content;
+﻿using System;
+using Android.Content;
 using Android.Media;
 using Android.OS;
 using Android.Runtime;
-using System;
 using CoreMP;
 
 namespace DBTest
@@ -10,7 +10,7 @@ namespace DBTest
 	/// <summary>
 	/// The LocalPlayback class is used to control the local playing of music using an Android MusicPlayer component
 	/// </summary>
-	public class LocalPlayback: BasePlayback
+	public class LocalPlayback : BasePlayback
 	{
 		/// <summary>
 		/// Called when the class instance is first created
@@ -193,7 +193,7 @@ namespace DBTest
 				localPlayer.SetAudioStreamType( Stream.Music );
 			}
 
-			MediaPlayerInterface playInterface = new ( this );
+			MediaPlayerInterface playInterface = new( this );
 			localPlayer.SetOnPreparedListener( playInterface );
 			localPlayer.SetOnErrorListener( playInterface );
 			localPlayer.SetOnCompletionListener( playInterface );

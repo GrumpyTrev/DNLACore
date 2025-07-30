@@ -1,11 +1,11 @@
-﻿using Android.Widget;
-using CoreMP;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Android.Widget;
+using CoreMP;
 
 namespace DBTest
 {
-	public class ArtistsFragment: PagedFragment<object>, ExpandableListAdapter<object>.IGroupContentsProvider<object>
+	public class ArtistsFragment : PagedFragment<object>, ExpandableListAdapter<object>.IGroupContentsProvider<object>
 	{
 		/// <summary>
 		/// Default constructor required for system view hierarchy restoration
@@ -62,12 +62,12 @@ namespace DBTest
 		/// </summary>
 		protected override void PostViewCreateAction()
 		{
-			NotificationHandler.Register<ArtistsViewModel>( nameof( ModelAvailable.IsSet), DataAvailable );
-			NotificationHandler.Register<Album>( nameof(Album.Played), ( sender ) =>
+			NotificationHandler.Register<ArtistsViewModel>( nameof( ModelAvailable.IsSet ), DataAvailable );
+			NotificationHandler.Register<Album>( nameof( Album.Played ), ( sender ) =>
 			{
 				// Only process this album if it is in the same library as is being displayed
 				// It may be in another library if this is being called as part of a library synchronisation process
-				if ( ( ( Album ) sender).LibraryId == ArtistsViewModel.LibraryId )
+				if ( ( ( Album )sender ).LibraryId == ArtistsViewModel.LibraryId )
 				{
 					Adapter.NotifyDataSetInvalidated();
 				}

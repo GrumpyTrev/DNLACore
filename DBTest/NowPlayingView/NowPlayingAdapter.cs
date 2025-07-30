@@ -153,7 +153,7 @@ namespace DBTest
 		{
 			if ( moveUp == true )
 			{
-				adapterHandler.MoveSongUp( Groups[ ExpandableListView.GetPackedPositionGroup( itemPosition )] );
+				adapterHandler.MoveSongUp( Groups[ ExpandableListView.GetPackedPositionGroup( itemPosition ) ] );
 			}
 			else
 			{
@@ -228,7 +228,7 @@ namespace DBTest
 
 			// Display the Title, Duration and Artist
 			viewHolder = ( SongViewHolder )convertView.Tag;
-			viewHolder.DisplaySong( (SongPlaylistItem) Groups[ groupPosition ] );
+			viewHolder.DisplaySong( ( SongPlaylistItem )Groups[ groupPosition ] );
 
 			// Keep track of which item the SongViewHolder is displaying
 			viewHolder.ItemPosition = ExpandableListView.GetPackedPositionForGroup( groupPosition );
@@ -331,7 +331,7 @@ namespace DBTest
 		/// <summary>
 		/// Interface used to handler adapter request and state changes
 		/// </summary>
-		public interface IActionHandler: IAdapterEventHandler
+		public interface IActionHandler : IAdapterEventHandler
 		{
 			void SongSelected( int itemNo );
 
@@ -356,7 +356,7 @@ namespace DBTest
 			/// Highlight this item by showing the animation
 			/// </summary>
 			/// <param name="isPlaying"></param>
-			public void Highlight( bool isPlaying)
+			public void Highlight( bool isPlaying )
 			{
 				// Show the animation image. Only animate it if the the song is being played
 				Animation.Visibility = ViewStates.Visible;

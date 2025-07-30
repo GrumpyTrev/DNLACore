@@ -40,7 +40,7 @@ namespace CoreMP
 		/// <summary>
 		/// List of genres for each album ordered their index in GenreSortedAlbums
 		/// </summary>
-		public static List< string > AlbumIndexToGenreLookup { get; internal set; } = null;
+		public static List<string> AlbumIndexToGenreLookup { get; internal set; } = null;
 
 		/// <summary>
 		/// The list of albums for the current library that has been obtained from the database before any sorting or filtering
